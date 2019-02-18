@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'creator.files',
     'creator.studies',
+    'django_faker',
 ]
 
 MIDDLEWARE = [
