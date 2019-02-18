@@ -15,14 +15,12 @@ class FileNode(DjangoObjectType):
 class ObjectNode(DjangoObjectType):
     class Meta:
         model = Object
-        filter_fields = ['bucket', 'key', 'version_id']
+        filter_fields = ['key', 'version_id', 'created_at']
         interfaces = (relay.Node, )
 
 
 class Query(object):
     file_essence = relay.Node.Field(FileNode)
-    study_files = DjangoFilterConnectionField(FileNode)
     all_files = DjangoFilterConnectionField(FileNode)
 
-    file_version = relay.Node.Field(ObjectNode)
     all_versions = DjangoFilterConnectionField(ObjectNode)
