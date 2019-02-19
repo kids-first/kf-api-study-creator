@@ -1,3 +1,4 @@
+import pytz
 import factory
 import random
 from faker.providers import BaseProvider
@@ -19,6 +20,9 @@ class ObjectFactory(factory.DjangoModelFactory):
 
     key = factory.Faker('file_name')
     size = factory.Faker('pyint')
+    created_at = factory.Faker('date_time_between',
+                               start_date='-2y', end_date='now',
+                               tzinfo=pytz.UTC)
 
 
 class FileEssenceFactory(factory.DjangoModelFactory):

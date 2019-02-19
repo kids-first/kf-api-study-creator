@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from creator.studies.models import Study
 
 
@@ -32,7 +33,7 @@ class Object(models.Model):
     key = models.FileField(upload_to='uploads/',
                            help_text=('Field to track the storage location of '
                                       'the object'))
-    created_at = models.DateTimeField(auto_now_add=True,
+    created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
                                       help_text='Time the object was created')
     size = models.BigIntegerField(
