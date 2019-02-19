@@ -4,6 +4,10 @@ from creator.studies.models import Study
 
 
 class FileEssence(models.Model):
+    """
+    The 'essence' of a file. Describes the ideal data, which underlying
+    content may be iterated on as new 'versions'.
+    """
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=1000,
                                    help_text='Description of the file')
@@ -11,6 +15,14 @@ class FileEssence(models.Model):
                               related_name='files',
                               help_text='The study this file belongs to',
                               on_delete=models.CASCADE,)
+    file_type = models.CharField(
+            max_length=3,
+            choices=(
+                ('SAM', 'Sample Manifest'),
+                ('SHM', 'Shipping Manifest'),
+                ('CLN', 'Clinical Data'),
+                ('FAM', 'Familial Relationships')),
+            )
 
     def __str__(self):
         return f'{self.study.kf_id} - {self.name}'
