@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
-from creator.studies.models import Study
+from creator.studies.models import Batch
 
 
 class FileEssence(models.Model):
@@ -12,9 +12,9 @@ class FileEssence(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=1000,
                                    help_text='Description of the file')
-    study = models.ForeignKey(Study,
+    batch = models.ForeignKey(Batch,
                               related_name='files',
-                              help_text='The study this file belongs to',
+                              help_text='The batch this file belongs to',
                               on_delete=models.CASCADE,)
     file_type = models.CharField(
             max_length=3,
@@ -26,7 +26,7 @@ class FileEssence(models.Model):
             )
 
     def __str__(self):
-        return f'{self.study.kf_id} - {self.name}'
+        return f'{self.batch.study.kf_id} - {self.batch.name} - {self.name}'
 
 
 class Object(models.Model):
@@ -49,6 +49,7 @@ class Object(models.Model):
                                   on_delete=models.CASCADE,)
 
     def __str__(self):
-        return (f'{self.root_file.study.kf_id} '
+        return (f'{self.root_file.batch.study.kf_id} '
+                f'- {self.root_file.batch.name} '
                 f'- {self.root_file.name} '
                 f'- {self.key}')

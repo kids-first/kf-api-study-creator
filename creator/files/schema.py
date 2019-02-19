@@ -24,7 +24,7 @@ class ObjectNode(DjangoObjectType):
 class FileFilter(django_filters.FilterSet):
     class Meta:
         model = FileEssence
-        fields = ['name', 'study__name', 'study__kf_id', 'file_type']
+        fields = ['name', 'batch__name', 'file_type']
 
 
 class FileNode(DjangoObjectType):
