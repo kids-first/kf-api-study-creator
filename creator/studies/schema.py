@@ -8,7 +8,7 @@ from .models import Study
 class StudyNode(DjangoObjectType):
     class Meta:
         model = Study 
-        filter_fields = ['name', 'created_at']
+        filter_fields = ['name']
         interfaces = (relay.Node, )
 
 
