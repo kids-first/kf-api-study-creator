@@ -26,3 +26,11 @@ http://localhost:8080/graphql
 Data may also be added and modified through the Django admin dashboard.
 A Django superuser will be created with username `admin` and password `admin`.
 You can log in to the admin dashboard at http://localhost:8080/admin.
+
+## Documentation
+
+The below will build and auto-reload the documentation found within the
+`docs/` directory:
+```
+sphinx-autobuild docs/ build -p 8000
+```
