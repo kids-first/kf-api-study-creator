@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/study_creator.svg" alt="study creator logo" width="660px">
+  <img src="docs/_static/images/study_creator.svg" alt="study creator logo" width="660px">
 </p>
 <p align="center">
   <a href="https://github.com/kids-first/kf-api-study-creator/blob/master/LICENSE"><img src="https://img.shields.io/github/license/kids-first/kf-api-study-creator.svg?style=for-the-badge"></a>
@@ -26,3 +26,11 @@ http://localhost:8080/graphql
 Data may also be added and modified through the Django admin dashboard.
 A Django superuser will be created with username `admin` and password `admin`.
 You can log in to the admin dashboard at http://localhost:8080/admin.
+
+## Documentation
+
+The below will build and auto-reload the documentation found within the
+`docs/` directory:
+```
+sphinx-autobuild docs/ build -p 8000
+```
