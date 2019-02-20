@@ -3,6 +3,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/kids-first/kf-api-study-creator/blob/master/LICENSE"><img src="https://img.shields.io/github/license/kids-first/kf-api-study-creator.svg?style=for-the-badge"></a>
+  <a href="https://kids-first.github.io/kf-api-study-creator/"><img src="https://img.shields.io/readthedocs/pip.svg?style=for-the-badge"></a>
   <a href="https://circleci.com/gh/kids-first/kf-api-study-creator"><img src="https://img.shields.io/circleci/project/github/kids-first/kf-api-study-creator.svg?style=for-the-badge"></a>
 </p>
 
