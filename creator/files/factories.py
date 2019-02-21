@@ -2,7 +2,7 @@ import pytz
 import factory
 import random
 from faker.providers import BaseProvider
-from .models import FileEssence, Object
+from .models import File, Object
 from creator.studies.models import Study
 
 
@@ -25,9 +25,9 @@ class ObjectFactory(factory.DjangoModelFactory):
                                tzinfo=pytz.UTC)
 
 
-class FileEssenceFactory(factory.DjangoModelFactory):
+class FileFactory(factory.DjangoModelFactory):
     class Meta:
-        model = FileEssence
+        model = File
 
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)

@@ -5,7 +5,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
 
-from .models import FileEssence, Object
+from .models import File, Object
 
 from graphene_file_upload.scalars import Upload
 
@@ -25,7 +25,7 @@ class UploadMutation(graphene.Mutation):
             file object
         """
         study = Study.objects.get(kf_id=studyId)
-        file_ess = FileEssence(name=file.name, study=study)
+        file_ess = File(name=file.name, study=study)
         file_ess.save()
         obj = Object(size=file.size, root_file=file_ess, key=file)
         obj.save()
@@ -47,13 +47,13 @@ class ObjectNode(DjangoObjectType):
 
 class FileFilter(django_filters.FilterSet):
     class Meta:
-        model = FileEssence
+        model = File
         fields = ['name', 'study__kf_id', 'file_type']
 
 
 class FileNode(DjangoObjectType):
     class Meta:
-        model = FileEssence
+        model = File
         interfaces = (relay.Node, )
 
     versions = DjangoFilterConnectionField(
