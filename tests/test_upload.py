@@ -60,6 +60,7 @@ def test_upload_query_local(client, db, tmp_uploads_local):
         mutation ($file: Upload!, $studyId: String!) {
           createFile(file: $file, studyId: $studyId) {
             success
+            file { name }
           }
         }
     '''
@@ -92,7 +93,11 @@ def test_upload_query_local(client, db, tmp_uploads_local):
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' not in resp.json()
-    assert resp.json() == {'data': {'createFile': {'success': True}}}
+    assert resp.json() == {
+        'data': {
+            'createFile': {'success': True, 'file': {'name': 'manifest.txt'}}
+        }
+    }
     assert studies[-1].files.count() == 1
 
 
