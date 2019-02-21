@@ -21,7 +21,7 @@ class File(models.Model):
     file_type = models.CharField(
             max_length=3,
             choices=(
-                ('SAM', 'Sample Manifest'),
+                ('SEQ', 'Sequencing Manifest'),
                 ('SHM', 'Shipping Manifest'),
                 ('CLN', 'Clinical Data'),
                 ('FAM', 'Familial Relationships')),
