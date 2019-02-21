@@ -4,22 +4,35 @@ jobs:
     docker:
       - image: python:3
     steps:
-      - checkout
+      - checkout:
+          path: ~/workdir
       - run:
-          name: Test and deploy if master
+          name: Install dependencies
+          working_directory: ~/workdir
           command: |
             pip install -r requirements.txt
             pip install -r dev-requirements.txt
+      - run:
+          name: Test for formatting
+          working_directory: ~/workdir
+          command: |
             doc8 docs
+      - run:
+          name: Build docs site
+          working_directory: ~/workdir
+          command: |
             sphinx-build -W docs staged
+      - run:
+          name: Deploy if master branch
+          working_directory: ~/workdir
+          command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                touch staged/.nojekyll
+                touch .nojekyll
                 git config --global user.email "dankolbman@gmail.com"
                 git config --global user.name "Dan Kolbman"
+                mv staged/ ../
                 git checkout -b gh-pages
                 git pull origin gh-pages
-                mv staged ../
-                rm -r ./*
                 mv ../staged/* ./
                 git add -A .
                 git commit --allow-empty -m ":recycle: Update docs site"
