@@ -18,8 +18,9 @@ jobs:
                 git config --global user.name "Dan Kolbman"
                 git checkout -b gh-pages
                 git pull origin gh-pages
-                cp -r staged/* ./
-                rm -r staged
+                mv staged ../
+                rm -r ./*
+                mv ../staged/* ./
                 git add -A .
                 git commit --allow-empty -m ":recycle: Update docs site"
                 git push -q https://${GITHUB_TOKEN}@github.com/kids-first/kf-api-study-creator.git
