@@ -31,7 +31,7 @@ class FileFactory(factory.DjangoModelFactory):
 
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)
-    batch = factory.Iterator(Study.objects.all())
+    study = factory.Iterator(Study.objects.all())
     file_type = factory.Faker('file_type')
 
     @factory.post_generation
