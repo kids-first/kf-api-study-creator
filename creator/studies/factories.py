@@ -43,3 +43,4 @@ class StudyFactory(factory.DjangoModelFactory):
                                start_date='-2y', end_date='now',
                                tzinfo=pytz.UTC)
     bucket = factory.Faker('slug')
+    external_id = factory.Faker('slug')
