@@ -26,7 +26,7 @@ SECRET_KEY = 'q$ol+cu=#pp=bgni6d7rn$+$07(!q8g_=aep0w_n+rkhy5q060'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
 
@@ -40,11 +40,13 @@ INSTALLED_APPS = [
     'graphene_django',
     'creator.files',
     'creator.studies',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
