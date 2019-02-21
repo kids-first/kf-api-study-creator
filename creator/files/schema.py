@@ -31,6 +31,7 @@ class UploadMutation(graphene.Mutation):
         obj.save()
         return UploadMutation(success=True)
 
+
 class ObjectFilter(django_filters.FilterSet):
     class Meta:
         model = Object

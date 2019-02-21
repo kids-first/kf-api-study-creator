@@ -7,7 +7,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # Positional arguments
-        parser.add_argument('-n', 
+        parser.add_argument('-n',
                             help='number of files to make',
                             type=int)
 

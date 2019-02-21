@@ -7,7 +7,7 @@ from .models import Study, Batch
 
 class StudyNode(DjangoObjectType):
     class Meta:
-        model = Study 
+        model = Study
         filter_fields = ['name']
         interfaces = (relay.Node, )
 
@@ -24,4 +24,4 @@ class Query(object):
     all_studies = DjangoFilterConnectionField(StudyNode)
 
     batch = relay.Node.Field(BatchNode)
-    all_batches  = DjangoFilterConnectionField(BatchNode)
+    all_batches = DjangoFilterConnectionField(BatchNode)

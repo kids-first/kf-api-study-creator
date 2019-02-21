@@ -1,6 +1,7 @@
 import pytest
 from creator.studies.factories import StudyFactory
 
+
 def test_schema_query(client, db):
     query = '''
         {__schema {
@@ -13,10 +14,15 @@ def test_schema_query(client, db):
     query_data = {
         "query": query.strip()
     }
-    resp = client.post('/graphql', data=query_data, content_type='application/json')
+    resp = client.post(
+        '/graphql',
+        data=query_data,
+        content_type='application/json'
+    )
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert '__schema' in resp.json()['data']
+
 
 def test_study_query(client, db):
     studies = StudyFactory.create_batch(5)
@@ -34,7 +40,11 @@ def test_study_query(client, db):
     query_data = {
         "query": query.strip()
     }
-    resp = client.post('/graphql', data=query_data, content_type='application/json')
+    resp = client.post(
+        '/graphql',
+        data=query_data,
+        content_type='application/json'
+    )
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'allStudies' in resp.json()['data']

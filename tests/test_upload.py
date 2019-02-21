@@ -2,8 +2,10 @@ import pytest
 import json
 from creator.studies.factories import StudyFactory, BatchFactory
 
+
 def test_upload():
     assert True
+
 
 def test_upload_query(client, db):
     StudyFactory.create_batch(1)
@@ -32,9 +34,10 @@ def test_upload_query(client, db):
         resp = client.post('/graphql', data=data)
     assert resp.status_code == 200
     assert 'data' in resp.json()
-    assert not 'errors' in resp.json()
+    assert 'errors' not in resp.json()
     assert resp.json() == {'data': {'createFile': {'success': True}}}
     assert batches[-1].files.count() == 1
+
 
 def test_batch_not_exist(client, db):
     query = '''
@@ -62,4 +65,5 @@ def test_batch_not_exist(client, db):
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' in resp.json()
-    assert resp.json()['errors'][0]['message'] == 'Batch matching query does not exist.'
+    expected = 'Batch matching query does not exist.'
+    assert resp.json()['errors'][0]['message'] == expected
