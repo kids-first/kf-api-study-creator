@@ -13,7 +13,12 @@ jobs:
             pip install -r requirements.txt
             pip install -r dev-requirements.txt
       - run:
-          name: Test for formatting
+          name: Run code tests
+          working_directory: ~/workdir
+          command: |
+            pytest
+      - run:
+          name: Lint documentation
           working_directory: ~/workdir
           command: |
             doc8 docs
