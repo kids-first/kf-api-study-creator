@@ -59,4 +59,4 @@ class Batch(models.Model):
 
 
     def __str__(self):
-        return self.kf_id
+        return self.name

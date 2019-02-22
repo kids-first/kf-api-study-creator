@@ -8,4 +8,7 @@ class Query(creator.files.schema.Query,
             graphene.ObjectType):
     pass
 
-schema = graphene.Schema(query=Query)
+class Mutation(graphene.ObjectType):
+    create_file = creator.files.schema.UploadMutation.Field()
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

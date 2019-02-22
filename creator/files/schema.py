@@ -7,6 +7,29 @@ from django_filters import OrderingFilter
 
 from .models import FileEssence, Object
 
+from graphene_file_upload.scalars import Upload
+
+from creator.studies.models import Batch
+
+
+class UploadMutation(graphene.Mutation):
+    class Arguments:
+        file = Upload(required=True)
+        batchId = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(self, info, file, batchId, **kwargs):
+        """
+            Uploads a file given a batchId and creates a new file essence and
+            file object
+        """
+        batch = Batch.objects.get(id=batchId)
+        file_ess = FileEssence(name=file.name, batch=batch)
+        file_ess.save()
+        obj = Object(size=file.size, root_file=file_ess, key=file)
+        obj.save()
+        return UploadMutation(success=True)
 
 class ObjectFilter(django_filters.FilterSet):
     class Meta:
