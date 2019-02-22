@@ -27,7 +27,6 @@ class Study(models.Model):
                               validators=[RegexValidator(BUCKET_RE)],
                               help_text='The s3 bucket name')
 
-
     def __str__(self):
         return self.kf_id
 
@@ -56,7 +55,6 @@ class Batch(models.Model):
                               related_name='batches',
                               help_text='The study this batch belongs to',
                               on_delete=models.CASCADE,)
-
 
     def __str__(self):
         return self.name

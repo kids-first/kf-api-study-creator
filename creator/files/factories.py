@@ -16,7 +16,7 @@ factory.Faker.add_provider(FileTypeProvider)
 
 class ObjectFactory(factory.DjangoModelFactory):
     class Meta:
-        model = Object 
+        model = Object
 
     key = factory.Faker('file_name')
     size = factory.Faker('pyint')
@@ -36,5 +36,5 @@ class FileEssenceFactory(factory.DjangoModelFactory):
 
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):
-        n = random.randint(1,5)
+        n = random.randint(1, 5)
         return ObjectFactory.create_batch(n, root_file=self)
