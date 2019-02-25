@@ -3,6 +3,9 @@ jobs:
   build:
     docker:
       - image: python:3
+        environment:
+          AWS_ACCESS_KEY_ID: foobar_secret
+          AWS_SECRET_ACCESS_KEY: foobar_secret
     steps:
       - checkout:
           path: ~/workdir
