@@ -21,13 +21,13 @@ class UploadMutation(graphene.Mutation):
 
     def mutate(self, info, file, studyId, **kwargs):
         """
-            Uploads a file given a studyId and creates a new file essence and
+            Uploads a file given a studyId and creates a new file and
             file object
         """
         study = Study.objects.get(kf_id=studyId)
-        file_ess = File(name=file.name, study=study)
-        file_ess.save()
-        obj = Object(size=file.size, root_file=file_ess, key=file)
+        new_file = File(name=file.name, study=study)
+        new_file.save()
+        obj = Object(size=file.size, root_file=new_file, key=file)
         obj.save()
         return UploadMutation(success=True)
 
@@ -63,7 +63,7 @@ class FileNode(DjangoObjectType):
 
 
 class Query(object):
-    file_essence = relay.Node.Field(FileNode)
+    file = relay.Node.Field(FileNode)
     all_files = DjangoFilterConnectionField(
         FileNode,
         filterset_class=FileFilter,
