@@ -41,6 +41,7 @@ def _get_upload_directory(instance, filename):
 
 class Object(models.Model):
     key = models.FileField(upload_to=_get_upload_directory,
+                           max_length=512,
                            help_text=('Field to track the storage location of '
                                       'the object'))
     created_at = models.DateTimeField(default=timezone.now,
