@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import FileEssence, Object
+from .models import File, Object
 
-admin.site.register(FileEssence)
+admin.site.register(File)
 admin.site.register(Object)

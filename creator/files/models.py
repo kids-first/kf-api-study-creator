@@ -4,7 +4,7 @@ from django.utils import timezone
 from creator.studies.models import Study
 
 
-class FileEssence(models.Model):
+class File(models.Model):
     """
     The 'essence' of a file. Describes the ideal data, which underlying
     content may be iterated on as new 'versions'.
@@ -42,7 +42,7 @@ class Object(models.Model):
             ],
             help_text='Size of the object in bytes')
 
-    root_file = models.ForeignKey(FileEssence,
+    root_file = models.ForeignKey(File,
                                   related_name='versions',
                                   help_text=('The file that this version '
                                              'object belongs to'),

@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from creator.files.factories import FileEssenceFactory
+from creator.files.factories import FileFactory
 
 
 class Command(BaseCommand):
@@ -15,4 +15,4 @@ class Command(BaseCommand):
         n = options.get('n')
         if not n:
             n = 5
-        r = FileEssenceFactory.create_batch(n)
+        r = FileFactory.create_batch(n)
