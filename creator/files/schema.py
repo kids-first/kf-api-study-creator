@@ -9,23 +9,23 @@ from .models import FileEssence, Object
 
 from graphene_file_upload.scalars import Upload
 
-from creator.studies.models import Batch
+from creator.studies.models import Study
 
 
 class UploadMutation(graphene.Mutation):
     class Arguments:
         file = Upload(required=True)
-        batchId = graphene.Int(required=True)
+        studyId = graphene.String(required=True)
 
     success = graphene.Boolean()
 
-    def mutate(self, info, file, batchId, **kwargs):
+    def mutate(self, info, file, studyId, **kwargs):
         """
-            Uploads a file given a batchId and creates a new file essence and
+            Uploads a file given a studyId and creates a new file essence and
             file object
         """
-        batch = Batch.objects.get(id=batchId)
-        file_ess = FileEssence(name=file.name, batch=batch)
+        study = Study.objects.get(kf_id=studyId)
+        file_ess = FileEssence(name=file.name, study=study)
         file_ess.save()
         obj = Object(size=file.size, root_file=file_ess, key=file)
         obj.save()
@@ -48,7 +48,7 @@ class ObjectNode(DjangoObjectType):
 class FileFilter(django_filters.FilterSet):
     class Meta:
         model = FileEssence
-        fields = ['name', 'batch__name', 'file_type']
+        fields = ['name', 'study__kf_id', 'file_type']
 
 
 class FileNode(DjangoObjectType):

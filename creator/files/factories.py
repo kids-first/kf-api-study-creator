@@ -3,7 +3,7 @@ import factory
 import random
 from faker.providers import BaseProvider
 from .models import FileEssence, Object
-from creator.studies.models import Batch
+from creator.studies.models import Study
 
 
 class FileTypeProvider(BaseProvider):
@@ -31,7 +31,7 @@ class FileEssenceFactory(factory.DjangoModelFactory):
 
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)
-    batch = factory.Iterator(Batch.objects.all())
+    batch = factory.Iterator(Study.objects.all())
     file_type = factory.Faker('file_type')
 
     @factory.post_generation
