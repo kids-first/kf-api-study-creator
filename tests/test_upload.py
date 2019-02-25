@@ -10,7 +10,7 @@ def test_upload():
     assert True
 
 
-def test_upload_query(client, db):
+def test_upload_query(client, db, tmp_uploads):
     studies = StudyFactory.create_batch(2)
     query = '''
         mutation ($file: Upload!, $studyId: String!) {
@@ -36,6 +36,10 @@ def test_upload_query(client, db):
         resp = client.post('/graphql', data=data)
 
     obj = Object.objects.first()
+    assert len(tmp_uploads.listdir()) == 1
+    assert (tmp_uploads.listdir()[0]
+                       .listdir()[0]
+                       .strpath.endswith('manifest.txt'))
     assert obj.key.path.startswith(
             os.path.join(
                 settings.UPLOAD_DIR,
