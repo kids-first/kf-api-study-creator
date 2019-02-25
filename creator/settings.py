@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graphene_django',
+    'django_s3_storage',
     'creator.files',
     'creator.studies',
     'corsheaders'
@@ -125,6 +126,16 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# Sets the file storage backend
+# Supports file system storage and s3 storage
+DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
+                          'django.core.files.storage.FileSystemStorage')
+
+# The relative path directory to upload files to when using file system storage
+# The object prefix to upload under when using S3 storage
+UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
+
+AWS_S3_BUCKET_NAME = 'kf-study-us-east-1-dev-sd-me0owme0w'

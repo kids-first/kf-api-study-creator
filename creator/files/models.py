@@ -1,3 +1,5 @@
+import os
+from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
@@ -29,8 +31,21 @@ class File(models.Model):
         return f'{self.batch.study.kf_id} - {self.batch.name} - {self.name}'
 
 
+def _get_upload_directory(instance, filename):
+    """
+    Resolves the directory where a file should be stored
+    """
+    if settings.DEFAULT_FILE_STORAGE == 'django_s3_storage.storage.S3Storage':
+        prefix = f'{settings.UPLOAD_DIR}/{filename}'
+        return prefix
+    else:
+        directory = f'{settings.UPLOAD_DIR}/{instance.root_file.study.bucket}/'
+        return os.path.join(settings.BASE_DIR, directory, filename)
+
+
 class Object(models.Model):
-    key = models.FileField(upload_to='uploads/',
+    key = models.FileField(upload_to=_get_upload_directory,
+                           max_length=512,
                            help_text=('Field to track the storage location of '
                                       'the object'))
     created_at = models.DateTimeField(default=timezone.now,

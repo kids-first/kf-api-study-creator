@@ -1,8 +1,10 @@
 import graphene
 import django_filters
+from django.conf import settings
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from django_s3_storage.storage import S3Storage
 from django_filters import OrderingFilter
 
 from .models import File, Object
@@ -21,13 +23,16 @@ class UploadMutation(graphene.Mutation):
 
     def mutate(self, info, file, studyId, **kwargs):
         """
-            Uploads a file given a studyId and creates a new file essence and
+            Uploads a file given a studyId and creates a new file and
             file object
         """
         study = Study.objects.get(kf_id=studyId)
-        file_ess = File(name=file.name, study=study)
-        file_ess.save()
-        obj = Object(size=file.size, root_file=file_ess, key=file)
+        new_file = File(name=file.name, study=study)
+        new_file.save()
+        obj = Object(size=file.size, root_file=new_file, key=file)
+        if (settings.DEFAULT_FILE_STORAGE ==
+                'django_s3_storage.storage.S3Storage'):
+            obj.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
         obj.save()
         return UploadMutation(success=True)
 
@@ -63,7 +68,7 @@ class FileNode(DjangoObjectType):
 
 
 class Query(object):
-    file_essence = relay.Node.Field(FileNode)
+    file = relay.Node.Field(FileNode)
     all_files = DjangoFilterConnectionField(
         FileNode,
         filterset_class=FileFilter,

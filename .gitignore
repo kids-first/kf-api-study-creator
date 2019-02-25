@@ -1,4 +1,6 @@
 __pycache__/
+test_uploads/
+uploads/
 venv/
 db.sqlite3
 *.swp
