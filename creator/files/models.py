@@ -35,8 +35,12 @@ def _get_upload_directory(instance, filename):
     """
     Resolves the directory where a file should be stored
     """
-    directory = f'{settings.UPLOAD_DIR}/{instance.root_file.study.bucket}/'
-    return os.path.join(directory, filename)
+    if settings.DEFAULT_FILE_STORAGE == 'django_s3_storage.storage.S3Storage':
+        prefix = f'{settings.UPLOAD_DIR}/{filename}'
+        return prefix
+    else:
+        directory = f'{settings.UPLOAD_DIR}/{instance.root_file.study.bucket}/'
+        return os.path.join(settings.BASE_DIR, directory, filename)
 
 
 class Object(models.Model):

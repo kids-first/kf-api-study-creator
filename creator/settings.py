@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graphene_django',
+    'django_s3_storage',
     'creator.files',
     'creator.studies',
     'corsheaders'
@@ -133,6 +134,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
                           'django.core.files.storage.FileSystemStorage')
 
-# Local relative directory where new files are uploaded
-# Only used when using FileSystemStorage
-UPLOAD_DIR = os.path.join(BASE_DIR, os.environ.get('UPLOAD_DIR', 'uploads'))
+# The relative path directory to upload files to when using file system storage
+# The object prefix to upload under when using S3 storage
+UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
+
+AWS_S3_BUCKET_NAME = 'kf-study-us-east-1-dev-sd-me0owme0w'

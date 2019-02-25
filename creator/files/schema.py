@@ -1,8 +1,10 @@
 import graphene
 import django_filters
+from django.conf import settings
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from django_s3_storage.storage import S3Storage
 from django_filters import OrderingFilter
 
 from .models import File, Object
@@ -28,6 +30,9 @@ class UploadMutation(graphene.Mutation):
         new_file = File(name=file.name, study=study)
         new_file.save()
         obj = Object(size=file.size, root_file=new_file, key=file)
+        if (settings.DEFAULT_FILE_STORAGE ==
+                'django_s3_storage.storage.S3Storage'):
+            obj.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
         obj.save()
         return UploadMutation(success=True)
 
