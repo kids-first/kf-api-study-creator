@@ -7,3 +7,4 @@ django-filter==2.1.0
 graphene-file-upload==1.2.2
 django-cors-headers==2.4.0
 django-dotenv==1.4.2
+django-s3-storage==0.12.4

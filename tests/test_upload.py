@@ -1,6 +1,9 @@
+import os
 import pytest
 import json
+from django.conf import settings
 from creator.studies.factories import StudyFactory
+from creator.files.models import Object
 
 
 def test_upload():
@@ -31,7 +34,13 @@ def test_upload_query(client, db):
             }),
         }
         resp = client.post('/graphql', data=data)
-        print(resp.json())
+
+    obj = Object.objects.first()
+    assert obj.key.path.startswith(
+            os.path.join(
+                settings.UPLOAD_DIR,
+                obj.root_file.study.bucket,
+                'manifest'))
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' not in resp.json()

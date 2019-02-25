@@ -125,6 +125,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# Sets the file storage backend
+# Supports file system storage and s3 storage
+DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
+                          'django.core.files.storage.FileSystemStorage')
+
+# Local relative directory where new files are uploaded
+# Only used when using FileSystemStorage
+UPLOAD_DIR = os.path.join(BASE_DIR, os.environ.get('UPLOAD_DIR', 'uploads'))
