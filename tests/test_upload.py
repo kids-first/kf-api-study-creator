@@ -1,6 +1,6 @@
 import pytest
 import json
-from creator.studies.factories import StudyFactory, BatchFactory
+from creator.studies.factories import StudyFactory
 
 
 def test_upload():
@@ -8,11 +8,10 @@ def test_upload():
 
 
 def test_upload_query(client, db):
-    StudyFactory.create_batch(1)
-    batches = BatchFactory.create_batch(2)
+    studies = StudyFactory.create_batch(2)
     query = '''
-        mutation ($file: Upload!, $batchId: Int!) {
-          createFile(file: $file, batchId: $batchId) {
+        mutation ($file: Upload!, $studyId: String!) {
+          createFile(file: $file, studyId: $studyId) {
             success
           }
         }
@@ -23,7 +22,7 @@ def test_upload_query(client, db):
                 'query': query.strip(),
                 'variables': {
                     'file': None,
-                    'batchId': batches[-1].id
+                    'studyId': studies[-1].kf_id
                 },
             }),
             'file': f,
@@ -32,17 +31,18 @@ def test_upload_query(client, db):
             }),
         }
         resp = client.post('/graphql', data=data)
+        print(resp.json())
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' not in resp.json()
     assert resp.json() == {'data': {'createFile': {'success': True}}}
-    assert batches[-1].files.count() == 1
+    assert studies[-1].files.count() == 1
 
 
-def test_batch_not_exist(client, db):
+def test_study_not_exist(client, db):
     query = '''
-        mutation ($file: Upload!, $batchId: Int!) {
-          createFile(file: $file, batchId: $batchId) {
+        mutation ($file: Upload!, $studyId: String!) {
+          createFile(file: $file, studyId: $studyId) {
             success
           }
         }
@@ -53,7 +53,7 @@ def test_batch_not_exist(client, db):
                 'query': query.strip(),
                 'variables': {
                     'file': None,
-                    'batchId': 10
+                    'studyId': 10
                 },
             }),
             'file': f,
@@ -65,5 +65,5 @@ def test_batch_not_exist(client, db):
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' in resp.json()
-    expected = 'Batch matching query does not exist.'
+    expected = 'Study matching query does not exist.'
     assert resp.json()['errors'][0]['message'] == expected
