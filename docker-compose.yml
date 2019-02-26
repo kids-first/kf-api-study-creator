@@ -3,7 +3,21 @@ version: '3'
 services:
   web:
     build: .
+    environment:
+      - PG_NAME=study-creator
+      - PG_USER=study-creator
+      - PG_PASS=password
+      - PG_HOST=postgres
+      - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
+      - AWS_ACCESS_KEY_ID=foo
+      - AWS_SECRET_ACCESS_KEY=bar
     volumes:
       - .:/app
     ports:
       - '8080:8080'
+  postgres:
+    image: postgres:10.6
+    environment:
+      - POSTGRES_DB=study-creator
+      - POSTGRES_USER=study-creator
+      - POSTGRES_PASSWORD=password

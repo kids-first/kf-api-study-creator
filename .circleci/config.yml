@@ -2,10 +2,19 @@ version: 2
 jobs:
   build:
     docker:
-      - image: python:3
+      - image: python:3.7
         environment:
-          AWS_ACCESS_KEY_ID: foobar_secret
-          AWS_SECRET_ACCESS_KEY: foobar_secret
+          - PG_USER=study-creator
+          - PG_PASS=password
+          - PG_HOST=localhost
+          - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
+          - AWS_ACCESS_KEY_ID=foobar_secret
+          - AWS_SECRET_ACCESS_KEY=foobar_secret
+      - image: circleci/postgres:10.6
+        environment:
+          - POSTGRES_DB=study-creator
+          - POSTGRES_USER=study-creator
+          - POSTGRES_PASSWORD=password
     steps:
       - checkout:
           path: ~/workdir
