@@ -26,6 +26,27 @@ class Study(models.Model):
     bucket = models.CharField(max_length=63,
                               validators=[RegexValidator(BUCKET_RE)],
                               help_text='The s3 bucket name')
+    modified_at = models.DateTimeField(auto_now=True,
+                                       null=False,
+                                       help_text='Time of last modification')
+    attribution = models.CharField(max_length=100,
+                                   null=True,
+                                   help_text=('Link to attribution prose'
+                                              ' provided by dbGaP'))
+    data_access_authority = models.CharField(max_length=30,
+                                             null=True)
+    external_id = models.CharField(max_length=30,
+                                   null=False,
+                                   help_text='dbGaP accession number')
+    release_status = models.CharField(max_length=30,
+                                      null=True,
+                                      help_text='Release status of the study')
+    short_name = models.CharField(max_length=50,
+                                  null=True,
+                                  help_text='Short name for study')
+    version = models.CharField(max_length=10,
+                               null=True,
+                               help_text='dbGaP version')
 
     def __str__(self):
         return self.kf_id
