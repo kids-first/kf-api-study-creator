@@ -14,12 +14,43 @@ from graphene_file_upload.scalars import Upload
 from creator.studies.models import Study
 
 
+class ObjectNode(DjangoObjectType):
+    class Meta:
+        model = Object
+        interfaces = (relay.Node, )
+
+
+class ObjectFilter(django_filters.FilterSet):
+    class Meta:
+        model = Object
+        fields = []
+    order_by = OrderingFilter(fields=('created_at',))
+
+
+class FileNode(DjangoObjectType):
+    class Meta:
+        model = File
+        interfaces = (relay.Node, )
+
+    versions = DjangoFilterConnectionField(
+        ObjectNode,
+        filterset_class=ObjectFilter,
+    )
+
+
+class FileFilter(django_filters.FilterSet):
+    class Meta:
+        model = File
+        fields = ['name', 'study__kf_id', 'file_type']
+
+
 class UploadMutation(graphene.Mutation):
     class Arguments:
         file = Upload(required=True)
         studyId = graphene.String(required=True)
 
     success = graphene.Boolean()
+    file = graphene.Field(FileNode)
 
     def mutate(self, info, file, studyId, **kwargs):
         """
@@ -34,37 +65,7 @@ class UploadMutation(graphene.Mutation):
                 'django_s3_storage.storage.S3Storage'):
             obj.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
         obj.save()
-        return UploadMutation(success=True)
-
-
-class ObjectFilter(django_filters.FilterSet):
-    class Meta:
-        model = Object
-        fields = []
-    order_by = OrderingFilter(fields=('created_at',))
-
-
-class ObjectNode(DjangoObjectType):
-    class Meta:
-        model = Object
-        interfaces = (relay.Node, )
-
-
-class FileFilter(django_filters.FilterSet):
-    class Meta:
-        model = File
-        fields = ['name', 'study__kf_id', 'file_type']
-
-
-class FileNode(DjangoObjectType):
-    class Meta:
-        model = File
-        interfaces = (relay.Node, )
-
-    versions = DjangoFilterConnectionField(
-        ObjectNode,
-        filterset_class=ObjectFilter,
-    )
+        return UploadMutation(success=True, file=new_file)
 
 
 class Query(object):
