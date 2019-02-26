@@ -8,7 +8,7 @@ from creator.studies.models import Study
 
 class FileTypeProvider(BaseProvider):
     def file_type(self):
-        return random.choice(['SAM', 'SHM', 'CLN', 'FAM'])
+        return random.choice(['SEQ', 'SHM', 'CLN', 'FAM'])
 
 
 factory.Faker.add_provider(FileTypeProvider)
