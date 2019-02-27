@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Development &mdash; Kids First Study Creator  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Model" href="../model.html" />
+    <link rel="prev" title="Kids First Study Creator" href="../index.html" />
+    <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
+ 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/study_creator.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developing-outside-docker">Developing Outside Docker</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../uploads.html">Uploads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kids First Study Creator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Development</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/development/quickstart.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="development">
+<h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="bootstrapping-the-database">
+<h2>Bootstrapping the Database<a class="headerlink" href="#bootstrapping-the-database" title="Permalink to this headline">¶</a></h2>
+<p>It’s often useful to have some data immediately available in the service
+when developing and testing. By default, the container run through
+<code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> will automatically populate the database with fake data
+that has been randomly generated.</p>
+<p>By changing the <code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA</span></code> environment variable, this behavior can be
+altered to a different strategy such as:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=FAKE</span></code> to fill with random, fake data</li>
+<li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=DATASERVICE</span></code> to populated with data from the default
+dataservice (production)</li>
+<li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=&lt;dataservice_url&gt;</span></code> to use the dataservice at the given
+url to generate data</li>
+<li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=false</span></code> to start with an empty database</li>
+</ul>
+</div></blockquote>
+<p>It may be required to restart the docker services after changing these
+variables so that the old data may be flushed. Restart by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose down
+docker-compose up
+</pre></div>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>It’s suggested to run tests within the docker container to ensure that the
+database and required services are running expectedly. This can be done with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose <span class="nb">exec</span> web pytest
+</pre></div>
+</div>
+<p>Make sure that the docker compose is up first.</p>
+</div>
+<div class="section" id="developing-outside-docker">
+<h2>Developing Outside Docker<a class="headerlink" href="#developing-outside-docker" title="Permalink to this headline">¶</a></h2>
+<p>Although the code directory is mounted directly to the docker image and
+the webserver running in debug mode to refresh on any code changes, there
+may be some instances when development needs to happen outside of the
+container.</p>
+<p>To install and run in the local enviorment, it’s suggested to use a virtual
+environment as below:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>virtualenv venv
+<span class="nb">source</span> venv/bin/activate
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
+</pre></div>
+</div>
+<p>It is again ideal to use docker to provide the database for development,
+this time running it alone:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run --name study-creator-pg -p <span class="m">5432</span>:5432 -d postgres:10.6
+</pre></div>
+</div>
+<p>Although running postgres on the baremetal will work too.
+The connection details for the database will then need to be altered either
+on the docker postgres side or the bucket creator side. The bucket creator
+can override its connection settings by changing the below to use the default
+postgres settings:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PG_NAME</span><span class="o">=</span>postgres
+<span class="nv">PG_USER</span><span class="o">=</span>postgres
+<span class="nv">PG_PASS</span><span class="o">=</span>postgres
+<span class="nv">PG_HOST</span><span class="o">=</span>localhost
+<span class="nv">PG_PORT</span><span class="o">=</span><span class="m">5432</span>
+</pre></div>
+</div>
+<p>Once these variables are in the environment, the new database will need to
+be migrated using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python manage.py migrate
+</pre></div>
+</div>
+<p>This will make sure the database has the latest schema. From here, tests
+may be run with <code class="docutils literal notranslate"><span class="pre">pytest</span></code> and the development server started with
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">runserver</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../model.html" class="btn btn-neutral float-right" title="Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../index.html" class="btn btn-neutral float-left" title="Kids First Study Creator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Kids First
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
