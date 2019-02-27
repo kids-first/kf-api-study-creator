@@ -8,7 +8,7 @@ from creator.files.models import Object, File
 from creator.studies.factories import StudyFactory
 
 
-def test_download(client, db, tmp_uploads_local, upload_file):
+def test_download_local(client, db, tmp_uploads_local, upload_file):
     studies = StudyFactory.create_batch(2)
     study_id = studies[-1].kf_id
     resp1 = upload_file(study_id, 'manifest.txt')
@@ -33,38 +33,14 @@ def test_download(client, db, tmp_uploads_local, upload_file):
 
 
 @mock_s3
-def test_download_s3(client, db, tmp_uploads_s3):
+def test_download_s3(client, db, tmp_uploads_s3, upload_file):
     s3 = boto3.client('s3')
     studies = StudyFactory.create_batch(2)
     bucket = tmp_uploads_s3(studies[0].bucket)
-
-    query = '''
-        mutation ($file: Upload!, $studyId: String!) {
-          createFile(file: $file, studyId: $studyId) {
-            success
-          }
-        }
-    '''
-    with open('tests/data/manifest.txt') as f:
-        data = {
-            'operations': json.dumps({
-                'query': query.strip(),
-                'variables': {
-                    'file': None,
-                    'studyId': studies[0].kf_id
-                },
-            }),
-            'file': f,
-            'map': json.dumps({
-                'file': ['variables.file'],
-            }),
-        }
-        resp = client.post('/graphql', data=data)
-
-    contents = s3.list_objects(Bucket=studies[0].bucket)['Contents']
-    assert resp.status_code == 200
     study_id = studies[0].kf_id
+    resp = upload_file(study_id, 'manifest.txt')
     file_id = File.objects.first().id
+    assert resp.status_code == 200
     resp = client.get(f'/download/study/{study_id}/file/{file_id}')
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
