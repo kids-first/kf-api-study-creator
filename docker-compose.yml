@@ -1,8 +1,10 @@
-version: '3'
+version: '3.4'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      target: dev
     environment:
       - PG_NAME=study-creator
       - PG_USER=study-creator
@@ -11,6 +13,8 @@ services:
       - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
       - AWS_ACCESS_KEY_ID=foo
       - AWS_SECRET_ACCESS_KEY=bar
+      # Options are: DATASERVICE, url of dataservice, or FAKE
+      - PRELOAD_DATA=FAKE
     volumes:
       - .:/app
     ports:
