@@ -9,39 +9,13 @@ from creator.studies.factories import StudyFactory
 from creator.files.models import Object
 
 
-def test_upload():
-    assert True
-
-
 @mock_s3
-def test_upload_query_s3(client, db, tmp_uploads_s3):
+def test_upload_query_s3(client, db, tmp_uploads_s3, upload_file):
     s3 = boto3.client('s3')
     studies = StudyFactory.create_batch(2)
+    study_id = studies[0].kf_id
     bucket = tmp_uploads_s3(studies[0].bucket)
-
-    query = '''
-        mutation ($file: Upload!, $studyId: String!) {
-          createFile(file: $file, studyId: $studyId) {
-            success
-          }
-        }
-    '''
-    with open('tests/data/manifest.txt') as f:
-        data = {
-            'operations': json.dumps({
-                'query': query.strip(),
-                'variables': {
-                    'file': None,
-                    'studyId': studies[0].kf_id
-                },
-            }),
-            'file': f,
-            'map': json.dumps({
-                'file': ['variables.file'],
-            }),
-        }
-        resp = client.post('/graphql', data=data)
-
+    resp = upload_file(study_id, 'manifest.txt')
     contents = s3.list_objects(Bucket=studies[0].bucket)['Contents']
     assert len(contents) == 1
     assert contents[0]['Key'].endswith('manifest.txt')
@@ -49,37 +23,19 @@ def test_upload_query_s3(client, db, tmp_uploads_s3):
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' not in resp.json()
-    assert resp.json() == {'data': {'createFile': {'success': True}}}
+    assert resp.json() == {
+        'data': {
+            'createFile': {'success': True, 'file': {'name': 'manifest.txt'}}
+        }
+    }
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
 
 
-def test_upload_query_local(client, db, tmp_uploads_local):
+def test_upload_query_local(client, db, tmp_uploads_local, upload_file):
     studies = StudyFactory.create_batch(2)
-    query = '''
-        mutation ($file: Upload!, $studyId: String!) {
-          createFile(file: $file, studyId: $studyId) {
-            success
-            file { name }
-          }
-        }
-    '''
-    with open('tests/data/manifest.txt') as f:
-        data = {
-            'operations': json.dumps({
-                'query': query.strip(),
-                'variables': {
-                    'file': None,
-                    'studyId': studies[-1].kf_id
-                },
-            }),
-            'file': f,
-            'map': json.dumps({
-                'file': ['variables.file'],
-            }),
-        }
-        resp = client.post('/graphql', data=data)
-
+    study_id = studies[-1].kf_id
+    resp = upload_file(study_id, 'manifest.txt')
     obj = Object.objects.first()
     assert len(tmp_uploads_local.listdir()) == 1
     assert (tmp_uploads_local.listdir()[0]
@@ -101,29 +57,9 @@ def test_upload_query_local(client, db, tmp_uploads_local):
     assert studies[-1].files.count() == 1
 
 
-def test_study_not_exist(client, db):
-    query = '''
-        mutation ($file: Upload!, $studyId: String!) {
-          createFile(file: $file, studyId: $studyId) {
-            success
-          }
-        }
-    '''
-    with open('tests/data/manifest.txt') as f:
-        data = {
-            'operations': json.dumps({
-                'query': query.strip(),
-                'variables': {
-                    'file': None,
-                    'studyId': 10
-                },
-            }),
-            'file': f,
-            'map': json.dumps({
-                'file': ['variables.file'],
-            }),
-        }
-        resp = client.post('/graphql', data=data)
+def test_study_not_exist(client, db, upload_file):
+    study_id = 10
+    resp = upload_file(study_id, 'manifest.txt')
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' in resp.json()
