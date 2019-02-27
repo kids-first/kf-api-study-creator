@@ -6,11 +6,10 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_s3_storage.storage import S3Storage
 from django_filters import OrderingFilter
+from graphene_file_upload.scalars import Upload
+from graphql import GraphQLError
 
 from .models import File, Object
-
-from graphene_file_upload.scalars import Upload
-
 from creator.studies.models import Study
 
 
@@ -57,6 +56,9 @@ class UploadMutation(graphene.Mutation):
             Uploads a file given a studyId and creates a new file and
             file object
         """
+        if file.size > settings.FILE_MAX_SIZE:
+            raise GraphQLError('File is too large.')
+
         study = Study.objects.get(kf_id=studyId)
         new_file = File(name=file.name, study=study)
         new_file.save()

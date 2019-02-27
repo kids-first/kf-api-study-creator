@@ -129,3 +129,15 @@ def test_study_not_exist(client, db):
     assert 'errors' in resp.json()
     expected = 'Study matching query does not exist.'
     assert resp.json()['errors'][0]['message'] == expected
+
+
+def test_file_too_large(client, db, upload_file, settings):
+    settings.FILE_MAX_SIZE = 1
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[0].kf_id
+    resp = upload_file(study_id, 'manifest.txt')
+    assert resp.status_code == 200
+    assert 'data' in resp.json()
+    assert 'errors' in resp.json()
+    expected = 'File is too large.'
+    assert resp.json()['errors'][0]['message'] == expected
