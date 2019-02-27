@@ -28,7 +28,7 @@ class File(models.Model):
             )
 
     def __str__(self):
-        return f'{self.batch.study.kf_id} - {self.batch.name} - {self.name}'
+        return f'{self.study.kf_id} - {self.name}'
 
 
 def _get_upload_directory(instance, filename):
