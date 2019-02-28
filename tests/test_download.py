@@ -53,3 +53,40 @@ def test_download_s3(client, db, tmp_uploads_s3, upload_file):
 def test_no_file(client, db):
     resp = client.get(f'/download/study/study_id/file/123')
     assert resp.status_code == 404
+
+
+def test_download_field(client, db, upload_file):
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[0].kf_id
+    resp = upload_file(study_id, 'manifest.txt')
+    file_id = File.objects.filter(name='manifest.txt').first().id
+    assert File.objects.count() == 1
+    query = '''
+        {
+          allFiles {
+            edges {
+              node {
+                downloadUrl
+              }
+            }
+          }
+        }
+    '''
+    query_data = {
+        "query": query.strip()
+    }
+    resp = client.post(
+        '/graphql',
+        data=query_data,
+        content_type='application/json'
+    )
+    file = resp.json()['data']['allFiles']['edges'][0]['node']
+    expect_url = f'http://testserver/download/study/{study_id}/file/{file_id}'
+    assert resp.status_code == 200
+    assert 'data' in resp.json()
+    assert 'allFiles' in resp.json()['data']
+    assert file['downloadUrl'] == expect_url
+    resp = client.get(file['downloadUrl'])
+    assert resp.status_code == 200
+    assert (resp.get('Content-Disposition') ==
+            'attachment; filename=manifest.txt')
