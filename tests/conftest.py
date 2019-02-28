@@ -33,7 +33,7 @@ def tmp_uploads_s3(tmpdir, settings):
 
 @pytest.yield_fixture
 def upload_file(client):
-    def upload(study_id, file_name):
+    def upload(study_id, file_name, client=client):
         query = '''
             mutation ($file: Upload!, $studyId: String!) {
               createFile(file: $file, studyId: $studyId) {
