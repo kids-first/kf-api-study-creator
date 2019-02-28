@@ -30,6 +30,16 @@ class File(models.Model):
     def __str__(self):
         return f'{self.study.kf_id} - {self.name}'
 
+    @property
+    def path(self):
+        """
+        Returns absolute path to file download endpoint
+        """
+        study_id = self.study.kf_id
+        file_id = self.id
+        download_url = f'/download/study/{study_id}/file/{file_id}'
+        return download_url
+
 
 def _get_upload_directory(instance, filename):
     """
