@@ -61,6 +61,10 @@ class UploadMutation(graphene.Mutation):
             Uploads a file given a studyId and creates a new file and
             file object
         """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError('Not authenticated to upload a file.')
+
         if file.size > settings.FILE_MAX_SIZE:
             raise GraphQLError('File is too large.')
 

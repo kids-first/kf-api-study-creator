@@ -77,3 +77,14 @@ def test_file_too_large(admin_client, db, upload_file, settings):
     assert 'errors' in resp.json()
     expected = 'File is too large.'
     assert resp.json()['errors'][0]['message'] == expected
+
+
+def test_upload_unauthed(client, db, tmp_uploads_local, upload_file):
+    studies = StudyFactory.create_batch(2)
+    study_id = studies[-1].kf_id
+    resp = upload_file(study_id, 'manifest.txt')
+    assert resp.status_code == 200
+    assert 'data' in resp.json()
+    assert 'errors' in resp.json()
+    expected = 'Not authenticated to upload a file.'
+    assert resp.json()['errors'][0]['message'] == expected
