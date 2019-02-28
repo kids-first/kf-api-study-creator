@@ -8,6 +8,8 @@ from django.conf import settings
 from creator.studies.factories import StudyFactory
 from creator.files.models import Object
 
+from creator.studies.models import Study
+
 
 @mock_s3
 def test_upload_query_s3(admin_client, db, tmp_uploads_s3, upload_file):
@@ -88,3 +90,28 @@ def test_upload_unauthed(client, db, tmp_uploads_local, upload_file):
     assert 'errors' in resp.json()
     expected = 'Not authenticated to upload a file.'
     assert resp.json()['errors'][0]['message'] == expected
+
+
+def test_upload_unauthed_study(user_client, db, tmp_uploads_local,
+                               upload_file):
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[0].kf_id
+    resp = upload_file(study_id, 'manifest.txt', user_client)
+    assert resp.status_code == 200
+    assert 'data' in resp.json()
+    assert 'errors' in resp.json()
+    expected = 'Not authenticated to upload to the study.'
+    assert resp.json()['errors'][0]['message'] == expected
+
+    my_study = Study(kf_id='SD_00000000', external_id='Test')
+    my_study.save()
+    resp = upload_file('SD_00000000', 'manifest.txt', user_client)
+    assert resp.status_code == 200
+    assert 'data' in resp.json()
+    assert 'errors' not in resp.json()
+    assert resp.json() == {
+        'data': {
+            'createFile': {'success': True, 'file': {'name': 'manifest.txt'}}
+        }
+    }
+    assert my_study.files.count() == 1

@@ -65,6 +65,9 @@ class UploadMutation(graphene.Mutation):
         if user is None or not user.is_authenticated:
             raise GraphQLError('Not authenticated to upload a file.')
 
+        if studyId not in user.ego_groups and 'ADMIN' not in user.ego_roles:
+            raise GraphQLError('Not authenticated to upload to the study.')
+
         if file.size > settings.FILE_MAX_SIZE:
             raise GraphQLError('File is too large.')
 
