@@ -10,12 +10,12 @@ from creator.files.models import Object
 
 
 @mock_s3
-def test_upload_query_s3(client, db, tmp_uploads_s3, upload_file):
+def test_upload_query_s3(admin_client, db, tmp_uploads_s3, upload_file):
     s3 = boto3.client('s3')
     studies = StudyFactory.create_batch(2)
     study_id = studies[0].kf_id
     bucket = tmp_uploads_s3(studies[0].bucket)
-    resp = upload_file(study_id, 'manifest.txt')
+    resp = upload_file(study_id, 'manifest.txt', admin_client)
     contents = s3.list_objects(Bucket=studies[0].bucket)['Contents']
     assert len(contents) == 1
     assert contents[0]['Key'].endswith('manifest.txt')
@@ -32,10 +32,10 @@ def test_upload_query_s3(client, db, tmp_uploads_s3, upload_file):
     assert studies[-1].files.count() == 0
 
 
-def test_upload_query_local(client, db, tmp_uploads_local, upload_file):
+def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     studies = StudyFactory.create_batch(2)
     study_id = studies[-1].kf_id
-    resp = upload_file(study_id, 'manifest.txt')
+    resp = upload_file(study_id, 'manifest.txt', admin_client)
     obj = Object.objects.first()
     assert len(tmp_uploads_local.listdir()) == 1
     assert (tmp_uploads_local.listdir()[0]
@@ -57,9 +57,9 @@ def test_upload_query_local(client, db, tmp_uploads_local, upload_file):
     assert studies[-1].files.count() == 1
 
 
-def test_study_not_exist(client, db, upload_file):
+def test_study_not_exist(admin_client, db, upload_file):
     study_id = 10
-    resp = upload_file(study_id, 'manifest.txt')
+    resp = upload_file(study_id, 'manifest.txt', admin_client)
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' in resp.json()
@@ -67,11 +67,11 @@ def test_study_not_exist(client, db, upload_file):
     assert resp.json()['errors'][0]['message'] == expected
 
 
-def test_file_too_large(client, db, upload_file, settings):
+def test_file_too_large(admin_client, db, upload_file, settings):
     settings.FILE_MAX_SIZE = 1
     studies = StudyFactory.create_batch(1)
     study_id = studies[0].kf_id
-    resp = upload_file(study_id, 'manifest.txt')
+    resp = upload_file(study_id, 'manifest.txt', admin_client)
     assert resp.status_code == 200
     assert 'data' in resp.json()
     assert 'errors' in resp.json()
