@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django_s3_storage',
     'creator.files',
     'creator.studies',
+    'creator',
     'corsheaders'
 ]
 
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'creator.middleware.EgoJWTAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -113,6 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'creator.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
