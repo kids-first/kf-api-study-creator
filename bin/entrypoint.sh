@@ -1,3 +1,3 @@
 #!/bin/bash
 /app/manage.py migrate
-exec /app/manage.py runserver 0.0.0.0:8080
+exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
