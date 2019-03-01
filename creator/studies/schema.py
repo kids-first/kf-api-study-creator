@@ -28,7 +28,7 @@ class Query(object):
     batch = relay.Node.Field(BatchNode)
     all_batches = DjangoFilterConnectionField(BatchNode)
 
-    def resolve_all_studies(self, info):
+    def resolve_all_studies(self, info, **kwargs):
         """
         If user is USER, only return the studies which the user belongs to
         If user is ADMIN, return all studies
