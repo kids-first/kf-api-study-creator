@@ -12,7 +12,7 @@ from creator.studies.models import Study
 
 
 @mock_s3
-def test_upload_query_s3(admin_client, db, tmp_uploads_s3, upload_file):
+def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
     s3 = boto3.client('s3')
     studies = StudyFactory.create_batch(2)
     study_id = studies[0].kf_id
@@ -81,7 +81,7 @@ def test_file_too_large(admin_client, db, upload_file, settings):
     assert resp.json()['errors'][0]['message'] == expected
 
 
-def test_upload_unauthed(client, db, tmp_uploads_local, upload_file):
+def test_upload_unauthed(client, db, upload_file):
     studies = StudyFactory.create_batch(2)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, 'manifest.txt')
@@ -92,8 +92,7 @@ def test_upload_unauthed(client, db, tmp_uploads_local, upload_file):
     assert resp.json()['errors'][0]['message'] == expected
 
 
-def test_upload_unauthed_study(user_client, db, tmp_uploads_local,
-                               upload_file):
+def test_upload_unauthed_study(user_client, db, upload_file):
     studies = StudyFactory.create_batch(1)
     study_id = studies[0].kf_id
     resp = upload_file(study_id, 'manifest.txt', user_client)
