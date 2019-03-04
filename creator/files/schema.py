@@ -110,3 +110,22 @@ class Query(object):
             return File.objects.all()
 
         return File.objects.filter(study__kf_id__in=user.ego_groups)
+
+    def resolve_all_versions(self, info, **kwargs):
+        """
+        If user is USER, only return the file versions from the studies
+        which the user belongs to
+        If user is ADMIN, return all file versions
+        If user is unauthed, return no file versions
+        """
+        user = info.context.user
+
+        if not user.is_authenticated or user is None:
+            return Object.objects.none()
+
+        if user.is_admin:
+            return Object.objects.all()
+
+        return Object.objects.filter(
+            root_file__study__kf_id__in=user.ego_groups
+        )
