@@ -13,13 +13,17 @@ def test_download_local(admin_client, db, tmp_uploads_local, upload_file):
     study_id = studies[-1].kf_id
     resp1 = upload_file(study_id, 'manifest.txt', admin_client)
     file1_id = File.objects.filter(name='manifest.txt').first().id
+    version1_id = (File.objects.filter(name='manifest.txt')
+                       .first().versions.first().id)
     resp2 = upload_file(study_id, 'data.csv', admin_client)
     file2_id = File.objects.filter(name='data.csv').first().id
+    version2_id = (File.objects.filter(name='data.csv')
+                       .first().versions.first().id)
 
     assert Object.objects.count() == 2
     assert File.objects.count() == 2
-
-    resp = admin_client.get(f'/download/study/{study_id}/file/{file1_id}')
+    resp = admin_client.get(f'/download/study/{study_id}/file/{file1_id}'
+                            f'/version/{version1_id}')
     assert resp.status_code == 200
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
@@ -28,7 +32,8 @@ def test_download_local(admin_client, db, tmp_uploads_local, upload_file):
     assert obj.size == 12
     assert resp.get('Content-Length') == str(obj.size)
 
-    resp = admin_client.get(f'/download/study/{study_id}/file/{file2_id}')
+    resp = admin_client.get(f'/download/study/{study_id}/file/{file2_id}'
+                            f'/version/{version2_id}')
     assert resp.content == b'aaa,bbb,ccc\nddd,eee,fff\n'
 
 
@@ -40,8 +45,11 @@ def test_download_s3(admin_client, db, tmp_uploads_s3, upload_file):
     study_id = studies[0].kf_id
     resp = upload_file(study_id, 'manifest.txt', admin_client)
     file_id = File.objects.first().id
+    version_id = (File.objects.filter(name='manifest.txt')
+                      .first().versions.first().id)
     assert resp.status_code == 200
-    resp = admin_client.get(f'/download/study/{study_id}/file/{file_id}')
+    resp = admin_client.get(f'/download/study/{study_id}/file/{file_id}'
+                            f'/version/{version_id}')
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
     assert resp.content == b'aaa\nbbb\nccc\n'

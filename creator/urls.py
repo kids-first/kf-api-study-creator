@@ -11,7 +11,11 @@ urlpatterns = [
         csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))
     ),
     path(
-        r'download/study/<study_id>/file/<file_id>',
+        r'download/study/<study_id>/file/<file_id>/version/<version_id>',
         creator.files.views.download
     ),
+    path(
+        r'download/study/<study_id>/file/<file_id>',
+        creator.files.views.download_latest
+    )
 ]
