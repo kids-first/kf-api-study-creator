@@ -93,3 +93,20 @@ class Query(object):
         ObjectNode,
         filterset_class=ObjectFilter,
     )
+
+    def resolve_all_files(self, info, **kwargs):
+        """
+        If user is USER, only return the files from the studies
+        which the user belongs to
+        If user is ADMIN, return all files
+        If user is unauthed, return no files
+        """
+        user = info.context.user
+
+        if not user.is_authenticated or user is None:
+            return File.objects.none()
+
+        if user.is_admin:
+            return File.objects.all()
+
+        return File.objects.filter(study__kf_id__in=user.ego_groups)
