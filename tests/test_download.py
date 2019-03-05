@@ -28,7 +28,7 @@ def test_download_local(admin_client, db, tmp_uploads_local, upload_file):
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
     assert resp.content == b'aaa\nbbb\nccc\n'
-    obj = Object.objects.first()
+    obj = File.objects.get(kf_id=file1_id).versions.first()
     assert obj.size == 12
     assert resp.get('Content-Length') == str(obj.size)
 
