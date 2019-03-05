@@ -16,6 +16,6 @@ dotenv.read_dotenv(os.path.join(
     '.env'
 ))
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'creator.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'creator.settings.production')
 
 application = get_wsgi_application()
