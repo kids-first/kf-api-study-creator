@@ -90,3 +90,23 @@ be migrated using:
 This will make sure the database has the latest schema. From here, tests
 may be run with ``pytest`` and the development server started with
 ``python manage.py runserver``.
+
+
+Settings
+--------
+
+There are three different settings files stored in `creator/settings/`:
+
+- `development.py` - Used for local development
+- `testing.py` - Used for testing, default for docker-compose
+- `production.py` - Used for production
+
+To change which settings are being applied, set the `DJANGO_SETTINGS_MODULE`
+variable to the settings module.
+By default, the `creator.settings.production` settings will be used.
+
+This setting may also be applied when running docker-compose, for example:
+```
+DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up
+```
+Will run the api with development settings.

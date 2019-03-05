@@ -92,6 +92,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#developing-outside-docker">Developing Outside Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
@@ -236,6 +237,23 @@ be migrated using:</p>
 <p>This will make sure the database has the latest schema. From here, tests
 may be run with <code class="docutils literal notranslate"><span class="pre">pytest</span></code> and the development server started with
 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">runserver</span></code>.</p>
+</div>
+<div class="section" id="settings">
+<h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>There are three different settings files stored in <cite>creator/settings/</cite>:</p>
+<ul class="simple">
+<li><cite>development.py</cite> - Used for local development</li>
+<li><cite>testing.py</cite> - Used for testing, default for docker-compose</li>
+<li><cite>production.py</cite> - Used for production</li>
+</ul>
+<p>To change which settings are being applied, set the <cite>DJANGO_SETTINGS_MODULE</cite>
+variable to the settings module.
+By default, the <cite>creator.settings.production</cite> settings will be used.</p>
+<p>This setting may also be applied when running docker-compose, for example:
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">DJANGO_SETTINGS_MODULE=creator.settings.development</span> <span class="pre">docker-compose</span> <span class="pre">up</span>
+<span class="pre">`</span></code>
+Will run the api with development settings.</p>
 </div>
 </div>
 
