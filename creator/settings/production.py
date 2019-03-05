@@ -26,6 +26,8 @@ SECRET_KEY = str(uuid.uuid4())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEVELOP = False
+
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
