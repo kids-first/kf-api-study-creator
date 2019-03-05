@@ -10,6 +10,7 @@ services:
       - PG_USER=study-creator
       - PG_PASS=password
       - PG_HOST=postgres
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
       - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
       - AWS_ACCESS_KEY_ID=foo
       - AWS_SECRET_ACCESS_KEY=bar
