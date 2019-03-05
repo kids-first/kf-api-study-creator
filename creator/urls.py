@@ -7,6 +7,10 @@ import creator.files.views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(
+        r'',
+        csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))
+    ),
+    path(
         r'graphql',
         csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))
     ),
