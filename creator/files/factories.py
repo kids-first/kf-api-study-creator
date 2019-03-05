@@ -1,5 +1,6 @@
 import pytz
 import factory
+import factory.fuzzy
 import random
 from faker.providers import BaseProvider
 from .models import File, Object
@@ -18,6 +19,11 @@ class ObjectFactory(factory.DjangoModelFactory):
     class Meta:
         model = Object
 
+    kf_id = factory.fuzzy.FuzzyText(
+                length=8,
+                prefix='FV_',
+                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
+            )
     key = factory.Faker('file_name')
     size = factory.Faker('pyint')
     created_at = factory.Faker('date_time_between',
@@ -29,6 +35,11 @@ class FileFactory(factory.DjangoModelFactory):
     class Meta:
         model = File
 
+    kf_id = factory.fuzzy.FuzzyText(
+                length=8,
+                prefix='SF_',
+                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
+            )
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)
     study = factory.Iterator(Study.objects.all())
