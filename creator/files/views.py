@@ -9,7 +9,7 @@ from .models import File, Object
 # Create your views here.
 def download_latest(request, study_id, file_id):
     try:
-        file = File.objects.get(id=file_id)
+        file = File.objects.get(kf_id=file_id)
     except File.DoesNotExist:
         return HttpResponseNotFound('No file exists with given ID')
     obj = file.versions.latest('created_at')

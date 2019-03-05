@@ -12,3 +12,4 @@ boto3==1.9.101
 psycopg2==2.7.7
 PyJWT==1.7.1
 gunicorn==19.9.0
+base32-crockford==0.3.0
