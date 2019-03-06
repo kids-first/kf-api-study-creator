@@ -17,6 +17,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         api = options.get('api')
+        env = 'prd'
+        if '-dev' in api:
+            env = 'dev'
+        elif '-qa' in api:
+            env = 'qa'
+
+        bucket = f'kf-study-us-east-1-{env}-'
 
         resp = requests.get(f'{api}/studies?limit=100')
         studies = resp.json()['results']
@@ -28,8 +35,10 @@ class Command(BaseCommand):
             if fields['name'] is None:
                 fields['name'] = ''
             new_study, created = Study.objects.update_or_create(
-                    defaults=fields, kf_id=fields['kf_id'])
-
+                    defaults=fields,
+                    kf_id=fields['kf_id'])
+            s3_id = fields['kf_id'].lower().replace('_', '-')
+            new_study.bucket = f"{bucket}{s3_id}"
             new_study.save()
             if created:
                 print('Created', study['kf_id'])
