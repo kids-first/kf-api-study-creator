@@ -1,11 +1,18 @@
 from django.contrib import admin
 from django.urls import path
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from graphene_file_upload.django import FileUploadGraphQLView
 import creator.files.views
 
+
+def health_check(request):
+    return HttpResponse('ok')
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('health_check', health_check),
     path(
         r'',
         csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))
