@@ -142,7 +142,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 # Supports file system storage and s3 storage
 DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
                           'django.core.files.storage.FileSystemStorage')
-FILE_MAX_SIZE = 2**9
+FILE_MAX_SIZE = 2**29
 
 # The relative path directory to upload files to when using file system storage
 # The object prefix to upload under when using S3 storage
