@@ -15,7 +15,7 @@ services:
       - AWS_ACCESS_KEY_ID=foo
       - AWS_SECRET_ACCESS_KEY=bar
       # Options are: DATASERVICE, url of dataservice, or FAKE
-      - PRELOAD_DATA=FAKE
+      - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
     volumes:
       - .:/app
     ports:
