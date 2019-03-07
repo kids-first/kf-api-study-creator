@@ -1,6 +1,7 @@
 import graphene
 import django_filters
 from django.conf import settings
+from django.db import transaction
 from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -8,6 +9,8 @@ from django_s3_storage.storage import S3Storage
 from django_filters import OrderingFilter
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
+
+from botocore.exceptions import ClientError
 
 from .models import File, Object
 from creator.studies.models import Study
@@ -72,13 +75,20 @@ class UploadMutation(graphene.Mutation):
             raise GraphQLError('File is too large.')
 
         study = Study.objects.get(kf_id=studyId)
-        new_file = File(name=file.name, study=study)
-        new_file.save()
-        obj = Object(size=file.size, root_file=new_file, key=file)
-        if (settings.DEFAULT_FILE_STORAGE ==
-                'django_s3_storage.storage.S3Storage'):
-            obj.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
-        obj.save()
+        try:
+            with transaction.atomic():
+                new_file = File(name=file.name, study=study)
+                new_file.save()
+                obj = Object(size=file.size, root_file=new_file, key=file)
+                if (settings.DEFAULT_FILE_STORAGE ==
+                        'django_s3_storage.storage.S3Storage'):
+                    obj.key.storage = S3Storage(
+                        aws_s3_bucket_name=study.bucket
+                    )
+                obj.save()
+        except ClientError as e:
+            raise GraphQLError('Failed to save file')
+
         return UploadMutation(success=True, file=new_file)
 
 
