@@ -92,6 +92,44 @@ class UploadMutation(graphene.Mutation):
         return UploadMutation(success=True, file=new_file)
 
 
+class FileMutation(graphene.Mutation):
+    class Arguments:
+        kf_id = graphene.String(required=True)
+        name = graphene.String()
+        description = graphene.String()
+
+    file = graphene.Field(FileNode)
+
+    def mutate(self, info, kf_id, **kwargs):
+        """
+            Updates an existing file on name and/or description.
+            User must be authenticated and belongs to the study, or be ADMIN.
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError('Not authenticated to mutate a file.')
+
+        try:
+            file = File.objects.get(kf_id=kf_id)
+        except:
+            raise GraphQLError('File does not exist.')
+
+        study_id = file.study.kf_id
+        if study_id not in user.ego_groups and 'ADMIN' not in user.ego_roles:
+            raise GraphQLError('Not authenticated to mutate a file.')
+
+        try:
+            if kwargs.get('name'):
+                file.name = kwargs.get('name')
+            if kwargs.get('description'):
+                file.description = kwargs.get('description')
+            file.save()
+        except ClientError as e:
+            raise GraphQLError('Failed to save file mutation.')
+
+        return FileMutation(file=file)
+
+
 class Query(object):
     file = relay.Node.Field(FileNode)
     all_files = DjangoFilterConnectionField(
