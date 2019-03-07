@@ -2,7 +2,7 @@ import graphene
 import django_filters
 from django.conf import settings
 from django.db import transaction
-from graphene import relay, ObjectType
+from graphene import relay, ObjectType, Field, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_s3_storage.storage import S3Storage
@@ -48,6 +48,29 @@ class FileNode(DjangoObjectType):
 
     def resolve_download_url(self, info):
         return f'{info.context.scheme}://{info.context.get_host()}{self.path}'
+
+    @classmethod
+    def get_node(cls, info, kf_id):
+        """
+        Only return node if user is an admin or is in the study group
+        """
+        try:
+            file = cls._meta.model.objects.get(kf_id=kf_id)
+        except cls._meta.model.DoesNotExist:
+            return None
+
+        user = info.context.user
+
+        if not user.is_authenticated:
+            return None
+
+        if user.is_admin:
+            return file
+
+        if file.study.kf_id in user.ego_groups:
+            return file
+
+        return None
 
 
 class FileFilter(django_filters.FilterSet):
@@ -137,6 +160,7 @@ class FileMutation(graphene.Mutation):
 
 class Query(object):
     file = relay.Node.Field(FileNode)
+    file_by_kf_id = Field(FileNode, kf_id=String(required=True))
     all_files = DjangoFilterConnectionField(
         FileNode,
         filterset_class=FileFilter,
@@ -146,6 +170,9 @@ class Query(object):
         ObjectNode,
         filterset_class=ObjectFilter,
     )
+
+    def resolve_file_by_kf_id(self, info, kf_id):
+        return FileNode.get_node(info, kf_id)
 
     def resolve_all_files(self, info, **kwargs):
         """
