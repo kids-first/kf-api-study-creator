@@ -144,9 +144,9 @@ def prep_file(admin_client, upload_file):
             study_id = studies[0].kf_id
 
         upload = upload_file(study_id, file_name, client)
-        file_id = File.objects.filter(name=file_name).first().kf_id
-        version_id = (File.objects.filter(name=file_name)
-                          .first().versions.first().kf_id)
+        study = Study.objects.get(kf_id=study_id)
+        file_id = study.files.get(name=file_name).kf_id
+        version_id = File.objects.get(kf_id=file_id).versions.first().kf_id
         resp = (study_id, file_id, version_id)
         return resp
     return file
