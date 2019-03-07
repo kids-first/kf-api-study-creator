@@ -92,7 +92,17 @@
 <li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#role-permissions">Role Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#group-permissions">Group Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-types">User Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unauthenticated-user">Unauthenticated user</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#authenticated-user">Authenticated user</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admin-user">Admin user</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-permissions">Resource Permissions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#study-permissions">Study Permissions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-permissions">File Permissions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -166,21 +176,64 @@ A user will be allowed to add, view, and modify studies and files within them
 based on their Ego role and groups.</p>
 <div class="section" id="role-permissions">
 <h2>Role Permissions<a class="headerlink" href="#role-permissions" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Admin</span></code> users will be allowed to perform all operations on all entities
+<p><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> users will be allowed to perform all operations on all entities
 in the API.</p>
 </div>
-<div class="section" id="group-permissions">
-<h2>Group Permissions<a class="headerlink" href="#group-permissions" title="Permalink to this headline">¶</a></h2>
-<p>Groups will be created for each study, using the study’s <code class="docutils literal notranslate"><span class="pre">kf_id</span></code> for the
-group’s name. Users that belong to that group will be allowed to:</p>
+<div class="section" id="user-types">
+<h2>User Types<a class="headerlink" href="#user-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="unauthenticated-user">
+<h3>Unauthenticated user<a class="headerlink" href="#unauthenticated-user" title="Permalink to this headline">¶</a></h3>
+<p>Any requests that come with invalid or missing JWT header are considered
+unauthenticated, and will not have access to any resources.</p>
+</div>
+<div class="section" id="authenticated-user">
+<h3>Authenticated user<a class="headerlink" href="#authenticated-user" title="Permalink to this headline">¶</a></h3>
+<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">groups</span></code> context containing
+a list of study <code class="docutils literal notranslate"><span class="pre">kf_id</span></code> to which the user belongs. The user will be allowed
+to perform certain requests with these studies alone.</p>
+</div>
+<div class="section" id="admin-user">
+<h3>Admin user<a class="headerlink" href="#admin-user" title="Permalink to this headline">¶</a></h3>
+<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">roles</span></code> context that has a
+<code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> value. The user will be allowed to perform all actions and access all
+resources.</p>
+</div>
+</div>
+<div class="section" id="resource-permissions">
+<h2>Resource Permissions<a class="headerlink" href="#resource-permissions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="study-permissions">
+<h3>Study Permissions<a class="headerlink" href="#study-permissions" title="Permalink to this headline">¶</a></h3>
+<p>Studies must be created through the database directly. By default, studies from
+the <code class="docutils literal notranslate"><span class="pre">DATASERVICE</span></code> will be synchronized on container start in deployment
+environments.</p>
+</div>
+<div class="section" id="file-permissions">
+<h3>File Permissions<a class="headerlink" href="#file-permissions" title="Permalink to this headline">¶</a></h3>
+<p>Unauthenticated user:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Create a batch in that study</li>
-<li>Add files and versions in that study</li>
-<li>Perform additional configuration of files in study’s batches</li>
-<li>Submit the batch for loading</li>
+<li>May not view any files.</li>
+<li>May not add any files.</li>
+<li>May not modify any files.</li>
 </ul>
 </div></blockquote>
+<p>Authenticated user:</p>
+<blockquote>
+<div><ul class="simple">
+<li>May view files in their studies.</li>
+<li>May upload files to their studies.</li>
+<li>May modify files in their studies.</li>
+</ul>
+</div></blockquote>
+<p>Admin user:</p>
+<blockquote>
+<div><ul class="simple">
+<li>May view any file.</li>
+<li>May upload file to any studies.</li>
+<li>May modify any file.</li>
+</ul>
+</div></blockquote>
+</div>
 </div>
 </div>
 

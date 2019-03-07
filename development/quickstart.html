@@ -182,10 +182,8 @@ url to generate data</li>
 <li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=false</span></code> to start with an empty database</li>
 </ul>
 </div></blockquote>
-<p>It may be required to restart the docker services after changing these
-variables so that the old data may be flushed. Restart by running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose down
-docker-compose up
+<p>For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PRELOAD_DATA</span><span class="o">=</span>DATASERVICE docker-compose up
 </pre></div>
 </div>
 </div>
@@ -204,7 +202,7 @@ database and required services are running expectedly. This can be done with:</p
 the webserver running in debug mode to refresh on any code changes, there
 may be some instances when development needs to happen outside of the
 container.</p>
-<p>To install and run in the local enviorment, it’s suggested to use a virtual
+<p>To install and run in the local environment, it’s suggested to use a virtual
 environment as below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>virtualenv venv
 <span class="nb">source</span> venv/bin/activate
@@ -242,18 +240,19 @@ may be run with <code class="docutils literal notranslate"><span class="pre">pyt
 <h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>There are three different settings files stored in <cite>creator/settings/</cite>:</p>
 <ul class="simple">
-<li><cite>development.py</cite> - Used for local development</li>
+<li><cite>development.py</cite> - Used for local development, authenticates all requests as
+<code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> user</li>
 <li><cite>testing.py</cite> - Used for testing, default for docker-compose</li>
 <li><cite>production.py</cite> - Used for production</li>
 </ul>
 <p>To change which settings are being applied, set the <cite>DJANGO_SETTINGS_MODULE</cite>
 variable to the settings module.
 By default, the <cite>creator.settings.production</cite> settings will be used.</p>
-<p>This setting may also be applied when running docker-compose, for example:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">DJANGO_SETTINGS_MODULE=creator.settings.development</span> <span class="pre">docker-compose</span> <span class="pre">up</span>
-<span class="pre">`</span></code>
-Will run the api with development settings.</p>
+<p>This setting may also be applied when running docker-compose, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>creator.settings.development docker-compose up
+</pre></div>
+</div>
+<p>Will run the api with development settings.</p>
 </div>
 </div>
 
