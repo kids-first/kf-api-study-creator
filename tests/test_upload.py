@@ -5,10 +5,10 @@ import boto3
 from moto import mock_s3
 
 from django.conf import settings
-from creator.studies.factories import StudyFactory
-from creator.files.models import Object
 
+from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
+from creator.files.models import Object, File
 
 
 @mock_s3
@@ -32,6 +32,26 @@ def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
     }
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
+
+
+@mock_s3
+def test_boto_fail(admin_client, db, upload_file, tmp_uploads_s3):
+    """
+    Test that the error response from a file mutation does not contain any
+    boto errors from s3, only a predefined error message.
+    """
+    s3 = boto3.client('s3')
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[0].kf_id
+    bucket = tmp_uploads_s3('not-correct-bucket')
+    # Should fail because the study bucket was not created as expected
+    resp = upload_file(study_id, 'manifest.txt', admin_client)
+    assert 'errors' in resp.json()
+    assert resp.json()['errors'][0]['message'] == 'Failed to save file'
+
+    # Check that no files or objects were created
+    assert File.objects.count() == 0
+    assert Object.objects.count() == 0
 
 
 def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
