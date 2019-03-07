@@ -21,6 +21,11 @@ class ObjectNode(DjangoObjectType):
         model = Object
         interfaces = (relay.Node, )
 
+    download_url = graphene.String()
+
+    def resolve_download_url(self, info):
+        return f'{info.context.scheme}://{info.context.get_host()}{self.path}'
+
 
 class ObjectFilter(django_filters.FilterSet):
     class Meta:
