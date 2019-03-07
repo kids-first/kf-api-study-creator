@@ -48,7 +48,7 @@ def test_no_file(admin_client, db):
     assert resp.status_code == 404
 
 
-def test_download_field(admin_client, db, prep_file):
+def test_file_download_url(admin_client, db, prep_file):
     (study_id, file_id, version_id) = prep_file()
     assert File.objects.count() == 1
     query = '{allFiles { edges { node { downloadUrl } } } }'
@@ -65,6 +65,27 @@ def test_download_field(admin_client, db, prep_file):
     assert 'allFiles' in resp.json()['data']
     assert file['downloadUrl'] == expect_url
     resp = admin_client.get(file['downloadUrl'])
+    assert resp.status_code == 200
+    assert (resp.get('Content-Disposition') ==
+            'attachment; filename=manifest.txt')
+
+
+def test_version_download_url(admin_client, db, prep_file):
+    (study_id, file_id, version_id) = prep_file()
+    assert Object.objects.count() == 1
+    query = '{allVersions { edges { node { downloadUrl } } } }'
+    query_data = {"query": query.strip()}
+    resp = admin_client.post(
+        '/graphql',
+        data=query_data,
+        content_type='application/json'
+    )
+    assert resp.status_code == 200
+    version = resp.json()['data']['allVersions']['edges'][0]['node']
+    expect_url = (f'http://testserver/download/study/{study_id}/file/{file_id}'
+                  f'/version/{version_id}')
+    assert version['downloadUrl'] == expect_url
+    resp = admin_client.get(version['downloadUrl'])
     assert resp.status_code == 200
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
