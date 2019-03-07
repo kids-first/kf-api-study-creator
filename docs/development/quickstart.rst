@@ -19,13 +19,11 @@ altered to a different strategy such as:
       url to generate data
     - ``PRELOAD_DATA=false`` to start with an empty database
 
-It may be required to restart the docker services after changing these
-variables so that the old data may be flushed. Restart by running:
+For example:
 
 .. code-block:: bash
 
-    docker-compose down
-    docker-compose up
+      PRELOAD_DATA=DATASERVICE docker-compose up
 
 
 Testing
@@ -49,7 +47,7 @@ the webserver running in debug mode to refresh on any code changes, there
 may be some instances when development needs to happen outside of the
 container.
 
-To install and run in the local enviorment, it's suggested to use a virtual
+To install and run in the local environment, it's suggested to use a virtual
 environment as below:
 
 .. code-block:: bash
@@ -97,7 +95,8 @@ Settings
 
 There are three different settings files stored in `creator/settings/`:
 
-- `development.py` - Used for local development
+- `development.py` - Used for local development, authenticates all requests as
+  ``ADMIN`` user
 - `testing.py` - Used for testing, default for docker-compose
 - `production.py` - Used for production
 
@@ -106,7 +105,9 @@ variable to the settings module.
 By default, the `creator.settings.production` settings will be used.
 
 This setting may also be applied when running docker-compose, for example:
-```
-DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up
-```
+
+.. code-block:: bash
+
+    DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up
+
 Will run the api with development settings.
