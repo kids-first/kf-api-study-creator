@@ -26,6 +26,29 @@ class ObjectNode(DjangoObjectType):
     def resolve_download_url(self, info):
         return f'{info.context.scheme}://{info.context.get_host()}{self.path}'
 
+    @classmethod
+    def get_node(cls, info, kf_id):
+        """
+        Only return node if user is an admin or is in the study group
+        """
+        try:
+            obj = cls._meta.model.objects.get(kf_id=kf_id)
+        except cls._meta.model.DoesNotExist:
+            return None
+
+        user = info.context.user
+
+        if not user.is_authenticated:
+            return None
+
+        if user.is_admin:
+            return obj
+
+        if obj.root_file.study.kf_id in user.ego_groups:
+            return obj
+
+        return None
+
 
 class ObjectFilter(django_filters.FilterSet):
     class Meta:
@@ -166,6 +189,8 @@ class Query(object):
         filterset_class=FileFilter,
     )
 
+    version = relay.Node.Field(ObjectNode)
+    version_by_kf_id = Field(ObjectNode, kf_id=String(required=True))
     all_versions = DjangoFilterConnectionField(
         ObjectNode,
         filterset_class=ObjectFilter,
@@ -173,6 +198,9 @@ class Query(object):
 
     def resolve_file_by_kf_id(self, info, kf_id):
         return FileNode.get_node(info, kf_id)
+
+    def resolve_version_by_kf_id(self, info, kf_id):
+        return ObjectNode.get_node(info, kf_id)
 
     def resolve_all_files(self, info, **kwargs):
         """
