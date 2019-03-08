@@ -27,6 +27,6 @@ urlpatterns = [
     ),
     path(
         r'download/study/<study_id>/file/<file_id>',
-        creator.files.views.download_latest
+        creator.files.views.download
     )
 ]
