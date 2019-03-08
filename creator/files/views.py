@@ -4,6 +4,8 @@ from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from django.conf import settings
 from django_s3_storage.storage import S3Storage
+from botocore.exceptions import ClientError
+
 from .models import File, Object
 
 
@@ -33,7 +35,12 @@ def download(request,  study_id, file_id, version_id=None):
             'django_s3_storage.storage.S3Storage'):
         obj.key.storage = S3Storage(aws_s3_bucket_name=file.study.bucket)
 
-    response = HttpResponse(obj.key)
+    try:
+        response = HttpResponse(obj.key)
+    except (OSError, ClientError):
+        # The file is no long at the path specified by the key
+        return HttpResponseNotFound('Problem finding the file')
+
     file_name = urllib.parse.quote(file.name)
     response['Content-Disposition'] = f'attachment; filename={file_name}'
     response['Content-Length'] = obj.size
