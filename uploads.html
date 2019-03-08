@@ -179,10 +179,10 @@ uploading.</p>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">createFile</span></code> mutation to upload a file to a batch.</p>
 <div class="section" id="curl-example">
 <h3>Curl example<a class="headerlink" href="#curl-example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl localhost:8000/graphql <span class="se">\</span>
-  -F <span class="nv">operations</span><span class="o">=</span><span class="s1">&#39;{ &quot;query&quot;: &quot;mutation ($file: Upload!, $batchId: Int!) { createFile(file: $file, batchId: $batchId) { success } }&quot;, &quot;variables&quot;: { &quot;file&quot;: null, &quot;batchId&quot;: &lt;id&gt; } }&#39;</span> <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl localhost:8080/graphql <span class="se">\</span>
+  -F <span class="nv">operations</span><span class="o">=</span><span class="s1">&#39;{ &quot;query&quot;: &quot;mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }&quot;, &quot;variables&quot;: { &quot;file&quot;: null, &quot;studyId&quot;: &lt;study kf id&gt; } }&#39;</span> <span class="se">\</span>
   -F <span class="nv">map</span><span class="o">=</span><span class="s1">&#39;{ &quot;0&quot;: [&quot;variables.file&quot;] }&#39;</span> <span class="se">\</span>
-  -F <span class="nv">0</span><span class="o">=</span>@&lt;your file name&gt;
+  -F <span class="nv">0</span><span class="o">=</span>@&lt;your filepath&gt;
 </pre></div>
 </div>
 </div>

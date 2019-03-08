@@ -21,7 +21,7 @@ Curl example
 ^^^^^^^^^^^^
 .. code-block:: bash
 
-    curl localhost:8000/graphql \
-      -F operations='{ "query": "mutation ($file: Upload!, $batchId: Int!) { createFile(file: $file, batchId: $batchId) { success } }", "variables": { "file": null, "batchId": <id> } }' \
+    curl localhost:8080/graphql \
+      -F operations='{ "query": "mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }", "variables": { "file": null, "studyId": <study kf id> } }' \
       -F map='{ "0": ["variables.file"] }' \
-      -F 0=@<your file name>
+      -F 0=@<your filepath>
