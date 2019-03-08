@@ -1,3 +1,4 @@
+import urllib
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
@@ -19,7 +20,8 @@ def download_latest(request, study_id, file_id):
         obj.key.storage = S3Storage(aws_s3_bucket_name=file.study.bucket)
 
     response = HttpResponse(obj.key)
-    response['Content-Disposition'] = f'attachment; filename={file.name}'
+    file_name = urllib.parse.quote(file.name)
+    response['Content-Disposition'] = f'attachment; filename={file_name}'
     response['Content-Length'] = obj.size
     return response
 
@@ -40,6 +42,7 @@ def download(request, study_id, file_id, version_id):
         obj.key.storage = S3Storage(aws_s3_bucket_name=file.study.bucket)
 
     response = HttpResponse(obj.key)
-    response['Content-Disposition'] = f'attachment; filename={file.name}'
+    file_name = urllib.parse.quote(file.name)
+    response['Content-Disposition'] = f'attachment; filename={file_name}'
     response['Content-Length'] = obj.size
     return response

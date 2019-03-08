@@ -89,3 +89,15 @@ def test_version_download_url(admin_client, db, prep_file):
     assert resp.status_code == 200
     assert (resp.get('Content-Disposition') ==
             'attachment; filename=manifest.txt')
+
+
+def test_download_file_name_with_spaces(admin_client, db, prep_file):
+    study_id, file_id, version_id = prep_file(file_name='name with spaces.txt')
+    resp1 = admin_client.get(f'/download/study/{study_id}/file/{file_id}')
+    resp2 = admin_client.get(f'/download/study/{study_id}/file/{file_id}'
+                             f'/version/{version_id}')
+    assert resp1.status_code == resp2.status_code == 200
+    expected_name = 'attachment; filename=name%20with%20spaces.txt'
+    assert resp1.get('Content-Disposition') == expected_name
+    assert resp2.get('Content-Disposition') == expected_name
+    assert resp1.content == resp2.content == b'aaa\nbbb\nccc\n'
