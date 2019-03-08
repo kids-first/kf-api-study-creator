@@ -7,7 +7,16 @@ from django_s3_storage.storage import S3Storage
 from .models import File, Object
 
 
-def download(request, study_id, file_id, version_id=None):
+def download(request,  study_id, file_id, version_id=None):
+    """
+    Only allow downloading if user is an admin or is in the study group
+    """
+    user = request.user
+    if user is None or not user.is_authenticated:
+        return HttpResponseNotFound('Not authenticated to download the file.')
+    if study_id not in user.ego_groups and 'ADMIN' not in user.ego_roles:
+        return HttpResponseNotFound('Not authenticated to download the file.')
+
     try:
         file = File.objects.get(kf_id=file_id)
     except File.DoesNotExist:
