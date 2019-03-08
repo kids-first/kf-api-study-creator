@@ -89,3 +89,15 @@ class Object(models.Model):
 
     def __str__(self):
         return self.kf_id
+
+    @property
+    def path(self):
+        """
+        Returns absolute path to file download endpoint with version_id
+        """
+        study_id = self.root_file.study.kf_id
+        file_id = self.root_file.kf_id
+        version_id = self.kf_id
+        download_url = (f'/download/study/{study_id}/file/{file_id}'
+                        f'/version/{version_id}')
+        return download_url
