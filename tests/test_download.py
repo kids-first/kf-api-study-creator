@@ -6,6 +6,7 @@ from moto import mock_s3
 
 from creator.files.models import Object, File
 from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
 
 
 def test_download_local(admin_client, db, prep_file):
@@ -134,3 +135,19 @@ def test_download_auth(db, admin_client, user_client, client, prep_file,
         assert authed_resp.content == b'aaa\nbbb\nccc\n'
     else:
         assert authed_resp.status_code == unauthed_resp.status_code == 404
+
+
+def test_file_no_longer_exist(admin_client, db):
+    study = StudyFactory.create_batch(1)
+    file = FileFactory.create_batch(1)
+    file_id = file[0].kf_id
+    query = '{allFiles { edges { node { downloadUrl } } } }'
+    query_data = {"query": query.strip()}
+    resp = admin_client.post(
+        '/graphql',
+        data=query_data,
+        content_type='application/json'
+    )
+    file = resp.json()['data']['allFiles']['edges'][0]['node']
+    resp = admin_client.get(file['downloadUrl'])
+    assert resp.status_code == 404
