@@ -100,6 +100,13 @@ DATABASES = {
 }
 
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 
@@ -150,3 +157,19 @@ FILE_MAX_SIZE = 2**29
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
 
 AWS_S3_BUCKET_NAME = 'kf-study-us-east-1-dev-sd-me0owme0w'
+
+# API for Ego
+EGO_API = os.environ.get('EGO_API', 'https://ego.kids-first.io')
+# Cache key for where to rerieve and store the ego signing key
+CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
+# How often the Ego public key should be retrieved from ego, 1 day default
+CACHE_EGO_TIMEOUT = 86400
+
+LOGGING = {
+    'version': 1,
+    'loggers': {
+        'graphql.execution.base': {
+            'propagate': False,
+        }
+    }
+}
