@@ -1,15 +1,30 @@
 import os
+import datetime
 import shutil
 import pytest
 import boto3
 import json
 import jwt
+from unittest import mock
 
 from django.test.client import Client
 
 from creator.files.models import File
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
+from creator.middleware import EgoJWTAuthenticationMiddleware
+
+
+@pytest.fixture(scope='session', autouse=True)
+def ego_key_mock():
+    """
+    Mocks out the response from the /oauth/token/public_key endpoint
+    """
+    middleware = 'creator.middleware.EgoJWTAuthenticationMiddleware'
+    with mock.patch(f'{middleware}._get_new_key') as get_key:
+        with open('tests/keys/public_key.pem', 'rb') as f:
+            get_key.return_value = f.read()
+            yield get_key
 
 
 @pytest.yield_fixture
@@ -68,6 +83,13 @@ def upload_file(client, tmp_uploads_local):
 
 @pytest.fixture
 def token():
+    """
+    Returns a function that will generate a token for a user in given groups
+    with given roles.
+    """
+    with open('tests/keys/private_key.pem', 'rb') as f:
+        ego_key = f.read()
+
     def make_token(groups=None, roles=None):
         """
         Returns an ego JWT for a user with given roles and groups
@@ -77,12 +99,14 @@ def token():
         if roles is None:
             roles = ['USER']
 
+        now = datetime.datetime.now()
+        tomorrow = now + datetime.timedelta(days=1)
         token = {
-          "iat": 1551293729,
-          "exp": 1551380129,
+          "iat": now.timestamp(),
+          "exp": tomorrow.timestamp(),
           "sub": "cfa211bc-6fa8-4a03-bb81-cf377f99da47",
           "iss": "ego",
-          "aud": [],
+          "aud": "creator",
           "jti": "7b42a89d-85e3-4954-81a0-beccb12f32d5",
           "context": {
             "user": {
@@ -101,7 +125,7 @@ def token():
           }
         }
 
-        return jwt.encode(token, 'secret', algorithm='HS256').decode('utf8')
+        return jwt.encode(token, ego_key, algorithm='RS256').decode('utf8')
     return make_token
 
 
