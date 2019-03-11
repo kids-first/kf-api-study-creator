@@ -15,6 +15,10 @@ Create studies and upload files for ingestion into the Kids First datamodel.
 
 To get started developing, bring up the service with docker compose:
 ```
+# If you haven't already, create the kf-data-stack network
+docker network create kf-data-stack
+
+# Bring up the study creator API
 docker-compose up
 ```
 
