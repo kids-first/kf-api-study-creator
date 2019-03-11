@@ -1,5 +1,8 @@
 import jwt
+import requests
 from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django.contrib.auth.middleware import get_user
 from django.utils.functional import SimpleLazyObject
@@ -43,11 +46,14 @@ class EgoJWTAuthenticationMiddleware():
         encoded = encoded.replace('Bearer ', '')
 
         try:
-            token = jwt.decode(str(encoded), verify=False)
-        except jwt.exceptions.DecodeError:
-            print('invalid auth')
-        except jwt.exceptions.InvalidTokenError:
-            print('problem decoding auth')
+            # Validate JWT using Ego's public key
+            public_key = EgoJWTAuthenticationMiddleware._get_ego_key()
+            token = jwt.decode(encoded, public_key, algorithms='RS256',
+                               options={'verify_aud': False})
+        except jwt.exceptions.DecodeError as err:
+            raise PermissionDenied(f'Problem authenticating request: {err}')
+        except jwt.exceptions.InvalidTokenError as err:
+            raise PermissionDenied(f'Token provided is not valid: {err}')
 
         if not('context' in token and 'user' in token['context']):
             return AnonymousUser()
@@ -61,3 +67,26 @@ class EgoJWTAuthenticationMiddleware():
                 ego_roles=roles)
 
         return user
+
+    @staticmethod
+    def _get_ego_key():
+        """
+        Attempts to retrieve the ego public key from the cache. If it's not
+        there or is expired, fetch a new one from ego and store it back in the
+        cache.
+        """
+        key = cache.get(settings.CACHE_EGO_KEY, None)
+        # If key is not set in cache (or has timed out), get a new one
+        if key is None:
+            key = EgoJWTAuthenticationMiddleware._get_new_key()
+            cache.set(settings.CACHE_EGO_KEY, key, settings.CACHE_EGO_TIMEOUT)
+        return key
+
+    @staticmethod
+    def _get_new_key():
+        """
+        Get a public key from ego
+        """
+        resp = requests.get(f'{settings.EGO_API}/oauth/token/public_key',
+                            timeout=10)
+        return resp.content
