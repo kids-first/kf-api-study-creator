@@ -17,9 +17,20 @@ altered to a different strategy such as:
       dataservice (production)
     - ``PRELOAD_DATA=<dataservice_url>`` to use the dataservice at the given
       url to generate data
+    - ``PRELOAD_DATA=<url to name of dataservice web docker container>`` to use
+      your local dockerized dataservice (e.g. http://kf-api-dataservice_dataservice_1)
     - ``PRELOAD_DATA=false`` to start with an empty database
 
-For example:
+If you haven't already, create the kf-data-stack network. This is important
+if you'd like to preload data from your dockerized dataservice.
+
+.. code-block:: bash
+
+    docker network create kf-data-stack
+
+It may be required to restart the docker services after changing the
+``PRELOAD_DATA`` environment variable so that the old data may be flushed.
+Restart by running:
 
 .. code-block:: bash
 

@@ -179,10 +179,19 @@ altered to a different strategy such as:</p>
 dataservice (production)</li>
 <li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=&lt;dataservice_url&gt;</span></code> to use the dataservice at the given
 url to generate data</li>
+<li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=&lt;url</span> <span class="pre">to</span> <span class="pre">name</span> <span class="pre">of</span> <span class="pre">dataservice</span> <span class="pre">web</span> <span class="pre">docker</span> <span class="pre">container&gt;</span></code> to use
+your local dockerized dataservice (e.g. <a class="reference external" href="http://kf-api-dataservice_dataservice_1">http://kf-api-dataservice_dataservice_1</a>)</li>
 <li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=false</span></code> to start with an empty database</li>
 </ul>
 </div></blockquote>
-<p>For example:</p>
+<p>If you haven’t already, create the kf-data-stack network. This is important
+if you’d like to preload data from your dockerized dataservice.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker network create kf-data-stack
+</pre></div>
+</div>
+<p>It may be required to restart the docker services after changing the
+<code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA</span></code> environment variable so that the old data may be flushed.
+Restart by running:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PRELOAD_DATA</span><span class="o">=</span>DATASERVICE docker-compose up
 </pre></div>
 </div>
