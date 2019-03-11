@@ -1,5 +1,7 @@
 import jwt
+import re
 import requests
+import textwrap
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -86,7 +88,19 @@ class EgoJWTAuthenticationMiddleware():
     def _get_new_key():
         """
         Get a public key from ego
+
+        We reformat the keystring as the whitespace is not always consistent
+        with the pem format
         """
         resp = requests.get(f'{settings.EGO_API}/oauth/token/public_key',
                             timeout=10)
-        return resp.content
+        key = resp.content
+        key = key.replace(b'\n', b'')
+        key = key.replace(b'\r', b'')
+        key_re = r'-----BEGIN PUBLIC KEY-----(.*)-----END PUBLIC KEY-----'
+        contents = re.match(key_re, key.decode('utf-8')).group(1)
+        contents = '\n'.join(textwrap.wrap(contents, width=65))
+        contents = f'\n{contents}\n'
+        key = f'-----BEGIN PUBLIC KEY-----{contents}-----END PUBLIC KEY-----'
+        key = key.encode()
+        return key
