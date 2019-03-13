@@ -15,6 +15,9 @@ Files are uploaded into `S3` with a prefix of the form:
 
 Uploading with GraphQL
 ----------------------
+The upload request is expected to conform to the
+`GraphQL multipart request spec <https://github.com/jaydenseric/graphql-multipart-request-spec>`_
+
 Use the ``createFile`` mutation to upload a file to a batch.
 
 Curl example
