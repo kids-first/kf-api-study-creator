@@ -11,14 +11,14 @@ Files are uploaded into `S3` with a prefix of the form:
 
 .. code-block:: bash
 
-    {study_bucket}/source/{batch}/
+    {study_bucket}/source/uploads/
 
 Uploading with GraphQL
 ----------------------
 The upload request is expected to conform to the
 `GraphQL multipart request spec <https://github.com/jaydenseric/graphql-multipart-request-spec>`_
 
-Use the ``createFile`` mutation to upload a file to a batch.
+Use the ``createFile`` mutation to upload a file to a study.
 
 Curl example
 ^^^^^^^^^^^^
