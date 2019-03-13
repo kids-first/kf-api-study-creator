@@ -28,3 +28,42 @@ Curl example
       -F operations='{ "query": "mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }", "variables": { "file": null, "studyId": <study kf id> } }' \
       -F map='{ "0": ["variables.file"] }' \
       -F 0=@<your filepath>
+
+Python example
+^^^^^^^^^^^^^^
+.. code-block:: Python
+
+    import json
+    import requests
+    from requests_toolbelt.multipart.encoder import MultipartEncoder
+
+    query = '''
+            mutation ($file: Upload!, $studyId: String!) {
+              createFile(file: $file, studyId: $studyId) {
+                success
+                file {
+                    id
+                    kfId
+                    name
+                    downloadUrl
+                }
+              }
+            }
+    '''
+
+    m = MultipartEncoder(
+        fields={
+            'operations': json.dumps({
+                'query': query.strip(),
+                'variables': {
+                    'file': None,
+                    'studyId': study_kf_id
+                }
+            }),
+            'map': json.dumps({
+                '0': ['variables.file'],
+            }),
+            '0': ('foo.bar', open('foo.bar', 'rb'), 'text/plain')}
+    )
+    response = requests.post('http://localhost:8080/graphql', data=m,
+                             headers={'Content-Type': m.content_type})
