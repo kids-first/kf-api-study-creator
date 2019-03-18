@@ -5,7 +5,7 @@ from django.utils import timezone
 
 # From https://stackoverflow.com/questions/50480924/regex-for-s3-bucket-name
 BUCKET_RE = (r'(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*'
-             '[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)')
+             r'[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)')
 
 
 class Study(models.Model):
