@@ -162,7 +162,7 @@ class FileMutation(graphene.Mutation):
 
         try:
             file = File.objects.get(kf_id=kf_id)
-        except:
+        except File.DoesNotExist:
             raise GraphQLError('File does not exist.')
 
         study_id = file.study.kf_id
