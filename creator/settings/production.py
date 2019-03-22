@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'creator.middleware.EgoJWTAuthenticationMiddleware',
+    'creator.middleware.Auth0AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -164,3 +165,9 @@ EGO_API = os.environ.get('EGO_API', 'https://ego')
 CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
 # How often the Ego public key should be retrieved from ego, 1 day default
 CACHE_EGO_TIMEOUT = 86400
+
+# Auth0 settings
+AUTH0_JWKS = 'https://kids-first.auth0.com/.well-known/jwks.json'
+AUTH0_AUD = 'https://kf-study-creator.kidsfirstdrc.org'
+CACHE_AUTH0_KEY = 'AUTH0_PUBLIC_KEY'
+CACHE_AUTH0_TIMEOUT = 86400
