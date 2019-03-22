@@ -15,7 +15,7 @@ from creator.studies.models import Study
 from creator.middleware import EgoJWTAuthenticationMiddleware
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def ego_key_mock():
     """
     Mocks out the response from the /oauth/token/public_key endpoint
@@ -90,9 +90,9 @@ def token():
     with open('tests/keys/private_key.pem', 'rb') as f:
         ego_key = f.read()
 
-    def make_token(groups=None, roles=None):
+    def make_token(groups=None, roles=None, iss='ego'):
         """
-        Returns an ego JWT for a user with given roles and groups
+        Returns an ego or auth0 JWT for a user with given roles and groups
         """
         if groups is None:
             groups = []
@@ -105,25 +105,31 @@ def token():
           "iat": now.timestamp(),
           "exp": tomorrow.timestamp(),
           "sub": "cfa211bc-6fa8-4a03-bb81-cf377f99da47",
-          "iss": "ego",
-          "aud": "creator",
+          "iss": iss,
+          "aud": 'creator',
           "jti": "7b42a89d-85e3-4954-81a0-beccb12f32d5",
-          "context": {
-            "user": {
-              "name": "user@d3b.center",
-              "email": "user@d3b.center",
-              "status": "Approved",
-              "firstName": "Bobby",
-              "lastName": "TABLES;",
-              "createdAt": 1531440000000,
-              "lastLogin": 1551293729279,
-              "preferredLanguage": None,
-              "groups": groups,
-              "roles": roles,
-              "permissions": []
-            }
-          }
         }
+
+        if iss == 'ego':
+            token["context"] = {
+                "user": {
+                  "name": "user@d3b.center",
+                  "email": "user@d3b.center",
+                  "status": "Approved",
+                  "firstName": "Bobby",
+                  "lastName": "TABLES;",
+                  "createdAt": 1531440000000,
+                  "lastLogin": 1551293729279,
+                  "preferredLanguage": None,
+                  "groups": groups,
+                  "roles": roles,
+                  "permissions": []
+                }
+            }
+        else:
+            token['https://kidsfirstdrc.org/groups'] = groups
+            token['https://kidsfirstdrc.org/roles'] = roles
+            token['aud'] = 'https://kf-study-creator.kidsfirstdrc.org'
 
         return jwt.encode(token, ego_key, algorithm='RS256').decode('utf8')
     return make_token
