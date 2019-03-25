@@ -104,37 +104,36 @@ def test_download_file_name_with_spaces(admin_client, db, prep_file):
     assert resp1.content == resp2.content == b'aaa\nbbb\nccc\n'
 
 
-@pytest.mark.parametrize('user_type,expected', [
-    ('admin', 2),
-    ('user', 1),
-    (None, 0),
+@pytest.mark.parametrize('user_type,authorized,expected', [
+    ('admin', True, True),
+    ('admin', False, True),
+    ('user', True, True),
+    ('user', False, False),
+    (None, True, False),
+    (None, False, False),
 ])
 def test_download_auth(db, admin_client, user_client, client, prep_file,
-                       user_type, expected):
+                       user_type, authorized, expected):
+    """
+    For a given user_type attempting to download a file in an authorized study,
+    we expect them to be allowed/not allowed to download that file.
+    """
     api_client = {
         'admin': admin_client,
         'user': user_client,
         None: client
     }[user_type]
     expected_name = 'attachment; filename=manifest.txt'
-    a_s_id, a_f_id, a_v_id = prep_file(authed=True)
-    u_s_id, u_f_id, u_v_id = prep_file()
-    authed_resp = api_client.get(f'/download/study/{a_s_id}/file/{a_f_id}')
-    unauthed_resp = api_client.get(f'/download/study/{u_s_id}/file/{u_f_id}')
+    study_id, file_id, version_id = prep_file(authed=authorized)
+    resp = api_client.get(f'/download/study/{study_id}/file/{file_id}')
 
-    if expected == 2:
-        assert authed_resp.status_code == unauthed_resp.status_code == 200
-        assert authed_resp.get('Content-Disposition') == expected_name
-        assert authed_resp.content == b'aaa\nbbb\nccc\n'
-        assert unauthed_resp.get('Content-Disposition') == expected_name
-        assert unauthed_resp.content == b'aaa\nbbb\nccc\n'
-    elif expected == 1:
-        assert authed_resp.status_code == 200
-        assert unauthed_resp.status_code == 404
-        assert authed_resp.get('Content-Disposition') == expected_name
-        assert authed_resp.content == b'aaa\nbbb\nccc\n'
+    if expected:
+        assert resp.status_code == 200
+        assert resp.get('Content-Disposition') == expected_name
+        assert resp.content == b'aaa\nbbb\nccc\n'
     else:
-        assert authed_resp.status_code == unauthed_resp.status_code == 404
+        assert resp.status_code == 404
+        assert resp.get('Content-Disposition') is None
 
 
 def test_file_no_longer_exist(admin_client, db):
