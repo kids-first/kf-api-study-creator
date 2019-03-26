@@ -192,6 +192,7 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     Download the file at that url with an unauthed user
     """
     study_id, file_id, version_id = prep_file()
+    obj = Object.objects.get(kf_id=version_id)
     resp = admin_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
     assert resp.status_code == 200
     assert 'url' in resp.json()
@@ -200,10 +201,37 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     assert DownloadToken.objects.count() == 1
     token = DownloadToken.objects.first()
     assert token.root_object == Object.objects.first()
+    # Check that token is not yet claimed
     assert token.claimed is False
+    assert token.is_valid(obj) is True
 
     expected = 'attachment; filename=manifest.txt'
     resp = user_client.get(resp.json()['url'])
     assert resp.status_code == 200
     assert resp.get('Content-Disposition') == expected
     assert resp.content == b'aaa\nbbb\nccc\n'
+    # Check that token is now claimed and invalid
+    token.refresh_from_db()
+    assert token.claimed is True
+    assert token.is_valid(obj) is False
+
+
+def test_signed_download_expired(db, settings, user_client, admin_client,
+                                 prep_file):
+    """
+    Test that files may not be downloaded if token is expired
+    """
+    # Tokens expire immediately
+    settings.DOWNLOAD_TOKEN_TTL = -1
+    study_id, file_id, version_id = prep_file()
+    obj = Object.objects.get(kf_id=version_id)
+    resp = admin_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+    assert resp.status_code == 200
+    token = DownloadToken.objects.first()
+    # Check that token is expired
+    assert token.expired is True
+    # Check that token is invalid
+    assert token.is_valid(obj) is False
+
+    resp = user_client.get(resp.json()['url'])
+    assert resp.status_code == 404

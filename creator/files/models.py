@@ -2,6 +2,7 @@ import os
 import uuid
 import secrets
 from functools import partial
+from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -126,7 +127,31 @@ class DownloadToken(models.Model):
                                     related_name='object',
                                     help_text=('The object that this token was'
                                                ' generated for'),
-                                  on_delete=models.CASCADE,)
+                                    on_delete=models.CASCADE,)
+
+    @property
+    def expired(self) -> bool:
+        """
+        If the token was created longer than the max DOWNLOAD_TOKEN_TTL ago,
+        it is considered expired and no longer valid.
+        """
+        created_ts = datetime.timestamp(self.created_at)
+        now_ts = datetime.timestamp(datetime.now())
+        expiration = created_ts + settings.DOWNLOAD_TOKEN_TTL
+        return now_ts > expiration
+
+    def is_valid(self, obj: Object) -> bool:
+        """
+        A token is valid if:
+        1) It has not expired
+        2) It has not been claimed
+        3) The requested object matches the one the token was generated for
+        """
+        return (
+            not self.expired
+            and not self.claimed
+            and obj == self.root_object
+        )
 
     def __str__(self):
         return f'Token for {self.root_object.kf_id}'

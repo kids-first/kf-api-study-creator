@@ -1,4 +1,5 @@
 import urllib
+from typing import Optional
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.conf import settings
@@ -8,24 +9,54 @@ from botocore.exceptions import ClientError
 from .models import File, Object, DownloadToken
 
 
-def download(request,  study_id, file_id, version_id=None):
+def _resolve_object(file_id: str, version_id: Optional[str]) -> (File, Object):
     """
-    Only allow downloading if user is an admin or is in the study group
+    Returns an object either specified by the version_id, or the file's latest
+    version if no version_id is specified
+    """
+    file = File.objects.get(kf_id=file_id)
+    if version_id:
+        obj = file.versions.get(kf_id=version_id)
+    else:
+        obj = file.versions.latest('created_at')
+    return file, obj
+
+
+def download(request, study_id, file_id, version_id=None):
+    """
+    Allow download if user is an admin OR user belongs to the file's study
+    OR if there is an unclaimed token provided that has not expired.
     """
     user = request.user
-    if (user is None or not user.is_authenticated or
-       study_id not in user.ego_groups and 'ADMIN' not in user.ego_roles):
+    token = request.GET.get('token')
+    # If there is a token provided, check if it is valid for download
+    download_token = None
+    if token:
+        try:
+            download_token = DownloadToken.objects.get(token=token)
+            _, obj = _resolve_object(file_id, version_id)
+            if not download_token.is_valid(obj):
+                download_token = None
+        except (File.DoesNotExist,
+                Object.DoesNotExist,
+                DownloadToken.DoesNotExist):
+            # If the file, object, or download token does not exist, just set
+            # the token to None.
+            # This could be inefficient as multiple trips may be made for the
+            # same file/object information, but will not consider it for now
+            download_token = None
+
+    if ((user is None                           # No user present
+         or not user.is_authenticated           # User is not authed
+         or study_id not in user.ego_groups     # User does not belong to study
+            and 'ADMIN' not in user.ego_roles)  # User is not admin
+            and download_token is None):        # There is no valid token
         return HttpResponseNotFound('Not authenticated to download the file.')
 
     try:
-        file = File.objects.get(kf_id=file_id)
+        file, obj = _resolve_object(file_id, version_id)
     except File.DoesNotExist:
         return HttpResponseNotFound('No file exists with given ID')
-    try:
-        if version_id:
-            obj = file.versions.get(kf_id=version_id)
-        else:
-            obj = file.versions.latest('created_at')
     except Object.DoesNotExist:
         return HttpResponseNotFound('No version exists with given ID')
 
@@ -33,6 +64,11 @@ def download(request,  study_id, file_id, version_id=None):
     if (settings.DEFAULT_FILE_STORAGE ==
             'django_s3_storage.storage.S3Storage'):
         obj.key.storage = S3Storage(aws_s3_bucket_name=file.study.bucket)
+
+    # If we're using a token, mark it as claimed
+    if download_token:
+        download_token.claimed = True
+        download_token.save()
 
     try:
         response = HttpResponse(obj.key)
