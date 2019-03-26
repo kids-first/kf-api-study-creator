@@ -1,5 +1,8 @@
 import os
 import uuid
+import secrets
+from functools import partial
+from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -101,3 +104,54 @@ class Object(models.Model):
         download_url = (f'/download/study/{study_id}/file/{file_id}'
                         f'/version/{version_id}')
         return download_url
+
+
+class DownloadToken(models.Model):
+    """
+    A DownloadToken is a shortly lived token that is issued to a user to allow
+    them to provide to the download endpoint to download a file. Eg:
+    /download/SD_00000000/file/SF_00000000?token=abcabcabc
+    This token is only valid for the file which it was issued for and is
+    immediately invalidated upon being used.
+    """
+    token = models.CharField(max_length=27,
+                             default=partial(secrets.token_urlsafe, 20),
+                             editable=False,
+                             help_text='The value of the token')
+    claimed = models.BooleanField(default=False, help_text='Whether the token'
+                                  ' has been claimed for a download')
+    created_at = models.DateTimeField(default=timezone.now,
+                                      null=False,
+                                      help_text='Time the token was created')
+    root_object = models.ForeignKey(Object,
+                                    related_name='object',
+                                    help_text=('The object that this token was'
+                                               ' generated for'),
+                                    on_delete=models.CASCADE,)
+
+    @property
+    def expired(self) -> bool:
+        """
+        If the token was created longer than the max DOWNLOAD_TOKEN_TTL ago,
+        it is considered expired and no longer valid.
+        """
+        created_ts = datetime.timestamp(self.created_at)
+        now_ts = datetime.timestamp(datetime.now())
+        expiration = created_ts + settings.DOWNLOAD_TOKEN_TTL
+        return now_ts > expiration
+
+    def is_valid(self, obj: Object) -> bool:
+        """
+        A token is valid if:
+        1) It has not expired
+        2) It has not been claimed
+        3) The requested object matches the one the token was generated for
+        """
+        return (
+            not self.expired
+            and not self.claimed
+            and obj == self.root_object
+        )
+
+    def __str__(self):
+        return f'Token for {self.root_object.kf_id}'

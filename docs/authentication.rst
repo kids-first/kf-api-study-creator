@@ -11,6 +11,8 @@ Role Permissions
 ``ADMIN`` users will be allowed to perform all operations on all entities
 in the API.
 
+.. _user-types:
+
 User Types
 ----------
 

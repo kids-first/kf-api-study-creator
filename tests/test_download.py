@@ -4,7 +4,7 @@ import json
 import boto3
 from moto import mock_s3
 
-from creator.files.models import Object, File
+from creator.files.models import Object, File, DownloadToken
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -104,37 +104,36 @@ def test_download_file_name_with_spaces(admin_client, db, prep_file):
     assert resp1.content == resp2.content == b'aaa\nbbb\nccc\n'
 
 
-@pytest.mark.parametrize('user_type,expected', [
-    ('admin', 2),
-    ('user', 1),
-    (None, 0),
+@pytest.mark.parametrize('user_type,authorized,expected', [
+    ('admin', True, True),
+    ('admin', False, True),
+    ('user', True, True),
+    ('user', False, False),
+    (None, True, False),
+    (None, False, False),
 ])
 def test_download_auth(db, admin_client, user_client, client, prep_file,
-                       user_type, expected):
+                       user_type, authorized, expected):
+    """
+    For a given user_type attempting to download a file in an authorized study,
+    we expect them to be allowed/not allowed to download that file.
+    """
     api_client = {
         'admin': admin_client,
         'user': user_client,
         None: client
     }[user_type]
     expected_name = 'attachment; filename=manifest.txt'
-    a_s_id, a_f_id, a_v_id = prep_file(authed=True)
-    u_s_id, u_f_id, u_v_id = prep_file()
-    authed_resp = api_client.get(f'/download/study/{a_s_id}/file/{a_f_id}')
-    unauthed_resp = api_client.get(f'/download/study/{u_s_id}/file/{u_f_id}')
+    study_id, file_id, version_id = prep_file(authed=authorized)
+    resp = api_client.get(f'/download/study/{study_id}/file/{file_id}')
 
-    if expected == 2:
-        assert authed_resp.status_code == unauthed_resp.status_code == 200
-        assert authed_resp.get('Content-Disposition') == expected_name
-        assert authed_resp.content == b'aaa\nbbb\nccc\n'
-        assert unauthed_resp.get('Content-Disposition') == expected_name
-        assert unauthed_resp.content == b'aaa\nbbb\nccc\n'
-    elif expected == 1:
-        assert authed_resp.status_code == 200
-        assert unauthed_resp.status_code == 404
-        assert authed_resp.get('Content-Disposition') == expected_name
-        assert authed_resp.content == b'aaa\nbbb\nccc\n'
+    if expected:
+        assert resp.status_code == 200
+        assert resp.get('Content-Disposition') == expected_name
+        assert resp.content == b'aaa\nbbb\nccc\n'
     else:
-        assert authed_resp.status_code == unauthed_resp.status_code == 404
+        assert resp.status_code == 404
+        assert resp.get('Content-Disposition') is None
 
 
 def test_file_no_longer_exist(admin_client, db):
@@ -150,4 +149,89 @@ def test_file_no_longer_exist(admin_client, db):
     )
     file = resp.json()['data']['allFiles']['edges'][0]['node']
     resp = admin_client.get(file['downloadUrl'])
+    assert resp.status_code == 404
+
+
+@pytest.mark.parametrize('user_type,authorized,expected', [
+    ('admin', True, True),
+    ('admin', False, True),
+    ('user', True, True),
+    ('user', False, False),
+    (None, True, False),
+    (None, False, False),
+])
+def test_signed_url(db, admin_client, user_client, client, prep_file,
+                    user_type, authorized, expected):
+    """
+    Verify that a signed url may only be issued for files which the user is
+    allowed to access.
+    Admins can access all files, users may only access files in studies which
+    they belong to, and unauthed users may not generate download urls.
+    """
+    api_client = {
+        'admin': admin_client,
+        'user': user_client,
+        None: client
+    }[user_type]
+    study_id, file_id, version_id = prep_file(authed=authorized)
+    resp = api_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+
+    if expected:
+        assert resp.status_code == 200
+        assert resp.json()['url'].startswith(f'/download/study/{study_id}/')
+    else:
+        assert resp.status_code == 404
+
+
+def test_signed_download_flow(db, user_client, admin_client, prep_file):
+    """
+    Test the download flow of a signed url.
+
+    Put a file in the db
+    Get a signed url to access that url with the admin user
+    Download the file at that url with an unauthed user
+    """
+    study_id, file_id, version_id = prep_file()
+    obj = Object.objects.get(kf_id=version_id)
+    resp = admin_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+    assert resp.status_code == 200
+    assert 'url' in resp.json()
+    assert len(resp.json()['url'].split('=')[1]) == 27
+    # Check that a new token was generated
+    assert DownloadToken.objects.count() == 1
+    token = DownloadToken.objects.first()
+    assert token.root_object == Object.objects.first()
+    # Check that token is not yet claimed
+    assert token.claimed is False
+    assert token.is_valid(obj) is True
+
+    expected = 'attachment; filename=manifest.txt'
+    resp = user_client.get(resp.json()['url'])
+    assert resp.status_code == 200
+    assert resp.get('Content-Disposition') == expected
+    assert resp.content == b'aaa\nbbb\nccc\n'
+    # Check that token is now claimed and invalid
+    token.refresh_from_db()
+    assert token.claimed is True
+    assert token.is_valid(obj) is False
+
+
+def test_signed_download_expired(db, settings, user_client, admin_client,
+                                 prep_file):
+    """
+    Test that files may not be downloaded if token is expired
+    """
+    # Tokens expire immediately
+    settings.DOWNLOAD_TOKEN_TTL = -1
+    study_id, file_id, version_id = prep_file()
+    obj = Object.objects.get(kf_id=version_id)
+    resp = admin_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+    assert resp.status_code == 200
+    token = DownloadToken.objects.first()
+    # Check that token is expired
+    assert token.expired is True
+    # Check that token is invalid
+    assert token.is_valid(obj) is False
+
+    resp = user_client.get(resp.json()['url'])
     assert resp.status_code == 404

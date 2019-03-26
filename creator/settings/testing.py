@@ -153,6 +153,9 @@ DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
                           'django.core.files.storage.FileSystemStorage')
 FILE_MAX_SIZE = 2**29
 
+# Maximum time in s allowed before a token may no longer be used to download
+DOWNLOAD_TOKEN_TTL = 30
+
 # The relative path directory to upload files to when using file system storage
 # The object prefix to upload under when using S3 storage
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
