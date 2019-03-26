@@ -48,4 +48,5 @@ pre-populated database of mock data.
    development/quickstart
    model
    uploads
+   downloads
    authentication
