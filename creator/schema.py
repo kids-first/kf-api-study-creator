@@ -12,6 +12,7 @@ class Query(creator.files.schema.Query,
 class Mutation(graphene.ObjectType):
     create_file = creator.files.schema.UploadMutation.Field()
     update_file = creator.files.schema.FileMutation.Field()
+    signed_url = creator.files.schema.SignedUrlMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
