@@ -94,7 +94,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Downloads</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#role-authorization">Role Authorization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#direct-download-with-headers">Direct Download with Headers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#downloads-with-signed-urls">Downloads with Signed Urls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#downloads-with-signed-urls">Downloads with Signed Urls</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-rest-endpoint">Using the REST Endpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-a-graphql-mutation">Using a GraphQL Mutation</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
@@ -214,6 +218,8 @@ query versionUrls <span class="o">{</span>
 </div>
 <div class="section" id="downloads-with-signed-urls">
 <h2>Downloads with Signed Urls<a class="headerlink" href="#downloads-with-signed-urls" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="using-the-rest-endpoint">
+<h3>Using the REST Endpoint<a class="headerlink" href="#using-the-rest-endpoint" title="Permalink to this headline">¶</a></h3>
 <p>Signed urls allow files to be downloaded without any authorization headers.
 This is important for allowing users to download from the browser, as it is
 not possible to attach headers to requests made from anchor tags.</p>
@@ -233,6 +239,29 @@ additional token passed as a url parameter.
 This token allows the file to be downloaded without additional authorization,
 but it may only be claimed once and within a very short time period.
 This protects against unauthorized sharing and re-use of the file download url.</p>
+</div>
+<div class="section" id="using-a-graphql-mutation">
+<h3>Using a GraphQL Mutation<a class="headerlink" href="#using-a-graphql-mutation" title="Permalink to this headline">¶</a></h3>
+<p>Signed urls may also be obtained through the GraphQL API.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mutation downloadURL <span class="o">{</span>
+  signedUrl<span class="o">(</span>studyId: <span class="s2">&quot;SD_ME0WME0W&quot;</span>, fileId: <span class="s2">&quot;SF_C9BCXNC8&quot;</span><span class="o">)</span> <span class="o">{</span>
+    url
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="o">{</span>
+  <span class="s2">&quot;data&quot;</span>: <span class="o">{</span>
+    <span class="s2">&quot;signedUrl&quot;</span>: <span class="o">{</span>
+      <span class="s2">&quot;url&quot;</span>: <span class="s2">&quot;/download/study/SD_ME0WME0W/file/SF_C9BCXNC8/version/FV_TMMKQH14?token=lXuORIMbm0d6YzBcLQxR6FllouA&quot;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This mutation will return a url including the token that will allow the file
+to be downloaded without further authorization.
+The same authorization mechanisms are in place as in the REST endpoint.</p>
+</div>
 </div>
 </div>
 

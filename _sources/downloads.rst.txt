@@ -61,6 +61,9 @@ Although this same url may be fetched from the file and version nodes as well:
 Downloads with Signed Urls
 --------------------------
 
+Using the REST Endpoint
+^^^^^^^^^^^^^^^^^^^^^^^
+
 Signed urls allow files to be downloaded without any authorization headers.
 This is important for allowing users to download from the browser, as it is
 not possible to attach headers to requests made from anchor tags.
@@ -84,3 +87,28 @@ additional token passed as a url parameter.
 This token allows the file to be downloaded without additional authorization,
 but it may only be claimed once and within a very short time period.
 This protects against unauthorized sharing and re-use of the file download url.
+
+Using a GraphQL Mutation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Signed urls may also be obtained through the GraphQL API.
+
+.. code-block:: bash
+
+    mutation downloadURL {
+      signedUrl(studyId: "SD_ME0WME0W", fileId: "SF_C9BCXNC8") {
+        url
+      }
+    }
+
+    {
+      "data": {
+        "signedUrl": {
+          "url": "/download/study/SD_ME0WME0W/file/SF_C9BCXNC8/version/FV_TMMKQH14?token=lXuORIMbm0d6YzBcLQxR6FllouA"
+        }
+      }
+    }
+
+This mutation will return a url including the token that will allow the file
+to be downloaded without further authorization.
+The same authorization mechanisms are in place as in the REST endpoint.
