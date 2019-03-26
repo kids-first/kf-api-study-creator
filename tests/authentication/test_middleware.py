@@ -72,6 +72,8 @@ def test_auth0_middleware(db, client, token):
     request to auth0, returning a public key and assert that it has been called
     once.
     """
+    key = cache.set(settings.CACHE_AUTH0_KEY, None)
+
     middleware = 'creator.middleware'
     ego_middleware = f'{middleware}.EgoJWTAuthenticationMiddleware'
     auth0_middleware = '{middleware}.Auth0AuthenticationMiddleware'
