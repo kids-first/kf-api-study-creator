@@ -190,10 +190,10 @@ class Auth0AuthenticationMiddleware():
         # If key is not set in cache (or has timed out), get a new one
         if key is None:
             key = Auth0AuthenticationMiddleware._get_new_key()
-            # Cache doesn't like the public key format
-            # cache.set(settings.CACHE_AUTH0_KEY, key,
-            #           settings.CACHE_AUTH0_TIMEOUT)
-        return key
+            cache.set(settings.CACHE_AUTH0_KEY, key,
+                      settings.CACHE_AUTH0_TIMEOUT)
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
+        return public_key
 
     @staticmethod
     def _get_new_key():
@@ -201,6 +201,4 @@ class Auth0AuthenticationMiddleware():
         Get a public key from Auth0 jwks
         """
         resp = requests.get(settings.AUTH0_JWKS, timeout=10)
-        key = resp.json()['keys'][0]
-        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
-        return public_key
+        return resp.json()['keys'][0]
