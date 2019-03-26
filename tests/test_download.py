@@ -4,7 +4,7 @@ import json
 import boto3
 from moto import mock_s3
 
-from creator.files.models import Object, File
+from creator.files.models import Object, File, DownloadToken
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -150,3 +150,60 @@ def test_file_no_longer_exist(admin_client, db):
     file = resp.json()['data']['allFiles']['edges'][0]['node']
     resp = admin_client.get(file['downloadUrl'])
     assert resp.status_code == 404
+
+
+@pytest.mark.parametrize('user_type,authorized,expected', [
+    ('admin', True, True),
+    ('admin', False, True),
+    ('user', True, True),
+    ('user', False, False),
+    (None, True, False),
+    (None, False, False),
+])
+def test_signed_url(db, admin_client, user_client, client, prep_file,
+                    user_type, authorized, expected):
+    """
+    Verify that a signed url may only be issued for files which the user is
+    allowed to access.
+    Admins can access all files, users may only access files in studies which
+    they belong to, and unauthed users may not generate download urls.
+    """
+    api_client = {
+        'admin': admin_client,
+        'user': user_client,
+        None: client
+    }[user_type]
+    study_id, file_id, version_id = prep_file(authed=authorized)
+    resp = api_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+
+    if expected:
+        assert resp.status_code == 200
+        assert resp.json()['url'].startswith(f'/download/study/{study_id}/')
+    else:
+        assert resp.status_code == 404
+
+
+def test_signed_download_flow(db, user_client, admin_client, prep_file):
+    """
+    Test the download flow of a signed url.
+
+    Put a file in the db
+    Get a signed url to access that url with the admin user
+    Download the file at that url with an unauthed user
+    """
+    study_id, file_id, version_id = prep_file()
+    resp = admin_client.get(f'/signed-url/study/{study_id}/file/{file_id}')
+    assert resp.status_code == 200
+    assert 'url' in resp.json()
+    assert len(resp.json()['url'].split('=')[1]) == 27
+    # Check that a new token was generated
+    assert DownloadToken.objects.count() == 1
+    token = DownloadToken.objects.first()
+    assert token.root_object == Object.objects.first()
+    assert token.claimed is False
+
+    expected = 'attachment; filename=manifest.txt'
+    resp = user_client.get(resp.json()['url'])
+    assert resp.status_code == 200
+    assert resp.get('Content-Disposition') == expected
+    assert resp.content == b'aaa\nbbb\nccc\n'

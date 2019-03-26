@@ -28,5 +28,13 @@ urlpatterns = [
     path(
         r'download/study/<study_id>/file/<file_id>',
         creator.files.views.download
+    ),
+    path(
+        r'signed-url/study/<study_id>/file/<file_id>/version/<version_id>',
+        creator.files.views.signed_url
+    ),
+    path(
+        r'signed-url/study/<study_id>/file/<file_id>',
+        creator.files.views.signed_url
     )
 ]
