@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import path
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -11,7 +10,6 @@ def health_check(request):
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('health_check', health_check),
     path(
         r'',
