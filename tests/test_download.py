@@ -92,6 +92,21 @@ def test_version_download_url(admin_client, db, prep_file):
             'attachment; filename=manifest.txt')
 
 
+def test_study_does_not_exist(admin_client, db, prep_file):
+    """
+    Test that a file may not be downloaded if the study_id is not correct,
+    even if the file/object ids are
+    """
+    (study_id, file_id, version_id) = prep_file()
+    assert Object.objects.count() == 1
+    url = Object.objects.first().path
+    # Use a different study id that the object does not belong to
+    url = url.replace('/SD_', '/XX_')
+    resp = admin_client.get(url)
+    assert resp.content == b'No file exists for given ID and study'
+    assert resp.status_code == 404
+
+
 def test_download_file_name_with_spaces(admin_client, db, prep_file):
     study_id, file_id, version_id = prep_file(file_name='name with spaces.txt')
     resp1 = admin_client.get(f'/download/study/{study_id}/file/{file_id}')
@@ -181,6 +196,20 @@ def test_signed_url(db, admin_client, user_client, client, prep_file,
         assert resp.json()['url'].startswith(f'/download/study/{study_id}/')
     else:
         assert resp.status_code == 404
+
+
+def test_signed_url_study_does_not_exist(admin_client, db, prep_file):
+    """
+    Test that a signed url may not be generated if the study_id is not correct,
+    even if the file/object ids are
+    """
+    (study_id, file_id, version_id) = prep_file()
+    assert Object.objects.count() == 1
+    url = Object.objects.first().path
+    # Use a different study id that the object does not belong to
+    resp = admin_client.get(f'/signed-url/study/SD_XXXXXXXX/file/{file_id}')
+    assert resp.content == b'No file exists for given ID and study'
+    assert resp.status_code == 404
 
 
 def test_signed_download_flow(db, user_client, admin_client, prep_file):

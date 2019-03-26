@@ -60,6 +60,10 @@ def download(request, study_id, file_id, version_id=None):
     except Object.DoesNotExist:
         return HttpResponseNotFound('No version exists with given ID')
 
+    # Don't return anything if the file does not belong to the requested study
+    if file.study.kf_id != study_id:
+        return HttpResponseNotFound('No file exists for given ID and study')
+
     # Need to set storage location for study bucket if using S3 backend
     if (settings.DEFAULT_FILE_STORAGE ==
             'django_s3_storage.storage.S3Storage'):
@@ -98,6 +102,10 @@ def signed_url(request, study_id, file_id, version_id=None):
         file = File.objects.get(kf_id=file_id)
     except File.DoesNotExist:
         return HttpResponseNotFound('No file exists with given ID')
+
+    # Don't return anything if the file does not belong to the requested study
+    if file.study.kf_id != study_id:
+        return HttpResponseNotFound('No file exists for given ID and study')
     try:
         if version_id:
             obj = file.versions.get(kf_id=version_id)
