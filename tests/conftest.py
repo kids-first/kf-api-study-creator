@@ -148,12 +148,48 @@ def token():
 
 
 @pytest.fixture()
+def service_token():
+    """
+    Generate a service token that will be used in machine-to-machine auth
+    """
+    with open('tests/keys/private_key.pem', 'rb') as f:
+        key = f.read()
+
+    def make_token(scope="role:admin"):
+        now = datetime.datetime.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        token = {
+          "iss": "auth0.com",
+          "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@clients",
+          "aud": "https://kf-study-creator.kidsfirstdrc.org",
+          "iat": now.timestamp(),
+          "exp": tomorrow.timestamp(),
+          "azp": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope": scope,
+          "gty": "client-credentials"
+        }
+        return jwt.encode(token, key, algorithm='RS256').decode('utf8')
+    return make_token
+
+
+@pytest.fixture()
 def admin_client(token):
     """
     Returns a client that sends an admin token with every request
     """
     admin_token = token([], ['ADMIN'])
     client = Client(HTTP_AUTHORIZATION=f'Bearer {admin_token}')
+    return client
+
+
+@pytest.fixture()
+def service_client(service_token):
+    """
+    Returns a client that sends a service token with every request
+    """
+    token = service_token()
+    client = Client(HTTP_AUTHORIZATION=f'Bearer {token}')
+    print(token)
     return client
 
 

@@ -183,3 +183,5 @@ LOGGING = {
         }
     }
 }
+
+CLIENT_ADMIN_SCOPE = 'role:admin'
