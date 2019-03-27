@@ -148,6 +148,9 @@ class FileMutation(graphene.Mutation):
         kf_id = graphene.String(required=True)
         name = graphene.String()
         description = graphene.String()
+        # This extracts the FileFileType enum from the auto-created field
+        # made from the django model inside of the FileNode
+        file_type = FileNode._meta.fields['file_type'].type
 
     file = graphene.Field(FileNode)
 
@@ -174,6 +177,8 @@ class FileMutation(graphene.Mutation):
                 file.name = kwargs.get('name')
             if kwargs.get('description'):
                 file.description = kwargs.get('description')
+            if kwargs.get('file_type'):
+                file.file_type = kwargs.get('file_type')
             file.save()
         except ClientError as e:
             raise GraphQLError('Failed to save file mutation.')
