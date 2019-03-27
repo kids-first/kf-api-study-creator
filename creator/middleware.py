@@ -171,9 +171,8 @@ class Auth0AuthenticationMiddleware():
 
         # If the token is a service token and has the right scope, we will
         # auth it as equivelant to an admin user
-        if ('gty' in token
-                and token['gty'] == 'client-credentials'
-                and token['scope'] == settings.CLIENT_ADMIN_SCOPE):
+        if (token.get('gty') == 'client-credentials' and
+                settings.CLIENT_ADMIN_SCOPE in token.get('scope', '').split()):
             roles = ['ADMIN']
             groups = []
 
