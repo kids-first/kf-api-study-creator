@@ -127,6 +127,8 @@ def test_signed_url_version_not_exists(db, admin_client, prep_file):
     [
         ("admin", True, True),
         ("admin", False, True),
+        ("service", True, True),
+        ("service", False, True),
         ("user", True, True),
         ("user", False, False),
         (None, True, False),
@@ -137,6 +139,7 @@ def test_signed_url_mutation(
     db,
     admin_client,
     user_client,
+    service_client,
     client,
     prep_file,
     user_type,
@@ -149,9 +152,12 @@ def test_signed_url_mutation(
     Admins can access all files, users may only access files in studies which
     they belong to, and unauthed users may not generate download urls.
     """
-    api_client = {"admin": admin_client, "user": user_client, None: client}[
-        user_type
-    ]
+    api_client = {
+        "admin": admin_client,
+        "service": service_client,
+        "user": user_client,
+        None: client,
+    }[user_type]
     study_id, file_id, version_id = prep_file(authed=authorized)
     query = """
     mutation ($studyId: String!, $fileId: String!, $versionId: String) {
@@ -176,9 +182,9 @@ def test_signed_url_mutation(
         assert resp.status_code == 200
         assert resp_body["url"].startswith(f"/download/study/{study_id}/")
         assert "?token" in resp_body["url"]
-        download = client.get(resp_body['url'])
+        download = client.get(resp_body["url"])
         assert download.status_code == 200
-        assert download.content == b'aaa\nbbb\nccc\n'
+        assert download.content == b"aaa\nbbb\nccc\n"
     else:
         assert resp.status_code == 200
         assert "errors" in resp.json()

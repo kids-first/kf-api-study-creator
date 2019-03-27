@@ -169,6 +169,13 @@ class Auth0AuthenticationMiddleware():
         # Currently unused
         permissions = token.get('https://kidsfirstdrc.org/permissions')
 
+        # If the token is a service token and has the right scope, we will
+        # auth it as equivelant to an admin user
+        if (token.get('gty') == 'client-credentials' and
+                settings.CLIENT_ADMIN_SCOPE in token.get('scope', '').split()):
+            roles = ['ADMIN']
+            groups = []
+
         # Don't allow if it looks like the token doesn't have correct fields
         if groups is None or roles is None:
             return AnonymousUser()

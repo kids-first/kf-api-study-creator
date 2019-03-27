@@ -122,19 +122,22 @@ def test_download_file_name_with_spaces(admin_client, db, prep_file):
 @pytest.mark.parametrize('user_type,authorized,expected', [
     ('admin', True, True),
     ('admin', False, True),
+    ('service', True, True),
+    ('service', False, True),
     ('user', True, True),
     ('user', False, False),
     (None, True, False),
     (None, False, False),
 ])
-def test_download_auth(db, admin_client, user_client, client, prep_file,
-                       user_type, authorized, expected):
+def test_download_auth(db, admin_client, user_client, service_client,
+                       client, prep_file, user_type, authorized, expected):
     """
     For a given user_type attempting to download a file in an authorized study,
     we expect them to be allowed/not allowed to download that file.
     """
     api_client = {
         'admin': admin_client,
+        'service': service_client,
         'user': user_client,
         None: client
     }[user_type]
@@ -170,13 +173,15 @@ def test_file_no_longer_exist(admin_client, db):
 @pytest.mark.parametrize('user_type,authorized,expected', [
     ('admin', True, True),
     ('admin', False, True),
+    ('service', True, True),
+    ('service', False, True),
     ('user', True, True),
     ('user', False, False),
     (None, True, False),
     (None, False, False),
 ])
-def test_signed_url(db, admin_client, user_client, client, prep_file,
-                    user_type, authorized, expected):
+def test_signed_url(db, admin_client, service_client, user_client, client,
+                    prep_file, user_type, authorized, expected):
     """
     Verify that a signed url may only be issued for files which the user is
     allowed to access.
@@ -185,6 +190,7 @@ def test_signed_url(db, admin_client, user_client, client, prep_file,
     """
     api_client = {
         'admin': admin_client,
+        'service': service_client,
         'user': user_client,
         None: client
     }[user_type]

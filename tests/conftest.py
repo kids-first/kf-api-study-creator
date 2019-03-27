@@ -27,6 +27,18 @@ def ego_key_mock():
             yield get_key
 
 
+@pytest.fixture(scope='module', autouse=True)
+def auth0_key_mock():
+    """
+    Mocks out the response from the /.well-known/jwks.json endpoint on auth0
+    """
+    middleware = 'creator.middleware.Auth0AuthenticationMiddleware'
+    with mock.patch(f'{middleware}._get_new_key') as get_key:
+        with open('tests/keys/jwks.json', 'r') as f:
+            get_key.return_value = json.load(f)['keys'][0]
+            yield get_key
+
+
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
     settings.UPLOAD_DIR = os.path.join('./test_uploads', tmpdir)
@@ -136,12 +148,48 @@ def token():
 
 
 @pytest.fixture()
+def service_token():
+    """
+    Generate a service token that will be used in machine-to-machine auth
+    """
+    with open('tests/keys/private_key.pem', 'rb') as f:
+        key = f.read()
+
+    def make_token(scope="role:admin"):
+        now = datetime.datetime.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        token = {
+          "iss": "auth0.com",
+          "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@clients",
+          "aud": "https://kf-study-creator.kidsfirstdrc.org",
+          "iat": now.timestamp(),
+          "exp": tomorrow.timestamp(),
+          "azp": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope": scope,
+          "gty": "client-credentials"
+        }
+        return jwt.encode(token, key, algorithm='RS256').decode('utf8')
+    return make_token
+
+
+@pytest.fixture()
 def admin_client(token):
     """
     Returns a client that sends an admin token with every request
     """
     admin_token = token([], ['ADMIN'])
     client = Client(HTTP_AUTHORIZATION=f'Bearer {admin_token}')
+    return client
+
+
+@pytest.fixture()
+def service_client(service_token):
+    """
+    Returns a client that sends a service token with every request
+    """
+    token = service_token()
+    client = Client(HTTP_AUTHORIZATION=f'Bearer {token}')
+    print(token)
     return client
 
 
