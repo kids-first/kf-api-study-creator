@@ -2,6 +2,25 @@ import pytest
 from creator.files.models import Object, DownloadToken
 
 
+update_query = """
+mutation (
+    $kfId:String!,
+    $description: String!,
+    $name: String!,
+    $fileType: FileFileType!
+) {
+    updateFile(
+        kfId: $kfId,
+        name: $name,
+        description:$description,
+        fileType: $fileType
+    ) {
+        file { id kfId description name fileType }
+    }
+}
+"""
+
+
 def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
     """
     Test that a signed url may be obtained using the signedUrl mutation
@@ -190,23 +209,7 @@ def test_unauthed_file_mutation_query(client, db, prep_file):
     File mutations are not allowed without authentication
     """
     (_, file_id, _) = prep_file()
-    query = """
-    mutation (
-        $kfId:String!,
-        $description: String!,
-        $name: String!,
-        $fileType: FileFileType!
-    ) {
-        updateFile(
-            kfId: $kfId,
-            name: $name,
-            description:$description,
-            fileType: $fileType
-        ) {
-            file { id kfId description name fileType }
-        }
-    }
-    """
+    query = update_query
     variables = {
         "kfId": file_id,
         "name": "New name",
@@ -230,23 +233,7 @@ def test_my_file_mutation_query(user_client, db, prep_file):
     the user belongs to
     """
     (_, file_id, _) = prep_file(authed=True)
-    query = """
-    mutation (
-        $kfId:String!,
-        $description: String!,
-        $name: String!,
-        $fileType: FileFileType!
-    ) {
-        updateFile(
-            kfId: $kfId,
-            name: $name,
-            description:$description,
-            fileType: $fileType
-        ) {
-            file { id kfId description name fileType }
-        }
-    }
-    """
+    query = update_query
     variables = {
         "kfId": file_id,
         "name": "New name",
@@ -270,23 +257,7 @@ def test_not_my_file_mutation_query(user_client, db, prep_file):
     the user does not belong to
     """
     (_, file_id, _) = prep_file()
-    query = """
-    mutation (
-        $kfId:String!,
-        $description: String!,
-        $name: String!,
-        $fileType: FileFileType!
-    ) {
-        updateFile(
-            kfId: $kfId,
-            name: $name,
-            description:$description,
-            fileType: $fileType
-        ) {
-            file { id kfId description name fileType }
-        }
-    }
-    """
+    query = update_query
     variables = {
         "kfId": file_id,
         "name": "New name",
@@ -309,23 +280,7 @@ def test_admin_file_mutation_query(admin_client, db, prep_file):
     File mutations are allowed on any files for admin user
     """
     (_, file_id, _) = prep_file()
-    query = """
-    mutation (
-        $kfId:String!,
-        $description: String!,
-        $name: String!,
-        $fileType: FileFileType!
-    ) {
-        updateFile(
-            kfId: $kfId,
-            name: $name,
-            description:$description,
-            fileType: $fileType
-        ) {
-            file { id kfId description name fileType }
-        }
-    }
-    """
+    query = update_query
     variables = {
         "kfId": file_id,
         "name": "New name",
