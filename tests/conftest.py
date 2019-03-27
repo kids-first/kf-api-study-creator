@@ -27,6 +27,18 @@ def ego_key_mock():
             yield get_key
 
 
+@pytest.fixture(scope='module', autouse=True)
+def auth0_key_mock():
+    """
+    Mocks out the response from the /.well-known/jwks.json endpoint on auth0
+    """
+    middleware = 'creator.middleware.Auth0AuthenticationMiddleware'
+    with mock.patch(f'{middleware}._get_new_key') as get_key:
+        with open('tests/keys/jwks.json', 'r') as f:
+            get_key.return_value = json.load(f)['keys'][0]
+            yield get_key
+
+
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
     settings.UPLOAD_DIR = os.path.join('./test_uploads', tmpdir)

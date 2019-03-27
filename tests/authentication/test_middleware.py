@@ -16,6 +16,14 @@ def ego_key_mock():
     pass
 
 
+@pytest.fixture(scope='session', autouse=True)
+def auth0_key_mock():
+    """
+    Override the auth0_key_mock that mocks out requests to auth0 for keys
+    """
+    pass
+
+
 @pytest.mark.no_mocks
 def test_ego_middleware(db, client, token):
     """
