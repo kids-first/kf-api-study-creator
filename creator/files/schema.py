@@ -186,6 +186,32 @@ class FileMutation(graphene.Mutation):
         return FileMutation(file=file)
 
 
+class DeleteFileMutation(graphene.Mutation):
+    class Arguments:
+        kf_id = graphene.String(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(self, info, kf_id, **kwargs):
+        """
+        Deletes a file if the user is an admin and the file exists
+        """
+        user = info.context.user
+        if (user is None or
+                not user.is_authenticated or
+                'ADMIN' not in user.ego_roles):
+            raise GraphQLError('Not authenticated to mutate a file.')
+
+        try:
+            file = File.objects.get(kf_id=kf_id)
+        except File.DoesNotExist:
+            raise GraphQLError('File does not exist.')
+
+        file.delete()
+
+        return DeleteFileMutation(success=True)
+
+
 class SignedUrlMutation(graphene.Mutation):
     """
     Generates a signed url and returns it
