@@ -6,7 +6,7 @@ from django.conf import settings
 from django_s3_storage.storage import S3Storage
 from botocore.exceptions import ClientError
 
-from .models import File, Object, DownloadToken
+from .models import File, Object, DevDownloadToken, DownloadToken
 
 
 def _resolve_object(file_id: str, version_id: Optional[str]) -> (File, Object):
@@ -31,7 +31,9 @@ def download(request, study_id, file_id, version_id=None):
     token = request.GET.get('token')
     # If there is a token provided, check if it is valid for download
     download_token = None
+    dev_token = None
     if token:
+        # Try to resolve a signed url token
         try:
             download_token = DownloadToken.objects.get(token=token)
             _, obj = _resolve_object(file_id, version_id)
@@ -46,11 +48,18 @@ def download(request, study_id, file_id, version_id=None):
             # same file/object information, but will not consider it for now
             download_token = None
 
+        # Try to resolve a dev download token
+        try:
+            dev_token = DevDownloadToken.objects.get(token=token)
+        except DevDownloadToken.DoesNotExist:
+            dev_token = None
+
     if ((user is None                           # No user present
          or not user.is_authenticated           # User is not authed
          or study_id not in user.ego_groups     # User does not belong to study
             and 'ADMIN' not in user.ego_roles)  # User is not admin
-            and download_token is None):        # There is no valid token
+            and download_token is None          # No valid download token
+            and dev_token is None):             # There is no valid dev token
         return HttpResponseNotFound('Not authenticated to download the file.')
 
     try:
