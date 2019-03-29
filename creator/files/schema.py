@@ -12,7 +12,7 @@ from graphql import GraphQLError
 
 from botocore.exceptions import ClientError
 
-from .models import File, Object, DownloadToken
+from .models import File, Object, DownloadToken, DevDownloadToken
 from creator.studies.models import Study
 
 
@@ -100,6 +100,13 @@ class FileFilter(django_filters.FilterSet):
     class Meta:
         model = File
         fields = ['name', 'study__kf_id', 'file_type']
+
+
+class DevDownloadTokenNode(DjangoObjectType):
+    class Meta:
+        model = DevDownloadToken
+        interfaces = (relay.Node, )
+        filter_fields = []
 
 
 class UploadMutation(graphene.Mutation):
@@ -257,6 +264,57 @@ class SignedUrlMutation(graphene.Mutation):
         return SignedUrlMutation(url=url)
 
 
+class DevDownloadTokenMutation(graphene.Mutation):
+    """
+    Generates a developer download token
+    """
+    class Arguments:
+        name = graphene.String(required=True)
+
+    token = graphene.Field(DevDownloadTokenNode)
+
+    def mutate(self, info, name, **kwargs):
+        """
+        Generates a developer token with a given name.
+        """
+        user = info.context.user
+        if ((user is None
+             or not user.is_authenticated
+             or 'ADMIN' not in user.ego_roles)):
+            return GraphQLError('Not authenticated to generate a token.')
+
+        token = DevDownloadToken(name=name)
+        token.save()
+
+        return DevDownloadTokenMutation(token=token)
+
+
+class DeleteDevDownloadTokenMutation(graphene.Mutation):
+    class Arguments:
+        token = graphene.String(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(self, info, token, **kwargs):
+        """
+        Deletes a developer download token
+        """
+        user = info.context.user
+        if (user is None or
+                not user.is_authenticated or
+                'ADMIN' not in user.ego_roles):
+            raise GraphQLError('Not authenticated to delete a token.')
+
+        try:
+            token = DevDownloadToken.objects.get(token=token)
+        except DevDownloadToken.DoesNotExist:
+            raise GraphQLError('Token does not exist.')
+
+        token.delete()
+
+        return DeleteDevDownloadTokenMutation(success=True)
+
+
 class Query(object):
     file = relay.Node.Field(FileNode)
     file_by_kf_id = Field(FileNode, kf_id=String(required=True))
@@ -271,6 +329,8 @@ class Query(object):
         ObjectNode,
         filterset_class=ObjectFilter,
     )
+
+    all_dev_tokens = DjangoFilterConnectionField(DevDownloadTokenNode)
 
     def resolve_file_by_kf_id(self, info, kf_id):
         return FileNode.get_node(info, kf_id)
@@ -313,3 +373,17 @@ class Query(object):
         return Object.objects.filter(
             root_file__study__kf_id__in=user.ego_groups
         )
+
+    def resolve_all_dev_tokens(self, info, **kwargs):
+        """
+        If user is admin, return all tokens, otherwise return none
+        """
+        user = info.context.user
+
+        if user is None or not user.is_authenticated:
+            return DevDownloadToken.objects.none()
+
+        if user.is_admin:
+            return DevDownloadToken.objects.all()
+
+        return DevDownloadToken.objects.none()

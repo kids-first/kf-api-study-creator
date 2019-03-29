@@ -189,7 +189,6 @@ def service_client(service_token):
     """
     token = service_token()
     client = Client(HTTP_AUTHORIZATION=f'Bearer {token}')
-    print(token)
     return client
 
 
