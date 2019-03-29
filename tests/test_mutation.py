@@ -1,5 +1,5 @@
 import pytest
-from creator.files.models import File, Object, DownloadToken
+from creator.files.models import File, Object, DownloadToken, DevDownloadToken
 
 
 update_query = """
@@ -428,3 +428,65 @@ def test_create_dev_download_token_mutation(
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
         assert Object.objects.count() == 1
         assert File.objects.count() == 1
+
+
+@pytest.mark.parametrize(
+    "user_type,authorized,expected",
+    [
+        ("admin", True, True),
+        ("admin", False, True),
+        ("service", True, True),
+        ("service", False, True),
+        ("user", True, False),
+        ("user", False, False),
+        (None, True, False),
+        (None, False, False),
+    ],
+)
+def test_delete_dev_token_mutation(
+    db,
+    admin_client,
+    service_client,
+    user_client,
+    client,
+    prep_file,
+    user_type,
+    authorized,
+    expected,
+):
+    """
+    Test that a dev token  may be deleted through the deleteDevToken mutation.
+    Only admin users may delete a token
+    """
+    api_client = {
+        "admin": admin_client,
+        "service": service_client,
+        "user": user_client,
+        None: client,
+    }[user_type]
+    token = DevDownloadToken(name="test token")
+    token.save()
+    query = """
+    mutation ($token: String!) {
+        deleteDevToken(token: $token) {
+            success
+        }
+    }
+    """
+    variables = {"token": token.token}
+    resp = api_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    assert resp.status_code == 200
+    if expected:
+        resp_body = resp.json()["data"]["deleteDevToken"]
+        assert resp_body["success"] is True
+        assert DevDownloadToken.objects.count() == 0
+    else:
+        assert resp.status_code == 200
+        assert "errors" in resp.json()
+        assert resp.json()["errors"][0]["message"].startswith("Not auth")
+        assert DevDownloadToken.objects.count() == 1

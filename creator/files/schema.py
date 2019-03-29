@@ -289,6 +289,32 @@ class DevDownloadTokenMutation(graphene.Mutation):
         return DevDownloadTokenMutation(token=token)
 
 
+class DeleteDevDownloadTokenMutation(graphene.Mutation):
+    class Arguments:
+        token = graphene.String(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(self, info, token, **kwargs):
+        """
+        Deletes a developer download token
+        """
+        user = info.context.user
+        if (user is None or
+                not user.is_authenticated or
+                'ADMIN' not in user.ego_roles):
+            raise GraphQLError('Not authenticated to delete a token.')
+
+        try:
+            token = DevDownloadToken.objects.get(token=token)
+        except DevDownloadToken.DoesNotExist:
+            raise GraphQLError('Token does not exist.')
+
+        token.delete()
+
+        return DeleteDevDownloadTokenMutation(success=True)
+
+
 class Query(object):
     file = relay.Node.Field(FileNode)
     file_by_kf_id = Field(FileNode, kf_id=String(required=True))
