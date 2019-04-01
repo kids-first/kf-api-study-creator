@@ -1,3 +1,31 @@
+# Kids First Study Creator Release 1.1.0
+
+Added new authentication through auth0, developer download tokens, signed
+download urls, and service tokens.
+## Features
+
+### Summary
+
+Feature Emojis: ✨x8 ♻️x1 🔥x1 🗃x1 🚨x1 📝 Updatex1 x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x7 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x4 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x2 [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x1
+
+### New features and changes
+
+- (#138) ✨ Add developer tokens - @dankolbman
+- (#136) ✨ Add deleteFile mutation - @dankolbman
+- (#135) ✨ Add file type to update mutation - @dankolbman
+- (#134) ✨ Service token auth - @dankolbman
+- (#132) ♻️  Cache JWKS for future validation - @dankolbman
+- (#130) 🔥 Remove django admin - @dankolbman
+- (#129) ✨ Add mutation to make signed url - @dankolbman
+- (#128) ✨ Require study id in download to be valid - @dankolbman
+- (#125) ✨ Signed download urls - @dankolbman
+- (#120) ✨ Add auth0 - @dankolbman
+- (#117) 🗃 Add missing migration - @dankolbman
+- (#116) 🚨 Add pycodestyle - @dankolbman
+- (#113) 📝Update uploads page - @znatty22
+- (#109)  Release 1.0.0 - @dankolbman
+
 # Kids First Study Creator Release 1.0.0
 
 First release of the Kids First Study Creator.
