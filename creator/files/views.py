@@ -28,7 +28,13 @@ def download(request, study_id, file_id, version_id=None):
     OR if there is an unclaimed token provided that has not expired.
     """
     user = request.user
+    # Try to resolve a download token first from the url query params, then
+    # from the Authorization header
     token = request.GET.get('token')
+    if (not token and
+            'HTTP_AUTHORIZATION' in request.META and
+            request.META.get('HTTP_AUTHORIZATION').startswith('Token ')):
+        token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
     # If there is a token provided, check if it is valid for download
     download_token = None
     dev_token = None
