@@ -2,6 +2,7 @@ import graphene
 import django_filters
 from django.conf import settings
 from django.db import transaction
+from django.db.utils import IntegrityError
 from graphene import relay, ObjectType, Field, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -284,7 +285,10 @@ class DevDownloadTokenMutation(graphene.Mutation):
             return GraphQLError('Not authenticated to generate a token.')
 
         token = DevDownloadToken(name=name)
-        token.save()
+        try:
+            token.save()
+        except IntegrityError:
+            return GraphQLError("Token with this name already exists.")
 
         return DevDownloadTokenMutation(token=token)
 

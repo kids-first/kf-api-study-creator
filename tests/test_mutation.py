@@ -430,6 +430,49 @@ def test_create_dev_download_token_mutation(
         assert File.objects.count() == 1
 
 
+def test_dev_token_unique_name(db, admin_client):
+    """
+    Test that dev tokens may not be created with the same name
+    """
+    query = """
+    mutation ($name: String!) {
+        createDevToken(name: $name) {
+            token {
+                id
+                name
+                token
+                createdAt
+            }
+        }
+    }
+    """
+    variables = {"name": "test token"}
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    assert resp.status_code == 200
+    resp_body = resp.json()["data"]["createDevToken"]
+    assert "token" in resp_body
+    token = resp_body["token"]
+    assert "name" in token
+    assert "token" in token
+    assert "createdAt" in token
+
+    # Try to make another token with the same name
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+    assert resp.status_code == 200
+    resp_body = resp.json()
+    assert "errors" in resp_body
+    assert resp_body["errors"][0]["message"].endswith("already exists.")
+
+
 @pytest.mark.parametrize(
     "user_type,authorized,expected",
     [
