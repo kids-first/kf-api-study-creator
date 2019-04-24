@@ -1,40 +1,14 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: python:3
+    branches:
+      ignore:
+        - gh-pages
     steps:
       - checkout:
           path: ~/workdir
       - run:
-          name: Install dependencies
+          name: Do nothing
           working_directory: ~/workdir
           command: |
-            pip install -r requirements.txt
-            pip install -r dev-requirements.txt
-      - run:
-          name: Test for formatting
-          working_directory: ~/workdir
-          command: |
-            doc8 docs
-      - run:
-          name: Build docs site
-          working_directory: ~/workdir
-          command: |
-            sphinx-build -W docs staged
-      - run:
-          name: Deploy if master branch
-          working_directory: ~/workdir
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                touch .nojekyll
-                git config --global user.email "dankolbman@gmail.com"
-                git config --global user.name "Dan Kolbman"
-                mv staged/ ../
-                git checkout -b gh-pages
-                git pull origin gh-pages
-                mv ../staged/* ./
-                git add -A .
-                git commit --allow-empty -m ":recycle: Update docs site"
-                git push -q https://${GITHUB_TOKEN}@github.com/kids-first/kf-api-study-creator.git
-            fi
+            echo "Don't do anything for gh-page"
