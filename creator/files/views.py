@@ -98,6 +98,7 @@ def download(request, study_id, file_id, version_id=None):
     file_name = urllib.parse.quote(file.name)
     response['Content-Disposition'] = f'attachment; filename={file_name}'
     response['Content-Length'] = obj.size
+    response['Content-Type'] = 'application/octet-stream'
     return response
 
 
