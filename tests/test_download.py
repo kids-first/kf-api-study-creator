@@ -26,6 +26,7 @@ def test_download_local(admin_client, db, prep_file):
     obj = File.objects.get(kf_id=file2_id).versions.get(kf_id=version2_id)
     assert obj.size == 24
     assert resp.get("Content-Length") == str(obj.size)
+    assert resp.get("Content-Type") == "application/octet-stream"
     assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
 
 
@@ -46,6 +47,7 @@ def test_download_s3(admin_client, db, prep_file):
     obj = File.objects.get(kf_id=file_id).versions.get(kf_id=version_id)
     assert obj.size == 12
     assert resp.get("Content-Length") == str(obj.size)
+    assert resp.get("Content-Type") == "application/octet-stream"
     assert resp.content == b"aaa\nbbb\nccc\n"
 
 
