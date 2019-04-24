@@ -291,13 +291,13 @@ class DevDownloadTokenMutation(graphene.Mutation):
 
 class DeleteDevDownloadTokenMutation(graphene.Mutation):
     class Arguments:
-        token = graphene.String(required=True)
+        name = graphene.String(required=True)
 
     success = graphene.Boolean()
 
-    def mutate(self, info, token, **kwargs):
+    def mutate(self, info, name, **kwargs):
         """
-        Deletes a developer download token
+        Deletes a developer download token by name
         """
         user = info.context.user
         if (user is None or
@@ -306,7 +306,7 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
             raise GraphQLError('Not authenticated to delete a token.')
 
         try:
-            token = DevDownloadToken.objects.get(token=token)
+            token = DevDownloadToken.objects.get(name=name)
         except DevDownloadToken.DoesNotExist:
             raise GraphQLError('Token does not exist.')
 

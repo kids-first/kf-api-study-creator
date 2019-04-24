@@ -467,13 +467,13 @@ def test_delete_dev_token_mutation(
     token = DevDownloadToken(name="test token")
     token.save()
     query = """
-    mutation ($token: String!) {
-        deleteDevToken(token: $token) {
+    mutation ($name: String!) {
+        deleteDevToken(name: $name) {
             success
         }
     }
     """
-    variables = {"token": token.token}
+    variables = {"name": token.name}
     resp = api_client.post(
         "/graphql",
         content_type="application/json",
