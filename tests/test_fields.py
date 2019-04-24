@@ -10,7 +10,7 @@ def test_kf_id_prefix_value(db):
     s.save()
     f = File(study=s)
     f.save()
-    assert f.kf_id.startswith('SF')
+    assert f.kf_id.startswith("SF")
     assert len(f.kf_id) == 11
 
     kf_id = f.kf_id

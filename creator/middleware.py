@@ -48,7 +48,7 @@ class EgoJWTAuthenticationMiddleware():
             return user
 
         encoded = request.META.get('HTTP_AUTHORIZATION')
-        if not encoded:
+        if not encoded or not encoded.startswith('Bearer '):
             return AnonymousUser()
         encoded = encoded.replace('Bearer ', '')
 
@@ -148,7 +148,7 @@ class Auth0AuthenticationMiddleware():
             return user
 
         encoded = request.META.get('HTTP_AUTHORIZATION')
-        if not encoded:
+        if not encoded or not encoded.startswith('Bearer '):
             return AnonymousUser()
         encoded = encoded.replace('Bearer ', '')
 

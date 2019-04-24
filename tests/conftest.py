@@ -15,35 +15,35 @@ from creator.studies.models import Study
 from creator.middleware import EgoJWTAuthenticationMiddleware
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def ego_key_mock():
     """
     Mocks out the response from the /oauth/token/public_key endpoint
     """
-    middleware = 'creator.middleware.EgoJWTAuthenticationMiddleware'
-    with mock.patch(f'{middleware}._get_new_key') as get_key:
-        with open('tests/keys/public_key.pem', 'rb') as f:
+    middleware = "creator.middleware.EgoJWTAuthenticationMiddleware"
+    with mock.patch(f"{middleware}._get_new_key") as get_key:
+        with open("tests/keys/public_key.pem", "rb") as f:
             get_key.return_value = f.read()
             yield get_key
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def auth0_key_mock():
     """
     Mocks out the response from the /.well-known/jwks.json endpoint on auth0
     """
-    middleware = 'creator.middleware.Auth0AuthenticationMiddleware'
-    with mock.patch(f'{middleware}._get_new_key') as get_key:
-        with open('tests/keys/jwks.json', 'r') as f:
-            get_key.return_value = json.load(f)['keys'][0]
+    middleware = "creator.middleware.Auth0AuthenticationMiddleware"
+    with mock.patch(f"{middleware}._get_new_key") as get_key:
+        with open("tests/keys/jwks.json", "r") as f:
+            get_key.return_value = json.load(f)["keys"][0]
             yield get_key
 
 
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
-    settings.UPLOAD_DIR = os.path.join('./test_uploads', tmpdir)
+    settings.UPLOAD_DIR = os.path.join("./test_uploads", tmpdir)
     settings.DEFAULT_FILE_STORAGE = (
-        'django.core.files.storage.FileSystemStorage'
+        "django.core.files.storage.FileSystemStorage"
     )
     yield tmpdir
     shutil.rmtree(str(tmpdir))
@@ -51,13 +51,11 @@ def tmp_uploads_local(tmpdir, settings):
 
 @pytest.yield_fixture
 def tmp_uploads_s3(tmpdir, settings):
-    settings.UPLOAD_DIR = 's3'
-    settings.DEFAULT_FILE_STORAGE = (
-        'django_s3_storage.storage.S3Storage'
-    )
+    settings.UPLOAD_DIR = "s3"
+    settings.DEFAULT_FILE_STORAGE = "django_s3_storage.storage.S3Storage"
 
-    def mock(bucket_name='kf-study-us-east-1-my-study'):
-        client = boto3.client('s3')
+    def mock(bucket_name="kf-study-us-east-1-my-study"):
+        client = boto3.client("s3")
         return client.create_bucket(Bucket=bucket_name)
 
     return mock
@@ -66,30 +64,28 @@ def tmp_uploads_s3(tmpdir, settings):
 @pytest.yield_fixture
 def upload_file(client, tmp_uploads_local):
     def upload(study_id, file_name, client=client):
-        query = '''
+        query = """
             mutation ($file: Upload!, $studyId: String!) {
               createFile(file: $file, studyId: $studyId) {
                 success
                 file { name }
               }
             }
-        '''
-        with open(f'tests/data/{file_name}') as f:
+        """
+        with open(f"tests/data/{file_name}") as f:
             data = {
-                'operations': json.dumps({
-                    'query': query.strip(),
-                    'variables': {
-                        'file': None,
-                        'studyId': study_id
-                    },
-                }),
-                'file': f,
-                'map': json.dumps({
-                    'file': ['variables.file'],
-                }),
+                "operations": json.dumps(
+                    {
+                        "query": query.strip(),
+                        "variables": {"file": None, "studyId": study_id},
+                    }
+                ),
+                "file": f,
+                "map": json.dumps({"file": ["variables.file"]}),
             }
-            resp = client.post('/graphql', data=data)
+            resp = client.post("/graphql", data=data)
         return resp
+
     return upload
 
 
@@ -99,51 +95,52 @@ def token():
     Returns a function that will generate a token for a user in given groups
     with given roles.
     """
-    with open('tests/keys/private_key.pem', 'rb') as f:
+    with open("tests/keys/private_key.pem", "rb") as f:
         ego_key = f.read()
 
-    def make_token(groups=None, roles=None, iss='ego'):
+    def make_token(groups=None, roles=None, iss="ego"):
         """
         Returns an ego or auth0 JWT for a user with given roles and groups
         """
         if groups is None:
             groups = []
         if roles is None:
-            roles = ['USER']
+            roles = ["USER"]
 
         now = datetime.datetime.now()
         tomorrow = now + datetime.timedelta(days=1)
         token = {
-          "iat": now.timestamp(),
-          "exp": tomorrow.timestamp(),
-          "sub": "cfa211bc-6fa8-4a03-bb81-cf377f99da47",
-          "iss": iss,
-          "aud": 'creator',
-          "jti": "7b42a89d-85e3-4954-81a0-beccb12f32d5",
+            "iat": now.timestamp(),
+            "exp": tomorrow.timestamp(),
+            "sub": "cfa211bc-6fa8-4a03-bb81-cf377f99da47",
+            "iss": iss,
+            "aud": "creator",
+            "jti": "7b42a89d-85e3-4954-81a0-beccb12f32d5",
         }
 
-        if iss == 'ego':
+        if iss == "ego":
             token["context"] = {
                 "user": {
-                  "name": "user@d3b.center",
-                  "email": "user@d3b.center",
-                  "status": "Approved",
-                  "firstName": "Bobby",
-                  "lastName": "TABLES;",
-                  "createdAt": 1531440000000,
-                  "lastLogin": 1551293729279,
-                  "preferredLanguage": None,
-                  "groups": groups,
-                  "roles": roles,
-                  "permissions": []
+                    "name": "user@d3b.center",
+                    "email": "user@d3b.center",
+                    "status": "Approved",
+                    "firstName": "Bobby",
+                    "lastName": "TABLES;",
+                    "createdAt": 1531440000000,
+                    "lastLogin": 1551293729279,
+                    "preferredLanguage": None,
+                    "groups": groups,
+                    "roles": roles,
+                    "permissions": [],
                 }
             }
         else:
-            token['https://kidsfirstdrc.org/groups'] = groups
-            token['https://kidsfirstdrc.org/roles'] = roles
-            token['aud'] = 'https://kf-study-creator.kidsfirstdrc.org'
+            token["https://kidsfirstdrc.org/groups"] = groups
+            token["https://kidsfirstdrc.org/roles"] = roles
+            token["aud"] = "https://kf-study-creator.kidsfirstdrc.org"
 
-        return jwt.encode(token, ego_key, algorithm='RS256').decode('utf8')
+        return jwt.encode(token, ego_key, algorithm="RS256").decode("utf8")
+
     return make_token
 
 
@@ -152,23 +149,24 @@ def service_token():
     """
     Generate a service token that will be used in machine-to-machine auth
     """
-    with open('tests/keys/private_key.pem', 'rb') as f:
+    with open("tests/keys/private_key.pem", "rb") as f:
         key = f.read()
 
     def make_token(scope="role:admin"):
         now = datetime.datetime.now()
         tomorrow = now + datetime.timedelta(days=1)
         token = {
-          "iss": "auth0.com",
-          "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@clients",
-          "aud": "https://kf-study-creator.kidsfirstdrc.org",
-          "iat": now.timestamp(),
-          "exp": tomorrow.timestamp(),
-          "azp": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "scope": scope,
-          "gty": "client-credentials"
+            "iss": "auth0.com",
+            "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@clients",
+            "aud": "https://kf-study-creator.kidsfirstdrc.org",
+            "iat": now.timestamp(),
+            "exp": tomorrow.timestamp(),
+            "azp": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "scope": scope,
+            "gty": "client-credentials",
         }
-        return jwt.encode(token, key, algorithm='RS256').decode('utf8')
+        return jwt.encode(token, key, algorithm="RS256").decode("utf8")
+
     return make_token
 
 
@@ -177,8 +175,8 @@ def admin_client(token):
     """
     Returns a client that sends an admin token with every request
     """
-    admin_token = token([], ['ADMIN'])
-    client = Client(HTTP_AUTHORIZATION=f'Bearer {admin_token}')
+    admin_token = token([], ["ADMIN"])
+    client = Client(HTTP_AUTHORIZATION=f"Bearer {admin_token}")
     return client
 
 
@@ -188,7 +186,7 @@ def service_client(service_token):
     Returns a client that sends a service token with every request
     """
     token = service_token()
-    client = Client(HTTP_AUTHORIZATION=f'Bearer {token}')
+    client = Client(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client
 
 
@@ -197,8 +195,8 @@ def user_client(token):
     """
     Returns a client for a logged in user
     """
-    user_token = token(['SD_00000000'], ['USER'])
-    client = Client(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    user_token = token(["SD_00000000"], ["USER"])
+    client = Client(HTTP_AUTHORIZATION=f"Bearer {user_token}")
     return client
 
 
@@ -211,10 +209,11 @@ def prep_file(admin_client, upload_file):
     2. Upload one file to the study (default:manifest.txt)
     3. Return study_id, file_id, version_id
     """
-    def file(file_name='manifest.txt', client=admin_client, authed=False):
+
+    def file(file_name="manifest.txt", client=admin_client, authed=False):
         if authed:
-            study_id = 'SD_00000000'
-            study = Study(kf_id=study_id, external_id='Test')
+            study_id = "SD_00000000"
+            study = Study(kf_id=study_id, external_id="Test")
             study.save()
         else:
             studies = StudyFactory.create_batch(1)
@@ -226,4 +225,5 @@ def prep_file(admin_client, upload_file):
         version_id = File.objects.get(kf_id=file_id).versions.first().kf_id
         resp = (study_id, file_id, version_id)
         return resp
+
     return file
