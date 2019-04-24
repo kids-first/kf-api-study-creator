@@ -170,7 +170,8 @@ def test_download_auth(
         assert resp.get("Content-Disposition") == expected_name
         assert resp.content == b"aaa\nbbb\nccc\n"
     else:
-        assert resp.status_code == 404
+        assert resp.status_code == 401
+        assert resp.content == b'Not authorized to download the file'
         assert resp.get("Content-Disposition") is None
 
 
@@ -300,4 +301,4 @@ def test_signed_download_expired(
     assert token.is_valid(obj) is False
 
     resp = user_client.get(resp.json()["url"])
-    assert resp.status_code == 404
+    assert resp.status_code == 401

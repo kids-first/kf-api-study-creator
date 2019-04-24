@@ -78,7 +78,7 @@ def test_download_with_bad_header(db, client, prep_file):
         f"/download/study/{study_id}/file/{file_id}",
         HTTP_AUTHORIZATION=f"Token abcabc",
     )
-    assert resp.status_code == 404
+    assert resp.status_code == 401
     assert resp.get("Content-Disposition") is None
 
 
@@ -90,5 +90,5 @@ def test_download_with_no_token(db, client, prep_file):
     study_id, file_id, version_id = prep_file()
 
     resp = client.get(f"/download/study/{study_id}/file/{file_id}")
-    assert resp.status_code == 404
+    assert resp.status_code == 401
     assert resp.get("Content-Disposition") is None

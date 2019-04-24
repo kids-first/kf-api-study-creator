@@ -66,7 +66,7 @@ def download(request, study_id, file_id, version_id=None):
             and 'ADMIN' not in user.ego_roles)  # User is not admin
             and download_token is None          # No valid download token
             and dev_token is None):             # There is no valid dev token
-        return HttpResponseNotFound('Not authenticated to download the file.')
+        return HttpResponse('Not authorized to download the file', status=401)
 
     try:
         file, obj = _resolve_object(file_id, version_id)
