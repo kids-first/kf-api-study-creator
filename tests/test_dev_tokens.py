@@ -10,7 +10,8 @@ def test_list_dev_tokens(
     db, admin_client, service_client, user_client, client, user_type, expected
 ):
     """
-    Test that only admins may list tokens
+    Test that only admins may list tokens and only the first four characters
+    are returned.
     """
     api_client = {
         "admin": admin_client,
@@ -45,6 +46,7 @@ def test_list_dev_tokens(
     resp_body = resp.json()["data"]["allDevTokens"]
     if expected:
         assert len(resp_body["edges"]) == 2
+        assert resp_body["edges"][0]["node"]["token"].endswith('*'*23)
     else:
         assert len(resp_body["edges"]) == 0
 

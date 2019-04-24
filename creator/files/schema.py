@@ -104,10 +104,21 @@ class FileFilter(django_filters.FilterSet):
 
 
 class DevDownloadTokenNode(DjangoObjectType):
+    token = graphene.String()
+
     class Meta:
         model = DevDownloadToken
         interfaces = (relay.Node, )
         filter_fields = []
+
+    def resolve_token(self, info):
+        """
+        Return an obscured token with only the first four characters exposed,
+        unless the token is being returned in response to a new token mutation.
+        """
+        if info.path == ['createDevToken', 'token', 'token']:
+            return self.token
+        return self.token[:4] + '*' * (len(self.token) - 4)
 
 
 class UploadMutation(graphene.Mutation):
