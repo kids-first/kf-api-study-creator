@@ -96,7 +96,9 @@ def download(request, study_id, file_id, version_id=None):
         return HttpResponseNotFound('Problem finding the file')
 
     file_name = urllib.parse.quote(file.name)
-    response['Content-Disposition'] = f'attachment; filename={file_name}'
+    response[
+        'Content-Disposition'
+    ] = f"attachment; filename*=UTF-8''{file_name}"
     response['Content-Length'] = obj.size
     response['Content-Type'] = 'application/octet-stream'
     return response
