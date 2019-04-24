@@ -2,6 +2,7 @@ import graphene
 import django_filters
 from django.conf import settings
 from django.db import transaction
+from django.db.utils import IntegrityError
 from graphene import relay, ObjectType, Field, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -103,10 +104,21 @@ class FileFilter(django_filters.FilterSet):
 
 
 class DevDownloadTokenNode(DjangoObjectType):
+    token = graphene.String()
+
     class Meta:
         model = DevDownloadToken
         interfaces = (relay.Node, )
         filter_fields = []
+
+    def resolve_token(self, info):
+        """
+        Return an obscured token with only the first four characters exposed,
+        unless the token is being returned in response to a new token mutation.
+        """
+        if info.path == ['createDevToken', 'token', 'token']:
+            return self.token
+        return self.token[:4] + '*' * (len(self.token) - 4)
 
 
 class UploadMutation(graphene.Mutation):
@@ -284,20 +296,23 @@ class DevDownloadTokenMutation(graphene.Mutation):
             return GraphQLError('Not authenticated to generate a token.')
 
         token = DevDownloadToken(name=name)
-        token.save()
+        try:
+            token.save()
+        except IntegrityError:
+            return GraphQLError("Token with this name already exists.")
 
         return DevDownloadTokenMutation(token=token)
 
 
 class DeleteDevDownloadTokenMutation(graphene.Mutation):
     class Arguments:
-        token = graphene.String(required=True)
+        name = graphene.String(required=True)
 
     success = graphene.Boolean()
 
-    def mutate(self, info, token, **kwargs):
+    def mutate(self, info, name, **kwargs):
         """
-        Deletes a developer download token
+        Deletes a developer download token by name
         """
         user = info.context.user
         if (user is None or
@@ -306,7 +321,7 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
             raise GraphQLError('Not authenticated to delete a token.')
 
         try:
-            token = DevDownloadToken.objects.get(token=token)
+            token = DevDownloadToken.objects.get(name=name)
         except DevDownloadToken.DoesNotExist:
             raise GraphQLError('Token does not exist.')
 
