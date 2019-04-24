@@ -56,7 +56,7 @@ def test_download_with_header(db, client, prep_file):
     """
     token = DevDownloadToken(name="test token")
     token.save()
-    expected_name = "attachment; filename=manifest.txt"
+    expected_name = "attachment; filename*=UTF-8''manifest.txt"
     study_id, file_id, version_id = prep_file()
 
     resp = client.get(
