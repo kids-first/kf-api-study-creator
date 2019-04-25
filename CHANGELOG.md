@@ -1,3 +1,24 @@
+# Kids First Study Creator Release 1.2.0
+
+## Features
+
+Introduces minor bug fixes and security features.
+
+### Summary
+
+Feature Emojis: 🐛x3 ✨x2 🙈x1
+Feature Labels: [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x4 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x1 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1 [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x1
+
+### New features and changes
+
+- (#150) 🙈 Ignore gh-pages in CircleCI - @dankolbman
+- (#147) ✨ Read once tokens - @dankolbman
+- (#149) 🐛 Return 401 when not authed for download - @dankolbman
+- (#146) 🐛 Use utf-8 encoding for Content-Disposition - @dankolbman
+- (#145) 🐛 Add Content-Type header to downloads - @dankolbman
+- (#143) ✨ Look for tokens in Authorization header - @dankolbman
+
+
 # Kids First Study Creator Release 1.1.0
 
 Added new authentication through auth0, developer download tokens, signed
