@@ -309,6 +309,7 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
         name = graphene.String(required=True)
 
     success = graphene.Boolean()
+    name = graphene.String()
 
     def mutate(self, info, name, **kwargs):
         """
@@ -327,7 +328,7 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
 
         token.delete()
 
-        return DeleteDevDownloadTokenMutation(success=True)
+        return DeleteDevDownloadTokenMutation(success=True, name=token.name)
 
 
 class Query(object):
