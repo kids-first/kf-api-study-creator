@@ -210,6 +210,7 @@ class DeleteFileMutation(graphene.Mutation):
         kf_id = graphene.String(required=True)
 
     success = graphene.Boolean()
+    kf_id = graphene.String()
 
     def mutate(self, info, kf_id, **kwargs):
         """
@@ -228,7 +229,7 @@ class DeleteFileMutation(graphene.Mutation):
 
         file.delete()
 
-        return DeleteFileMutation(success=True)
+        return DeleteFileMutation(success=True, kf_id=kf_id)
 
 
 class SignedUrlMutation(graphene.Mutation):
