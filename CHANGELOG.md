@@ -1,3 +1,19 @@
+# Kids First Study Creator Release 1.2.1
+
+## Features
+
+Small field addition to enable cache refreshes on the UI client.
+
+### Summary
+
+Feature Emojis: ♻️x1
+Feature Labels: [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x1
+
+### New features and changes
+
+- (#153) ♻️ Return kf_id from delete file mutation - @dankolbman
+
+
 # Kids First Study Creator Release 1.2.0
 
 ## Features
