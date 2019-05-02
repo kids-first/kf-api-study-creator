@@ -123,9 +123,21 @@ class DevDownloadTokenNode(DjangoObjectType):
 
 class UploadMutation(graphene.Mutation):
     class Arguments:
-        file = Upload(required=True)
-        studyId = graphene.String(required=True)
-        fileId = graphene.String(required=False)
+        file = Upload(
+            required=True,
+            description="Empty argument used by the multipart request"
+        )
+        studyId = graphene.String(
+            required=True,
+            description="kf_id of the study this file will belong to"
+        )
+        fileId = graphene.String(
+            required=False,
+            description=(
+                "kf_id of an existing file that this new file will be"
+                " a version of"
+            ),
+        )
 
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
