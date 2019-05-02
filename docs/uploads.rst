@@ -20,6 +20,26 @@ The upload request is expected to conform to the
 
 Use the ``createFile`` mutation to upload a file to a study.
 
+Example mutation:
+
+.. code-block:: bash
+
+    mutation ($file: Upload!, $studyId: String!) {
+      createFile(file: $file, studyId: $studyId) {
+        success
+        file {
+            id
+            kfId
+            name
+            downloadUrl
+        }
+      }
+    }
+
+The ``createFile`` mutation is sent as a single operation in a multipart
+request and will need to be followed with a file.
+See the examples below for how this works.
+
 Curl example
 ^^^^^^^^^^^^
 .. code-block:: bash
