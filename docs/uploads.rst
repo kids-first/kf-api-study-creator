@@ -67,3 +67,25 @@ Python example
     )
     response = requests.post('http://localhost:8080/graphql', data=m,
                              headers={'Content-Type': m.content_type})
+
+
+Uploading a New Version
+-----------------------
+To upload a new version of a file, use the `createFile` mutation as would be
+done for creating the initial file and pass along the existing file's ``kfId``.
+This will create a new version of the file under that root file, granted the
+``kfId`` for the root file is correct.
+
+Example mutation:
+
+.. code-block:: bash
+
+    mutation ($file: Upload!, $studyId: String!, $fileId: String) {
+      createFile(file: $file, studyId: $studyId, fileId: $fileId) {
+        success
+        file {
+            kfId
+            versions { edges { node { kfId } } }
+        }
+      }
+    }
