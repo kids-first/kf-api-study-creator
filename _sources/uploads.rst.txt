@@ -20,6 +20,26 @@ The upload request is expected to conform to the
 
 Use the ``createFile`` mutation to upload a file to a study.
 
+Example mutation:
+
+.. code-block:: bash
+
+    mutation ($file: Upload!, $studyId: String!) {
+      createFile(file: $file, studyId: $studyId) {
+        success
+        file {
+            id
+            kfId
+            name
+            downloadUrl
+        }
+      }
+    }
+
+The ``createFile`` mutation is sent as a single operation in a multipart
+request and will need to be followed with a file.
+See the examples below for how this works.
+
 Curl example
 ^^^^^^^^^^^^
 .. code-block:: bash
@@ -67,3 +87,25 @@ Python example
     )
     response = requests.post('http://localhost:8080/graphql', data=m,
                              headers={'Content-Type': m.content_type})
+
+
+Uploading a New Version
+-----------------------
+To upload a new version of a file, use the `createFile` mutation as would be
+done for creating the initial file and pass along the existing file's ``kfId``.
+This will create a new version of the file under that root file, granted the
+``kfId`` for the root file is correct.
+
+Example mutation:
+
+.. code-block:: bash
+
+    mutation ($file: Upload!, $studyId: String!, $fileId: String) {
+      createFile(file: $file, studyId: $studyId, fileId: $fileId) {
+        success
+        file {
+            kfId
+            versions { edges { node { kfId } } }
+        }
+      }
+    }
