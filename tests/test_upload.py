@@ -81,6 +81,73 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     assert studies[-1].files.count() == 1
 
 
+def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
+                        upload_version):
+    """
+    Test upload of intial file followed by a new version
+    """
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[-1].kf_id
+    resp = upload_file(study_id, "manifest.txt", admin_client)
+
+    assert Study.objects.count() == 1
+    assert File.objects.count() == 1
+    assert Object.objects.count() == 1
+
+    study = Study.objects.first()
+    sf = File.objects.first()
+    obj = Object.objects.first()
+
+    # Upload second version
+    resp = upload_version(
+        study_id,
+        "manifest.txt",
+        admin_client,
+        file_id=sf.kf_id
+    )
+
+    # assert len(tmp_uploads_local.listdir()) == 2
+    assert resp.status_code == 200
+    assert "data" in resp.json()
+    assert "errors" not in resp.json()
+    assert resp.json() == {
+        "data": {
+            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
+        }
+    }
+
+    assert Study.objects.count() == 1
+    assert File.objects.count() == 1
+    assert Object.objects.count() == 2
+
+
+def test_upload_version_no_file(admin_client, db, tmp_uploads_local,
+                                upload_file, upload_version):
+    """
+    Tests that a new version may not be uploaded for a file that does not
+    exist.
+    """
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[-1].kf_id
+
+    # Upload a version with a file_id that does not exist
+    resp = upload_version(
+        study_id,
+        "manifest.txt",
+        admin_client,
+        file_id="SF_XXXXXXXX"
+    )
+
+    assert len(tmp_uploads_local.listdir()) == 0
+    assert resp.status_code == 200
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == "File does not exist."
+
+    assert Study.objects.count() == 1
+    assert File.objects.count() == 0
+    assert Object.objects.count() == 0
+
+
 def test_study_not_exist(admin_client, db, upload_file):
     study_id = 10
     resp = upload_file(study_id, "manifest.txt", admin_client)

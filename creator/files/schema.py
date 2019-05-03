@@ -123,16 +123,30 @@ class DevDownloadTokenNode(DjangoObjectType):
 
 class UploadMutation(graphene.Mutation):
     class Arguments:
-        file = Upload(required=True)
-        studyId = graphene.String(required=True)
+        file = Upload(
+            required=True,
+            description="Empty argument used by the multipart request"
+        )
+        studyId = graphene.String(
+            required=True,
+            description="kf_id of the study this file will belong to"
+        )
+        fileId = graphene.String(
+            required=False,
+            description=(
+                "kf_id of an existing file that this new file will be"
+                " a version of"
+            ),
+        )
 
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
-    def mutate(self, info, file, studyId, **kwargs):
+    def mutate(self, info, file, studyId, fileId=None, **kwargs):
         """
-            Uploads a file given a studyId and creates a new file and
-            file object
+        Uploads a file given a studyId and creates a new file and file object
+        if the file does not exist. If given a fileId of a file that does
+        exist, creates a new version of that file.
         """
         user = info.context.user
         if user is None or not user.is_authenticated:
@@ -145,11 +159,19 @@ class UploadMutation(graphene.Mutation):
             raise GraphQLError('File is too large.')
 
         study = Study.objects.get(kf_id=studyId)
+
+        try:
+            if fileId is not None:
+                root_file = File.objects.get(kf_id=fileId)
+        except File.DoesNotExist:
+            raise GraphQLError('File does not exist.')
+
         try:
             with transaction.atomic():
-                new_file = File(name=file.name, study=study)
-                new_file.save()
-                obj = Object(size=file.size, root_file=new_file, key=file)
+                if fileId is None:
+                    root_file = File(name=file.name, study=study)
+                    root_file.save()
+                obj = Object(size=file.size, root_file=root_file, key=file)
                 if (settings.DEFAULT_FILE_STORAGE ==
                         'django_s3_storage.storage.S3Storage'):
                     obj.key.storage = S3Storage(
@@ -159,7 +181,7 @@ class UploadMutation(graphene.Mutation):
         except ClientError as e:
             raise GraphQLError('Failed to save file')
 
-        return UploadMutation(success=True, file=new_file)
+        return UploadMutation(success=True, file=root_file)
 
 
 class FileMutation(graphene.Mutation):

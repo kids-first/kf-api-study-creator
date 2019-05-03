@@ -89,6 +89,41 @@ def upload_file(client, tmp_uploads_local):
     return upload
 
 
+@pytest.yield_fixture
+def upload_version(client, tmp_uploads_local):
+    """
+    Uploads a new version of an existing file
+    """
+    def upload(study_id, file_name, client=client, file_id=None):
+        query = """
+            mutation ($file: Upload!, $studyId: String!, $fileId: String) {
+              createFile(file: $file, studyId: $studyId, fileId: $fileId) {
+                success
+                file { name }
+              }
+            }
+        """
+        with open(f"tests/data/{file_name}") as f:
+            data = {
+                "operations": json.dumps(
+                    {
+                        "query": query.strip(),
+                        "variables": {
+                            "file": None,
+                            "studyId": study_id,
+                            "fileId": file_id
+                        }
+                    }
+                ),
+                "file": f,
+                "map": json.dumps({"file": ["variables.file"]}),
+            }
+            resp = client.post("/graphql", data=data)
+        return resp
+
+    return upload
+
+
 @pytest.fixture
 def token():
     """
