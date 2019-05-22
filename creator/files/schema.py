@@ -227,6 +227,44 @@ class FileMutation(graphene.Mutation):
         return FileMutation(file=file)
 
 
+class VersionMutation(graphene.Mutation):
+    """
+    Updates fields for a given version.
+    """
+    class Arguments:
+        kf_id = graphene.String(required=True)
+        description = graphene.String()
+
+    version = graphene.Field(VersionNode)
+
+    def mutate(self, info, kf_id, **kwargs):
+        """
+        Updates an existing version of a file.
+        User must be authenticated and belongs to the study, or be ADMIN.
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError('Not authenticated to mutate a version.')
+
+        try:
+            version = Version.objects.get(kf_id=kf_id)
+        except Version.DoesNotExist:
+            raise GraphQLError('Version does not exist.')
+
+        study_id = version.root_file.study.kf_id
+        if study_id not in user.ego_groups and 'ADMIN' not in user.ego_roles:
+            raise GraphQLError('Not authenticated to mutate a version.')
+
+        try:
+            if kwargs.get('description'):
+                version.description = kwargs.get('description')
+            version.save()
+        except ClientError as e:
+            raise GraphQLError('Failed to save version mutation.')
+
+        return VersionMutation(version=version)
+
+
 class DeleteFileMutation(graphene.Mutation):
     class Arguments:
         kf_id = graphene.String(required=True)
