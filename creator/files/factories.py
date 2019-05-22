@@ -3,7 +3,7 @@ import factory
 import factory.fuzzy
 import random
 from faker.providers import BaseProvider
-from .models import File, Object
+from .models import File, Version
 from creator.studies.models import Study
 
 
@@ -15,9 +15,9 @@ class FileTypeProvider(BaseProvider):
 factory.Faker.add_provider(FileTypeProvider)
 
 
-class ObjectFactory(factory.DjangoModelFactory):
+class VersionFactory(factory.DjangoModelFactory):
     class Meta:
-        model = Object
+        model = Version
 
     kf_id = factory.fuzzy.FuzzyText(
                 length=8,
@@ -48,4 +48,4 @@ class FileFactory(factory.DjangoModelFactory):
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):
         n = random.randint(1, 5)
-        return ObjectFactory.create_batch(n, root_file=self)
+        return VersionFactory.create_batch(n, root_file=self)

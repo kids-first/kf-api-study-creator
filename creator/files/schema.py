@@ -13,13 +13,13 @@ from graphql import GraphQLError
 
 from botocore.exceptions import ClientError
 
-from .models import File, Object, DownloadToken, DevDownloadToken
+from .models import File, Version, DownloadToken, DevDownloadToken
 from creator.studies.models import Study
 
 
-class ObjectNode(DjangoObjectType):
+class VersionNode(DjangoObjectType):
     class Meta:
-        model = Object
+        model = Version
         interfaces = (relay.Node, )
 
     download_url = graphene.String()
@@ -51,9 +51,9 @@ class ObjectNode(DjangoObjectType):
         return None
 
 
-class ObjectFilter(django_filters.FilterSet):
+class VersionFilter(django_filters.FilterSet):
     class Meta:
-        model = Object
+        model = Version
         fields = []
     order_by = OrderingFilter(fields=('created_at',))
 
@@ -64,8 +64,8 @@ class FileNode(DjangoObjectType):
         interfaces = (relay.Node, )
 
     versions = DjangoFilterConnectionField(
-        ObjectNode,
-        filterset_class=ObjectFilter,
+        VersionNode,
+        filterset_class=VersionFilter,
     )
 
     download_url = graphene.String()
@@ -171,7 +171,7 @@ class UploadMutation(graphene.Mutation):
                 if fileId is None:
                     root_file = File(name=file.name, study=study)
                     root_file.save()
-                obj = Object(size=file.size, root_file=root_file, key=file)
+                obj = Version(size=file.size, root_file=root_file, key=file)
                 if (settings.DEFAULT_FILE_STORAGE ==
                         'django_s3_storage.storage.S3Storage'):
                     obj.key.storage = S3Storage(
@@ -285,16 +285,16 @@ class SignedUrlMutation(graphene.Mutation):
             return GraphQLError('No file exists with given ID')
         try:
             if version_id:
-                obj = file.versions.get(kf_id=version_id)
+                version = file.versions.get(kf_id=version_id)
             else:
-                obj = file.versions.latest('created_at')
-        except Object.DoesNotExist:
+                version = file.versions.latest('created_at')
+        except Version.DoesNotExist:
             return GraphQLError('No version exists with given ID')
 
-        token = DownloadToken(root_object=obj)
+        token = DownloadToken(root_version=version)
         token.save()
 
-        url = f'{obj.path}?token={token.token}'
+        url = f'{version.path}?token={token.token}'
 
         return SignedUrlMutation(url=url)
 
@@ -362,11 +362,11 @@ class Query(object):
         filterset_class=FileFilter,
     )
 
-    version = relay.Node.Field(ObjectNode)
-    version_by_kf_id = Field(ObjectNode, kf_id=String(required=True))
+    version = relay.Node.Field(VersionNode)
+    version_by_kf_id = Field(VersionNode, kf_id=String(required=True))
     all_versions = DjangoFilterConnectionField(
-        ObjectNode,
-        filterset_class=ObjectFilter,
+        VersionNode,
+        filterset_class=VersionFilter,
     )
 
     all_dev_tokens = DjangoFilterConnectionField(DevDownloadTokenNode)
@@ -375,7 +375,7 @@ class Query(object):
         return FileNode.get_node(info, kf_id)
 
     def resolve_version_by_kf_id(self, info, kf_id):
-        return ObjectNode.get_node(info, kf_id)
+        return VersionNode.get_node(info, kf_id)
 
     def resolve_all_files(self, info, **kwargs):
         """
@@ -404,12 +404,12 @@ class Query(object):
         user = info.context.user
 
         if not user.is_authenticated or user is None:
-            return Object.objects.none()
+            return Version.objects.none()
 
         if user.is_admin:
-            return Object.objects.all()
+            return Version.objects.all()
 
-        return Object.objects.filter(
+        return Version.objects.filter(
             root_file__study__kf_id__in=user.ego_groups
         )
 

@@ -4,7 +4,7 @@ import json
 import boto3
 from moto import mock_s3
 
-from creator.files.models import Object, File, DownloadToken
+from creator.files.models import Version, File, DownloadToken
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -82,7 +82,7 @@ def test_file_download_url(admin_client, db, prep_file):
 
 def test_version_download_url(admin_client, db, prep_file):
     (study_id, file_id, version_id) = prep_file()
-    assert Object.objects.count() == 1
+    assert Version.objects.count() == 1
     query = "{allVersions { edges { node { downloadUrl } } } }"
     query_data = {"query": query.strip()}
     resp = admin_client.post(
@@ -109,8 +109,8 @@ def test_study_does_not_exist(admin_client, db, prep_file):
     even if the file/object ids are
     """
     (study_id, file_id, version_id) = prep_file()
-    assert Object.objects.count() == 1
-    url = Object.objects.first().path
+    assert Version.objects.count() == 1
+    url = Version.objects.first().path
     # Use a different study id that the object does not belong to
     url = url.replace("/SD_", "/XX_")
     resp = admin_client.get(url)
@@ -245,8 +245,8 @@ def test_signed_url_study_does_not_exist(admin_client, db, prep_file):
     even if the file/object ids are
     """
     (study_id, file_id, version_id) = prep_file()
-    assert Object.objects.count() == 1
-    url = Object.objects.first().path
+    assert Version.objects.count() == 1
+    url = Version.objects.first().path
     # Use a different study id that the object does not belong to
     resp = admin_client.get(f"/signed-url/study/SD_XXXXXXXX/file/{file_id}")
     assert resp.content == b"No file exists for given ID and study"
@@ -262,7 +262,7 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     Download the file at that url with an unauthed user
     """
     study_id, file_id, version_id = prep_file()
-    obj = Object.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version_id)
     resp = admin_client.get(f"/signed-url/study/{study_id}/file/{file_id}")
     assert resp.status_code == 200
     assert "url" in resp.json()
@@ -270,7 +270,7 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     # Check that a new token was generated
     assert DownloadToken.objects.count() == 1
     token = DownloadToken.objects.first()
-    assert token.root_object == Object.objects.first()
+    assert token.root_version == Version.objects.first()
     # Check that token is not yet claimed
     assert token.claimed is False
     assert token.is_valid(obj) is True
@@ -295,7 +295,7 @@ def test_signed_download_expired(
     # Tokens expire immediately
     settings.DOWNLOAD_TOKEN_TTL = -1
     study_id, file_id, version_id = prep_file()
-    obj = Object.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version_id)
     resp = admin_client.get(f"/signed-url/study/{study_id}/file/{file_id}")
     assert resp.status_code == 200
     token = DownloadToken.objects.first()

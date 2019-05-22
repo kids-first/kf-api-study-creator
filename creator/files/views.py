@@ -6,12 +6,14 @@ from django.conf import settings
 from django_s3_storage.storage import S3Storage
 from botocore.exceptions import ClientError
 
-from .models import File, Object, DevDownloadToken, DownloadToken
+from .models import File, Version, DevDownloadToken, DownloadToken
 
 
-def _resolve_object(file_id: str, version_id: Optional[str]) -> (File, Object):
+def _resolve_version(
+    file_id: str, version_id: Optional[str]
+) -> (File, Version):
     """
-    Returns an object either specified by the version_id, or the file's latest
+    Returns a version either specified by the version_id, or the file's latest
     version if no version_id is specified
     """
     file = File.objects.get(kf_id=file_id)
@@ -42,16 +44,16 @@ def download(request, study_id, file_id, version_id=None):
         # Try to resolve a signed url token
         try:
             download_token = DownloadToken.objects.get(token=token)
-            _, obj = _resolve_object(file_id, version_id)
+            _, obj = _resolve_version(file_id, version_id)
             if not download_token.is_valid(obj):
                 download_token = None
         except (File.DoesNotExist,
-                Object.DoesNotExist,
+                Version.DoesNotExist,
                 DownloadToken.DoesNotExist):
-            # If the file, object, or download token does not exist, just set
+            # If the file, version, or download token does not exist, just set
             # the token to None.
             # This could be inefficient as multiple trips may be made for the
-            # same file/object information, but will not consider it for now
+            # same file/version information, but will not consider it for now
             download_token = None
 
         # Try to resolve a dev download token
@@ -69,10 +71,10 @@ def download(request, study_id, file_id, version_id=None):
         return HttpResponse('Not authorized to download the file', status=401)
 
     try:
-        file, obj = _resolve_object(file_id, version_id)
+        file, obj = _resolve_version(file_id, version_id)
     except File.DoesNotExist:
         return HttpResponseNotFound('No file exists with given ID')
-    except Object.DoesNotExist:
+    except Version.DoesNotExist:
         return HttpResponseNotFound('No version exists with given ID')
 
     # Don't return anything if the file does not belong to the requested study
@@ -106,9 +108,9 @@ def download(request, study_id, file_id, version_id=None):
 
 def signed_url(request, study_id, file_id, version_id=None):
     """
-    Generate a token for the requested object (defaults to the latest version).
-    Authorization proceeds same as a download, but the return values is a
-    url containing the generated token that will be intended to be passed
+    Generate a token for the requested version (defaults to the latest
+    version). Authorization proceeds same as a download, but the return values
+    is a url containing the generated token that will be intended to be passed
     back to the dowload endpoint.
     """
     user = request.user
@@ -129,10 +131,10 @@ def signed_url(request, study_id, file_id, version_id=None):
             obj = file.versions.get(kf_id=version_id)
         else:
             obj = file.versions.latest('created_at')
-    except Object.DoesNotExist:
+    except Version.DoesNotExist:
         return HttpResponseNotFound('No version exists with given ID')
 
-    token = DownloadToken(root_object=obj)
+    token = DownloadToken(root_version=obj)
     token.save()
     url = f'{obj.path}?token={token.token}'
     return JsonResponse({'url': url})

@@ -1,5 +1,5 @@
 import pytest
-from creator.files.models import File, Object
+from creator.files.models import File, Version
 
 
 @pytest.mark.parametrize(
@@ -55,11 +55,11 @@ def test_delete_file_mutation(
         resp_body = resp.json()["data"]["deleteFile"]
         assert resp.status_code == 200
         assert resp_body["success"] is True
-        assert Object.objects.count() == 0
+        assert Version.objects.count() == 0
         assert File.objects.count() == 0
     else:
         assert resp.status_code == 200
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
-        assert Object.objects.count() == 1
+        assert Version.objects.count() == 1
         assert File.objects.count() == 1
