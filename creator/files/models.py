@@ -81,6 +81,12 @@ class Version(models.Model):
                            max_length=512,
                            help_text=('Field to track the storage location of '
                                       'the version'))
+    description = models.TextField(
+        max_length=10000,
+        help_text=(
+            "Description of changes introduced to the file by this version"
+        ),
+    )
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
                                       help_text='Time the version was created')
