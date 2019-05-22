@@ -23,7 +23,7 @@ class File(models.Model):
     kf_id = KFIDField(primary_key=True, default=file_id)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100)
-    description = models.TextField(max_length=1000,
+    description = models.TextField(max_length=10000,
                                    help_text='Description of the file')
     study = models.ForeignKey(Study,
                               related_name='files',
