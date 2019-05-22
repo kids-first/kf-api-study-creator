@@ -66,30 +66,34 @@ def _get_upload_directory(instance, filename):
         return os.path.join(settings.BASE_DIR, directory, filename)
 
 
-def object_id():
+def version_id():
     return kf_id_generator('FV')
 
 
-class Object(models.Model):
-    kf_id = KFIDField(primary_key=True, default=object_id)
+def object_id():
+    return version_id()
+
+
+class Version(models.Model):
+    kf_id = KFIDField(primary_key=True, default=version_id)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     key = models.FileField(upload_to=_get_upload_directory,
                            max_length=512,
                            help_text=('Field to track the storage location of '
-                                      'the object'))
+                                      'the version'))
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
-                                      help_text='Time the object was created')
+                                      help_text='Time the version was created')
     size = models.BigIntegerField(
             validators=[
                 MinValueValidator(0, 'File size must be a positive number')
             ],
-            help_text='Size of the object in bytes')
+            help_text='Size of the version in bytes')
 
     root_file = models.ForeignKey(File,
                                   related_name='versions',
                                   help_text=('The file that this version '
-                                             'object belongs to'),
+                                             'version belongs to'),
                                   on_delete=models.CASCADE,)
 
     def __str__(self):
@@ -125,11 +129,12 @@ class DownloadToken(models.Model):
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
                                       help_text='Time the token was created')
-    root_object = models.ForeignKey(Object,
-                                    related_name='object',
-                                    help_text=('The object that this token was'
-                                               ' generated for'),
-                                    on_delete=models.CASCADE,)
+    root_version = models.ForeignKey(
+        Version,
+        related_name="version",
+        help_text=("The version that this token was" " generated for"),
+        on_delete=models.CASCADE,
+    )
 
     @property
     def expired(self) -> bool:
@@ -142,21 +147,21 @@ class DownloadToken(models.Model):
         expiration = created_ts + settings.DOWNLOAD_TOKEN_TTL
         return now_ts > expiration
 
-    def is_valid(self, obj: Object) -> bool:
+    def is_valid(self, obj: Version) -> bool:
         """
         A token is valid if:
         1) It has not expired
         2) It has not been claimed
-        3) The requested object matches the one the token was generated for
+        3) The requested version matches the one the token was generated for
         """
         return (
             not self.expired
             and not self.claimed
-            and obj == self.root_object
+            and obj == self.root_version
         )
 
     def __str__(self):
-        return f'Token for {self.root_object.kf_id}'
+        return f'Token for {self.root_version.kf_id}'
 
 
 class DevDownloadToken(models.Model):

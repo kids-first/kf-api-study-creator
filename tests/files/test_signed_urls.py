@@ -1,5 +1,5 @@
 import pytest
-from creator.files.models import Object, DownloadToken
+from creator.files.models import Version, DownloadToken
 
 
 def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
@@ -24,7 +24,7 @@ def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
     assert resp.status_code == 200
 
     resp_url = resp.json()["data"]["signedUrl"]["url"]
-    obj = Object.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version_id)
     token = DownloadToken.objects.first()
     # Token should not be claimed yet
     assert token.claimed is False
@@ -62,7 +62,7 @@ def test_signed_url_mutation(db, admin_client, client, prep_file):
     assert resp.status_code == 200
 
     resp_url = resp.json()["data"]["signedUrl"]["url"]
-    obj = Object.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version_id)
     token = DownloadToken.objects.first()
     # Token should not be claimed yet
     assert token.claimed is False

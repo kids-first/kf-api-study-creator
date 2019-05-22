@@ -1,5 +1,5 @@
 import pytest
-from creator.files.models import File, Object, DevDownloadToken
+from creator.files.models import File, Version, DevDownloadToken
 
 
 @pytest.mark.parametrize(
@@ -110,7 +110,7 @@ def test_create_dev_download_token_mutation(
         assert resp.status_code == 200
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
-        assert Object.objects.count() == 1
+        assert Version.objects.count() == 1
         assert File.objects.count() == 1
 
 

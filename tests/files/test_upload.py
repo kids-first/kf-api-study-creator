@@ -8,7 +8,7 @@ from django.conf import settings
 
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
-from creator.files.models import Object, File
+from creator.files.models import Version, File
 
 
 @mock_s3
@@ -51,14 +51,14 @@ def test_boto_fail(admin_client, db, upload_file, tmp_uploads_s3):
 
     # Check that no files or objects were created
     assert File.objects.count() == 0
-    assert Object.objects.count() == 0
+    assert Version.objects.count() == 0
 
 
 def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     studies = StudyFactory.create_batch(2)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, "manifest.txt", admin_client)
-    obj = Object.objects.first()
+    obj = Version.objects.first()
     assert len(tmp_uploads_local.listdir()) == 1
     assert (
         tmp_uploads_local.listdir()[0]
@@ -92,11 +92,11 @@ def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
 
     assert Study.objects.count() == 1
     assert File.objects.count() == 1
-    assert Object.objects.count() == 1
+    assert Version.objects.count() == 1
 
     study = Study.objects.first()
     sf = File.objects.first()
-    obj = Object.objects.first()
+    obj = Version.objects.first()
 
     # Upload second version
     resp = upload_version(
@@ -118,7 +118,7 @@ def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
 
     assert Study.objects.count() == 1
     assert File.objects.count() == 1
-    assert Object.objects.count() == 2
+    assert Version.objects.count() == 2
 
 
 def test_upload_version_no_file(admin_client, db, tmp_uploads_local,
@@ -145,7 +145,7 @@ def test_upload_version_no_file(admin_client, db, tmp_uploads_local,
 
     assert Study.objects.count() == 1
     assert File.objects.count() == 0
-    assert Object.objects.count() == 0
+    assert Version.objects.count() == 0
 
 
 def test_study_not_exist(admin_client, db, upload_file):
