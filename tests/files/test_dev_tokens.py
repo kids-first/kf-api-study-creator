@@ -1,5 +1,5 @@
 import pytest
-from creator.files.models import File, Object, DownloadToken, DevDownloadToken
+from creator.files.models import File, Object, DevDownloadToken
 
 
 @pytest.mark.parametrize(
