@@ -97,6 +97,7 @@ def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
     study = Study.objects.first()
     sf = File.objects.first()
     obj = Version.objects.first()
+    assert obj.state == "PEN"
 
     # Upload second version
     resp = upload_version(

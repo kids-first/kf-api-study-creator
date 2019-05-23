@@ -234,6 +234,9 @@ class VersionMutation(graphene.Mutation):
     class Arguments:
         kf_id = graphene.String(required=True)
         description = graphene.String()
+        # This extracts the VersionState enum from the auto-created field
+        # made from the django model inside of the VersionNode
+        state = VersionNode._meta.fields['state'].type
 
     version = graphene.Field(VersionNode)
 
@@ -258,6 +261,8 @@ class VersionMutation(graphene.Mutation):
         try:
             if kwargs.get('description'):
                 version.description = kwargs.get('description')
+            if kwargs.get('state'):
+                version.state = kwargs.get('state')
             version.save()
         except ClientError as e:
             raise GraphQLError('Failed to save version mutation.')

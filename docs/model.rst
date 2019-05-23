@@ -15,8 +15,10 @@ subset of a study's data. The essence of a file may need to be iterated on,
 improving the underlying representation to better match the true form of the
 file.
 
-Object
-------
+Version
+-------
 
-An object is a materialization of a file in the form of an on-disk
+An version is a materialization of a file in the form of an on-disk
 representation.
+It tracks the exact file contents at a given point and its ``state`` in the
+process of being consumed into the Kids First database.
