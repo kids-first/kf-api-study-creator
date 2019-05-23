@@ -87,6 +87,17 @@ class Version(models.Model):
             "Description of changes introduced to the file by this version"
         ),
     )
+    state = models.CharField(
+        max_length=3,
+        choices=(
+            ("PEN", "Pending Review"),
+            ("APP", "Approved"),
+            ("CHN", "Changes Needed"),
+            ("PRC", "Processed"),
+        ),
+        default="PEN",
+        help_text="The current state of this version",
+    )
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
                                       help_text='Time the version was created')
