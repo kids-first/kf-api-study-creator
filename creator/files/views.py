@@ -1,3 +1,4 @@
+import os
 import urllib
 from typing import Optional
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -97,12 +98,15 @@ def download(request, study_id, file_id, version_id=None):
         # The file is no long at the path specified by the key
         return HttpResponseNotFound('Problem finding the file')
 
-    file_name = urllib.parse.quote(file.name)
+    name, extension = os.path.splitext(file.name)
+    name = urllib.parse.quote(name)
+    version = obj.kf_id
+    filename = f"{name}_{version}{extension}"
     response[
-        'Content-Disposition'
-    ] = f"attachment; filename*=UTF-8''{file_name}"
-    response['Content-Length'] = obj.size
-    response['Content-Type'] = 'application/octet-stream'
+        "Content-Disposition"
+    ] = f"attachment; filename*=UTF-8''{filename}"
+    response["Content-Length"] = obj.size
+    response["Content-Type"] = "application/octet-stream"
     return response
 
 
