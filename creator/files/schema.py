@@ -1,3 +1,4 @@
+import os
 import graphene
 import django_filters
 from django.conf import settings
@@ -169,7 +170,9 @@ class UploadMutation(graphene.Mutation):
         try:
             with transaction.atomic():
                 if fileId is None:
-                    root_file = File(name=file.name, study=study)
+                    # Default name to the uploaded file's withot the extension
+                    file_name, _ = os.path.splitext(file.name)
+                    root_file = File(name=file_name, study=study)
                     root_file.save()
                 obj = Version(
                     file_name=file.name,

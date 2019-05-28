@@ -256,6 +256,7 @@ def prep_file(admin_client, upload_file):
 
         upload = upload_file(study_id, file_name, client)
         study = Study.objects.get(kf_id=study_id)
+        file_name, _ = os.path.splitext(file_name)
         file_id = study.files.get(name=file_name).kf_id
         version_id = File.objects.get(kf_id=file_id).versions.first().kf_id
         resp = (study_id, file_id, version_id)

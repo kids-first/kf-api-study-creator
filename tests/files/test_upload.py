@@ -27,7 +27,7 @@ def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
     assert "errors" not in resp.json()
     assert resp.json() == {
         "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
+            "createFile": {"success": True, "file": {"name": "manifest"}}
         }
     }
     assert studies[0].files.count() == 1
@@ -67,7 +67,7 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     )
     assert obj.key.path.startswith(
         os.path.join(
-            settings.UPLOAD_DIR, obj.root_file.study.bucket, "manifest"
+            settings.UPLOAD_DIR, obj.root_file.study.bucket, "manifest.txt"
         )
     )
     assert resp.status_code == 200
@@ -75,7 +75,7 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     assert "errors" not in resp.json()
     assert resp.json() == {
         "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
+            "createFile": {"success": True, "file": {"name": "manifest"}}
         }
     }
     assert studies[-1].files.count() == 1
@@ -113,7 +113,7 @@ def test_upload_version(
     assert resp.json()["data"]["createFile"] == {
         "success": True,
         "file": {
-            "name": "manifest.txt",
+            "name": "manifest",
             "versions": {
                 "edges": [
                     {"node": {"fileName": "manifest.txt"}},
@@ -205,7 +205,7 @@ def test_upload_unauthed_study(user_client, db, upload_file):
     assert "errors" not in resp.json()
     assert resp.json() == {
         "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
+            "createFile": {"success": True, "file": {"name": "manifest"}}
         }
     }
     assert my_study.files.count() == 1
