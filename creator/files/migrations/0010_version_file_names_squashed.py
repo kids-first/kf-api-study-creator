@@ -3,7 +3,7 @@
 from django.db import migrations, models
 
 
-def combine_names(apps, schema_editor):
+def name_from_file(apps, schema_editor):
     """
     We will populate any existing versions with the name of the parent file
     """
@@ -29,6 +29,6 @@ class Migration(migrations.Migration):
             preserve_default=False,
         ),
         migrations.RunPython(
-            code=combine_names,
+            code=name_from_file,
         ),
     ]

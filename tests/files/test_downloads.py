@@ -16,12 +16,11 @@ def test_download_local(admin_client, db, prep_file):
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == "attachment; filename*=UTF-8''manifest.txt"
+        == f"attachment; filename*=UTF-8''{version1_id}_manifest.txt"
     )
     assert resp.content == b"aaa\nbbb\nccc\n"
     resp = admin_client.get(
-        f"/download/study/{study2_id}/file/{file2_id}"
-        f"/version/{version2_id}"
+        f"/download/study/{study2_id}/file/{file2_id}/version/{version2_id}"
     )
     assert resp.status_code == 200
     obj = File.objects.get(kf_id=file2_id).versions.get(kf_id=version2_id)
@@ -39,7 +38,7 @@ def test_download_s3(admin_client, db, prep_file):
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == "attachment; filename*=UTF-8''manifest.txt"
+        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
     )
     assert resp.content == b"aaa\nbbb\nccc\n"
     resp = admin_client.get(
@@ -76,7 +75,7 @@ def test_file_download_url(admin_client, db, prep_file):
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == "attachment; filename*=UTF-8''manifest.txt"
+        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
     )
 
 
@@ -99,7 +98,7 @@ def test_version_download_url(admin_client, db, prep_file):
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == "attachment; filename*=UTF-8''manifest.txt"
+        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
     )
 
 
@@ -125,7 +124,9 @@ def test_download_file_name_with_spaces(admin_client, db, prep_file):
         f"/download/study/{study_id}/file/{file_id}" f"/version/{version_id}"
     )
     assert resp1.status_code == resp2.status_code == 200
-    expected_name = "attachment; filename*=UTF-8''name%20with%20spaces.txt"
+    expected_name = (
+        f"attachment; filename*=UTF-8''{version_id}_name%20with%20spaces.txt"
+    )
     assert resp1.get("Content-Disposition") == expected_name
     assert resp2.get("Content-Disposition") == expected_name
     assert resp1.content == resp2.content == b"aaa\nbbb\nccc\n"
@@ -165,8 +166,8 @@ def test_download_auth(
         "user": user_client,
         None: client,
     }[user_type]
-    expected_name = "attachment; filename*=UTF-8''manifest.txt"
     study_id, file_id, version_id = prep_file(authed=authorized)
+    expected_name = f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
     resp = api_client.get(f"/download/study/{study_id}/file/{file_id}")
 
     if expected:
@@ -275,7 +276,7 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     assert token.claimed is False
     assert token.is_valid(obj) is True
 
-    expected = "attachment; filename*=UTF-8''manifest.txt"
+    expected = f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
     resp = user_client.get(resp.json()["url"])
     assert resp.status_code == 200
     assert resp.get("Content-Disposition") == expected
