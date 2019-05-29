@@ -99,7 +99,7 @@ def upload_version(client, tmp_uploads_local):
             mutation ($file: Upload!, $studyId: String!, $fileId: String) {
               createFile(file: $file, studyId: $studyId, fileId: $fileId) {
                 success
-                file { name }
+                file { name versions { edges { node { fileName} } } }
               }
             }
         """

@@ -81,8 +81,9 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     assert studies[-1].files.count() == 1
 
 
-def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
-                        upload_version):
+def test_upload_version(
+    admin_client, db, tmp_uploads_local, upload_file, upload_version
+):
     """
     Test upload of intial file followed by a new version
     """
@@ -101,29 +102,36 @@ def test_upload_version(admin_client, db, tmp_uploads_local, upload_file,
 
     # Upload second version
     resp = upload_version(
-        study_id,
-        "manifest.txt",
-        admin_client,
-        file_id=sf.kf_id
+        study_id, "manifest.txt", admin_client, file_id=sf.kf_id
     )
 
     # assert len(tmp_uploads_local.listdir()) == 2
+    print(resp.json())
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json() == {
-        "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
-        }
+    assert resp.json()["data"]["createFile"] == {
+        "success": True,
+        "file": {
+            "name": "manifest.txt",
+            "versions": {
+                "edges": [
+                    {"node": {"fileName": "manifest.txt"}},
+                    {"node": {"fileName": "manifest.txt"}},
+                ]
+            },
+        },
     }
 
     assert Study.objects.count() == 1
     assert File.objects.count() == 1
     assert Version.objects.count() == 2
+    assert Version.objects.first().file_name == "manifest.txt"
 
 
-def test_upload_version_no_file(admin_client, db, tmp_uploads_local,
-                                upload_file, upload_version):
+def test_upload_version_no_file(
+    admin_client, db, tmp_uploads_local, upload_file, upload_version
+):
     """
     Tests that a new version may not be uploaded for a file that does not
     exist.
@@ -133,10 +141,7 @@ def test_upload_version_no_file(admin_client, db, tmp_uploads_local,
 
     # Upload a version with a file_id that does not exist
     resp = upload_version(
-        study_id,
-        "manifest.txt",
-        admin_client,
-        file_id="SF_XXXXXXXX"
+        study_id, "manifest.txt", admin_client, file_id="SF_XXXXXXXX"
     )
 
     assert len(tmp_uploads_local.listdir()) == 0

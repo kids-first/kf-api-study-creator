@@ -171,7 +171,12 @@ class UploadMutation(graphene.Mutation):
                 if fileId is None:
                     root_file = File(name=file.name, study=study)
                     root_file.save()
-                obj = Version(size=file.size, root_file=root_file, key=file)
+                obj = Version(
+                    file_name=file.name,
+                    size=file.size,
+                    root_file=root_file,
+                    key=file,
+                )
                 if (settings.DEFAULT_FILE_STORAGE ==
                         'django_s3_storage.storage.S3Storage'):
                     obj.key.storage = S3Storage(

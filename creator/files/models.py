@@ -81,6 +81,12 @@ class Version(models.Model):
                            max_length=512,
                            help_text=('Field to track the storage location of '
                                       'the version'))
+    file_name = models.CharField(
+        max_length=1000,
+        help_text=(
+            "The name of the version's file as it was originally uploaded"
+        ),
+    )
     description = models.TextField(
         max_length=10000,
         help_text=(
