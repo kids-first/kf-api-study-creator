@@ -213,6 +213,7 @@ class Auth0AuthenticationMiddleware():
             update_last_login(None, user)
         except User.DoesNotExist:
             profile = Auth0AuthenticationMiddleware._get_profile(encoded)
+            print(profile)
             # Problem getting the profile, don't try to create the user now
             if profile is None:
                 user = User(ego_groups=groups, ego_roles=roles)
@@ -222,6 +223,7 @@ class Auth0AuthenticationMiddleware():
                 email=profile.get("email", ""),
                 first_name=profile.get("given_name", ""),
                 last_name=profile.get("family_name", ""),
+                picture=profile.get("picture", ""),
                 ego_groups=[],
                 ego_roles=[],
                 sub=token.get("sub"),

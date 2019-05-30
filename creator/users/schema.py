@@ -22,6 +22,7 @@ class UserNode(DjangoObjectType):
             "last_name",
             "last_login",
             "date_joined",
+            "picture",
         ]
 
     @classmethod

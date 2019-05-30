@@ -50,6 +50,7 @@ class User(AbstractUser):
     )
     ego_groups = ArrayField(models.CharField(max_length=100, blank=True))
     ego_roles = ArrayField(models.CharField(max_length=100, blank=True))
+    picture = models.CharField(max_length=500, blank=True)
 
     objects = MyUserManager()
 
