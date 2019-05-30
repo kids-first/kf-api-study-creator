@@ -39,6 +39,34 @@ def auth0_key_mock():
             yield get_key
 
 
+@pytest.fixture(scope="module", autouse=True)
+def auth0_profile_mock():
+    """
+    Mocks out the Auth0 profile response from /userinfo
+    """
+    middleware = "creator.middleware.Auth0AuthenticationMiddleware"
+    with mock.patch(f"{middleware}._get_profile") as get_prof:
+        profile = {
+            "sub": "google-oauth2|999999999999999999999",
+            "given_name": "Bobby",
+            "family_name": "Tables",
+            "nickname": "bobby",
+            "name": "Bobby Tables",
+            "locale": "en",
+            "updated_at": "2019-05-30T00:08:58.807Z",
+            "email": "bobbytables@example.com",
+            "email_verified": True,
+            "https://kidsfirstdrc.org/permissions": [
+                "read:files",
+                "write:files",
+            ],
+            "https://kidsfirstdrc.org/groups": ["SD_ME0WME0W"],
+            "https://kidsfirstdrc.org/roles": ["ADMIN"],
+        }
+        get_prof.return_value = profile
+        yield get_prof
+
+
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
     settings.UPLOAD_DIR = os.path.join("./test_uploads", tmpdir)
@@ -94,6 +122,7 @@ def upload_version(client, tmp_uploads_local):
     """
     Uploads a new version of an existing file
     """
+
     def upload(study_id, file_name, client=client, file_id=None):
         query = """
             mutation ($file: Upload!, $studyId: String!, $fileId: String) {

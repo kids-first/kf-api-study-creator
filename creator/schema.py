@@ -1,10 +1,12 @@
 import graphene
 import creator.files.schema
 import creator.studies.schema
+import creator.users.schema
 
 
 class Query(creator.files.schema.Query,
             creator.studies.schema.Query,
+            creator.users.schema.Query,
             graphene.ObjectType):
     pass
 

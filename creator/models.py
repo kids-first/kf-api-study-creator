@@ -38,8 +38,19 @@ class MyUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """
+    Stores only basic information about the user, namely their primary id
+    that may be used to fetch their full profile.
+    """
+    sub = models.CharField(
+        max_length=150,
+        unique=True,
+        db_index=True,
+        help_text="The subject of the JWT and primary user identifier",
+    )
     ego_groups = ArrayField(models.CharField(max_length=100, blank=True))
     ego_roles = ArrayField(models.CharField(max_length=100, blank=True))
+    picture = models.CharField(max_length=500, blank=True)
 
     objects = MyUserManager()
 
