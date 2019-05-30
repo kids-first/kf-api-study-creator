@@ -1,3 +1,25 @@
+# Kids First Study Creator Release 1.3.0
+
+## Features
+
+Adds new features for file version uploads.
+
+### Summary
+
+Feature Emojis: ✨x4 ✏️x1 ♻️x1 🔧  x1
+Feature Labels: [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x4 [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x3
+
+### New features and changes
+
+- (#182) ✨ Add version file_name field - @dankolbman
+- (#172) ✨ Version state field - @dankolbman
+- (#170) ✨ Add descriptions to versions - @dankolbman
+- (#168) ✏️  Rename objects - @dankolbman
+- (#166) ♻️  Reorganize tests - @dankolbman
+- (#164) 🔧 Increase max description length - @dankolbman
+- (#157) ✨ Version uploads - @dankolbman
+
+
 # Kids First Study Creator Release 1.2.1
 
 ## Features
