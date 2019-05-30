@@ -7,7 +7,6 @@ import textwrap
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
-from django.contrib.auth.middleware import get_user
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
 
