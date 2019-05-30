@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_s3_storage',
     'creator.files',
     'creator.studies',
+    'creator.users',
     'creator',
     'corsheaders'
 ]
