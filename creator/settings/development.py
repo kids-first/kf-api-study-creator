@@ -169,6 +169,7 @@ CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
 CACHE_EGO_TIMEOUT = 86400
 
 # Auth0 settings
+AUTH0_API = 'https://kids-first.auth0.com'
 AUTH0_JWKS = 'https://kids-first.auth0.com/.well-known/jwks.json'
 AUTH0_AUD = 'https://kf-study-creator.kidsfirstdrc.org'
 CACHE_AUTH0_KEY = 'AUTH0_PUBLIC_KEY'

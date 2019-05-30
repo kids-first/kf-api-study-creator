@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import update_last_login
 
 
 logger = logging.getLogger()
@@ -70,9 +71,30 @@ class EgoJWTAuthenticationMiddleware():
         groups = user_context['groups']
         roles = user_context['roles']
 
-        user = get_user_model()(
-                ego_groups=groups,
-                ego_roles=roles)
+        # Now we know that the token is valid so we will try to see if the user
+        # is in our database yet, if so, we will return that user, if not, we
+        # will create a new user with the context on the token
+        User = get_user_model()
+        try:
+            user = User.objects.get(sub=token["sub"])
+            update_last_login(None, user)
+        except User.DoesNotExist:
+            user = User(
+                username=user_context.get("name", ""),
+                email=user_context.get("email", ""),
+                first_name=user_context.get("firstName", ""),
+                last_name=user_context.get("lastName", ""),
+                ego_groups=[],
+                ego_roles=[],
+                sub=token.get("sub"),
+            )
+            user.save()
+            update_last_login(None, user)
+
+        user.ego_groups = groups
+        user.ego_roles = roles
+
+        return user
 
         return user
 
@@ -163,6 +185,7 @@ class Auth0AuthenticationMiddleware():
             logger.error(f'Token provided is not valid: {err}')
             return AnonymousUser()
 
+        sub = token.get('sub')
         groups = token.get('https://kidsfirstdrc.org/groups')
         roles = token.get('https://kidsfirstdrc.org/roles')
         # Currently unused
@@ -176,14 +199,60 @@ class Auth0AuthenticationMiddleware():
             groups = []
 
         # Don't allow if it looks like the token doesn't have correct fields
-        if groups is None or roles is None:
+        if groups is None or roles is None or sub is None:
             return AnonymousUser()
 
-        user = get_user_model()(
-                ego_groups=groups,
-                ego_roles=roles)
+        # Now we know that the token is valid so we will try to see if the user
+        # is in our database yet, if so, we will return that user, if not, we
+        # will create a new user by fetching more information from auth0 and
+        # saving it in the database
+        User = get_user_model()
+        try:
+            user = User.objects.get(sub=token["sub"])
+            # The user is already in the database, update their last login
+            update_last_login(None, user)
+        except User.DoesNotExist:
+            profile = Auth0AuthenticationMiddleware._get_profile(encoded)
+            # Problem getting the profile, don't try to create the user now
+            if profile is None:
+                user = User(ego_groups=groups, ego_roles=roles)
+                return user
+            user = User(
+                username=profile.get("nickname", ""),
+                email=profile.get("email", ""),
+                first_name=profile.get("given_name", ""),
+                last_name=profile.get("family_name", ""),
+                ego_groups=[],
+                ego_roles=[],
+                sub=token.get("sub"),
+            )
+            user.save()
+            update_last_login(None, user)
+
+        # NB: We ALWAYS use the JWT as the source of truth for authorization
+        # fields. They will always be stored as empty arrays in the database
+        # and populated on every request from the token after validation.
+        user.ego_groups = groups
+        user.ego_roles = roles
 
         return user
+
+    def _get_profile(encoded):
+        """
+        Retrives user's profile from Auth0 to populate fields such as email
+
+        :param token: The verified access token from the request
+        """
+        try:
+            resp = requests.get(
+                f"{settings.AUTH0_API}/userinfo",
+                headers={"Authorization": "Bearer " + encoded},
+                timeout=5,
+            )
+        except requests.ConnectionError as err:
+            logger.error(f"Problem fetching user profile from Auth0: {err}")
+            return None
+        return resp.json()
 
     @staticmethod
     def _get_auth0_key():
