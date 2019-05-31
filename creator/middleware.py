@@ -58,10 +58,10 @@ class EgoJWTAuthenticationMiddleware():
             token = jwt.decode(encoded, public_key, algorithms='RS256',
                                options={'verify_aud': False})
         except jwt.exceptions.DecodeError as err:
-            logger.error(f'Problem authenticating request: {err}')
+            logger.error(f'Problem authenticating request from Ego: {err}')
             return AnonymousUser()
         except jwt.exceptions.InvalidTokenError as err:
-            logger.error(f'Token provided is not valid: {err}')
+            logger.error(f'Token provided is not valid for Ego: {err}')
             return AnonymousUser()
 
         if not('context' in token and 'user' in token['context']):
@@ -179,10 +179,10 @@ class Auth0AuthenticationMiddleware():
             token = jwt.decode(encoded, public_key, algorithms='RS256',
                                audience=settings.AUTH0_AUD)
         except jwt.exceptions.DecodeError as err:
-            logger.error(f'Problem authenticating request: {err}')
+            logger.error(f'Problem authenticating request from Auth0: {err}')
             return AnonymousUser()
         except jwt.exceptions.InvalidTokenError as err:
-            logger.error(f'Token provided is not valid: {err}')
+            logger.error(f'Token provided is not valid for Auth0: {err}')
             return AnonymousUser()
 
         sub = token.get('sub')
