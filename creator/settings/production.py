@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'creator.files',
     'creator.studies',
     'creator.users',
+    'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
 ]

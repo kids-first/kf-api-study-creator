@@ -120,7 +120,10 @@ def test_upload_version(
     assert "errors" not in resp.json()
     assert resp.json()["data"]["createVersion"] == {
         "success": True,
-        "version": {"fileName": "manifest.txt"},
+        "version": {
+            "kfId": sf.versions.latest("created_at").kf_id,
+            "fileName": "manifest.txt",
+        },
     }
 
     assert Study.objects.count() == 1
