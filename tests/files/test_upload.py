@@ -5,10 +5,13 @@ import boto3
 from moto import mock_s3
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
 from creator.files.models import Version, File
+
+User = get_user_model()
 
 
 @mock_s3
@@ -58,7 +61,9 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     studies = StudyFactory.create_batch(2)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, "manifest.txt", admin_client)
+    user = User.objects.first()
     obj = Version.objects.first()
+    assert obj.creator == user
     assert len(tmp_uploads_local.listdir()) == 1
     assert (
         tmp_uploads_local.listdir()[0]
@@ -98,7 +103,9 @@ def test_upload_version(
     study = Study.objects.first()
     sf = File.objects.first()
     obj = Version.objects.first()
+    user = User.objects.first()
     assert obj.state == "PEN"
+    assert obj.creator == user
 
     # Upload second version
     resp = upload_version(
@@ -209,3 +216,42 @@ def test_upload_unauthed_study(user_client, db, upload_file):
         }
     }
     assert my_study.files.count() == 1
+
+
+def test_creator(
+    admin_client, db, tmp_uploads_local, upload_file, upload_version
+):
+    """
+    Test that creator is added to versions and files
+    """
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[-1].kf_id
+    resp = upload_file(study_id, "manifest.txt", admin_client)
+
+    study = Study.objects.first()
+    sf = File.objects.first()
+    obj = Version.objects.first()
+    user = User.objects.first()
+    assert obj.creator == user
+
+    query = """
+    query ($kfId: String!) {
+        fileByKfId(kfId: $kfId) {
+            kfId
+            creator { username }
+            versions { edges { node { creator { username } } } }
+        }
+    }"""
+    resp = admin_client.post(
+        "/graphql",
+        data={"query": query, "variables": {"kfId": sf.kf_id}},
+        content_type="application/json",
+    )
+
+    assert resp.json()["data"]["fileByKfId"] == {
+        "kfId": sf.kf_id,
+        "creator": {"username": "user@d3b.center"},
+        "versions": {
+            "edges": [{"node": {"creator": {"username": "user@d3b.center"}}}]
+        },
+    }
