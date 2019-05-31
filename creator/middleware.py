@@ -191,12 +191,20 @@ class Auth0AuthenticationMiddleware():
         # Currently unused
         permissions = token.get('https://kidsfirstdrc.org/permissions')
 
+        User = get_user_model()
+
         # If the token is a service token and has the right scope, we will
         # auth it as equivelant to an admin user
-        if (token.get('gty') == 'client-credentials' and
-                settings.CLIENT_ADMIN_SCOPE in token.get('scope', '').split()):
-            roles = ['ADMIN']
-            groups = []
+        if (
+            token.get("gty") == "client-credentials"
+            and settings.CLIENT_ADMIN_SCOPE in token.get("scope", "").split()
+        ):
+            user = User()
+            user.ego_roles = ["ADMIN"]
+            user.ego_groups = []
+            # We will return the service user here without trying to save it
+            # to the database.
+            return user
 
         # Don't allow if it looks like the token doesn't have correct fields
         if groups is None or roles is None or sub is None:
@@ -206,14 +214,12 @@ class Auth0AuthenticationMiddleware():
         # is in our database yet, if so, we will return that user, if not, we
         # will create a new user by fetching more information from auth0 and
         # saving it in the database
-        User = get_user_model()
         try:
             user = User.objects.get(sub=token["sub"])
             # The user is already in the database, update their last login
             update_last_login(None, user)
         except User.DoesNotExist:
             profile = Auth0AuthenticationMiddleware._get_profile(encoded)
-            print(profile)
             # Problem getting the profile, don't try to create the user now
             if profile is None:
                 user = User(ego_groups=groups, ego_roles=roles)
