@@ -12,11 +12,8 @@ class Query(creator.files.schema.Query,
 
 
 class Mutation(graphene.ObjectType):
-    create_file = creator.files.schema.file.UploadMutation.Field(
-        description=(
-            "Upload a new file or version to an existing file and "
-            "study"
-        )
+    create_file = creator.files.schema.file.FileUploadMutation.Field(
+        description="Upload a new file to a study"
     )
     update_file = creator.files.schema.file.FileMutation.Field()
     delete_file = creator.files.schema.file.DeleteFileMutation.Field()

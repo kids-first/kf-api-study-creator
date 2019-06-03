@@ -60,7 +60,7 @@ class FileFilter(django_filters.FilterSet):
         fields = ["name", "study__kf_id", "file_type"]
 
 
-class UploadMutation(graphene.Mutation):
+class FileUploadMutation(graphene.Mutation):
     class Arguments:
         file = Upload(
             required=True,
@@ -69,13 +69,6 @@ class UploadMutation(graphene.Mutation):
         studyId = graphene.String(
             required=True,
             description="kf_id of the study this file will belong to",
-        )
-        fileId = graphene.String(
-            required=False,
-            description=(
-                "kf_id of an existing file that this new file will be"
-                " a version of"
-            ),
         )
         description = graphene.String(
             required=True, description="A description of this file"
@@ -87,20 +80,10 @@ class UploadMutation(graphene.Mutation):
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
-    def mutate(
-        self,
-        info,
-        file,
-        studyId,
-        description,
-        fileType=None,
-        fileId=None,
-        **kwargs,
-    ):
+    def mutate(self, info, file, studyId, description, fileType, **kwargs):
         """
-        Uploads a file given a studyId and creates a new file and file object
-        if the file does not exist. If given a fileId of a file that does
-        exist, creates a new version of that file.
+        Uploads a file given a studyId and creates a new file and file version
+        if the file does not exist.
         """
         user = info.context.user
         if user is None or not user.is_authenticated:
@@ -115,23 +98,20 @@ class UploadMutation(graphene.Mutation):
         study = Study.objects.get(kf_id=studyId)
 
         try:
-            if fileId is not None:
-                root_file = File.objects.get(kf_id=fileId)
-        except File.DoesNotExist:
-            raise GraphQLError("File does not exist.")
-
-        try:
+            # We will do this in a transaction so that if something fails, we
+            # can be assured that neither the file nor the version get saved
             with transaction.atomic():
-                if fileId is None:
-                    root_file = File(
-                        name=file.name,
-                        study=study,
-                        creator=user,
-                        description=description,
-                        file_type=fileType,
-                    )
-                    root_file.save()
-                obj = Version(
+                # First create the file
+                root_file = File(
+                    name=file.name,
+                    study=study,
+                    creator=user,
+                    description=description,
+                    file_type=fileType,
+                )
+                root_file.save()
+                # Now create the version
+                version = Version(
                     file_name=file.name,
                     size=file.size,
                     root_file=root_file,
@@ -143,14 +123,14 @@ class UploadMutation(graphene.Mutation):
                     settings.DEFAULT_FILE_STORAGE
                     == "django_s3_storage.storage.S3Storage"
                 ):
-                    obj.key.storage = S3Storage(
+                    version.key.storage = S3Storage(
                         aws_s3_bucket_name=study.bucket
                     )
-                obj.save()
+                version.save()
         except ClientError:
             raise GraphQLError("Failed to save file")
 
-        return UploadMutation(success=True, file=root_file)
+        return FileUploadMutation(success=True, file=root_file)
 
 
 class FileMutation(graphene.Mutation):
