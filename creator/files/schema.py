@@ -138,11 +138,26 @@ class UploadMutation(graphene.Mutation):
                 " a version of"
             ),
         )
+        description = graphene.String(
+            required=True, description="A description of this file"
+        )
+        # This extracts the FileFileType enum from the auto-created field
+        # made from the django model inside of the FileNode
+        fileType = FileNode._meta.fields["file_type"].type
 
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
-    def mutate(self, info, file, studyId, fileId=None, **kwargs):
+    def mutate(
+        self,
+        info,
+        file,
+        studyId,
+        description,
+        fileType=None,
+        fileId=None,
+        **kwargs,
+    ):
         """
         Uploads a file given a studyId and creates a new file and file object
         if the file does not exist. If given a fileId of a file that does
@@ -169,7 +184,13 @@ class UploadMutation(graphene.Mutation):
         try:
             with transaction.atomic():
                 if fileId is None:
-                    root_file = File(name=file.name, study=study, creator=user)
+                    root_file = File(
+                        name=file.name,
+                        study=study,
+                        creator=user,
+                        description=description,
+                        file_type=fileType,
+                    )
                     root_file.save()
                 obj = Version(
                     file_name=file.name,
@@ -177,9 +198,12 @@ class UploadMutation(graphene.Mutation):
                     root_file=root_file,
                     key=file,
                     creator=user,
+                    description=description,
                 )
-                if (settings.DEFAULT_FILE_STORAGE ==
-                        'django_s3_storage.storage.S3Storage'):
+                if (
+                    settings.DEFAULT_FILE_STORAGE
+                    == "django_s3_storage.storage.S3Storage"
+                ):
                     obj.key.storage = S3Storage(
                         aws_s3_bucket_name=study.bucket
                     )

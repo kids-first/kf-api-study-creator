@@ -210,12 +210,56 @@ def test_upload_unauthed_study(user_client, db, upload_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json() == {
-        "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
-        }
+    assert resp.json()["data"]["createFile"]["success"] == True
+    assert resp.json()["data"]["createFile"]["file"] == {
+        "description": "This is my test file",
+        "fileType": "OTH",
+        "name": "manifest.txt",
     }
     assert my_study.files.count() == 1
+
+
+def test_required_file_fields(
+    admin_client, db, tmp_uploads_local, upload_file, upload_version
+):
+    """
+    Test that description and fileType are required for new files
+    """
+    studies = StudyFactory.create_batch(1)
+    study_id = studies[-1].kf_id
+    file_name = "manifest.txt"
+    query = """
+        mutation (
+            $file: Upload!,
+            $studyId: String!
+        ) {
+            createFile(
+              file: $file,
+              studyId: $studyId
+            ) {
+                success
+                file { name description fileType }
+          }
+        }
+    """
+    study = Study.objects.first()
+    with open(f"tests/data/{file_name}") as f:
+        data = {
+            "operations": json.dumps(
+                {
+                    "query": query.strip(),
+                    "variables": {"file": None, "studyId": study_id},
+                }
+            ),
+            "file": f,
+            "map": json.dumps({"file": ["variables.file"]}),
+        }
+        resp = admin_client.post("/graphql", data=data)
+
+    for error in resp.json()["errors"]:
+        assert (
+            "description" in error["message"] or "fileType" in error["message"]
+        ) and "is required" in error["message"]
 
 
 def test_creator(
