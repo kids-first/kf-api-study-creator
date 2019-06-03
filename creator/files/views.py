@@ -97,7 +97,7 @@ def download(request, study_id, file_id, version_id=None):
         # The file is no long at the path specified by the key
         return HttpResponseNotFound('Problem finding the file')
 
-    file_name = urllib.parse.quote(file.name)
+    file_name = urllib.parse.quote(obj.file_name)
     response[
         "Content-Disposition"
     ] = f"attachment; filename*=UTF-8''{obj.kf_id}_{file_name}"
