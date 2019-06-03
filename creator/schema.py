@@ -20,7 +20,7 @@ class Mutation(graphene.ObjectType):
     )
     update_file = creator.files.schema.FileMutation.Field()
     delete_file = creator.files.schema.DeleteFileMutation.Field()
-    update_version = creator.files.schema.VersionMutation.Field()
+    update_version = creator.files.schema.version.VersionMutation.Field()
     signed_url = creator.files.schema.SignedUrlMutation.Field()
     create_dev_token = creator.files.schema.DevDownloadTokenMutation.Field()
     delete_dev_token = (
