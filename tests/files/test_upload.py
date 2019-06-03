@@ -28,10 +28,11 @@ def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json() == {
-        "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
-        }
+    assert resp.json()["data"]["createFile"]["success"] is True
+    assert resp.json()["data"]["createFile"]["file"] == {
+        "description": "This is my test file",
+        "fileType": "OTH",
+        "name": "manifest.txt",
     }
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
@@ -78,10 +79,11 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json() == {
-        "data": {
-            "createFile": {"success": True, "file": {"name": "manifest.txt"}}
-        }
+    assert resp.json()["data"]["createFile"]["success"] is True
+    assert resp.json()["data"]["createFile"]["file"] == {
+        "description": "This is my test file",
+        "fileType": "OTH",
+        "name": "manifest.txt",
     }
     assert studies[-1].files.count() == 1
 
@@ -108,26 +110,15 @@ def test_upload_version(
     assert obj.creator == user
 
     # Upload second version
-    resp = upload_version(
-        study_id, "manifest.txt", admin_client, file_id=sf.kf_id
-    )
+    resp = upload_version(sf.kf_id, "manifest.txt", admin_client)
 
     # assert len(tmp_uploads_local.listdir()) == 2
-    print(resp.json())
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createFile"] == {
+    assert resp.json()["data"]["createVersion"] == {
         "success": True,
-        "file": {
-            "name": "manifest.txt",
-            "versions": {
-                "edges": [
-                    {"node": {"fileName": "manifest.txt"}},
-                    {"node": {"fileName": "manifest.txt"}},
-                ]
-            },
-        },
+        "version": {"fileName": "manifest.txt"},
     }
 
     assert Study.objects.count() == 1
@@ -147,9 +138,7 @@ def test_upload_version_no_file(
     study_id = studies[-1].kf_id
 
     # Upload a version with a file_id that does not exist
-    resp = upload_version(
-        study_id, "manifest.txt", admin_client, file_id="SF_XXXXXXXX"
-    )
+    resp = upload_version("SF_XXXXXXXX", "manifest.txt", admin_client)
 
     assert len(tmp_uploads_local.listdir()) == 0
     assert resp.status_code == 200
@@ -210,7 +199,7 @@ def test_upload_unauthed_study(user_client, db, upload_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createFile"]["success"] == True
+    assert resp.json()["data"]["createFile"]["success"] is True
     assert resp.json()["data"]["createFile"]["file"] == {
         "description": "This is my test file",
         "fileType": "OTH",

@@ -1,14 +1,17 @@
 import graphene
 import django_filters
+from django.conf import settings
 from graphene import relay, Field, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from django_s3_storage.storage import S3Storage
+from graphene_file_upload.scalars import Upload
 from django_filters import OrderingFilter
 from graphql import GraphQLError
 
 from botocore.exceptions import ClientError
 
-from ..models import Version
+from ..models import File, Version
 
 
 class VersionNode(DjangoObjectType):
@@ -95,6 +98,76 @@ class VersionMutation(graphene.Mutation):
             raise GraphQLError("Failed to save version mutation.")
 
         return VersionMutation(version=version)
+
+
+class VersionUploadMutation(graphene.Mutation):
+    class Arguments:
+        file = Upload(
+            required=True,
+            description="Empty argument used by the multipart request",
+        )
+        fileId = graphene.String(
+            required=True,
+            description="kf_id of the file this version will belong to",
+        )
+        description = graphene.String(
+            required=True,
+            description=(
+                "A description of the changes made in this version to"
+                " the file"
+            ),
+        )
+
+    success = graphene.Boolean()
+    version = graphene.Field(VersionNode)
+
+    def mutate(self, info, file, fileId, description, **kwargs):
+        """
+        Uploads a new version of a file given a fileId.
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError("Not authenticated to upload a file.")
+
+        # Try to look up the file specified
+        try:
+            root_file = File.objects.get(kf_id=fileId)
+        except File.DoesNotExist:
+            raise GraphQLError("File does not exist.")
+
+        study = root_file.study
+
+        # The user should be allowed to access the relevant file's study
+        if (
+            study.kf_id not in user.ego_groups
+            and "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Not authenticated to upload to the study.")
+
+        if file.size > settings.FILE_MAX_SIZE:
+            raise GraphQLError("File is too large.")
+
+        try:
+            version = Version(
+                file_name=file.name,
+                size=file.size,
+                root_file=root_file,
+                key=file,
+                creator=user,
+                description=description,
+            )
+            if (
+                settings.DEFAULT_FILE_STORAGE
+                == "django_s3_storage.storage.S3Storage"
+            ):
+                version.key.storage = S3Storage(
+                    aws_s3_bucket_name=study.bucket
+                )
+            version.save()
+        except ClientError:
+            raise GraphQLError("Failed to save file")
+
+        return VersionUploadMutation(success=True, version=version)
 
 
 class VersionQuery(object):

@@ -138,22 +138,20 @@ def upload_version(client, tmp_uploads_local):
     Uploads a new version of an existing file
     """
 
-    def upload(study_id, file_name, client=client, file_id=None):
+    def upload(file_id, file_name, client=client):
         query = """
             mutation (
                 $file: Upload!,
-                $studyId: String!,
                 $description: String!,
-                $fileId: String
+                $fileId: String!
             ) {
-                createFile(
+                createVersion(
                 file: $file,
-                studyId: $studyId,
                 description: $description,
                 fileId: $fileId
             ) {
                 success
-                file { name versions { edges { node { fileName} } } }
+                version { fileName }
               }
             }
         """
@@ -164,7 +162,6 @@ def upload_version(client, tmp_uploads_local):
                         "query": query.strip(),
                         "variables": {
                             "file": None,
-                            "studyId": study_id,
                             "description": "my new version",
                             "fileId": file_id,
                         },

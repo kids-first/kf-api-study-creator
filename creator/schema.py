@@ -15,6 +15,9 @@ class Mutation(graphene.ObjectType):
     create_file = creator.files.schema.file.FileUploadMutation.Field(
         description="Upload a new file to a study"
     )
+    create_version = creator.files.schema.version.VersionUploadMutation.Field(
+        description="Upload a new version of a file"
+    )
     update_file = creator.files.schema.file.FileMutation.Field()
     delete_file = creator.files.schema.file.DeleteFileMutation.Field()
     update_version = creator.files.schema.version.VersionMutation.Field()
