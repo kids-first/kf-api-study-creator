@@ -169,13 +169,14 @@ class UploadMutation(graphene.Mutation):
         try:
             with transaction.atomic():
                 if fileId is None:
-                    root_file = File(name=file.name, study=study)
+                    root_file = File(name=file.name, study=study, creator=user)
                     root_file.save()
                 obj = Version(
                     file_name=file.name,
                     size=file.size,
                     root_file=root_file,
                     key=file,
+                    creator=user,
                 )
                 if (settings.DEFAULT_FILE_STORAGE ==
                         'django_s3_storage.storage.S3Storage'):

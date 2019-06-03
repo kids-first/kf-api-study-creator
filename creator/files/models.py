@@ -7,8 +7,11 @@ from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
+
+User = get_user_model()
 
 
 def file_id():
@@ -29,6 +32,15 @@ class File(models.Model):
                               related_name='files',
                               help_text='The study this file belongs to',
                               on_delete=models.CASCADE,)
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="files",
+        help_text="The user who originally created this File",
+    )
+
     file_type = models.CharField(
             max_length=3,
             choices=(
@@ -103,6 +115,14 @@ class Version(models.Model):
         ),
         default="PEN",
         help_text="The current state of this version",
+    )
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="versions",
+        help_text="The user who originally created this Version",
     )
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
