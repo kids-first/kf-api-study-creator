@@ -32,7 +32,8 @@ def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
     assert resp.json()["data"]["createFile"]["file"] == {
         "description": "This is my test file",
         "fileType": "OTH",
-        "name": "manifest.txt",
+        "name": "Test file",
+        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
     }
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
@@ -83,7 +84,8 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
     assert resp.json()["data"]["createFile"]["file"] == {
         "description": "This is my test file",
         "fileType": "OTH",
-        "name": "manifest.txt",
+        "name": "Test file",
+        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
     }
     assert studies[-1].files.count() == 1
 
@@ -203,7 +205,8 @@ def test_upload_unauthed_study(user_client, db, upload_file):
     assert resp.json()["data"]["createFile"]["file"] == {
         "description": "This is my test file",
         "fileType": "OTH",
-        "name": "manifest.txt",
+        "name": "Test file",
+        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
     }
     assert my_study.files.count() == 1
 
@@ -212,7 +215,7 @@ def test_required_file_fields(
     admin_client, db, tmp_uploads_local, upload_file, upload_version
 ):
     """
-    Test that description and fileType are required for new files
+    Test that name, description, and fileType are required for new files
     """
     studies = StudyFactory.create_batch(1)
     study_id = studies[-1].kf_id
@@ -247,7 +250,9 @@ def test_required_file_fields(
 
     for error in resp.json()["errors"]:
         assert (
-            "description" in error["message"] or "fileType" in error["message"]
+            "name" in error["message"]
+            or "description" in error["message"]
+            or "fileType" in error["message"]
         ) and "is required" in error["message"]
 
 

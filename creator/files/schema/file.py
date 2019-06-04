@@ -70,6 +70,9 @@ class FileUploadMutation(graphene.Mutation):
             required=True,
             description="kf_id of the study this file will belong to",
         )
+        name = graphene.String(
+            required=True, description="The name of the file"
+        )
         description = graphene.String(
             required=True, description="A description of this file"
         )
@@ -80,7 +83,9 @@ class FileUploadMutation(graphene.Mutation):
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
-    def mutate(self, info, file, studyId, description, fileType, **kwargs):
+    def mutate(
+        self, info, file, studyId, name, description, fileType, **kwargs
+    ):
         """
         Uploads a file given a studyId and creates a new file and file version
         if the file does not exist.
@@ -103,7 +108,7 @@ class FileUploadMutation(graphene.Mutation):
             with transaction.atomic():
                 # First create the file
                 root_file = File(
-                    name=file.name,
+                    name=name,
                     study=study,
                     creator=user,
                     description=description,

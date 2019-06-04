@@ -95,18 +95,20 @@ def upload_file(client, tmp_uploads_local):
         query = """
             mutation (
                 $file: Upload!,
+                $name: String!,
                 $description: String!,
                 $fileType: FileFileType!,
                 $studyId: String!
             ) {
                 createFile(
                   file: $file,
+                  name: $name,
                   studyId: $studyId,
                   description: $description,
                   fileType: $fileType
                 ) {
                     success
-                    file { name description fileType }
+                    file { kfId name description fileType }
               }
             }
         """
@@ -117,6 +119,7 @@ def upload_file(client, tmp_uploads_local):
                         "query": query.strip(),
                         "variables": {
                             "file": None,
+                            "name": "Test file",
                             "studyId": study_id,
                             "description": "This is my test file",
                             "fileType": "OTH",
@@ -308,7 +311,7 @@ def prep_file(admin_client, upload_file):
 
         upload = upload_file(study_id, file_name, client)
         study = Study.objects.get(kf_id=study_id)
-        file_id = study.files.get(name=file_name).kf_id
+        file_id = upload.json()["data"]["createFile"]["file"]["kfId"]
         version_id = File.objects.get(kf_id=file_id).versions.first().kf_id
         resp = (study_id, file_id, version_id)
         return resp
