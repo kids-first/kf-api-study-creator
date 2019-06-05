@@ -93,10 +93,22 @@ def tmp_uploads_s3(tmpdir, settings):
 def upload_file(client, tmp_uploads_local):
     def upload(study_id, file_name, client=client):
         query = """
-            mutation ($file: Upload!, $studyId: String!) {
-              createFile(file: $file, studyId: $studyId) {
-                success
-                file { name }
+            mutation (
+                $file: Upload!,
+                $name: String!,
+                $description: String!,
+                $fileType: FileFileType!,
+                $studyId: String!
+            ) {
+                createFile(
+                  file: $file,
+                  name: $name,
+                  studyId: $studyId,
+                  description: $description,
+                  fileType: $fileType
+                ) {
+                    success
+                    file { kfId name description fileType }
               }
             }
         """
@@ -105,7 +117,13 @@ def upload_file(client, tmp_uploads_local):
                 "operations": json.dumps(
                     {
                         "query": query.strip(),
-                        "variables": {"file": None, "studyId": study_id},
+                        "variables": {
+                            "file": None,
+                            "name": "Test file",
+                            "studyId": study_id,
+                            "description": "This is my test file",
+                            "fileType": "OTH",
+                        },
                     }
                 ),
                 "file": f,
@@ -123,12 +141,20 @@ def upload_version(client, tmp_uploads_local):
     Uploads a new version of an existing file
     """
 
-    def upload(study_id, file_name, client=client, file_id=None):
+    def upload(file_id, file_name, client=client):
         query = """
-            mutation ($file: Upload!, $studyId: String!, $fileId: String) {
-              createFile(file: $file, studyId: $studyId, fileId: $fileId) {
+            mutation (
+                $file: Upload!,
+                $description: String!,
+                $fileId: String!
+            ) {
+                createVersion(
+                file: $file,
+                description: $description,
+                fileId: $fileId
+            ) {
                 success
-                file { name versions { edges { node { fileName} } } }
+                version { fileName }
               }
             }
         """
@@ -139,9 +165,9 @@ def upload_version(client, tmp_uploads_local):
                         "query": query.strip(),
                         "variables": {
                             "file": None,
-                            "studyId": study_id,
-                            "fileId": file_id
-                        }
+                            "description": "my new version",
+                            "fileId": file_id,
+                        },
                     }
                 ),
                 "file": f,
@@ -285,7 +311,7 @@ def prep_file(admin_client, upload_file):
 
         upload = upload_file(study_id, file_name, client)
         study = Study.objects.get(kf_id=study_id)
-        file_id = study.files.get(name=file_name).kf_id
+        file_id = upload.json()["data"]["createFile"]["file"]["kfId"]
         version_id = File.objects.get(kf_id=file_id).versions.first().kf_id
         resp = (study_id, file_id, version_id)
         return resp
