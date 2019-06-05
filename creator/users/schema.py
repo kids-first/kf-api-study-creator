@@ -8,6 +8,8 @@ from django_filters import OrderingFilter
 from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 
+from creator.studies.models import Study
+
 User = get_user_model()
 
 
@@ -23,6 +25,9 @@ class UserNode(DjangoObjectType):
             "last_login",
             "date_joined",
             "picture",
+            "study_subscriptions",
+            "slack_notify",
+            "slack_member_id",
         ]
 
     @classmethod
@@ -62,6 +67,105 @@ class UserFilter(django_filters.FilterSet):
         }
 
     order_by = OrderingFilter(fields=("date_joined",))
+
+
+class MyProfileMutation(graphene.Mutation):
+    """
+    Updates user's profile
+    Only modifies the request's authenticated user's profile.
+    We can only change fields that originate in our data model as the other
+    fields come from our authentication services.
+    """
+
+    class Arguments:
+        slack_notify = graphene.Boolean()
+        slack_member_id = graphene.String()
+
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, **kwargs):
+        """
+        Updates a user's profile.
+        Only applies to the request's current user
+        """
+        user = info.context.user
+        if not user.is_authenticated or user is None or user.email == "":
+            raise GraphQLError("Not authenticated to mutate profile")
+
+        if kwargs.get("slack_notify"):
+            user.slack_notify = kwargs.get("slack_notify")
+        if kwargs.get("slack_member_id"):
+            user.slack_member_id = kwargs.get("slack_member_id")
+        user.save()
+
+        return MyProfileMutation(user=user)
+
+
+class SubscribeToMutation(graphene.Mutation):
+    """
+    Subscribe a user to a study
+    admin - may subscribe to any study
+    service - may not subscribe to studies
+    user - may only subscribe to studies which they are in the group of
+    unauthed - may not subscribe to studies
+    """
+
+    class Arguments:
+        study_id = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, study_id, **kwargs):
+        """
+        Adds a study to the user's study subscriptions
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError("Not authenticated to subscribe")
+
+        try:
+            study = Study.objects.get(kf_id=study_id)
+        except Study.DoesNotExist:
+            raise GraphQLError("Study does not exist.")
+
+        if study_id not in user.ego_groups and "ADMIN" not in user.ego_roles:
+            raise GraphQLError("Not authenticated to subscribe")
+
+        # Add the study to the users subscriptions
+        user.study_subscriptions.add(study)
+
+        return SubscribeToMutation(success=True, user=user)
+
+
+class UnsubscribeFromMutation(graphene.Mutation):
+    """
+    Unsubscribes a user from a study
+    """
+
+    class Arguments:
+        study_id = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, study_id, **kwargs):
+        """
+        Removes a study from the user's study subscriptions
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError("Not authenticated to unsubscribe")
+
+        try:
+            study = Study.objects.get(kf_id=study_id)
+        except Study.DoesNotExist:
+            raise GraphQLError("Study does not exist.")
+
+        # Remove the study to the users subscriptions
+        user.study_subscriptions.remove(study)
+
+        return SubscribeToMutation(success=True, user=user)
 
 
 class Query(object):

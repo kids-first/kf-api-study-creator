@@ -26,6 +26,9 @@ class Mutation(graphene.ObjectType):
     delete_dev_token = (
         creator.files.schema.DeleteDevDownloadTokenMutation.Field()
     )
+    subscribe_to = creator.users.schema.SubscribeToMutation.Field()
+    unsubscribe_from = creator.users.schema.UnsubscribeFromMutation.Field()
+    update_my_profile = creator.users.schema.MyProfileMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

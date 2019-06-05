@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from creator.studies.models import Study
 
 
 class MyUserManager(BaseUserManager):
@@ -51,6 +52,19 @@ class User(AbstractUser):
     ego_groups = ArrayField(models.CharField(max_length=100, blank=True))
     ego_roles = ArrayField(models.CharField(max_length=100, blank=True))
     picture = models.CharField(max_length=500, blank=True)
+    slack_notify = models.BooleanField(
+        default=False,
+        help_text="Whether the user has enabled slack notifications",
+    )
+    slack_member_id = models.CharField(
+        default="",
+        blank=True,
+        max_length=10,
+        help_text="The user's slack member id",
+    )
+    study_subscriptions = models.ManyToManyField(
+        Study, help_text="Tracks studies that user is following"
+    )
 
     objects = MyUserManager()
 
