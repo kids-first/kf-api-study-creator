@@ -20,6 +20,20 @@ SUBSCRIBE_TO = """
     }
 """
 
+UNSUBSCRIBE_FROM = """
+    mutation ($studyId: String!) {
+        unsubscribeFrom(studyId: $studyId) {
+            success
+            user {
+                username
+                studySubscriptions {
+                    edges { node { kfId } }
+                }
+            }
+        }
+    }
+"""
+
 
 @pytest.mark.parametrize(
     "user_type,expected",
@@ -141,3 +155,49 @@ def test_subscribe_does_not_exist(db, admin_client):
     )
 
     assert resp.json()["errors"][0]["message"] == "Study does not exist."
+
+
+def test_unsubscribe(db, admin_client):
+    """
+    Test that studies may be removed from a user's subscription
+    """
+    studies = StudyFactory.create_batch(5)
+
+    # Subscribe to all the studies
+    for study in studies:
+        resp = admin_client.post(
+            "/graphql",
+            data={
+                "query": SUBSCRIBE_TO,
+                "variables": {"studyId": study.kf_id},
+            },
+            content_type="application/json",
+        )
+
+    assert (
+        len(
+            resp.json()["data"]["subscribeTo"]["user"]["studySubscriptions"][
+                "edges"
+            ]
+        )
+        == 5
+    )
+
+    # Unsubscribe from the last study
+    resp = admin_client.post(
+        "/graphql",
+        data={
+            "query": UNSUBSCRIBE_FROM,
+            "variables": {"studyId": studies[-1].kf_id},
+        },
+        content_type="application/json",
+    )
+    subs = resp.json()["data"]["unsubscribeFrom"]["user"][
+        "studySubscriptions"
+    ]["edges"]
+
+    assert len(subs) == 4
+    assert studies[-1].kf_id not in [s["node"]["kfId"] for s in subs]
+
+    # Unsubscribe from the last study
+    assert User.objects.first().study_subscriptions.count() == 4

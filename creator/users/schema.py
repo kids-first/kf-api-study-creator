@@ -104,6 +104,36 @@ class SubscribeToMutation(graphene.Mutation):
         return SubscribeToMutation(success=True, user=user)
 
 
+class UnsubscribeFromMutation(graphene.Mutation):
+    """
+    Unsubscribes a user from a study
+    """
+
+    class Arguments:
+        study_id = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, study_id, **kwargs):
+        """
+        Removes a study from the user's study subscriptions
+        """
+        user = info.context.user
+        if user is None or not user.is_authenticated:
+            raise GraphQLError("Not authenticated to unsubscribe")
+
+        try:
+            study = Study.objects.get(kf_id=study_id)
+        except Study.DoesNotExist:
+            raise GraphQLError("Study does not exist.")
+
+        # Remove the study to the users subscriptions
+        user.study_subscriptions.remove(study)
+
+        return SubscribeToMutation(success=True, user=user)
+
+
 class Query(object):
     all_users = DjangoFilterConnectionField(
         UserNode, filterset_class=UserFilter
