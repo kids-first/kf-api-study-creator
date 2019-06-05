@@ -26,6 +26,8 @@ class UserNode(DjangoObjectType):
             "date_joined",
             "picture",
             "study_subscriptions",
+            "slack_notify",
+            "slack_member_id",
         ]
 
     @classmethod
@@ -65,6 +67,38 @@ class UserFilter(django_filters.FilterSet):
         }
 
     order_by = OrderingFilter(fields=("date_joined",))
+
+
+class MyProfileMutation(graphene.Mutation):
+    """
+    Updates user's profile
+    Only modifies the request's authenticated user's profile.
+    We can only change fields that originate in our data model as the other
+    fields come from our authentication services.
+    """
+
+    class Arguments:
+        slack_notify = graphene.Boolean()
+        slack_member_id = graphene.String()
+
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, **kwargs):
+        """
+        Updates a user's profile.
+        Only applies to the request's current user
+        """
+        user = info.context.user
+        if not user.is_authenticated or user is None or user.email == "":
+            raise GraphQLError("Not authenticated to mutate profile")
+
+        if kwargs.get("slack_notify"):
+            user.slack_notify = kwargs.get("slack_notify")
+        if kwargs.get("slack_member_id"):
+            user.slack_member_id = kwargs.get("slack_member_id")
+        user.save()
+
+        return MyProfileMutation(user=user)
 
 
 class SubscribeToMutation(graphene.Mutation):
