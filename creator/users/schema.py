@@ -1,6 +1,6 @@
 import graphene
 import django_filters
-from graphene import relay, ObjectType
+from graphene import relay, ObjectType, Field
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
@@ -68,6 +68,7 @@ class Query(object):
     all_users = DjangoFilterConnectionField(
         UserNode, filterset_class=UserFilter
     )
+    my_profile = Field(UserNode)
 
     def resolve_all_users(self, info, **kwargs):
         """
@@ -84,3 +85,16 @@ class Query(object):
             return User.objects.all()
 
         return [user]
+
+    def resolve_my_profile(self, info, **kwargs):
+        """
+        Return the user that is making the request if they are valid,
+        otherwise, return nothing
+        """
+        user = info.context.user
+
+        # Unauthed and service users do not have profiles
+        if not user.is_authenticated or user is None or user.email == "":
+            raise GraphQLError("not authenticated as a user with a profile")
+
+        return user
