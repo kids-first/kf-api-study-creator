@@ -9,11 +9,12 @@ def new_file(signal, sender, instance, created, **kwargs):
     """
     Handle new and updated files
     """
+    username = getattr(instance.creator, "username", "Anonymous user")
     if created:
-        message = f"{instance.creator.username} created file {instance.kf_id}"
+        message = f"{username} created file {instance.kf_id}"
         event_type = "SF_CRE"
     else:
-        message = f"{instance.creator.username} updated file {instance.kf_id}"
+        message = f"{username} updated file {instance.kf_id}"
         event_type = "SF_UPD"
 
     event = Event(
@@ -31,7 +32,8 @@ def delete_file(signal, sender, instance, **kwargs):
     """
     Handle deleted files
     """
-    message = f"{instance.creator.username} deleted file {instance.kf_id}"
+    username = getattr(instance.creator, "username", "Anonymous user")
+    message = f"{username} deleted file {instance.kf_id}"
     event = Event(
         study=instance.study,
         user=instance.creator,
@@ -46,15 +48,16 @@ def new_version(signal, sender, instance, created, **kwargs):
     """
     Handle new versions and updates
     """
+    username = getattr(instance.creator, "username", "Anonymous user")
     if created:
         message = (
-            f"{instance.creator.username} created version {instance.kf_id}"
+            f"{username} created version {instance.kf_id}"
             f" of file {instance.root_file.kf_id}"
         )
         event_type = "FV_CRE"
     else:
         message = (
-            f"{instance.creator.username} updated version {instance.kf_id}"
+            f"{username} updated version {instance.kf_id}"
             f" of file {instance.root_file.kf_id}"
         )
         event_type = "FV_UPD"
