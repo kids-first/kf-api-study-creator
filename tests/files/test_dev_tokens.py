@@ -1,5 +1,8 @@
 import pytest
+from django.contrib.auth import get_user_model
 from creator.files.models import File, Version, DevDownloadToken
+
+User = get_user_model()
 
 
 @pytest.mark.parametrize(
@@ -34,6 +37,9 @@ def test_list_dev_tokens(
                     name
                     token
                     createdAt
+                    creator {
+                        email
+                    }
                 }
             }
         }

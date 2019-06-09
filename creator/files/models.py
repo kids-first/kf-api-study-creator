@@ -225,6 +225,14 @@ class DevDownloadToken(models.Model):
     created_at = models.DateTimeField(default=timezone.now,
                                       null=False,
                                       help_text='Time the token was created')
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="tokens",
+        help_text="The user who originally created this token",
+    )
 
     def __str__(self):
         return f'DevDownloadToken {self.name}'

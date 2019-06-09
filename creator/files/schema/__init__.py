@@ -92,7 +92,7 @@ class DevDownloadTokenMutation(graphene.Mutation):
              or 'ADMIN' not in user.ego_roles)):
             return GraphQLError('Not authenticated to generate a token.')
 
-        token = DevDownloadToken(name=name)
+        token = DevDownloadToken(name=name, creator=user)
         try:
             token.save()
         except IntegrityError:
