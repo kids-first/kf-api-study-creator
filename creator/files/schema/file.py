@@ -14,6 +14,7 @@ from botocore.exceptions import ClientError
 
 from ..models import File, Version
 from creator.studies.models import Study
+from creator.events.models import Event
 
 
 class FileNode(DjangoObjectType):
@@ -177,6 +178,17 @@ class FileMutation(graphene.Mutation):
             file.save()
         except ClientError:
             raise GraphQLError("Failed to save file mutation.")
+
+        # Make an update event
+        message = f"{user.username} updated file {file.kf_id}"
+        event = Event(
+            file=file,
+            study=file.study,
+            user=user,
+            description=message,
+            event_type="SF_UPD",
+        )
+        event.save()
 
         return FileMutation(file=file)
 

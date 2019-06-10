@@ -7,22 +7,20 @@ from .models import Event
 @receiver(post_save, sender=File)
 def new_file(signal, sender, instance, created, **kwargs):
     """
-    Handle new and updated files
+    Handle new files. Updates are handled directly by the update mutation.
     """
+    # Don't do anything for updates
+    if not created:
+        return
     username = getattr(instance.creator, "username", "Anonymous user")
-    if created:
-        message = f"{username} created file {instance.kf_id}"
-        event_type = "SF_CRE"
-    else:
-        message = f"{username} updated file {instance.kf_id}"
-        event_type = "SF_UPD"
+    message = f"{username} created file {instance.kf_id}"
 
     event = Event(
         file=instance,
         study=instance.study,
         user=instance.creator,
         description=message,
-        event_type=event_type,
+        event_type="SF_CRE",
     )
     event.save()
 
