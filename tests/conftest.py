@@ -154,7 +154,7 @@ def upload_version(client, tmp_uploads_local):
                 fileId: $fileId
             ) {
                 success
-                version { fileName }
+                version { kfId fileName }
               }
             }
         """
