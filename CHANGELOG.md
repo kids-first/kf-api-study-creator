@@ -1,3 +1,27 @@
+# Kids First Study Creator Release 1.4.0
+
+## Features
+
+Add user profiles with notification settings and event tracking.
+
+### Summary
+
+Feature Emojis: ✨x6 🐛x2 ♻️ x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x6 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x2 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1
+
+### New features and changes
+
+- (#200) ✨ Add creator field to tokens - @dankolbman
+- (#198) ✨ Add events - @dankolbman
+- (#197) ✨ Add user notification settings - @dankolbman
+- (#194) ✨ Add myProfile query - @dankolbman
+- (#193) ♻️  Split file and version upload mutations - @dankolbman
+- (#192) 🐛 Use version file_name for downloads - @dankolbman
+- (#191) ✨ Add creator field to files and versions - @dankolbman
+- (#188) 🐛 No service users - @dankolbman
+- (#185) ✨ Save users to database - @dankolbman
+
+
 # Kids First Study Creator Release 1.3.0
 
 ## Features
