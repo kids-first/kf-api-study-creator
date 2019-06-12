@@ -34,6 +34,7 @@ class VersionFactory(factory.DjangoModelFactory):
 
     creator = factory.SubFactory(UserFactory)
 
+    file_name = factory.Faker('file_name')
 
 class FileFactory(factory.DjangoModelFactory):
     class Meta:
