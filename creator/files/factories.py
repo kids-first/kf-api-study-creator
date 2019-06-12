@@ -12,6 +12,9 @@ class FileTypeProvider(BaseProvider):
     def file_type(self):
         return random.choice(['SEQ', 'SHM', 'CLN', 'OTH'])
 
+    def version_state(self):
+        return random.choice(['PEN', 'PRC', 'CHN', 'APP'])
+
 
 factory.Faker.add_provider(FileTypeProvider)
 
@@ -35,6 +38,8 @@ class VersionFactory(factory.DjangoModelFactory):
     creator = factory.SubFactory(UserFactory)
 
     file_name = factory.Faker('file_name')
+    state = factory.Faker('version_state')
+
 
 class FileFactory(factory.DjangoModelFactory):
     class Meta:
