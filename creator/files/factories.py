@@ -10,7 +10,7 @@ from creator.users.factories import UserFactory
 
 class FileTypeProvider(BaseProvider):
     def file_type(self):
-        return random.choice(['SEQ', 'SHM', 'CLN', 'FAM'])
+        return random.choice(['SEQ', 'SHM', 'CLN', 'OTH'])
 
 
 factory.Faker.add_provider(FileTypeProvider)
