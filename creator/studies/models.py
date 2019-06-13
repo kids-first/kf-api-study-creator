@@ -41,7 +41,7 @@ class Study(models.Model):
     release_status = models.CharField(max_length=30,
                                       null=True,
                                       help_text='Release status of the study')
-    short_name = models.CharField(max_length=50,
+    short_name = models.CharField(max_length=500,
                                   null=True,
                                   help_text='Short name for study')
     version = models.CharField(max_length=10,
