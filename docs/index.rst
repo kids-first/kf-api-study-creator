@@ -27,13 +27,6 @@ with data, install
 
 This will build and download necessary images and run them creating the
 primary webserver at ``http://localhost:8080``.
-An admin user will also be created by default and can log in to the Django
-admin panel at ``http://localhost:8080/admin`` using the default credentials:
-
-.. code-block:: bash
-
-    username: admin
-    password: admin
 
 The GraphQL endpoint and GraphiQL interface is at
 ``http://localhost:8080/grapql`` which can be used to interact with the
