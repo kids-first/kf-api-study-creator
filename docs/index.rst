@@ -27,7 +27,7 @@ with data, install
 
 This will build and download necessary images and run them in development mode
 with the primary webserver at ``http://localhost:8080``.
-From here, the GraphiQL interface may be used to interact with the 
+From here, the GraphiQL interface may be used to interact with the
 pre-populated database of mock data.
 
 
@@ -41,3 +41,4 @@ pre-populated database of mock data.
    uploads
    downloads
    authentication
+   authorization
