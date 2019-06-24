@@ -1,68 +1,41 @@
 Authentication
 ==============
 
-The Study Creator API will use Ego tokens as its method of authentication.
-A user will be allowed to add, view, and modify studies and files within them
-based on their Ego role and groups.
+The Study Creator API uses JWTs issued from either Ego or Auth0 as its method
+of authentication.
+Also supported are JWTs created with the ``client_credentials`` grant for
+Auth0 tokens to allow services to communicate with the API.
 
-Role Permissions
-----------------
+Ego Authentication
+------------------
 
-``ADMIN`` users will be allowed to perform all operations on all entities
-in the API.
+The API will attempt to validate a request's ``Bearer`` token against the
+public key found at the ``/oauth/token/public_key`` endpoint.
+The API will cache these keys for some period of time so that it will not need
+to be retrieved for every authenticated request.
 
-.. _user-types:
+Upon successfully validating a user for the first time, the user's profile
+will be persisted to the database.
 
-User Types
-----------
-
-Unauthenticated user
-++++++++++++++++++++
-
-Any requests that come with invalid or missing JWT header are considered
-unauthenticated, and will not have access to any resources.
-
-Authenticated user
-++++++++++++++++++
-
-Any request with a valid JWT header containing a ``groups`` context containing
-a list of study ``kf_id`` to which the user belongs. The user will be allowed
-to perform certain requests with these studies alone.
-
-Admin user
-++++++++++
-
-Any request with a valid JWT header containing a ``roles`` context that has a
-``ADMIN`` value. The user will be allowed to perform all actions and access all
-resources.
-
-Resource Permissions
+Auth0 Authentication
 --------------------
 
-Study Permissions
-+++++++++++++++++
+The API will attempt to validate a request's ``Bearer`` token against the
+public key found at ``https://kids-first.auth0.com/.well-known/jwks.json``.
+The API will cache these keys for some period of time so that it will not need
+to be retrieved for every authenticated request.
 
-Studies must be created through the database directly. By default, studies from
-the ``DATASERVICE`` will be synchronized on container start in deployment
-environments.
+Upon successfull validation, the user's ``roles``, ``groups``, and
+``permissions`` will be read from the token's
+``https://kidsfirstdrc.org/groups``, ``https://kidsfirstdrc.org/roles``,
+and ``https://kidsfirstdrc.org/permissions`` fields.
+If it is the first time this user has authenticated with the API, a request
+will be made to fetch additional information about the user from Auth0.
+Once additional info has been retrieved from Auth0, the user's profile will be
+saved to the database so that this query will not have to be made again.
 
-File Permissions
-++++++++++++++++
+Service Tokens
+++++++++++++++
 
-Unauthenticated user:
-
-  - May not view any files.
-  - May not add any files.
-  - May not modify any files.
-
-Authenticated user:
-
-  - May view files in their studies.
-  - May upload files to their studies.
-  - May modify files in their studies.
-
-Admin user:
-
-  - May view any file.
-  - May upload file to any studies.
-  - May modify any file.
+Valid tokens with the ``client_credentials`` grant type will automatically be
+given the ``ADMIN`` role, but they will not be saved to the database.
