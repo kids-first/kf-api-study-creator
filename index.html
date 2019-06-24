@@ -92,6 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
 </ul>
 
             
@@ -171,19 +172,12 @@ inclusion in Kids First.</p>
 with data, install
 <a class="reference external" href="https://www.docker.com">Docker</a> and
 <a class="reference external" href="https://docs.docker.com/compose/install">Docker Compose</a> then run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose up --build -d
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>creator.settings.development docker-compose up --build -d
 </pre></div>
 </div>
-<p>This will build and download necessary images and run them creating the
-primary webserver at <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code>.
-An admin user will also be created by default and can log in to the Django
-admin panel at <code class="docutils literal notranslate"><span class="pre">http://localhost:8080/admin</span></code> using the default credentials:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>username: admin
-password: admin
-</pre></div>
-</div>
-<p>The GraphQL endpoint and GraphiQL interface is at
-<code class="docutils literal notranslate"><span class="pre">http://localhost:8080/grapql</span></code> which can be used to interact with the
+<p>This will build and download necessary images and run them in development mode
+with the primary webserver at <code class="docutils literal notranslate"><span class="pre">http://localhost:8080</span></code>.
+From here, the GraphiQL interface may be used to interact with the
 pre-populated database of mock data.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
@@ -215,9 +209,14 @@ pre-populated database of mock data.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="authentication.html#role-permissions">Role Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="authentication.html#user-types">User Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="authentication.html#resource-permissions">Resource Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="authentication.html#ego-authentication">Ego Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="authentication.html#auth0-authentication">Auth0 Authentication</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="authorization.html#role-permissions">Role Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="authorization.html#user-types">User Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="authorization.html#resource-permissions">Resource Permissions</a></li>
 </ul>
 </li>
 </ul>

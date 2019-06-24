@@ -36,6 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Authorization" href="authorization.html" />
     <link rel="prev" title="Downloads" href="downloads.html" />
     <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
  
@@ -92,20 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#role-permissions">Role Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user-types">User Types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unauthenticated-user">Unauthenticated user</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#authenticated-user">Authenticated user</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#admin-user">Admin user</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#resource-permissions">Resource Permissions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#study-permissions">Study Permissions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#file-permissions">File Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ego-authentication">Ego Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#auth0-authentication">Auth0 Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#service-tokens">Service Tokens</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
 </ul>
 
             
@@ -172,68 +167,37 @@
             
   <div class="section" id="authentication">
 <h1>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h1>
-<p>The Study Creator API will use Ego tokens as its method of authentication.
-A user will be allowed to add, view, and modify studies and files within them
-based on their Ego role and groups.</p>
-<div class="section" id="role-permissions">
-<h2>Role Permissions<a class="headerlink" href="#role-permissions" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> users will be allowed to perform all operations on all entities
-in the API.</p>
+<p>The Study Creator API uses JWTs issued from either Ego or Auth0 as its method
+of authentication.
+Also supported are JWTs created with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant for
+Auth0 tokens to allow services to communicate with the API.</p>
+<div class="section" id="ego-authentication">
+<h2>Ego Authentication<a class="headerlink" href="#ego-authentication" title="Permalink to this headline">¶</a></h2>
+<p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
+public key found at the <code class="docutils literal notranslate"><span class="pre">/oauth/token/public_key</span></code> endpoint.
+The API will cache these keys for some period of time so that it will not need
+to be retrieved for every authenticated request.</p>
+<p>Upon successfully validating a user for the first time, the user’s profile
+will be persisted to the database.</p>
 </div>
-<div class="section" id="user-types">
-<span id="id1"></span><h2>User Types<a class="headerlink" href="#user-types" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="unauthenticated-user">
-<h3>Unauthenticated user<a class="headerlink" href="#unauthenticated-user" title="Permalink to this headline">¶</a></h3>
-<p>Any requests that come with invalid or missing JWT header are considered
-unauthenticated, and will not have access to any resources.</p>
-</div>
-<div class="section" id="authenticated-user">
-<h3>Authenticated user<a class="headerlink" href="#authenticated-user" title="Permalink to this headline">¶</a></h3>
-<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">groups</span></code> context containing
-a list of study <code class="docutils literal notranslate"><span class="pre">kf_id</span></code> to which the user belongs. The user will be allowed
-to perform certain requests with these studies alone.</p>
-</div>
-<div class="section" id="admin-user">
-<h3>Admin user<a class="headerlink" href="#admin-user" title="Permalink to this headline">¶</a></h3>
-<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">roles</span></code> context that has a
-<code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> value. The user will be allowed to perform all actions and access all
-resources.</p>
-</div>
-</div>
-<div class="section" id="resource-permissions">
-<h2>Resource Permissions<a class="headerlink" href="#resource-permissions" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="study-permissions">
-<h3>Study Permissions<a class="headerlink" href="#study-permissions" title="Permalink to this headline">¶</a></h3>
-<p>Studies must be created through the database directly. By default, studies from
-the <code class="docutils literal notranslate"><span class="pre">DATASERVICE</span></code> will be synchronized on container start in deployment
-environments.</p>
-</div>
-<div class="section" id="file-permissions">
-<h3>File Permissions<a class="headerlink" href="#file-permissions" title="Permalink to this headline">¶</a></h3>
-<p>Unauthenticated user:</p>
-<blockquote>
-<div><ul class="simple">
-<li>May not view any files.</li>
-<li>May not add any files.</li>
-<li>May not modify any files.</li>
-</ul>
-</div></blockquote>
-<p>Authenticated user:</p>
-<blockquote>
-<div><ul class="simple">
-<li>May view files in their studies.</li>
-<li>May upload files to their studies.</li>
-<li>May modify files in their studies.</li>
-</ul>
-</div></blockquote>
-<p>Admin user:</p>
-<blockquote>
-<div><ul class="simple">
-<li>May view any file.</li>
-<li>May upload file to any studies.</li>
-<li>May modify any file.</li>
-</ul>
-</div></blockquote>
+<div class="section" id="auth0-authentication">
+<h2>Auth0 Authentication<a class="headerlink" href="#auth0-authentication" title="Permalink to this headline">¶</a></h2>
+<p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
+public key found at <code class="docutils literal notranslate"><span class="pre">https://kids-first.auth0.com/.well-known/jwks.json</span></code>.
+The API will cache these keys for some period of time so that it will not need
+to be retrieved for every authenticated request.</p>
+<p>Upon successfull validation, the user’s <code class="docutils literal notranslate"><span class="pre">roles</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">permissions</span></code> will be read from the token’s
+<code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/groups</span></code>, <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/roles</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/permissions</span></code> fields.
+If it is the first time this user has authenticated with the API, a request
+will be made to fetch additional information about the user from Auth0.
+Once additional info has been retrieved from Auth0, the user’s profile will be
+saved to the database so that this query will not have to be made again.</p>
+<div class="section" id="service-tokens">
+<h3>Service Tokens<a class="headerlink" href="#service-tokens" title="Permalink to this headline">¶</a></h3>
+<p>Valid tokens with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant type will automatically be
+given the <code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> role, but they will not be saved to the database.</p>
 </div>
 </div>
 </div>
@@ -245,6 +209,8 @@ environments.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="authorization.html" class="btn btn-neutral float-right" title="Authorization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="downloads.html" class="btn btn-neutral float-left" title="Downloads" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

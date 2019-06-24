@@ -22,21 +22,12 @@ with data, install
 
 .. code-block:: bash
 
-    docker-compose up --build -d
+    DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up --build -d
 
 
-This will build and download necessary images and run them creating the
-primary webserver at ``http://localhost:8080``.
-An admin user will also be created by default and can log in to the Django
-admin panel at ``http://localhost:8080/admin`` using the default credentials:
-
-.. code-block:: bash
-
-    username: admin
-    password: admin
-
-The GraphQL endpoint and GraphiQL interface is at
-``http://localhost:8080/grapql`` which can be used to interact with the
+This will build and download necessary images and run them in development mode
+with the primary webserver at ``http://localhost:8080``.
+From here, the GraphiQL interface may be used to interact with the
 pre-populated database of mock data.
 
 
@@ -50,3 +41,4 @@ pre-populated database of mock data.
    uploads
    downloads
    authentication
+   authorization
