@@ -1,3 +1,19 @@
+# Kids First Study Creator Release 1.5.0
+
+## Features
+
+### Summary
+
+Feature Emojis: 📝x1 ⬆️x1 🐛 x1
+Feature Labels: [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x1 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x1 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x1
+
+### New features and changes
+
+- (#208) 📝 Update docs - @dankolbman
+- (#207) ⬆️  Bump django from 2.1.7 to 2.1.9 - @dependabot[bot]
+- (#206) 🐛 raises study short_name character limit to 500 - @bdolly
+
+
 # Kids First Study Creator Release 1.4.0
 
 ## Features
