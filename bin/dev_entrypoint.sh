@@ -19,6 +19,7 @@ case $PRELOAD_DATA in
     "DATASERVICE")
         echo "Will load studies from the default dataservice"
         python manage.py syncstudies
+        # python manage.py faketeststudies 
         ;;
     http*)
         echo Will load studies from $PRELOAD_DATA
@@ -28,6 +29,11 @@ case $PRELOAD_DATA in
         echo "Will create fake data"
         /app/manage.py fakestudies -n 3
         /app/manage.py fakefiles
+        ;;
+    "USER_TESTING")
+        echo Will create user testing data for $PI
+        /app/manage.py fakestudies -n=6
+        /app/manage.py uastudies -pi=$PI
         ;;
     *)
         echo "Will not pre-populate database"

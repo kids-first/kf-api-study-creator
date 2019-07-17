@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.4"
 
 services:
   web:
@@ -10,16 +10,17 @@ services:
       - PG_USER=study-creator
       - PG_PASS=password
       - PG_HOST=postgres
-      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.development}
       - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
       - AWS_ACCESS_KEY_ID=foo
       - AWS_SECRET_ACCESS_KEY=bar
       # Options are: DATASERVICE, url of dataservice, or FAKE
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
+      - PI=${PI}
     volumes:
       - .:/app
     ports:
-      - '8080:8080'
+      - "8080:8080"
   postgres:
     image: postgres:10.6
     environment:

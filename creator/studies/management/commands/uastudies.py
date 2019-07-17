@@ -5,6 +5,7 @@ from creator.studies.factories import StudyFactory, BatchFactory
 from creator.studies.models import Study
 
 API = 'https://kf-study-creator.kidsfirstdrc.org/graphql'
+DATASERVICE = 'https://kf-api-dataservice.kidsfirstdrc.org'
 
 
 class Command(BaseCommand):
@@ -21,7 +22,7 @@ class Command(BaseCommand):
                             help='Address of the data tracker graphql api',
                             type=str)
 
-        parser.add_argument('--investigator',
+        parser.add_argument('-pi',
                             help='Name of investigator',
                             type=str)
 
@@ -40,44 +41,75 @@ class Command(BaseCommand):
             self.stderr.write("Query failed to run by returning code of {}. {}".format(
                 request.status_code, query))
 
-    def handle(self, *args, **options):
-        api = options.get('api')
-        headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1NjMzNzQ5NjQsImV4cCI6MTU2MzQ2MTM2NCwic3ViIjoiZTcwZjBhYWQtMmIzMC00NWE5LWFiZGQtMzQ4NjUzYjM5ZmYzIiwiaXNzIjoiZWdvIiwiYXVkIjpbXSwianRpIjoiZTk4NWRhZDgtMjZkZC00MjA1LTkwMjEtMDJlNTVkZWFkMjkxIiwiY29udGV4dCI6eyJ1c2VyIjp7Im5hbWUiOiJicm9tZW9kb2xseUBnbWFpbC5jb20iLCJlbWFpbCI6ImJyb21lb2RvbGx5QGdtYWlsLmNvbSIsInN0YXR1cyI6IkFwcHJvdmVkIiwiZmlyc3ROYW1lIjoiQmVuamFtaW4iLCJsYXN0TmFtZSI6IkRvbGx5IiwiY3JlYXRlZEF0IjoxNTMxNzg1NjAwMDAwLCJsYXN0TG9naW4iOjE1NjMzNzQ5NjQwMTAsInByZWZlcnJlZExhbmd1YWdlIjpudWxsLCJyb2xlcyI6WyJBRE1JTiJdLCJncm91cHMiOlsia2Ytc3Rha2Vob2xkZXIiXSwicGVybWlzc2lvbnMiOltdfX19.Z5kTTACl0Rrt-qMqMbPvgbjQFH_JzAqiLvnIQmbOn-AW7ZN76mMsx3_N0jvznacEY4a8E585tz0yn6_1e8QmaRdQHSqhaoFPNuh-rVv9W1ihpNAYlav7cpSmAnqqiIIsw_YQRewvqLasxy2qzq67oVyz1WaDshElYhFuXqr2P66ZWT1XiFvkNvxWdzN8G7IRWObr-Y5kmz98UdG_GvYs-7KZMoM4_jt_EHuS9GUU6OIFP17G109wEeM6ctoPt7LjkL2cYFiw3YwSbwztlKWY-z5UlNmymJVOAMAZgBngtSGR9ig4psQX0Fgx1a7Hvq6EBhf5fa6xPP50nruEn6q9iw"}
+    def get_studies_by_pi(self, pi):
+        # GET all studies
+        resp = requests.get(f'{DATASERVICE}/studies?limit=100')
+        studies = resp.json()['results']
+        studies_investigator = []
 
-        query = """
-            query Study($kfId: String!) {
-                studyByKfId(kfId: $kfId) {
-                  name
-                  shortName
-                  bucket
-                  kfId
-                  modifiedAt
-                  createdAt
-                }
-            }
-        """
-        variables = {"kfId": "SD_46SK55A3"}
-        # pull all data for study from prod
-        results = self.run_query(headers, api, query, variables)
+        for study in studies:
+            fields = study
 
-        if(results['data']['studyByKfId']):
-            # clean up (kfId, name,short_name, bucket )
+            if fields['name'] is None:
+                fields['name'] = ''
 
-            study_values = {self.camel_to_snake(k): re.sub(r'hernia', options.get('investigator'), v, flags=re.I)
-                            for (k, v) in results['data']['studyByKfId'].items()}
-            print(study_values)
+            fields['investigator'] = ''
 
-            # write study to db (update_or_create)
+            if fields['_links']['investigator']:
+                # map GET _links.investigator to add the investigator name to the study response
+                req = requests.get(
+                    DATASERVICE+fields['_links']['investigator'])
+                investigator = req.json()['results']['name']
+                fields['investigator'] = investigator
 
-            new_study, created = Study.objects.update_or_create(
-                defaults=study_values
-            )
-            if created:
-                self.stdout.write("Created {}".format(variables['kfId']))
-            else:
-                self.stdout.write("Updated {}".format(variables['kfId']))
+            del fields['_links']
+            studies_investigator.append(fields)
+
+        # filter by --investigator
+        investigators_studies = [
+            study for study in studies_investigator
+            if pi.lower() in study['investigator'].lower()
+        ]
+        for study in investigators_studies:
+            del study['investigator']
+
+        return investigators_studies
+
+    def load_study(self, kfId, data, pi):
+        new_study, created = Study.objects.update_or_create(
+            defaults=data,
+            kf_id=kfId
+        )
+
+        if created:
+            print("Created {}: {}".format(pi, kfId))
         else:
-            self.stderr.write("No Results for {}".format(variables.kfId))
-        # clean-up files (name, downloadUrl, description, kfId)
+            print("Updated {}: {}".format(pi, kfId))
 
-        # self.stdout.write(results['data']['studyByKfId']['name'])
+    def load_test_study(self, investigator):
+        # pull donw the Churn SD_46SK55A3 study and update a fake one
+        resp = requests.get(f'{DATASERVICE}/studies/SD_46SK55A3')
+        test_study = resp.json()['results']
+
+        del test_study['kf_id']
+        # get the second fake study and update it
+        fake_study_id = Study.objects.get(kf_id='SD_KZRADNFE')
+        self.stdout.write("Updating fake study {} with Chung SD_46SK55A3 study metadata".format(
+            fake_study_id))
+        self.load_study(fake_study_id, test_study, investigator)
+
+    def handle(self, *args, **options):
+        investigator = options.get('pi')
+
+        self.load_test_study(investigator)
+
+        self.stdout.write("Populating Studies from " +
+                          investigator.upper())
+        studies = self.get_studies_by_pi(investigator)
+        # determinsiticly fetch study ids
+        fake_study_ids = Study.objects.order_by('kf_id')[
+            :len(studies)].values_list('kf_id')
+
+        for idx, study in enumerate(studies):
+            del study['kf_id']
+            self.load_study(fake_study_ids[idx][0], study, investigator)
