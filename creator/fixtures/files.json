@@ -1,0 +1,500 @@
+[
+  {
+    "model": "files.file",
+    "pk": "SF_2A9J62RP",
+    "fields": {
+      "uuid": "a4430a0a-bc2a-4085-bcae-5efa0ca28018",
+      "name": "subject-attributes-fy-2015-2016",
+      "description": "Participant consents and affected status",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_4SKGFXW5",
+    "fields": {
+      "uuid": "666fc0db-a005-4eff-9ad4-3969ae86904e",
+      "name": "source_data_files_v0.zip",
+      "description": "This is a temporary (until file versioning is implemented) archive of an older version of the source data files:\n\n-ALL_YEAR_MASTER_SUBJECT_SAMPLE_LIST_DRC.txt\n\n- 2a_dbGaP_SubjectPhenotypesDS cumulative_8.23.18.xlsx       \n\n- 3a_dbGaP_SubjectAttributesDS cumulative_8.23.18.xlsx\n\n- 4a_dbGaP_SubjectDS cumulative_8.23.18.xlsx                                      \n\n- 5a_dbGaP_SubjectSampleMappingDS cumulative_8.23.18.xlsx                         \n\n- 6a_dbGaP_PedigreeDS cumulative_8.23.18.xlsx\n\n- FY 2017 Kids First Minimal Clinical2FPhenotype Data Elements_cumc cdh 7-18.xlsx\n\n- chung_broad_5_2_19_sample.tsv\n\nThe following changes were made to yield the new set of files. \n\n- 60 participants were removed from the FY17 spreadsheet because they do not appear in the master subject sample list for this study. \n\n- 24 participants were removed from each of the dbGaP files because these participants do not appear in the master subject sample list for this study.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_54ZX0W39",
+    "fields": {
+      "uuid": "1768413f-9d07-4a6f-a8cb-5e776242fd08",
+      "name": "subject-samples-fy-2015-2016",
+      "description": "Participant specimen ID mapping for FY 2015, 2016",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_C5Z5EBHR",
+    "fields": {
+      "uuid": "33f73462-2d6e-41ac-a161-82203ccea30d",
+      "name": "clinical-data-fy-2017",
+      "description": "Clinical data including phenotype observations, diagnosis observations, pedigree information, etc. for FY 2017 participants.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_DG7SSWE6",
+    "fields": {
+      "uuid": "f57e02bc-3a34-458d-926c-42f2c70c92cd",
+      "name": "baylor-sequencing-experiment-manifest-fy-2015",
+      "description": "Baylor sequencing experiment data for the FY 2015 samples.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_DKDV891N",
+    "fields": {
+      "uuid": "133c5667-7b87-42f6-8244-70e0029d62c2",
+      "name": "broad-sample-sequencing-manifest-fy-2016-2017",
+      "description": "Broad Institute sample sequencing manifest for the FY 2016, 2017 participants.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_FW0QHA1E",
+    "fields": {
+      "uuid": "4ce3e723-51d5-4866-a0b4-ad459160c13a",
+      "name": "broad-10x-sample-sequencing-manifest-FY-2015-2016",
+      "description": "Broad Institute sample sequencing manifest for the 12 samples that underwent 10X WGS.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_QJ0ENQZ7",
+    "fields": {
+      "uuid": "6e7bc039-3f4c-440f-84e9-d66c10c17291",
+      "name": "sample-attributes-fy-2015-2016",
+      "description": "Specimen attributes (e.g. analyte type, anatomical site, etc.) for FY 2015 and FY 2016 participants.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_RZA8TZ7G",
+    "fields": {
+      "uuid": "035301ad-3db2-4c6b-acdd-c328f16dbe7e",
+      "name": "baylor-sample-sequencing-manifest-fy-2015",
+      "description": "Sample sequencing manifest from Baylor College of Medicine (BCM) sequencing center. Covers the FY 2015 participants + the 12 samples that went through 10X WGS at Broad.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_STRDZZ3B",
+    "fields": {
+      "uuid": "0ce97070-aa05-48af-90c2-336fc4282e27",
+      "name": "master-subject-sample-list",
+      "description": "Master list of participant, specimen IDs for FY 2015, 2016, 2017",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_W8B9NM62",
+    "fields": {
+      "uuid": "c6777599-ae09-4cd9-869c-31aecbff811d",
+      "name": "pedigree-fy-2015-2016",
+      "description": "Pedigree (family and family relationships) for FY 2015, 2016 participants",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_X3MBHGQ8",
+    "fields": {
+      "uuid": "e75b8bf8-26ae-4d85-8970-fb479badf83f",
+      "name": "s3-broad-unharmonized-gf-manifest",
+      "description": "Manifest for unharmonized genomic files on S3 produced by Broad sequencing center for FY 2016, 2017 specimens.",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_Y6BQVHFJ",
+    "fields": {
+      "uuid": "8c396bc4-594e-4294-869e-ce1affeede09",
+      "name": "phenotypes-fy-2015-2016",
+      "description": "Phenotype observation events for the FY15, FY16 participants",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_YQF9Q9EN",
+    "fields": {
+      "uuid": "9e6e2840-3f01-4171-91ff-05776f363ad7",
+      "name": "s3-baylor-unharmonized-gf-manifest",
+      "description": "Manifest for unharmonized genomic files on S3 produced by Baylor sequencing center for FY 2015 specimens. ",
+      "study": "SD_KZRADNFE",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_0BFH5FGQ",
+    "fields": {
+      "uuid": "924de5b3-67c7-4ac8-8c94-827e9704c1e2",
+      "key": "source/uploads/6a_dbGaP_PedigreeDS_cumulative_8.23.18_cghgzXg.tsv",
+      "file_name": "6a_dbGaP_PedigreeDS cumulative_8.23.18.tsv",
+      "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
+      "state": "PEN",
+      "creator": 19,
+      "created_at": "2019-07-19T01:30:41.469Z",
+      "size": 42517,
+      "root_file": "SF_W8B9NM62"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_3MPDDC2Y",
+    "fields": {
+      "uuid": "aebcf078-253e-47b7-9b25-727198d0e0a4",
+      "key": "source/uploads/4a_dbGaP_SubjectDS_cumulative_8.23.18_5sYNPqk.xlsx",
+      "file_name": "4a_dbGaP_SubjectDS cumulative_8.23.18.xlsx",
+      "description": "Participant consents and affected status",
+      "state": "PEN",
+      "creator": 14,
+      "created_at": "2019-07-19T01:30:41.401Z",
+      "size": 44444,
+      "root_file": "SF_2A9J62RP"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_48T6BA7Z",
+    "fields": {
+      "uuid": "cad11873-44b1-448f-9df7-9e9185d77b21",
+      "key": "source/uploads/kf-seq-data-bcm-chung-s3-objects.tsv",
+      "file_name": "kf-seq-data-bcm-chung-s3-objects.tsv",
+      "description": "Manifest for unharmonized genomic files on S3 produced by Baylor sequencing center for FY 2015 specimens. ",
+      "state": "PEN",
+      "creator": 10,
+      "created_at": "2019-07-19T01:30:41.650Z",
+      "size": 143322,
+      "root_file": "SF_YQF9Q9EN"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_4HA3YD1D",
+    "fields": {
+      "uuid": "ed1e8bf1-8c7c-4ccb-ba7c-171cba55fee2",
+      "key": "source/uploads/6a_dbGaP_PedigreeDS_cumulative_8.23.18_0ouI2Mk.xlsx",
+      "file_name": "6a_dbGaP_PedigreeDS cumulative_8.23.18.xlsx",
+      "description": "Pedigree (family and family relationships) for FY 2015, 2016 participants",
+      "state": "PEN",
+      "creator": 12,
+      "created_at": "2019-07-19T01:30:41.479Z",
+      "size": 61409,
+      "root_file": "SF_W8B9NM62"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_58AC0K8C",
+    "fields": {
+      "uuid": "e50481f8-2702-4463-9759-93432f01bb01",
+      "key": "source/uploads/3a_dbGaP_SubjectAttributesDS_cumulative_8.23.18_RR2rqiP.xlsx",
+      "file_name": "3a_dbGaP_SubjectAttributesDS cumulative_8.23.18.xlsx",
+      "description": "Specimen attributes (e.g. analyte type, anatomical site, etc.) for FY 2015 and FY 2016 participants.",
+      "state": "PEN",
+      "creator": 3,
+      "created_at": "2019-07-19T01:30:41.365Z",
+      "size": 52278,
+      "root_file": "SF_QJ0ENQZ7"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_6ATGG1HW",
+    "fields": {
+      "uuid": "203ffe8c-cdef-40ec-9ba4-441dd7455bb9",
+      "key": "source/uploads/chung_bcm_sample_XugBu8F.tsv",
+      "file_name": "chung_bcm_sample.tsv",
+      "description": "12 specimens had obsolete IDs and have been removed.",
+      "state": "PEN",
+      "creator": 19,
+      "created_at": "2019-07-19T01:30:41.608Z",
+      "size": 45387,
+      "root_file": "SF_RZA8TZ7G"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_6EE3X83A",
+    "fields": {
+      "uuid": "3986c712-34fa-4be2-8ea6-2849e19ed702",
+      "key": "source/uploads/ALL_YEAR_MASTER_SUBJECT_SAMPLE_LIST_DRC_aVG1lnt.txt",
+      "file_name": "ALL_YEAR_MASTER_SUBJECT_SAMPLE_LIST_DRC.txt",
+      "description": "Master list of participant, specimen IDs for FY 2015, 2016, 2017",
+      "state": "PEN",
+      "creator": 13,
+      "created_at": "2019-07-19T01:30:41.497Z",
+      "size": 69284,
+      "root_file": "SF_STRDZZ3B"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_6XJYMR3Z",
+    "fields": {
+      "uuid": "66302ff7-0604-4a86-a880-cfcad51b88d9",
+      "key": "source/uploads/GMKF_BAMsampleIDs.xlsx",
+      "file_name": "GMKF_BAMsampleIDs.xlsx",
+      "description": "Sample sequencing manifest from Baylor College of Medicine (BCM) sequencing center. Covers the FY 2015 participants + the 12 samples that went through 10X WGS at Broad.",
+      "state": "PEN",
+      "creator": 9,
+      "created_at": "2019-07-19T01:30:41.600Z",
+      "size": 153028,
+      "root_file": "SF_RZA8TZ7G"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_AQFF4MJ9",
+    "fields": {
+      "uuid": "71404e89-83de-4a77-b143-eebba968aec3",
+      "key": "source/uploads/FY_2017_Kids_First_Minimal_Clinical2FPhenotype_Data_Elements_cumc_cdh_7-18_VZ7Vnnl.xlsx",
+      "file_name": "FY 2017 Kids First Minimal Clinical2FPhenotype Data Elements_cumc cdh 7-18.xlsx",
+      "description": "Clinical data including phenotype observations, diagnosis observations, pedigree information, etc. for FY 2017 participants.",
+      "state": "PEN",
+      "creator": 9,
+      "created_at": "2019-07-19T01:30:41.514Z",
+      "size": 99140,
+      "root_file": "SF_C5Z5EBHR"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_B3PXM44M",
+    "fields": {
+      "uuid": "d57e027d-a0e8-450e-8bcd-f534c470facd",
+      "key": "source/uploads/5a_dbGaP_SubjectSampleMappingDS_cumulative_8.23.18_PhfgK6Q.xlsx",
+      "file_name": "5a_dbGaP_SubjectSampleMappingDS cumulative_8.23.18.xlsx",
+      "description": "Participant specimen ID mapping for FY 2015, 2016",
+      "state": "PEN",
+      "creator": 18,
+      "created_at": "2019-07-19T01:30:41.422Z",
+      "size": 39869,
+      "root_file": "SF_54ZX0W39"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_BHANA0Q0",
+    "fields": {
+      "uuid": "c4762ad8-bfd9-4c37-890b-b005ea5b84af",
+      "key": "source/uploads/source_data_files_v0.zip",
+      "file_name": "source_data_files_v0.zip",
+      "description": "",
+      "state": "PEN",
+      "creator": 5,
+      "created_at": "2019-07-19T01:30:41.448Z",
+      "size": 662229,
+      "root_file": "SF_4SKGFXW5"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_C9DQA9E7",
+    "fields": {
+      "uuid": "40fc6f36-0cae-481f-8bbc-96bbdf9bffa0",
+      "key": "source/uploads/5a_dbGaP_SubjectSampleMappingDS_cumulative_8.23.18_jKJ4rdk.tsv",
+      "file_name": "5a_dbGaP_SubjectSampleMappingDS cumulative_8.23.18.tsv",
+      "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
+      "state": "PEN",
+      "creator": 14,
+      "created_at": "2019-07-19T01:30:41.431Z",
+      "size": 61004,
+      "root_file": "SF_54ZX0W39"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_DYMN6TYP",
+    "fields": {
+      "uuid": "96759c21-efd3-4844-b466-47b70479e8fa",
+      "key": "source/uploads/chung_metadata.xlsx",
+      "file_name": "chung_metadata.xlsx",
+      "description": "Baylor sequencing experiment data for the FY 2015 samples.",
+      "state": "PEN",
+      "creator": 8,
+      "created_at": "2019-07-19T01:30:41.626Z",
+      "size": 66532,
+      "root_file": "SF_DG7SSWE6"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_EEJ1CXHT",
+    "fields": {
+      "uuid": "c89743c8-997a-428a-b2b9-c22a765c38f7",
+      "key": "source/uploads/chung_broad_5_2_19_sample_E6rZkmx.tsv",
+      "file_name": "chung_broad_5_2_19_sample.tsv",
+      "description": "Broad Institute sample sequencing manifest for the FY 2016, 2017 participants.",
+      "state": "PEN",
+      "creator": 18,
+      "created_at": "2019-07-19T01:30:41.544Z",
+      "size": 1424083,
+      "root_file": "SF_DKDV891N"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_JFSREAY3",
+    "fields": {
+      "uuid": "c6f180d4-d42a-4a38-be4f-1c0ead24f456",
+      "key": "source/uploads/2a_dbGaP_SubjectPhenotypesDS_cumulative_8.23.18_R1NJOMT.xlsx",
+      "file_name": "2a_dbGaP_SubjectPhenotypesDS cumulative_8.23.18.xlsx",
+      "description": "Phenotype observation events for the FY15, FY16 participants",
+      "state": "PEN",
+      "creator": 13,
+      "created_at": "2019-07-19T01:30:41.575Z",
+      "size": 101826,
+      "root_file": "SF_Y6BQVHFJ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_M2NZ1N9S",
+    "fields": {
+      "uuid": "424f9456-0cb4-416e-87f9-335d958f9b97",
+      "key": "source/uploads/FY_2017_Kids_First_Minimal_Clinical2FPhenotype_Data_Elements_cumc_cdh_7-18_Qy6K4Cb.tsv",
+      "file_name": "FY 2017 Kids First Minimal Clinical2FPhenotype Data Elements_cumc cdh 7-18.tsv",
+      "description": "60 participants were removed from the FY17 clinical data spreadsheet because they do not appear in the master subject sample list for this study. Also, this version has been converted to TSV format",
+      "state": "PEN",
+      "creator": 11,
+      "created_at": "2019-07-19T01:30:41.526Z",
+      "size": 81515,
+      "root_file": "SF_C5Z5EBHR"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_MVZC3QWA",
+    "fields": {
+      "uuid": "9c21efcc-de3c-4669-b4b7-957b98c38e04",
+      "key": "source/uploads/3a_dbGaP_SubjectAttributesDS_cumulative_8.23.18_koKHSdr.tsv",
+      "file_name": "3a_dbGaP_SubjectAttributesDS cumulative_8.23.18.tsv",
+      "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
+      "state": "PEN",
+      "creator": 15,
+      "created_at": "2019-07-19T01:30:41.374Z",
+      "size": 47608,
+      "root_file": "SF_QJ0ENQZ7"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_MZPSC1NC",
+    "fields": {
+      "uuid": "a48fdabb-8716-4744-ba0a-820ad2ca70ac",
+      "key": "source/uploads/chung_broad_10x_samples_iEObc4r.tsv",
+      "file_name": "chung_broad_10x_samples.tsv",
+      "description": "Broad Institute sample sequencing manifest for the 12 samples that underwent 10X WGS.",
+      "state": "PEN",
+      "creator": 18,
+      "created_at": "2019-07-19T01:30:41.559Z",
+      "size": 19631,
+      "root_file": "SF_FW0QHA1E"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_N62P4F5F",
+    "fields": {
+      "uuid": "44c308ed-2ca1-454c-9aeb-26dd6dd9e7e6",
+      "key": "source/uploads/kf-study-us-east-1-prd-sd-46sk55a3-source-s3-objects.tsv",
+      "file_name": "kf-study-us-east-1-prd-sd-46sk55a3-source-s3-objects.tsv",
+      "description": "Manifest for unharmonized genomic files on S3 produced by Broad sequencing center for FY 2016, 2017 specimens.",
+      "state": "PEN",
+      "creator": 3,
+      "created_at": "2019-07-19T01:30:41.669Z",
+      "size": 4757822,
+      "root_file": "SF_X3MBHGQ8"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_NTGWQPYS",
+    "fields": {
+      "uuid": "ea20962c-f36b-4aad-8f49-0766a531eba6",
+      "key": "source/uploads/2a_dbGaP_SubjectPhenotypesDS_cumulative_8.23.18_PPNzJ67.tsv",
+      "file_name": "2a_dbGaP_SubjectPhenotypesDS cumulative_8.23.18.tsv",
+      "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
+      "state": "PEN",
+      "creator": 5,
+      "created_at": "2019-07-19T01:30:41.584Z",
+      "size": 75618,
+      "root_file": "SF_Y6BQVHFJ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_SAB0WJAK",
+    "fields": {
+      "uuid": "e4238164-b2b3-4613-aa28-0aacb2b0e75f",
+      "key": "source/uploads/chung_metadata_kYDX0DF.tsv",
+      "file_name": "chung_metadata.tsv",
+      "description": "6 files are not on S3 or in the Baylor sample sequencing manifest AND their specimen IDs are not in the master list. They are likely the ones that failed sequencing. These 6 files have been removed from the Baylor sequencing experiment manifest.",
+      "state": "PEN",
+      "creator": 7,
+      "created_at": "2019-07-19T01:30:41.635Z",
+      "size": 119872,
+      "root_file": "SF_DG7SSWE6"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_Y90S0X11",
+    "fields": {
+      "uuid": "15c937bb-d9e8-4b4f-9113-bd48e867d26e",
+      "key": "source/uploads/4a_dbGaP_SubjectDS_cumulative_8.23.18_Gv50hH3.tsv",
+      "file_name": "4a_dbGaP_SubjectDS cumulative_8.23.18.tsv",
+      "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
+      "state": "PEN",
+      "creator": 8,
+      "created_at": "2019-07-19T01:30:41.390Z",
+      "size": 24628,
+      "root_file": "SF_2A9J62RP"
+    }
+  }
+]
