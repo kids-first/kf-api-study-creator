@@ -1,0 +1,275 @@
+[
+  {
+    "model": "files.file",
+    "pk": "SF_0KC844NA",
+    "fields": {
+      "uuid": "8426291d-bbe0-49e0-9814-4fe138adc30e",
+      "name": "Test Image Please Ignore.jpg",
+      "description": "",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_61V3AXSQ",
+    "fields": {
+      "uuid": "3f99525a-5d83-49d6-9cbf-b9f91093f55f",
+      "name": "rna_detailed_report_20190403.csv",
+      "description": "RNA version of the WGS (DNA) report.",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SHM"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_94PSAK80",
+    "fields": {
+      "uuid": "60336a27-0ac3-43dd-a535-144721d945f0",
+      "name": "wgs_detailed_report_20190403.csv",
+      "description": "This report contains many things, including what aliquots have been shipped for sequencing and what aliquots have been requested for shipping. ",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SHM"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_DGFRN0HQ",
+    "fields": {
+      "uuid": "1b890174-2461-4578-b9d3-4ef9a66a4453",
+      "name": "pomsky.jpg",
+      "description": "A dummy image for testing a public ACL (['*'])",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "OTH"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_PHJ1P5MD",
+    "fields": {
+      "uuid": "87e096ea-3097-4cae-a600-1908f9461c77",
+      "name": "Jones RNA import",
+      "description": "Both seq and clinical manifest for Jones (part of OpenDIPG)",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_Q2QVMPDN",
+    "fields": {
+      "uuid": "07f9ee23-fc0d-4ef6-8814-82982a602ecc",
+      "name": "S3 Scrapes of Source Genomic Files",
+      "description": "S3 scrapes of source genomic files in kf-study-us-east-1-prd-sd-bhjxbdqk/source/chrisjones (442 GFs including gpr, idat, bam, and fastq)",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_S3ANXAND",
+    "fields": {
+      "uuid": "a021319a-cdfc-426b-a672-22f91b9329d9",
+      "name": "full_report_20190409.csv",
+      "description": "The latest \"CBTTC ALL\" clinical data file. This should be a superset of all of the subjects that have genomic data. Only those with genomic data should be ingested.",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "CLN"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_V0YH9HF3",
+    "fields": {
+      "uuid": "d6c9c9a4-48b8-41b9-a9cc-c1735b180274",
+      "name": "all_CJ_2019_May.csv",
+      "description": "OpenDIPG manifest",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.file",
+    "pk": "SF_WCHWT2MQ",
+    "fields": {
+      "uuid": "c66cb7ea-173f-48c4-a57a-1950716e7dbb",
+      "name": "manifest.csv",
+      "description": "This file contains a full list of CBTTC samples paired with genomic files.",
+      "study": "SD_YN6HB8C5",
+      "creator": null,
+      "file_type": "SEQ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_03ZA7XH4",
+    "fields": {
+      "uuid": "2453da43-0711-4228-a4e8-3561973ef510",
+      "key": "source/uploads/full_report_20190409.csv",
+      "file_name": "full_report_20190409.csv",
+      "description": "",
+      "state": "PEN",
+      "creator": 19,
+      "created_at": "2019-07-19T17:36:00.485Z",
+      "size": 3828600,
+      "root_file": "SF_S3ANXAND"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_12PXV39F",
+    "fields": {
+      "uuid": "5c49ddb0-7dbf-444d-b47d-9ec766ee417a",
+      "key": "source/uploads/longcat.jpg",
+      "file_name": "Test Image Please Ignore.jpg",
+      "description": "",
+      "state": "PEN",
+      "creator": 14,
+      "created_at": "2019-07-19T17:36:00.658Z",
+      "size": 42128,
+      "root_file": "SF_0KC844NA"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_3BTHYFPR",
+    "fields": {
+      "uuid": "c170a6c5-3d9f-4bd6-a62a-0fc9a522278e",
+      "key": "source/uploads/all_CJ_2019_May.csv",
+      "file_name": "all_CJ_2019_May.csv",
+      "description": "",
+      "state": "PEN",
+      "creator": 5,
+      "created_at": "2019-07-19T17:36:00.611Z",
+      "size": 115440,
+      "root_file": "SF_V0YH9HF3"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_7K9NVE8N",
+    "fields": {
+      "uuid": "d08b5099-5745-41fc-b50f-d4cf205b8299",
+      "key": "source/uploads/rna_detailed_report_20190403.csv",
+      "file_name": "rna_detailed_report_20190403.csv",
+      "description": "",
+      "state": "PEN",
+      "creator": 6,
+      "created_at": "2019-07-19T17:36:00.531Z",
+      "size": 345675,
+      "root_file": "SF_61V3AXSQ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_DA5WX7DK",
+    "fields": {
+      "uuid": "66b503ba-e92b-4203-a6e3-df451c2fa795",
+      "key": "source/uploads/pomsky.jpg",
+      "file_name": "pomsky.jpg",
+      "description": "",
+      "state": "PEN",
+      "creator": 2,
+      "created_at": "2019-07-19T17:36:00.638Z",
+      "size": 22618,
+      "root_file": "SF_DGFRN0HQ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_HWQ77F6D",
+    "fields": {
+      "uuid": "b202b33c-a7d6-4c58-bbe8-c69761a1f6a1",
+      "key": "source/uploads/wgs_detailed_report_20190403.csv",
+      "file_name": "wgs_detailed_report_20190403.csv",
+      "description": "",
+      "state": "PEN",
+      "creator": 3,
+      "created_at": "2019-07-19T17:36:00.508Z",
+      "size": 715188,
+      "root_file": "SF_94PSAK80"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_JYB02WGS",
+    "fields": {
+      "uuid": "8f739470-6189-4b9e-88cb-346a6afe66dc",
+      "key": "source/uploads/s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
+      "file_name": "s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
+      "description": "S3 scrapes of source genomic files in kf-study-us-east-1-prd-sd-bhjxbdqk/source/chrisjones",
+      "state": "PEN",
+      "creator": 20,
+      "created_at": "2019-07-19T17:36:00.574Z",
+      "size": 36809,
+      "root_file": "SF_Q2QVMPDN"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_NXB8JH6M",
+    "fields": {
+      "uuid": "765868bd-6ce5-4561-b3f2-4bec48155b99",
+      "key": "source/uploads/s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones_NZvCp5Y.tsv",
+      "file_name": "s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
+      "description": "S3 scrapes of source genomic files",
+      "state": "PEN",
+      "creator": 3,
+      "created_at": "2019-07-19T17:36:00.587Z",
+      "size": 43659,
+      "root_file": "SF_Q2QVMPDN"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_QC1FSWNK",
+    "fields": {
+      "uuid": "cad81304-9f10-4eb7-808c-73c8c64cd54d",
+      "key": "source/uploads/2019-06-18-jones-import.txt",
+      "file_name": "2019-06-18-jones-import.txt",
+      "description": "Both seq and clinical manifest for Jones (part of OpenDIPG)",
+      "state": "PEN",
+      "creator": 6,
+      "created_at": "2019-07-19T17:36:00.683Z",
+      "size": 5516,
+      "root_file": "SF_PHJ1P5MD"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_TX4WA0TT",
+    "fields": {
+      "uuid": "59fe239b-0e11-4d53-90f0-d577f4493f32",
+      "key": "source/uploads/manifest.csv",
+      "file_name": "manifest.csv",
+      "description": "",
+      "state": "PEN",
+      "creator": 12,
+      "created_at": "2019-07-19T17:36:00.550Z",
+      "size": 2615581,
+      "root_file": "SF_WCHWT2MQ"
+    }
+  },
+  {
+    "model": "files.version",
+    "pk": "FV_ZRFYBHJS",
+    "fields": {
+      "uuid": "87fec3aa-4e95-4bb2-9a22-706999dac5aa",
+      "key": "source/uploads/2019-07-01-jones-rna-meta-updated.txt",
+      "file_name": "2019-07-01-jones-rna-meta-updated.txt",
+      "description": "added aliquot IDs and files",
+      "state": "PEN",
+      "creator": 19,
+      "created_at": "2019-07-19T17:36:00.696Z",
+      "size": 6670,
+      "root_file": "SF_PHJ1P5MD"
+    }
+  }
+]

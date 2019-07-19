@@ -24,6 +24,11 @@ class Command(BaseCommand):
                             help='SD_XXXXXXXXX id for study to load files from',
                             type=str)
 
+        parser.add_argument('-destId',
+                            default='SD_KZRADNFE',  # SD_KZRADNFE - stable FAKE kf_id for Chung:SD_46SK55A3
+                            help='SD_XXXXXXXXX id for FAKE study to load files to',
+                            type=str)
+
     def run_query(self, query, variables, token):
         bearer_token = token or "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1NjM0ODI5ODYsImV4cCI6MTU2MzU2OTM4Niwic3ViIjoiZTcwZjBhYWQtMmIzMC00NWE5LWFiZGQtMzQ4NjUzYjM5ZmYzIiwiaXNzIjoiZWdvIiwiYXVkIjpbXSwianRpIjoiMTA0YTVhMzUtMmNjNS00M2NkLWFmMGYtNWZjN2IxM2YyYjA1IiwiY29udGV4dCI6eyJ1c2VyIjp7Im5hbWUiOiJicm9tZW9kb2xseUBnbWFpbC5jb20iLCJlbWFpbCI6ImJyb21lb2RvbGx5QGdtYWlsLmNvbSIsInN0YXR1cyI6IkFwcHJvdmVkIiwiZmlyc3ROYW1lIjoiQmVuamFtaW4iLCJsYXN0TmFtZSI6IkRvbGx5IiwiY3JlYXRlZEF0IjoxNTMxNzg1NjAwMDAwLCJsYXN0TG9naW4iOjE1NjM0ODI5ODY4MTUsInByZWZlcnJlZExhbmd1YWdlIjpudWxsLCJyb2xlcyI6WyJBRE1JTiJdLCJncm91cHMiOlsia2Ytc3Rha2Vob2xkZXIiXSwicGVybWlzc2lvbnMiOltdfX19.Bw-ssnnLGyb21JTry1YrL6gC419lD1wLPzsJupMyns-vmex0QCpnz_LT9mhDAZFXNDeLiMtvFoEOgakMEpANaba6nv2wOFXBdYdWJAmEYvZIqmwi4XKpimRzjgazvVkmD5jMFWGqBynRGyt8zn-cDpWbGzN4_mLPIkvqpX8F8rqtu2JpaPOXLg-EedeRkrSp0R8pzhjleH0WEvFZPlx4yS75JhOUWbNmT4Guscu2ZOiL4_1O6vOK2fD-uJ9N0bSVXDeCYfF1Pl-tF1DZMmebQGsmypwEzqDCpsCUu3LcIXD6p60LU4UJtFBLD-k9K3AL4ZmpfhW0hAm6vZb-Myc93w"
         request = requests.post('https://kf-study-creator.kidsfirstdrc.org/graphql',
@@ -81,8 +86,8 @@ class Command(BaseCommand):
         studyId = options.get('studyId')
         files = self.get_study_files_for(studyId, options.get('token'))
 
-        self.stdout.write('Loading {} Files from {}'.format(
-            len(files), studyId))
+        self.stdout.write('Loading {} Files from {} to {}'.format(
+            len(files), studyId, options.get('destId')))
 
         File.objects.all().delete()
 
@@ -95,7 +100,7 @@ class Command(BaseCommand):
             del file_fields['fileVersions']
 
             # SD_KZRADNFE - stable FAKE kf_id for Chung:SD_46SK55A3
-            file_study = Study.objects.get(pk='SD_KZRADNFE')
+            file_study = Study.objects.get(pk=options.get('destId'))
 
             file_fields['study'] = file_study
 

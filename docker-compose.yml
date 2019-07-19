@@ -27,8 +27,6 @@ services:
       - POSTGRES_DB=study-creator
       - POSTGRES_USER=study-creator
       - POSTGRES_PASSWORD=password
-    # volumes: 
-      # - ./sql/:/docker-entrypoint-initdb.d/
 networks:
   default:
     external:
