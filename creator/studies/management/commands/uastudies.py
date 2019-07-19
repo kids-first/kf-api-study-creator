@@ -1,7 +1,6 @@
-import requests
 import re
+import requests
 from django.core.management.base import BaseCommand, CommandError
-from creator.studies.factories import StudyFactory, BatchFactory
 from creator.studies.models import Study
 
 API = 'https://kf-study-creator.kidsfirstdrc.org/graphql'
@@ -75,9 +74,9 @@ class Command(BaseCommand):
 
         return investigators_studies
 
-    def load_study(self, kfId, data, pi):
+    def load_study(self, kfId, fields, pi):
         new_study, created = Study.objects.update_or_create(
-            defaults=data,
+            defaults=fields,
             kf_id=kfId
         )
 
@@ -94,8 +93,10 @@ class Command(BaseCommand):
         del test_study['kf_id']
         # get the second fake study and update it
         fake_study_id = Study.objects.get(kf_id='SD_KZRADNFE')
+
         self.stdout.write("Updating fake study {} with Chung SD_46SK55A3 study metadata".format(
             fake_study_id))
+
         self.load_study(fake_study_id, test_study, investigator)
 
     def handle(self, *args, **options):

@@ -30,10 +30,12 @@ case $PRELOAD_DATA in
         /app/manage.py fakestudies -n 3
         /app/manage.py fakefiles
         ;;
-    "USER_TESTING")
+    "UAT")
         echo Will create user testing data for $PI
         /app/manage.py fakestudies -n=6
         /app/manage.py uastudies -pi=$PI
+        /app/manage.py loaddata creator_users.json
+        /app/manage.py uatfiles
         ;;
     *)
         echo "Will not pre-populate database"
