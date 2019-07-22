@@ -39,9 +39,8 @@ class EgoJWTAuthenticationMiddleware():
         """
         if settings.DEVELOP:
             # Assume user is admin if running in dev mode
-            return get_user_model()(
-                    ego_groups=[],
-                    ego_roles=['ADMIN'])
+            User = get_user_model()
+            return User.objects.get(username="devadmin")
 
         user = request.user
         if user.is_authenticated:
@@ -160,9 +159,8 @@ class Auth0AuthenticationMiddleware():
         """
         if settings.DEVELOP:
             # Assume user is admin if running in dev mode
-            return get_user_model()(
-                    ego_groups=[],
-                    ego_roles=['ADMIN'])
+            User = get_user_model()
+            return User.objects.get(username="devadmin")
 
         user = request.user
         if user.is_authenticated:
