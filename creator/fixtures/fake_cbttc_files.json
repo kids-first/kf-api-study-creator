@@ -52,8 +52,8 @@
     "pk": "SF_PHJ1P5MD",
     "fields": {
       "uuid": "87e096ea-3097-4cae-a600-1908f9461c77",
-      "name": "Jones RNA import",
-      "description": "Both seq and clinical manifest for Jones (part of OpenDIPG)",
+      "name": "RNA import",
+      "description": "Both seq and clinical manifest for (part of OpenDIPG)",
       "study": "SD_YN6HB8C5",
       "creator": null,
       "file_type": "SEQ"
@@ -65,7 +65,7 @@
     "fields": {
       "uuid": "07f9ee23-fc0d-4ef6-8814-82982a602ecc",
       "name": "S3 Scrapes of Source Genomic Files",
-      "description": "S3 scrapes of source genomic files in kf-study-us-east-1-prd-sd-bhjxbdqk/source/chrisjones (442 GFs including gpr, idat, bam, and fastq)",
+      "description": "S3 scrapes of source genomic files in /source/file (442 GFs including gpr, idat, bam, and fastq)",
       "study": "SD_YN6HB8C5",
       "creator": null,
       "file_type": "SEQ"
@@ -112,7 +112,7 @@
     "pk": "FV_03ZA7XH4",
     "fields": {
       "uuid": "2453da43-0711-4228-a4e8-3561973ef510",
-      "key": "source/uploads/full_report_20190409.csv",
+      "key": "/app/creator/source/uploads/empty.csv",
       "file_name": "full_report_20190409.csv",
       "description": "",
       "state": "PEN",
@@ -127,7 +127,7 @@
     "pk": "FV_12PXV39F",
     "fields": {
       "uuid": "5c49ddb0-7dbf-444d-b47d-9ec766ee417a",
-      "key": "source/uploads/longcat.jpg",
+      "key": "/app/creator/source/uploads/empty.jpg",
       "file_name": "Test Image Please Ignore.jpg",
       "description": "",
       "state": "PEN",
@@ -142,7 +142,7 @@
     "pk": "FV_3BTHYFPR",
     "fields": {
       "uuid": "c170a6c5-3d9f-4bd6-a62a-0fc9a522278e",
-      "key": "source/uploads/all_CJ_2019_May.csv",
+      "key": "/app/creator/source/uploads/empty.csv",
       "file_name": "all_CJ_2019_May.csv",
       "description": "",
       "state": "PEN",
@@ -157,7 +157,7 @@
     "pk": "FV_7K9NVE8N",
     "fields": {
       "uuid": "d08b5099-5745-41fc-b50f-d4cf205b8299",
-      "key": "source/uploads/rna_detailed_report_20190403.csv",
+      "key": "/app/creator/source/uploads/empty.csv",
       "file_name": "rna_detailed_report_20190403.csv",
       "description": "",
       "state": "PEN",
@@ -172,7 +172,7 @@
     "pk": "FV_DA5WX7DK",
     "fields": {
       "uuid": "66b503ba-e92b-4203-a6e3-df451c2fa795",
-      "key": "source/uploads/pomsky.jpg",
+      "key": "/app/creator/source/uploads/empty.jpg",
       "file_name": "pomsky.jpg",
       "description": "",
       "state": "PEN",
@@ -187,7 +187,7 @@
     "pk": "FV_HWQ77F6D",
     "fields": {
       "uuid": "b202b33c-a7d6-4c58-bbe8-c69761a1f6a1",
-      "key": "source/uploads/wgs_detailed_report_20190403.csv",
+      "key": "/app/creator/source/uploads/empty.csv",
       "file_name": "wgs_detailed_report_20190403.csv",
       "description": "",
       "state": "PEN",
@@ -202,9 +202,9 @@
     "pk": "FV_JYB02WGS",
     "fields": {
       "uuid": "8f739470-6189-4b9e-88cb-346a6afe66dc",
-      "key": "source/uploads/s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
-      "file_name": "s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
-      "description": "S3 scrapes of source genomic files in kf-study-us-east-1-prd-sd-bhjxbdqk/source/chrisjones",
+      "key": "/app/creator/source/uploads/empty.tsv",
+      "file_name": "s3_files_prd-sd-bhjxbdqk_source.tsv",
+      "description": "S3 scrapes of source genomic files in s3_files_prd-sd-bhjxbdqk_source/source/pi",
       "state": "PEN",
       "creator": 20,
       "created_at": "2019-07-19T17:36:00.574Z",
@@ -217,8 +217,8 @@
     "pk": "FV_NXB8JH6M",
     "fields": {
       "uuid": "765868bd-6ce5-4561-b3f2-4bec48155b99",
-      "key": "source/uploads/s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones_NZvCp5Y.tsv",
-      "file_name": "s3_files_kf-study-us-east-1-prd-sd-bhjxbdqk_source_chrisjones.tsv",
+      "key": "/app/creator/source/uploads/empty.tsv",
+      "file_name": "s3_files-prd-sd-bhjxbdqk_source_genomic.tsv",
       "description": "S3 scrapes of source genomic files",
       "state": "PEN",
       "creator": 3,
@@ -232,9 +232,9 @@
     "pk": "FV_QC1FSWNK",
     "fields": {
       "uuid": "cad81304-9f10-4eb7-808c-73c8c64cd54d",
-      "key": "source/uploads/2019-06-18-jones-import.txt",
-      "file_name": "2019-06-18-jones-import.txt",
-      "description": "Both seq and clinical manifest for Jones (part of OpenDIPG)",
+      "key": "/app/creator/source/uploads/empty.txt",
+      "file_name": "2019-06-18-import.txt",
+      "description": "Both seq and clinical manifest for (part of OpenDIPG)",
       "state": "PEN",
       "creator": 6,
       "created_at": "2019-07-19T17:36:00.683Z",
@@ -247,7 +247,7 @@
     "pk": "FV_TX4WA0TT",
     "fields": {
       "uuid": "59fe239b-0e11-4d53-90f0-d577f4493f32",
-      "key": "source/uploads/manifest.csv",
+      "key": "/app/creator/source/uploads/empty.csv",
       "file_name": "manifest.csv",
       "description": "",
       "state": "PEN",
@@ -262,8 +262,8 @@
     "pk": "FV_ZRFYBHJS",
     "fields": {
       "uuid": "87fec3aa-4e95-4bb2-9a22-706999dac5aa",
-      "key": "source/uploads/2019-07-01-jones-rna-meta-updated.txt",
-      "file_name": "2019-07-01-jones-rna-meta-updated.txt",
+      "key": "/app/creator/source/uploads/empty.txt",
+      "file_name": "2019-07-01-rna-meta-updated.txt",
       "description": "added aliquot IDs and files",
       "state": "PEN",
       "creator": 19,

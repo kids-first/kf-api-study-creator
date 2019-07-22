@@ -172,7 +172,7 @@
     "pk": "FV_0BFH5FGQ",
     "fields": {
       "uuid": "924de5b3-67c7-4ac8-8c94-827e9704c1e2",
-      "key": "source/uploads/empty.tsv",
+      "key": "/app/creator/source/uploads/empty.tsv",
       "file_name": "6a_dbGaP_PedigreeDS cumulative_8.23.18.tsv",
       "description": "24 participants were removed because these participants do not appear in the master subject sample list for this study.",
       "state": "PEN",
@@ -187,7 +187,7 @@
     "pk": "FV_3MPDDC2Y",
     "fields": {
       "uuid": "aebcf078-253e-47b7-9b25-727198d0e0a4",
-      "key": "source/uploads/empty.xlsx",
+      "key": "/app/creator/source/uploads/empty.xlsx",
       "file_name": "4a_dbGaP_SubjectDS cumulative_8.23.18.xlsx",
       "description": "Participant consents and affected status",
       "state": "PEN",
@@ -202,7 +202,7 @@
     "pk": "FV_48T6BA7Z",
     "fields": {
       "uuid": "cad11873-44b1-448f-9df7-9e9185d77b21",
-      "key": "source/uploads/empty.tsv",
+      "key": "/app/creator/source/uploads/empty.tsv",
       "file_name": "kf-seq-data-s3-objects.tsv",
       "description": "Manifest for unharmonized genomic files on S3 produced by sequencing center for FY 2015 specimens. ",
       "state": "PEN",
@@ -217,7 +217,7 @@
     "pk": "FV_4HA3YD1D",
     "fields": {
       "uuid": "ed1e8bf1-8c7c-4ccb-ba7c-171cba55fee2",
-      "key": "source/uploads/empty.xlsx",
+      "key": "/app/creator/source/uploads/empty.xlsx",
       "file_name": "6a_dbGaP_PedigreeDS cumulative_8.23.18.xlsx",
       "description": "Pedigree (family and family relationships) for FY 2015, 2016 participants",
       "state": "PEN",
@@ -232,7 +232,7 @@
     "pk": "FV_58AC0K8C",
     "fields": {
       "uuid": "e50481f8-2702-4463-9759-93432f01bb01",
-      "key": "source/uploads/empty.xlsx",
+      "key": "/app/creator/source/uploads/empty.xlsx",
       "file_name": "3a_dbGaP_SubjectAttributesDS cumulative_8.23.18.xlsx",
       "description": "Specimen attributes (e.g. analyte type, anatomical site, etc.) for FY 2015 and FY 2016 participants.",
       "state": "PEN",
