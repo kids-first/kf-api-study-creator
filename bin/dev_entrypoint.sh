@@ -34,13 +34,19 @@ case $PRELOAD_DATA in
         echo Will create user testing data for $PI
         /app/manage.py fakestudies -n=6
         /app/manage.py uastudies -pi=$PI
+
         echo 'Loading fake users'
         /app/manage.py loaddata creator_users.json
+
         echo 'Loading CBTTC files to SD_YN6HB8C5'
-        /app/manage.py uatfiles -studyId=SD_BHJXBDQK -destId=SD_YN6HB8C5
-        echo 'Loading SD_DZTB5HRR files to SD_8LEDFLQZ5'
-        /app/manage.py uatfiles -studyId=SD_DZTB5HRR -destId=SD_8LEDFLQZ
+        # /app/manage.py uatfiles -studyId=SD_BHJXBDQK -destId=SD_YN6HB8C5
+        /app/manage.py loaddata fake_cbttc_files.json
+
+        echo 'Loading Maris: SD_DZTB5HRR files to SD_8LEDFLQZ5'
+        # /app/manage.py uatfiles -studyId=SD_DZTB5HRR -destId=SD_8LEDFLQZ
+
         echo 'Loading Chung: SD_46SK55A3 files to SD_KZRADNFE'
+        # /app/manage.py uatfiles -studyId=SD_46SK55A3 -destId=SD_KZRADNFE
         /app/manage.py loaddata fake_chung_files.json
         ;;
     *)
