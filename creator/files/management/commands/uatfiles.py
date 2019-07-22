@@ -1,3 +1,4 @@
+import os
 import requests
 import pprint
 from django.core.management.base import BaseCommand, CommandError
@@ -5,7 +6,7 @@ from creator.files.models import File, Version
 from creator.studies.models import Study
 from creator.models import User
 from django.core.exceptions import ObjectDoesNotExist
-
+pp = pprint.PrettyPrinter(indent=4)
 
 API = 'https://kf-study-creator.kidsfirstdrc.org/graphql'
 
@@ -15,7 +16,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # Positional arguments
-        parser.add_argument('--token',
+        parser.add_argument('-token',
                             help='JWT',
                             type=str)
 
@@ -29,12 +30,16 @@ class Command(BaseCommand):
                             help='SD_XXXXXXXXX id for FAKE study to load files to',
                             type=str)
 
+        parser.add_argument('-verbose',
+                            default=False,
+                            help='print entity dicts',
+                            type=str)
+
     def run_query(self, query, variables, token):
-        bearer_token = token or "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1NjM0ODI5ODYsImV4cCI6MTU2MzU2OTM4Niwic3ViIjoiZTcwZjBhYWQtMmIzMC00NWE5LWFiZGQtMzQ4NjUzYjM5ZmYzIiwiaXNzIjoiZWdvIiwiYXVkIjpbXSwianRpIjoiMTA0YTVhMzUtMmNjNS00M2NkLWFmMGYtNWZjN2IxM2YyYjA1IiwiY29udGV4dCI6eyJ1c2VyIjp7Im5hbWUiOiJicm9tZW9kb2xseUBnbWFpbC5jb20iLCJlbWFpbCI6ImJyb21lb2RvbGx5QGdtYWlsLmNvbSIsInN0YXR1cyI6IkFwcHJvdmVkIiwiZmlyc3ROYW1lIjoiQmVuamFtaW4iLCJsYXN0TmFtZSI6IkRvbGx5IiwiY3JlYXRlZEF0IjoxNTMxNzg1NjAwMDAwLCJsYXN0TG9naW4iOjE1NjM0ODI5ODY4MTUsInByZWZlcnJlZExhbmd1YWdlIjpudWxsLCJyb2xlcyI6WyJBRE1JTiJdLCJncm91cHMiOlsia2Ytc3Rha2Vob2xkZXIiXSwicGVybWlzc2lvbnMiOltdfX19.Bw-ssnnLGyb21JTry1YrL6gC419lD1wLPzsJupMyns-vmex0QCpnz_LT9mhDAZFXNDeLiMtvFoEOgakMEpANaba6nv2wOFXBdYdWJAmEYvZIqmwi4XKpimRzjgazvVkmD5jMFWGqBynRGyt8zn-cDpWbGzN4_mLPIkvqpX8F8rqtu2JpaPOXLg-EedeRkrSp0R8pzhjleH0WEvFZPlx4yS75JhOUWbNmT4Guscu2ZOiL4_1O6vOK2fD-uJ9N0bSVXDeCYfF1Pl-tF1DZMmebQGsmypwEzqDCpsCUu3LcIXD6p60LU4UJtFBLD-k9K3AL4ZmpfhW0hAm6vZb-Myc93w"
         request = requests.post('https://kf-study-creator.kidsfirstdrc.org/graphql',
                                 json={'query': query, 'variables': variables},
                                 headers={
-                                    "Authorization": "Bearer {}".format(bearer_token)}
+                                    "Authorization": "Bearer {}".format(token)}
                                 )
         if request.status_code == 200:
             return request.json()
@@ -61,12 +66,11 @@ class Command(BaseCommand):
                     versions: edges {
                       file_version: node {
                         kf_id: kfId
-                        key
+                        uuid
                         file_name: fileName
                         description
                         state
                         size
-
                       }
                     }
                   }
@@ -82,51 +86,86 @@ class Command(BaseCommand):
         if(results['data']):
             return results['data']['allFiles']['files']
 
+    def create_versions(self, study_name, file_fields, file_versions):
+
+        for version in file_versions:
+            version_fields = version['file_version']
+
+            name, ext = os.path.splitext(
+                version_fields['file_name'])
+
+            version_w_relations = {
+                **{k: v for (k, v) in version_fields.items() if k not in {'uuid'}},
+                # random user
+                'creator': User.objects.order_by("?").first(),
+                # relate to Study object
+                'root_file': File.objects.get(kf_id=file_fields['kf_id']),
+                # point to empty file
+                'key': "/app/creator/source/uploads/empty{}".format(ext)
+            }
+
+            # pp.pprint(version_w_relations)
+
+            new_version, created = Version.objects.update_or_create(
+                defaults=version_w_relations, uuid=version_fields['uuid'])
+
+            if created:
+                print("  |- Version {}".format(
+                    file_fields['kf_id'], version_fields['kf_id']))
+            else:
+                print("Updated File Version {}:{}".format(
+                    file_fields['kf_id'], version_fields['kf_id']))
+
     def handle(self, *args, **options):
+        # start with a clean tables
+        File.objects.all().delete()
+
         studyId = options.get('studyId')
         files = self.get_study_files_for(studyId, options.get('token'))
 
         self.stdout.write('Loading {} Files from {} to {}'.format(
             len(files), studyId, options.get('destId')))
 
-        File.objects.all().delete()
-
         for file in files:
 
             file_fields = file['file']
 
-            file_versions = file_fields['fileVersions']['versions']
+            file_fields_default = {k: v for (k, v) in file_fields.items() if k not in {
+                'fileVersions', 'uuid'}}
 
-            del file_fields['fileVersions']
+            file_w_study = {
+                **file_fields_default,
+                'study': Study.objects.get(pk=options.get('destId'))
+            }
 
-            # SD_KZRADNFE - stable FAKE kf_id for Chung:SD_46SK55A3
-            file_study = Study.objects.get(pk=options.get('destId'))
+            # create upload dir w/ empty.* file
+            # name, ext = os.path.splitext(
+            #     file_fields['fileVersions']
+            #     ['versions'][0]['file_version']['file_name'])
 
-            file_fields['study'] = file_study
+            # fake_uplaod_dir = "/app/creator/source/uploads/{}".format(
+            #     Study.objects.get(pk=options.get('destId')).name
+            # )
+            # file_url = "{}/empty{}".format(fake_uplaod_dir, ext)
+
+            # try:
+            #     # Create target Directory
+            #     os.mkdir(fake_uplaod_dir)
+            #     print("Directory ", fake_uplaod_dir,  " Created ")
+            #     open(file_url, 'w+')
+            # except FileExistsError:
+            #     print("Directory ", fake_uplaod_dir,  " already exists")
+            #     open(file_url, 'w+')
+
+            # pp.pprint(file_w_study)
 
             new_file, created = File.objects.update_or_create(
-                defaults=file_fields, uuid=file_fields['uuid'])
+                defaults=file_w_study, uuid=file_fields['uuid'])
 
             if created:
                 print("Created File {}".format(file_fields['kf_id']))
             else:
                 print("Updated File {}".format(file_fields['kf_id']))
 
-            for version in file_versions:
-                version_fields = version['file_version']
-
-                version_fields['creator'] = User.objects.order_by(
-                    "?").first()
-
-                version_fields['root_file'] = File.objects.get(
-                    kf_id=file_fields['kf_id'])
-
-                new_version, created = Version.objects.update_or_create(
-                    **version_fields)
-
-                if created:
-                    print("  |- Version {}".format(
-                        file_fields['kf_id'], version_fields['kf_id']))
-                else:
-                    print("Updated File Version {}:{}".format(
-                        file_fields['kf_id'], version_fields['kf_id']))
+            self.create_versions(
+                file_fields, file_fields['fileVersions']['versions'])
