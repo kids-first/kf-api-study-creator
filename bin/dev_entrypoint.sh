@@ -37,7 +37,7 @@ esac
 # Make an admin user
 echo "from django.contrib.auth import get_user_model;
 User = get_user_model(); 
-if User.objects.count() == 0:
-    User.objects.create_superuser('admin', 'admin@myproject.com', 'admin')" | python manage.py shell
+print('making superuser')
+User.objects.create_superuser('devadmin', 'admin@myproject.com', 'devadmin')" | python manage.py shell
 
 exec /app/manage.py runserver 0.0.0.0:8080
