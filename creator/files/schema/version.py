@@ -49,6 +49,10 @@ class VersionNode(DjangoObjectType):
 
 
 class VersionFilter(django_filters.FilterSet):
+    file_kf_id = django_filters.CharFilter(
+        field_name="root_file__kf_id", lookup_expr="exact"
+    )
+
     class Meta:
         model = Version
         fields = []
