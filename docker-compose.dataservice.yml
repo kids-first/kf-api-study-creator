@@ -5,6 +5,7 @@ services:
     environment:
       - DATASERVICE_URL = 'http://dataservice'
       - FEAT_DATASERVICE_CREATE_STUDIES=True
+      - FEAT_DATASERVICE_UPDATE_STUDIES=True
   dataservice:
     build: https://github.com/kids-first/kf-api-dataservice.git
     command: /bin/ash -c "sleep 5; ./bin/run.sh"
