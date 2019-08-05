@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  web:
+    environment:
+      - DATASERVICE_URL = 'http://dataservice'
+      - FEAT_DATASERVICE_CREATE_STUDIES=True
+  dataservice:
+    build: https://github.com/kids-first/kf-api-dataservice.git
+    command: /bin/ash -c "sleep 5; ./bin/run.sh"
+    environment:
+      - FLASK_CONFIG=development
+      - PG_NAME=dataservice
+      - PG_HOST=dataservice-pg
+    depends_on:
+      - dataservice-pg
+  dataservice-pg:
+    image: postgres:11.1
+    environment:
+      - POSTGRES_DB=dataservice

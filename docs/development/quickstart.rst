@@ -1,6 +1,26 @@
 Development
 ===========
 
+Enabling Dataservice Features
+-----------------------------
+
+Creating new studies requires the study-creator to have access to the
+dataservice.
+This is not always possible or desirable as we often don't want test studies
+being created in any of the live environments.
+As an alternative, the dataservice may also be run in the local environment to
+enable additional features.
+
+.. code-block:: bash
+
+    docker-compose -f docker-compose.yml -f docker-compose.dataservice.yml up -d
+
+This will build and run a fresh dataservice container alongside the other
+containers running in docker.
+It will also enabled the dataservice features and configure them as needed
+through the environment variables.
+
+
 Bootstrapping the Database
 --------------------------
 
