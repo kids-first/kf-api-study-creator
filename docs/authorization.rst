@@ -98,7 +98,7 @@ Users are granted access to studies by adding study kf_ids to their 'groups'.
 +==========+===============+=======================+
 | Study    | list          | All studies           |
 +----------+---------------+-----------------------+
-| Study    | create/update | Not allowed           |
+| Study    | create/update | Allowed               |
 +----------+---------------+-----------------------+
 | Study    | delete        | Not allowed           |
 +----------+---------------+-----------------------+

@@ -178,3 +178,17 @@ CACHE_AUTH0_KEY = 'AUTH0_PUBLIC_KEY'
 CACHE_AUTH0_TIMEOUT = 86400
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
+
+# Number of seconds after which to timeout any outgoing requests
+REQUESTS_TIMEOUT = 10
+REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
+
+DATASERVICE_URL = "dataservice"
+
+DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
+
+### Feature Flags
+# Synchronize updates to studies with dataservice
+FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
+    "FEAT_DATASERVICE_CREATE_STUDIES", True
+)

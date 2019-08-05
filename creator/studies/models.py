@@ -17,7 +17,8 @@ class Study(models.Model):
                              help_text='The Kids First Identifier',
                              null=False,)
     name = models.CharField(max_length=500,
-                            help_text='The name of the study')
+                            help_text='The name of the study',
+                            null=True)
     visible = models.BooleanField(default=True,
                                   help_text='If the study is public or not')
     created_at = models.DateTimeField(auto_now_add=False,
