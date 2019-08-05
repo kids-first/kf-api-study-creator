@@ -4,10 +4,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from graphql import GraphQLError
+from graphql_relay import from_global_id
 from graphene import (
     relay,
     Boolean,
     InputObjectType,
+    ID,
     ObjectType,
     Field,
     String,
@@ -115,6 +117,72 @@ class CreateStudyMutation(Mutation):
                 error = error["message"]
             raise GraphQLError(f"Problem creating study: {error}")
 
+        attributes = resp.json()["results"]
+        study = Study(**attributes)
+        study.save()
+
+        return CreateStudyMutation(study=study)
+
+
+class UpdateStudyMutation(Mutation):
+    class Arguments:
+        id = ID(required=True)
+        input = StudyInput(required=True)
+
+    study = Field(StudyNode)
+
+    def mutate(self, info, id, input):
+        """
+        Updates an existing study
+        If FEAT_DATASERVICE_UPDATE_STUDIES is enabled, try to first update
+        the study in the dataservice. If the request fails, no study will be
+        updated in the creator's database
+        """
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Not authenticated to update a study.")
+
+        # Error if this feature is not enabled
+        if not (
+            settings.FEAT_DATASERVICE_UPDATE_STUDIES
+            and settings.DATASERVICE_URL
+        ):
+            raise GraphQLError(
+                "Updating studies is not enabled. "
+                "You may need to make sure that the api is configured with a "
+                "valid dataservice url and FEAT_DATASERVICE_UPDATE_STUDIES "
+                "has been set."
+            )
+
+        # Translate relay id to kf_id
+        model, kf_id = from_global_id(id)
+        study = Study.objects.get(kf_id=kf_id)
+
+        try:
+            resp = requests.patch(
+                f"{settings.DATASERVICE_URL}/studies/{kf_id}",
+                json=input,
+                timeout=settings.REQUESTS_TIMEOUT,
+                headers=settings.REQUESTS_HEADERS,
+            )
+        except requests.exceptions.RequestException as e:
+            raise GraphQLError(f"Problem updating study: {e}")
+
+        # Raise an error if it looks like study failed to update
+        if not resp.status_code == 200 or "results" not in resp.json():
+            error = resp.json()
+            if "_status" in error:
+                error = error["_status"]
+            if "message" in error:
+                error = error["message"]
+            raise GraphQLError(f"Problem updating study: {error}")
+
+        # We will update with the attributes received from dataservice to
+        # ensure we are completely in-sync
         attributes = resp.json()["results"]
         study = Study(**attributes)
         study.save()
