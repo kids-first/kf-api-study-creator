@@ -36,8 +36,13 @@ esac
 
 # Make an admin user
 echo "from django.contrib.auth import get_user_model;
+from django.db.utils import IntegrityError;
 User = get_user_model(); 
-print('making superuser')
-User.objects.create_superuser('devadmin', 'admin@myproject.com', 'devadmin')" | python manage.py shell
+print('making superuser');
+try:
+    User.objects.create_superuser('devadmin', 'admin@myproject.com', 'devadmin')
+except IntegrityError:
+    print('superuser already exists')
+" | python manage.py shell
 
 exec /app/manage.py runserver 0.0.0.0:8080
