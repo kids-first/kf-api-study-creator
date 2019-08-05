@@ -89,6 +89,7 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#enabling-dataservice-features">Enabling Dataservice Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#developing-outside-docker">Developing Outside Docker</a></li>
@@ -166,6 +167,22 @@
             
   <div class="section" id="development">
 <h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="enabling-dataservice-features">
+<h2>Enabling Dataservice Features<a class="headerlink" href="#enabling-dataservice-features" title="Permalink to this headline">¶</a></h2>
+<p>Creating new studies requires the study-creator to have access to the
+dataservice.
+This is not always possible or desirable as we often don’t want test studies
+being created in any of the live environments.
+As an alternative, the dataservice may also be run in the local environment to
+enable additional features.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose -f docker-compose.yml -f docker-compose.dataservice.yml up -d
+</pre></div>
+</div>
+<p>This will build and run a fresh dataservice container alongside the other
+containers running in docker.
+It will also enabled the dataservice features and configure them as needed
+through the environment variables.</p>
+</div>
 <div class="section" id="bootstrapping-the-database">
 <h2>Bootstrapping the Database<a class="headerlink" href="#bootstrapping-the-database" title="Permalink to this headline">¶</a></h2>
 <p>It’s often useful to have some data immediately available in the service
