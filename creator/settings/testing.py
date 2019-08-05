@@ -188,3 +188,15 @@ LOGGING = {
 }
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
+
+# Number of seconds after which to timeout any outgoing requests
+REQUESTS_TIMEOUT = 10
+REQUESTS_HEADERS = {"User-Agent": "StudyCreator/testing (python-requests)"}
+
+DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
+
+### Feature Flags
+# Synchronize updates to studies with dataservice
+FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
+    "FEAT_DATASERVICE_CREATE_STUDIES", True
+)

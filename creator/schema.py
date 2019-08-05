@@ -33,6 +33,7 @@ class Mutation(graphene.ObjectType):
     subscribe_to = creator.users.schema.SubscribeToMutation.Field()
     unsubscribe_from = creator.users.schema.UnsubscribeFromMutation.Field()
     update_my_profile = creator.users.schema.MyProfileMutation.Field()
+    create_study = creator.studies.schema.CreateStudyMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
