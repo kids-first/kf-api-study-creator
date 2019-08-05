@@ -21,7 +21,7 @@ services:
     ports:
       - '8080:8080'
   postgres:
-    image: postgres:10.6
+    image: postgres:11.1
     environment:
       - POSTGRES_DB=study-creator
       - POSTGRES_USER=study-creator
