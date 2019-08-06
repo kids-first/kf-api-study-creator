@@ -187,6 +187,16 @@ REQUESTS_HEADERS = {"User-Agent": "StudyCreator/production (python-requests)"}
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
 
+CAVATICA_URL = os.environ.get(
+    "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
+)
+CAVATICA_HARMONIZATION_TOKEN = os.environ.get(
+    "CAVATICA_HARMONIZATION_TOKEN", "cavatica_token"
+)
+CAVATICA_DELIVERY_TOKEN = os.environ.get(
+    "CAVATICA_DELIVERY_TOKEN", "cavatica_token"
+)
+
 ### Feature Flags
 # Synchronize updates to studies with dataservice
 FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
@@ -194,4 +204,7 @@ FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
 )
 FEAT_DATASERVICE_UPDATE_STUDIES = os.environ.get(
     "FEAT_DATASERVICE_UPDATE_STUDIES", True
+)
+FEAT_CAVATICA_CREATE_PROJECTS = os.environ.get(
+    "FEAT_CAVATICA_CREATE_PROJECTS", True
 )
