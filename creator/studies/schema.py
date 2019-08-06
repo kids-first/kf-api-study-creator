@@ -19,6 +19,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Study, Batch
+from creator.projects.cavatica import setup_cavatica
 
 
 class StudyNode(DjangoObjectType):
@@ -120,6 +121,9 @@ class CreateStudyMutation(Mutation):
         attributes = resp.json()["results"]
         study = Study(**attributes)
         study.save()
+
+        if settings.FEAT_CAVATICA_CREATE_PROJECTS and settings.CAVATICA_URL:
+            setup_cavatica(study)
 
         return CreateStudyMutation(study=study)
 
