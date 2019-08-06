@@ -3,6 +3,7 @@ import creator.files.schema
 import creator.studies.schema
 import creator.users.schema
 import creator.events.schema
+import creator.projects.schema
 
 
 class Query(
@@ -10,6 +11,7 @@ class Query(
     creator.studies.schema.Query,
     creator.users.schema.Query,
     creator.events.schema.Query,
+    creator.projects.schema.Query,
     graphene.ObjectType,
 ):
     pass
