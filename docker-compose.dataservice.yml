@@ -3,7 +3,7 @@ version: '3.4'
 services:
   web:
     environment:
-      - DATASERVICE_URL = 'http://dataservice'
+      - DATASERVICE_URL=http://dataservice
       - FEAT_DATASERVICE_CREATE_STUDIES=True
       - FEAT_DATASERVICE_UPDATE_STUDIES=True
   dataservice:
