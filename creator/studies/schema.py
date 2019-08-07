@@ -122,7 +122,12 @@ class CreateStudyMutation(Mutation):
         study = Study(**attributes)
         study.save()
 
-        if settings.FEAT_CAVATICA_CREATE_PROJECTS and settings.CAVATICA_URL:
+        if (
+            settings.FEAT_CAVATICA_CREATE_PROJECTS
+            and settings.CAVATICA_URL
+            and settings.CAVATICA_HARMONIZATION_TOKEN
+            and settings.CAVATICA_DELIVERY_TOKEN
+        ):
             setup_cavatica(study)
 
         return CreateStudyMutation(study=study)
