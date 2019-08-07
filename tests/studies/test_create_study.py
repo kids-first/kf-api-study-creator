@@ -12,6 +12,13 @@ mutation newStudy($input: StudyInput!) {
 
 
 @pytest.fixture
+def mock_cavatica(mocker):
+    """ Mocks out project setup functions """
+    cavatica = mocker.patch("creator.studies.schema.setup_cavatica")
+    return cavatica
+
+
+@pytest.fixture
 def mock_post(mocker):
     """ Creates a mock response for the dataservice """
     post = mocker.patch("requests.post")
@@ -88,6 +95,7 @@ def test_create_study_mutation(
     user_client,
     client,
     mock_post,
+    mock_cavatica,
     user_type,
     authorized,
     expected,
@@ -113,10 +121,12 @@ def test_create_study_mutation(
         assert resp_body["externalId"] == "Test Study"
         assert Study.objects.count() == 1
         assert Study.objects.first().external_id == "Test Study"
+        assert mock_cavatica.call_count == 1
     else:
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
         assert Study.objects.count() == 0
+        assert mock_cavatica.call_count == 0
 
 
 def test_dataservice_call(db, admin_client, mock_post, settings):
