@@ -51,10 +51,11 @@ def test_correct_projects(db, mock_create_project):
 
     setup_cavatica(study)
 
-    assert mock_create_project.call_count == 2
+    assert mock_create_project.call_count == 3
 
-    mock_create_project.assert_any_call(study, "HAR")
     mock_create_project.assert_any_call(study, "DEL")
+    mock_create_project.assert_any_call(study, "HAR", "bwa-mem")
+    mock_create_project.assert_any_call(study, "HAR", "gatk-haplotypecaller")
 
 
 def test_create_projects(db, mock_cavatica_api):
