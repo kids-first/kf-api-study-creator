@@ -17,14 +17,23 @@ class EventNode(DjangoObjectType):
 
 
 class EventFilter(django_filters.FilterSet):
+    study_kf_id = django_filters.CharFilter(
+        field_name="study__kf_id", lookup_expr="exact"
+    )
+    file_kf_id = django_filters.CharFilter(
+        field_name="file__kf_id", lookup_expr="exact"
+    )
+    version_kf_id = django_filters.CharFilter(
+        field_name="version__kf_id", lookup_expr="exact"
+    )
+    username = django_filters.CharFilter(
+        field_name="user__username", lookup_expr="exact"
+    )
+
     class Meta:
         model = Event
         fields = {
             "event_type": ["exact"],
-            "user__username": ["exact"],
-            "study__kf_id": ["exact"],
-            "file__kf_id": ["exact"],
-            "version__kf_id": ["exact"],
             "created_at": ["gt", "lt"],
         }
 
