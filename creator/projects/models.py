@@ -1,6 +1,32 @@
 from django.db import models
 from creator.studies.models import Study
 
+WORKFLOW_TYPES = (
+    ("bwa-mem", "bwa-mem"),
+    ("bwa-mem-bqsr", "bwa-mem-bqsr"),
+    ("star-2-pass", "star-2-pass"),
+    ("gatk-haplotypecaller", "gatk-haplotypecaller"),
+    ("gatk-genotypgvcf", "gatk-genotypgvcf"),
+    ("gatk-genotypgvcf-vqsr", "gatk-genotypgvcf-vqsr"),
+    ("strelka2-somatic-mode", "strelka2-somatic-mode"),
+    ("mutect2-somatic-mode", "mutect2-somatic-mode"),
+    ("mutect2-tumor-only-mode", "mutect2-tumor-only-mode"),
+    ("vardict-single-sample-mode", "vardict-single-sample-mode"),
+    ("vardict-paired-sample-mode", "vardict-paired-sample-mode"),
+    ("control-freec-somatic-mode", "control-freec-somatic-mode"),
+    ("control-freec-germline-mode", "control-freec-germline-mode"),
+    ("stringtie-expression", "stringtie-expression"),
+    ("manta-somatic", "manta-somatic"),
+    ("manta-germline", "manta-germline"),
+    ("lumpy-somatic", "lumpy-somatic"),
+    ("lumpy-germline", "lumpy-germline"),
+    ("rsem", "rsem"),
+    ("kallisto", "kallisto"),
+    ("star-fusion", "star-fusion"),
+    ("arriba", "arriba"),
+    ("peddy", "peddy"),
+)
+
 
 class Project(models.Model):
     """
@@ -31,6 +57,12 @@ class Project(models.Model):
         choices=(("HAR", "harmonization"), ("DEL", "delivery")),
         default="HAR",
         help_text="The Cavatica project type",
+    )
+    workflow_type = models.CharField(
+        max_length=200,
+        choices=WORKFLOW_TYPES,
+        null=True,
+        help_text="The Cavatica project workflow type",
     )
     created_by = models.CharField(
         max_length=200,

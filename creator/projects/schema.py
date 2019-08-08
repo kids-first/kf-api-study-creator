@@ -8,7 +8,7 @@ from .models import Project
 class ProjectNode(DjangoObjectType):
     class Meta:
         model = Project
-        filter_fields = ["name", "project_id", "project_type"]
+        filter_fields = ["name", "project_id", "project_type", "workflow_type"]
         interfaces = (relay.Node,)
 
     @classmethod
