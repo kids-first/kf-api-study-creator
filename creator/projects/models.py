@@ -32,6 +32,12 @@ class Project(models.Model):
         default="HAR",
         help_text="The Cavatica project type",
     )
+    workflow_type = models.CharField(
+        max_length=200,
+        choices=WORKFLOW_TYPES,
+        null=True,
+        help_text="The Cavatica project workflow type",
+    )
     created_by = models.CharField(
         max_length=200,
         null=False,
