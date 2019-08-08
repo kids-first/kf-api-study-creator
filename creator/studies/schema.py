@@ -22,6 +22,25 @@ from .models import Study, Batch
 from creator.projects.cavatica import setup_cavatica
 
 
+def sanitize_fields(attributes):
+    """
+    This selects out only the valid dataservice fields to ensure that we
+    don't try to post any additional fields to the dataservice, which will
+    cause it to fail
+    """
+    fields = {
+        "name",
+        "visible",
+        "attribution",
+        "data_access_authority",
+        "external_id",
+        "release_status",
+        "short_name",
+        "version",
+    }
+    return {k: attributes[k] for k in attributes.keys() & fields}
+
+
 class StudyNode(DjangoObjectType):
     class Meta:
         model = Study
@@ -70,7 +89,7 @@ class CreateStudyMutation(Mutation):
 
     study = Field(StudyNode)
 
-    def mutate(self, info, **kwargs):
+    def mutate(self, info, input):
         """
         Creates a new study.
         If FEAT_DATASERVICE_CREATE_STUDIES is enabled, try to first create
@@ -99,10 +118,11 @@ class CreateStudyMutation(Mutation):
                 "has been set."
             )
 
+        attributes = sanitize_fields(input)
         try:
             resp = requests.post(
                 f"{settings.DATASERVICE_URL}/studies",
-                json=kwargs["input"],
+                json=attributes,
                 timeout=settings.REQUESTS_TIMEOUT,
                 headers=settings.REQUESTS_HEADERS,
             )
@@ -171,10 +191,12 @@ class UpdateStudyMutation(Mutation):
         model, kf_id = from_global_id(id)
         study = Study.objects.get(kf_id=kf_id)
 
+        attributes = sanitize_fields(input)
+
         try:
             resp = requests.patch(
                 f"{settings.DATASERVICE_URL}/studies/{kf_id}",
-                json=input,
+                json=attributes,
                 timeout=settings.REQUESTS_TIMEOUT,
                 headers=settings.REQUESTS_HEADERS,
             )
