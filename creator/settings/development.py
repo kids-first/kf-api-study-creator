@@ -198,6 +198,10 @@ CAVATICA_DELIVERY_TOKEN = os.environ.get(
     "CAVATICA_DELIVERY_TOKEN", "cavatica_token"
 )
 
+CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
+    "CAVATICA_DEFAULT_WORKFLOWS", "bwa-mem,gatk-haplotypecaller"
+).split(",")
+
 ### Feature Flags
 # Synchronize updates to studies with dataservice
 FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
