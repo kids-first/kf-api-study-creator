@@ -48,6 +48,9 @@ class Study(models.Model):
     version = models.CharField(max_length=10,
                                null=True,
                                help_text='dbGaP version')
+    release_date = models.DateField(
+        null=True, help_text="Scheduled date for release of the study"
+    )
 
     def __str__(self):
         return self.kf_id
