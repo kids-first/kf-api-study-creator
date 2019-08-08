@@ -9,16 +9,16 @@ query (
     $versionId: String,
     $createdAt_Gt: DateTime,
     $createdAt_Lt: DateTime,
-    $user_Username: String,
+    $username: String,
     $eventType: String,
 ) {
     allEvents(
-        study_KfId: $studyId,
-        file_KfId: $fileId,
-        version_KfId: $versionId,
+        studyKfId: $studyId,
+        fileKfId: $fileId,
+        versionKfId: $versionId,
         createdAt_Gt: $createdAt_Gt,
         createdAt_Lt: $createdAt_Lt,
-        user_Username: $user_Username,
+        username: $username,
         eventType: $eventType,
     ) {
         edges {
