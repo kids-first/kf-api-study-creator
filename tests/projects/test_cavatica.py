@@ -58,7 +58,7 @@ def test_correct_projects(db, mock_create_project):
     mock_create_project.assert_any_call(study, "HAR", "gatk-haplotypecaller")
 
 
-def test_create_projects(db, mock_cavatica_api):
+def test_create_delivery_projects(db, mock_cavatica_api):
     study = Study(kf_id="SD_00000000", name="test")
     study.save()
 
@@ -73,6 +73,7 @@ def test_create_projects(db, mock_cavatica_api):
 
     assert Project.objects.count() == 1
     assert Project.objects.first().study == study
+    assert Project.objects.first().workflow_type is None
 
     cavatica_project = mock_cavatica_api.Api().projects.create.return_value
     project = Project.objects.first()
