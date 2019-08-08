@@ -42,13 +42,20 @@ def create_project(study, project_type):
     return project
 
 
-def setup_cavatica(study):
+def setup_cavatica(study, workflows=None):
     """
     Entry point to set up Cavatica projects for a study
-    1. Create a harmonization project
-    2. Create a delivery project
+    On creating a new study, the user can give a list of workflow types, and
+    one harmonization project would be created for each workflow type.
+    If no workflow types are given, harmonization projects would be created
+    with default workflow types as specified by CAVATICA_DEFAULT_WORKFLOWS
     """
-    harmonization_project = create_project(study, "HAR")
-    delivery_project = create_project(study, "DEL")
+    if workflows is None:
+        workflows = settings.CAVATICA_DEFAULT_WORKFLOWS
 
-    return [harmonization_project, delivery_project]
+    delivery_project = create_project(study, "DEL")
+    projects = [delivery_project]
+    for workflow in workflows:
+        projects.append(create_project(study, "HAR", workflow))
+
+    return projects
