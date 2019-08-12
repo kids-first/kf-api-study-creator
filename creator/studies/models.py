@@ -57,32 +57,3 @@ class Study(models.Model):
 
     def __str__(self):
         return self.kf_id
-
-
-class Batch(models.Model):
-    """
-    A batch is an iteration of a study's data either through augmentation,
-    alteration, or removal.
-    """
-    name = models.CharField(max_length=100,
-                            help_text='The name of the batch')
-    state = models.CharField(
-        choices=(
-            ('CON', 'configuring'),
-            ('MAP', 'mapped'),
-            ('SUB', 'submitted'),
-            ('TRN', 'transformed')
-        ),
-        max_length=3,
-        default='CON',
-    )
-    created_at = models.DateTimeField(default=timezone.now,
-                                      help_text='Time the batch was created')
-
-    study = models.ForeignKey(Study,
-                              related_name='batches',
-                              help_text='The study this batch belongs to',
-                              on_delete=models.CASCADE,)
-
-    def __str__(self):
-        return self.name

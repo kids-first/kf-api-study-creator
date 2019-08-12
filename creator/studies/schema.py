@@ -18,7 +18,7 @@ from graphene import (
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .models import Study, Batch
+from .models import Study
 from creator.projects.cavatica import setup_cavatica
 
 
@@ -225,20 +225,10 @@ class UpdateStudyMutation(Mutation):
         return CreateStudyMutation(study=study)
 
 
-class BatchNode(DjangoObjectType):
-    class Meta:
-        model = Batch
-        filter_fields = ['name', 'state']
-        interfaces = (relay.Node, )
-
-
 class Query(object):
     study = relay.Node.Field(StudyNode)
     study_by_kf_id = Field(StudyNode, kf_id=String(required=True))
     all_studies = DjangoFilterConnectionField(StudyNode)
-
-    batch = relay.Node.Field(BatchNode)
-    all_batches = DjangoFilterConnectionField(BatchNode)
 
     def resolve_study_by_kf_id(self, info, kf_id):
         return StudyNode.get_node(info, kf_id)
