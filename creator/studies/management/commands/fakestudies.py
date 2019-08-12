@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from creator.studies.factories import StudyFactory, BatchFactory
+from creator.studies.factories import StudyFactory
 
 
 class Command(BaseCommand):
@@ -16,4 +16,3 @@ class Command(BaseCommand):
         if not n:
             n = 5
         r = StudyFactory.create_batch(n)
-        r = BatchFactory.create_batch(n*2)

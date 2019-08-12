@@ -3,7 +3,7 @@ import random
 import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
-from .models import Study, Batch
+from .models import Study
 
 
 class StateProvider(BaseProvider):
@@ -16,17 +16,6 @@ class StateProvider(BaseProvider):
 
 
 factory.Faker.add_provider(StateProvider)
-
-
-class BatchFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = Batch
-
-    name = factory.Faker('bs')
-    created_at = factory.Faker('date_time_between',
-                               start_date='-2y', end_date='now',
-                               tzinfo=pytz.UTC)
-    study = factory.Iterator(Study.objects.all())
 
 
 class StudyFactory(factory.DjangoModelFactory):
