@@ -70,12 +70,10 @@ class Project(models.Model):
         help_text="The user who created the Cavatica project",
     )
     created_on = models.DateTimeField(
-        auto_now_add=False,
-        null=False,
-        help_text="Time the Cavatica project was created",
+        null=False, help_text="Time the Cavatica project was created"
     )
     modified_on = models.DateTimeField(
-        auto_now=False, null=False, help_text="Time of last modification"
+        null=False, help_text="Time of last modification"
     )
     study = models.ForeignKey(
         Study,
