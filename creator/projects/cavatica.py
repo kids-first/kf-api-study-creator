@@ -31,8 +31,10 @@ def create_project(study, project_type, workflow_type=None):
                 cavatica_project.name + " " + workflow_choice[1]
             )
             break
-
-    cavatica_project.save()
+    try:
+        cavatica_project.save()
+    except sbg.errors.ResourceNotModified:
+        pass
 
     description = (
         cavatica_project.description if cavatica_project.description else ""
