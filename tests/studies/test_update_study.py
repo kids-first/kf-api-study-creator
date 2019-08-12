@@ -1,12 +1,26 @@
 import pytest
+from hypothesis import given, settings
+from hypothesis.strategies import text
 from graphql_relay import to_global_id
+
 from creator.files.models import Study
 
 
 UPDATE_STUDY_MUTATION = """
 mutation editStudy($id: ID!, $input: StudyInput!) {
     updateStudy(id: $id, input: $input) {
-        study { kfId externalId name }
+        study {
+            kfId
+            externalId
+            name
+            description
+            visible
+            attribution
+            dataAccessAuthority
+            releaseStatus
+            shortName
+            version
+        }
     }
 }
 """
@@ -197,3 +211,36 @@ def test_dataservice_error(db, admin_client, mock_error, mock_study):
     assert Study.objects.first().external_id == "Test Study"
     resp_message = resp.json()["errors"][0]["message"]
     assert resp_message.startswith("Problem updating study:")
+
+
+@given(s=text())
+@settings(max_examples=10)
+@pytest.mark.parametrize(
+    "field",
+    [
+        "name",
+        "visible",
+        "attribution",
+        "dataAccessAuthority",
+        "releaseStatus",
+        "shortName",
+        "version",
+        "description",
+    ],
+)
+def test_fields(db, admin_client, settings, mock_patch, mock_study, s, field):
+    """
+    Test that fields may be updated
+    """
+    variables = {
+        "id": to_global_id("StudyNode", mock_study.kf_id),
+        "input": {},
+    }
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" not in resp.json()

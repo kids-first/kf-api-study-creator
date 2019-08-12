@@ -51,6 +51,9 @@ class Study(models.Model):
     release_date = models.DateField(
         null=True, help_text="Scheduled date for release of the study"
     )
+    description = models.TextField(
+        null=False, default="", help_text="Markdown description of the study"
+    )
 
     def __str__(self):
         return self.kf_id

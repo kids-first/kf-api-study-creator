@@ -72,6 +72,7 @@ class StudyNode(DjangoObjectType):
 
 
 class StudyInput(InputObjectType):
+    # These fields are from the study model in dataservice
     name = String()
     visible = Boolean()
 
@@ -81,6 +82,9 @@ class StudyInput(InputObjectType):
     release_status = String()
     short_name = String()
     version = String()
+
+    # These fields are unique to study-creator
+    description = String()
 
 
 class CreateStudyMutation(Mutation):

@@ -1,11 +1,25 @@
 import pytest
+from hypothesis import given, settings
+from hypothesis.strategies import text
+
 from creator.files.models import Study
 
 
 CREATE_STUDY_MUTATION = """
 mutation newStudy($input: StudyInput!) {
     createStudy(input: $input) {
-        study { kfId externalId name }
+        study {
+            kfId
+            externalId
+            name
+            description
+            visible
+            attribution
+            dataAccessAuthority
+            releaseStatus
+            shortName
+            version
+        }
     }
 }
 """
@@ -185,3 +199,35 @@ def test_dataservice_error(db, admin_client, mock_error):
     assert Study.objects.count() == 0
     resp_message = resp.json()["errors"][0]["message"]
     assert resp_message.startswith("Problem creating study:")
+
+
+@given(s=text())
+@settings(max_examples=10)
+@pytest.mark.parametrize(
+    "field",
+    [
+        "name",
+        "visible",
+        "attribution",
+        "dataAccessAuthority",
+        "releaseStatus",
+        "shortName",
+        "version",
+        "description",
+    ],
+)
+def test_fields(db, admin_client, settings, mock_post, s, field):
+    """
+    Test inputs for different fields
+    """
+    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
+
+    variables = {"input": {"externalId": "TEST"}}
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" not in resp.json()
