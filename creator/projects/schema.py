@@ -1,7 +1,7 @@
-from graphene import relay
+from graphene import relay, Mutation
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-
+from creator.projects.cavatica import sync_cavatica_projects
 from .models import Project
 
 
@@ -31,6 +31,15 @@ class ProjectNode(DjangoObjectType):
             return project
 
         return Project.objects.none()
+
+
+class SyncProjectsMutation(Mutation):
+    created = DjangoFilterConnectionField(ProjectNode)
+    updated = DjangoFilterConnectionField(ProjectNode)
+
+    def mutate(self, info):
+        created, updated = sync_cavatica_projects()
+        return SyncProjectsMutation(created=created, updated=updated)
 
 
 class Query(object):
