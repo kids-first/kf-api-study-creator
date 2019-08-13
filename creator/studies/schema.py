@@ -21,6 +21,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Study
 from creator.projects.cavatica import setup_cavatica
+from creator.events.models import Event
 
 
 def sanitize_fields(attributes):
@@ -157,6 +158,14 @@ class CreateStudyMutation(Mutation):
         ):
             setup_cavatica(study)
 
+        # Log an event
+        message = f"{user.username} created created study {study.kf_id}"
+        event = Event(study=study, description=message, event_type="SD_CRE")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
         return CreateStudyMutation(study=study)
 
 
@@ -224,6 +233,14 @@ class UpdateStudyMutation(Mutation):
         attributes = resp.json()["results"]
         study = Study(**attributes)
         study.save()
+
+        # Log an event
+        message = f"{user.username} created updated study {study.kf_id}"
+        event = Event(study=study, description=message, event_type="SD_UPD")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
 
         return CreateStudyMutation(study=study)
 
