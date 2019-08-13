@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import text
+from hypothesis.strategies import text, integers
 from graphql_relay import to_global_id
 
 from creator.files.models import Study
@@ -20,6 +20,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
             releaseStatus
             shortName
             version
+            anticipatedSamples
         }
     }
 }
@@ -228,9 +229,34 @@ def test_dataservice_error(db, admin_client, mock_error, mock_study):
         "description",
     ],
 )
-def test_fields(db, admin_client, settings, mock_patch, mock_study, s, field):
+def test_text_fields(
+    db, admin_client, settings, mock_patch, mock_study, s, field
+):
     """
-    Test that fields may be updated
+    Test that text fields may be updated
+    """
+    variables = {
+        "id": to_global_id("StudyNode", mock_study.kf_id),
+        "input": {},
+    }
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" not in resp.json()
+
+
+@given(s=integers(min_value=0, max_value=2147483647))
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["anticipatedSamples"])
+def test_integer_fields(
+    db, admin_client, settings, mock_patch, mock_study, s, field
+):
+    """
+    Test that integer fields may be updated
     """
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),

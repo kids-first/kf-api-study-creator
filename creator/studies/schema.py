@@ -13,6 +13,7 @@ from graphene import (
     ObjectType,
     Field,
     String,
+    Int,
     Mutation,
 )
 from graphene_django import DjangoObjectType
@@ -85,6 +86,8 @@ class StudyInput(InputObjectType):
 
     # These fields are unique to study-creator
     description = String()
+    anticipated_samples = Int()
+    awardee_organization = String()
 
 
 class CreateStudyMutation(Mutation):

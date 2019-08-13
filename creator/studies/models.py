@@ -54,6 +54,9 @@ class Study(models.Model):
     description = models.TextField(
         null=False, default="", help_text="Markdown description of the study"
     )
+    anticipated_samples = models.PositiveIntegerField(
+        null=True, help_text="The expected number of samples for the study"
+    )
 
     def __str__(self):
         return self.kf_id
