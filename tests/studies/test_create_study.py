@@ -20,6 +20,7 @@ mutation newStudy($input: StudyInput!) {
             shortName
             version
             anticipatedSamples
+            awardeeOrganization
         }
     }
 }
@@ -215,39 +216,7 @@ def test_dataservice_error(db, admin_client, mock_error):
         "shortName",
         "version",
         "description",
-        "anticipatedSamples",
-    ],
-)
-def test_fields(db, admin_client, settings, mock_post, s, field):
-    """
-    Test inputs for different fields
-    """
-    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
-
-    variables = {"input": {"externalId": "TEST"}}
-    variables["input"][field] = s
-    resp = admin_client.post(
-        "/graphql",
-        content_type="application/json",
-        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
-    )
-
-    assert "errors" not in resp.json()
-
-
-@given(s=text())
-@settings(max_examples=10)
-@pytest.mark.parametrize(
-    "field",
-    [
-        "name",
-        "visible",
-        "attribution",
-        "dataAccessAuthority",
-        "releaseStatus",
-        "shortName",
-        "version",
-        "description",
+        "awardeeOrganization",
     ],
 )
 def test_text_fields(db, admin_client, settings, mock_post, s, field):

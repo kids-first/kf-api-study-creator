@@ -21,6 +21,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
             shortName
             version
             anticipatedSamples
+            awardeeOrganization
         }
     }
 }
