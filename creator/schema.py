@@ -37,6 +37,7 @@ class Mutation(graphene.ObjectType):
     update_my_profile = creator.users.schema.MyProfileMutation.Field()
     create_study = creator.studies.schema.CreateStudyMutation.Field()
     update_study = creator.studies.schema.UpdateStudyMutation.Field()
+    sync_projects = creator.projects.schema.SyncProjectsMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

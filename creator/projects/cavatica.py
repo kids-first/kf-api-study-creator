@@ -73,3 +73,78 @@ def setup_cavatica(study, workflows=None):
         projects.append(create_project(study, "HAR", workflow))
 
     return projects
+
+
+def sync_cavatica_account(project_type):
+    """
+    Look at all projects for given project type and update or create projects
+    as needed and return changes
+    """
+    token = None
+    if project_type == "HAR":
+        token = settings.CAVATICA_HARMONIZATION_TOKEN
+    elif project_type == "DEL":
+        token = settings.CAVATICA_DELIVERY_TOKEN
+    else:
+        raise "Invalid project type."
+
+    api = sbg.Api(url=settings.CAVATICA_URL, token=token)
+
+    created_projects = []
+    updated_projects = []
+
+    for cavatica_project in api.projects.query().all():
+        if project_type == "HAR" and (
+            "harmonization" not in cavatica_project.id
+            or not any(
+                [
+                    workflow_choice[1] in cavatica_project.name
+                    for workflow_choice in WORKFLOW_TYPES
+                ]
+            )
+        ):
+            continue
+
+        description = (
+            cavatica_project.description
+            if cavatica_project.description
+            else ""
+        )
+
+        try:
+            project = Project.objects.get(project_id=cavatica_project.id)
+            modified_on = project.modified_on
+        except Project.DoesNotExist:
+            project = None
+            modified_on = None
+
+        project, created = Project.objects.update_or_create(
+            project_id=cavatica_project.id,
+            defaults={
+                "name": cavatica_project.name,
+                "description": description,
+                "url": cavatica_project.href,
+                "project_type": project_type,
+                "workflow_type": "bwa-mem",
+                "created_by": cavatica_project.created_by,
+                "created_on": cavatica_project.created_on,
+                "modified_on": cavatica_project.modified_on,
+            },
+        )
+
+        if created:
+            created_projects.append(project)
+        elif modified_on and modified_on < project.modified_on:
+            updated_projects.append(project)
+
+    return created_projects, updated_projects
+
+
+def sync_cavatica_projects():
+    """
+    Synchronize projects for all types
+    """
+    created_har, updated_har = sync_cavatica_account("HAR")
+    created_del, updated_del = sync_cavatica_account("DEL")
+
+    return created_har + created_del, updated_har + updated_del
