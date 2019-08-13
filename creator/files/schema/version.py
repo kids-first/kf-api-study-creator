@@ -175,10 +175,16 @@ class VersionUploadMutation(graphene.Mutation):
 
 
 class VersionQuery(object):
-    version = relay.Node.Field(VersionNode)
-    version_by_kf_id = Field(VersionNode, kf_id=String(required=True))
+    version = relay.Node.Field(VersionNode, description="Get a version")
+    version_by_kf_id = Field(
+        VersionNode,
+        kf_id=String(required=True),
+        description="Get a version by its kf_id",
+    )
     all_versions = DjangoFilterConnectionField(
-        VersionNode, filterset_class=VersionFilter
+        VersionNode,
+        filterset_class=VersionFilter,
+        description="List all versions",
     )
 
     def resolve_version_by_kf_id(self, info, kf_id):

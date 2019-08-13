@@ -229,9 +229,15 @@ class UpdateStudyMutation(Mutation):
 
 
 class Query(object):
-    study = relay.Node.Field(StudyNode)
-    study_by_kf_id = Field(StudyNode, kf_id=String(required=True))
-    all_studies = DjangoFilterConnectionField(StudyNode)
+    study = relay.Node.Field(StudyNode, description="Get a study")
+    study_by_kf_id = Field(
+        StudyNode,
+        kf_id=String(required=True),
+        description="Get a study by its kf_id",
+    )
+    all_studies = DjangoFilterConnectionField(
+        StudyNode, description="List all studies"
+    )
 
     def resolve_study_by_kf_id(self, info, kf_id):
         return StudyNode.get_node(info, kf_id)
