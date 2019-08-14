@@ -49,12 +49,24 @@ class SyncProjectsMutation(Mutation):
 
 
 class LinkProjectMutation(Mutation):
+    """
+    Link a project to a study.
+    If either do not exist, an error will be returned.
+    If both are linked already, nothing will be done.
+    May only be performed by an administrator
+    """
+
     project = Field(ProjectNode)
     study = Field(StudyNode)
 
     class Arguments:
-        project = ID(required=True)
-        study = ID(required=True)
+        project = ID(
+            required=True, description="The relay ID of the project to link"
+        )
+        study = ID(
+            required=True,
+            description="The relay ID of the study to link the project to",
+        )
 
     def mutate(self, info, project, study):
         user = info.context.user
