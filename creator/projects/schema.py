@@ -79,6 +79,49 @@ class LinkProjectMutation(Mutation):
         return project
 
 
+class UnlinkProjectMutation(Mutation):
+    """
+    Unlink a project from a study.
+    If either do not exist, an error will be returned.
+    If they are not linked already, nothing will be done.
+    May only be performed by an administrator.
+    """
+
+    project = Field(ProjectNode)
+    study = Field(StudyNode)
+
+    class Arguments:
+        project = ID(
+            required=True, description="The relay ID of the project to link"
+        )
+        study = ID(
+            required=True,
+            description="The relay ID of the study to link the project to",
+        )
+
+    def mutate(self, info, project, study):
+        user = info.context.user
+
+        if not user.is_authenticated or user is None or not user.is_admin:
+            raise GraphQLError("Not authenticated to unlink a project.")
+
+        try:
+            _, project_id = from_global_id(project)
+            project = Project.objects.get(project_id=project_id)
+        except (Project.DoesNotExist, UnicodeDecodeError):
+            raise GraphQLError("Project does not exist.")
+
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist, UnicodeDecodeError):
+            raise GraphQLError("Study does not exist.")
+
+        project.study = None
+        project.save()
+        return UnlinkProjectMutation(project=project, study=study)
+
+
 class Query(object):
     project = relay.Node.Field(ProjectNode, description="Get a single project")
     all_projects = DjangoFilterConnectionField(
