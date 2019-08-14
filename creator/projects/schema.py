@@ -88,7 +88,7 @@ class LinkProjectMutation(Mutation):
 
         project.study = study
         project.save()
-        return project
+        return LinkProjectMutation(project=project, study=study)
 
 
 class UnlinkProjectMutation(Mutation):
