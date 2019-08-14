@@ -44,6 +44,21 @@ integration to function correctly.
 
     A comma separated list of the workflow projects to set up for a new study
 
+Configuration
+-------------
+
+To utilize the Cavatica features, the Study Creator needs to be provided with
+Cavatica developer tokens.
+To get a Cavatica token, log in / sign up into `Cavatica
+<https://cavatica.sbgenomics.com/developer#token/>`_ , and navigate to the
+developer page.
+Export the token under :py:data:`CAVATICA_HARMONIZATION_TOKEN` and
+:py:data:`CAVATICA_DELIVERY_TOKEN` in the Study Creator's environment to
+allow it to utilize the tokens to communicate with Cavatic.
+These settings may also take different tokens, if each project type should
+utilize different Cavatica accounts.
+
+
 Operation
 ---------
 
