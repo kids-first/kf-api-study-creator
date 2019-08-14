@@ -1,6 +1,12 @@
-from graphene import relay, Mutation
+from graphene import relay, Mutation, Field, ID
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+from graphql import GraphQLError
+from graphql_relay import from_global_id
+
+from creator.studies.schema import StudyNode
+from creator.studies.models import Study
+
 from creator.projects.cavatica import sync_cavatica_projects
 from .models import Project
 
@@ -40,6 +46,37 @@ class SyncProjectsMutation(Mutation):
     def mutate(self, info):
         created, updated = sync_cavatica_projects()
         return SyncProjectsMutation(created=created, updated=updated)
+
+
+class LinkProjectMutation(Mutation):
+    project = Field(ProjectNode)
+    study = Field(StudyNode)
+
+    class Arguments:
+        project = ID(required=True)
+        study = ID(required=True)
+
+    def mutate(self, info, project, study):
+        user = info.context.user
+
+        if not user.is_authenticated or user is None or not user.is_admin:
+            raise GraphQLError("Not authenticated to link a project.")
+
+        try:
+            _, project_id = from_global_id(project)
+            project = Project.objects.get(project_id=project_id)
+        except (Project.DoesNotExist, UnicodeDecodeError):
+            raise GraphQLError("Project does not exist.")
+
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist, UnicodeDecodeError):
+            raise GraphQLError("Study does not exist.")
+
+        project.study = study
+        project.save()
+        return project
 
 
 class Query(object):

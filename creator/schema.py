@@ -65,6 +65,9 @@ class Mutation(graphene.ObjectType):
             "project in Cavatica"
         )
     )
+    link_project = creator.projects.schema.LinkProjectMutation.Field(
+        description="Link a Cavatica project to a Study"
+    )
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
