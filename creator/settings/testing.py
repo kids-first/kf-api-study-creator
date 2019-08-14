@@ -200,11 +200,9 @@ CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
 )
 CAVATICA_HARMONIZATION_TOKEN = os.environ.get(
-    "CAVATICA_HARMONIZATION_TOKEN", "cavatica_token"
+    "CAVATICA_HARMONIZATION_TOKEN", None
 )
-CAVATICA_DELIVERY_TOKEN = os.environ.get(
-    "CAVATICA_DELIVERY_TOKEN", "cavatica_token"
-)
+CAVATICA_DELIVERY_TOKEN = os.environ.get("CAVATICA_DELIVERY_TOKEN", None)
 CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
     "CAVATICA_DEFAULT_WORKFLOWS", "bwa-mem,gatk-haplotypecaller"
 ).split(",")
