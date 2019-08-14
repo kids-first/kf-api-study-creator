@@ -28,6 +28,8 @@ class Event(models.Model):
             ("SF_DEL", "Study File Deleted"),
             ("FV_CRE", "File Version Created"),
             ("FV_UPD", "File Version Updated"),
+            ("SD_CRE", "Study Created"),
+            ("SD_UPD", "Study Updated"),
             ("OTH", "Other"),
         ),
         default="OTH",
