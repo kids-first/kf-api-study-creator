@@ -4,21 +4,7 @@ Development
 Enabling Cavatica Integration
 -----------------------------
 
-Study creator can integrate with Cavatica to set up projects automatically.
-To do this, the study creator needs to be provided with Cavatica developer
-tokens. Study creator makes two types of projects, harmonization and delivery,
-each may specify individual tokens if needed.
-
-To get Cavatica token, log in / sign up into `Cavatica Seven Bridges Genomics
-<https://cavatica.sbgenomics.com/developer#token/>`_ , from the developer page.
-
-Tokens for harmonization and delivery should be saved in your local environment
-by the name ``CAVATICA_HARMONIZATION_TOKEN`` and ``CAVATICA_DELIVERY_TOKEN``.
-Both tokens are needed but can contain the same value if all projects should be
-created in the same account regardless of project type.
-
-If neither of the environment variables are set, Cavatica project set up will
-be skipped.
+See :doc:`../cavatica` for enabling Cavatica features in the Study Creator.
 
 Enabling Dataservice Features
 -----------------------------

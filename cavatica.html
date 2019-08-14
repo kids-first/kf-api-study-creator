@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Cavatica Integration &mdash; Kids First Study Creator  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Authorization" href="authorization.html" />
+    <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
+ 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/study_creator.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="development/quickstart.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cavatica Integration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#feature-flags">Feature Flags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-settings">Configuration Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operation">Operation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cavatica-accounts">Cavatica Accounts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#synchronizing-projects">Synchronizing Projects</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Kids First Study Creator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Cavatica Integration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cavatica.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cavatica-integration">
+<h1>Cavatica Integration<a class="headerlink" href="#cavatica-integration" title="Permalink to this headline">¶</a></h1>
+<p>The Study Creator may integrate with Cavatica to automate the setup of new
+projects for bioinformatics work.</p>
+<div class="section" id="feature-flags">
+<h2>Feature Flags<a class="headerlink" href="#feature-flags" title="Permalink to this headline">¶</a></h2>
+<p>The Cavatica integration features may enabled with the following feature flags.</p>
+<dl class="data">
+<dt id="FEAT_CAVATICA_CREATE_PROJECTS">
+<code class="descname">FEAT_CAVATICA_CREATE_PROJECTS</code><a class="headerlink" href="#FEAT_CAVATICA_CREATE_PROJECTS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new projects in Cavatica when new studies are created</p>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration-settings">
+<h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this headline">¶</a></h2>
+<p>The following settings need to be provided in order for the Cavatica
+integration to function correctly.</p>
+<dl class="data">
+<dt id="CAVATICA_URL">
+<code class="descname">CAVATICA_URL</code><a class="headerlink" href="#CAVATICA_URL" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">https://cavatica-api.sbgenomics.com/v2</span></code></p>
+<p>The url of the Cavatica api endpoint</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_HARMONIZATION_TOKEN">
+<code class="descname">CAVATICA_HARMONIZATION_TOKEN</code><a class="headerlink" href="#CAVATICA_HARMONIZATION_TOKEN" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The api token for the harmonization Cavatica account</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_DELIVERY_TOKEN">
+<code class="descname">CAVATICA_DELIVERY_TOKEN</code><a class="headerlink" href="#CAVATICA_DELIVERY_TOKEN" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The api token for the delivery Cavatica account</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_DEFAULT_WORKFLOWS">
+<code class="descname">CAVATICA_DEFAULT_WORKFLOWS</code><a class="headerlink" href="#CAVATICA_DEFAULT_WORKFLOWS" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">bwa-mem,gatk-haplotypecaller</span></code></p>
+<p>A comma separated list of the workflow projects to set up for a new study</p>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>To utilize the Cavatica features, the Study Creator needs to be provided with
+Cavatica developer tokens.
+To get a Cavatica token, log in / sign up into <a class="reference external" href="https://cavatica.sbgenomics.com/developer#token/">Cavatica</a> , and navigate to the
+developer page.
+Export the token under <a class="reference internal" href="#CAVATICA_HARMONIZATION_TOKEN" title="CAVATICA_HARMONIZATION_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_HARMONIZATION_TOKEN</span></code></a> and
+<a class="reference internal" href="#CAVATICA_DELIVERY_TOKEN" title="CAVATICA_DELIVERY_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_DELIVERY_TOKEN</span></code></a> in the Study Creator’s environment to
+allow it to utilize the tokens to communicate with Cavatic.
+These settings may also take different tokens, if each project type should
+utilize different Cavatica accounts.</p>
+</div>
+<div class="section" id="operation">
+<h2>Operation<a class="headerlink" href="#operation" title="Permalink to this headline">¶</a></h2>
+<p>When a new study is created via the <cite>createStudy</cite> mutation, the Study Creator
+will work with Cavatica to set up new projects for future bioinformatics work.
+This includes:
+- Specifying a standard project id format
+- Naming the project based on the Study’s name
+- Copying the description from that of the study’s
+- Creating harmonization projects for each desired workflow</p>
+</div>
+<div class="section" id="cavatica-accounts">
+<h2>Cavatica Accounts<a class="headerlink" href="#cavatica-accounts" title="Permalink to this headline">¶</a></h2>
+<p>The Study Creator creates two different kinds of projects: harmonization and
+delivery.
+It offers the ability to create each type within its own distinct account by
+providing <a class="reference internal" href="#CAVATICA_HARMONIZATION_TOKEN" title="CAVATICA_HARMONIZATION_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_HARMONIZATION_TOKEN</span></code></a> and
+<a class="reference internal" href="#CAVATICA_DELIVERY_TOKEN" title="CAVATICA_DELIVERY_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_DELIVERY_TOKEN</span></code></a> settings.
+If the separation of the two projects types is not needed, both settings may
+be configured to share the same token.</p>
+</div>
+<div class="section" id="synchronizing-projects">
+<h2>Synchronizing Projects<a class="headerlink" href="#synchronizing-projects" title="Permalink to this headline">¶</a></h2>
+<p>The Study Creator provides the <cite>syncProjects</cite> mutation which will iterate all
+projects for <em>both cavatica tokens</em> and ensure that all the projects within
+the Study Creator exist and are up to date.
+This is a purely passive operation meaning that no data will be updated in
+Cavatica, only in the Study Creator’s view of the projects.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="authorization.html" class="btn btn-neutral float-left" title="Authorization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Kids First
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
