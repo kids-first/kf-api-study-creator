@@ -54,6 +54,14 @@ class Study(models.Model):
     description = models.TextField(
         null=False, default="", help_text="Markdown description of the study"
     )
+    anticipated_samples = models.PositiveIntegerField(
+        null=True, help_text="The expected number of samples for the study"
+    )
+    awardee_organization = models.TextField(
+        null=False,
+        default="",
+        help_text="The organization that the grant was awarded to",
+    )
 
     def __str__(self):
         return self.kf_id

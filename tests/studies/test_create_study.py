@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import text
+from hypothesis.strategies import text, integers
 
 from creator.files.models import Study
 
@@ -19,6 +19,8 @@ mutation newStudy($input: StudyInput!) {
             releaseStatus
             shortName
             version
+            anticipatedSamples
+            awardeeOrganization
         }
     }
 }
@@ -214,11 +216,32 @@ def test_dataservice_error(db, admin_client, mock_error):
         "shortName",
         "version",
         "description",
+        "awardeeOrganization",
     ],
 )
-def test_fields(db, admin_client, settings, mock_post, s, field):
+def test_text_fields(db, admin_client, settings, mock_post, s, field):
     """
-    Test inputs for different fields
+    Test text inputs for different fields
+    """
+    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
+
+    variables = {"input": {"externalId": "TEST"}}
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" not in resp.json()
+
+
+@given(s=integers(min_value=0, max_value=2147483647))
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["anticipatedSamples"])
+def test_integer_fields(db, admin_client, settings, mock_post, s, field):
+    """
+    Test positive integer inputs for different fields
     """
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
