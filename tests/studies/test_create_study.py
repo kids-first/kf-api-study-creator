@@ -28,8 +28,10 @@ mutation newStudy($input: StudyInput!) {
 
 
 @pytest.fixture
-def mock_cavatica(mocker):
+def mock_cavatica(mocker, settings):
     """ Mocks out project setup functions """
+    settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
+    settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
     cavatica = mocker.patch("creator.studies.schema.setup_cavatica")
     return cavatica
 

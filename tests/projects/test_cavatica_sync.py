@@ -98,7 +98,7 @@ def test_sync_projects(db, mock_cavatica_api):
 
     # Checking if the api is constructed with the correct settings
     mock_cavatica_api.Api.assert_called_with(
-        url="https://cavatica-api.sbgenomics.com/v2", token="cavatica_token"
+        url="https://cavatica-api.sbgenomics.com/v2", token=None
     )
     assert len(mock_cavatica_api.Api().projects.query().all()) == 2
 
