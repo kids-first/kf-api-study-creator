@@ -43,8 +43,10 @@ class SyncProjectsMutation(Mutation):
 
 
 class Query(object):
-    project = relay.Node.Field(ProjectNode)
-    all_projects = DjangoFilterConnectionField(ProjectNode)
+    project = relay.Node.Field(ProjectNode, description="Get a single project")
+    all_projects = DjangoFilterConnectionField(
+        ProjectNode, description="Get all projects"
+    )
 
     def resolve_all_projects(self, info, **kwargs):
         """

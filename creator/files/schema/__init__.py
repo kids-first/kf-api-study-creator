@@ -130,7 +130,9 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
 
 
 class Query(FileQuery, VersionQuery):
-    all_dev_tokens = DjangoFilterConnectionField(DevDownloadTokenNode)
+    all_dev_tokens = DjangoFilterConnectionField(
+        DevDownloadTokenNode, description="Get all developer tokens"
+    )
 
     def resolve_all_dev_tokens(self, info, **kwargs):
         """

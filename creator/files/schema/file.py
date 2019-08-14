@@ -223,10 +223,14 @@ class DeleteFileMutation(graphene.Mutation):
 
 
 class FileQuery:
-    file = relay.Node.Field(FileNode)
-    file_by_kf_id = Field(FileNode, kf_id=String(required=True))
+    file = relay.Node.Field(FileNode, description="Get a file")
+    file_by_kf_id = Field(
+        FileNode,
+        kf_id=String(required=True),
+        description="Get a file by its kf_id",
+    )
     all_files = DjangoFilterConnectionField(
-        FileNode, filterset_class=FileFilter
+        FileNode, filterset_class=FileFilter, description="List all files"
     )
 
     def resolve_file_by_kf_id(self, info, kf_id):

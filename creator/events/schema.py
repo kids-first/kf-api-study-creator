@@ -42,7 +42,7 @@ class EventFilter(django_filters.FilterSet):
 
 class Query(object):
     all_events = DjangoFilterConnectionField(
-        EventNode, filterset_class=EventFilter
+        EventNode, filterset_class=EventFilter, description="List all events"
     )
 
     def resolve_all_events(self, info, **kwargs):
