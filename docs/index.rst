@@ -42,3 +42,4 @@ pre-populated database of mock data.
    downloads
    authentication
    authorization
+   cavatica
