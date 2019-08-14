@@ -16,8 +16,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=bar
       # Options are: DATASERVICE, url of dataservice, or FAKE
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
-      - CAVATICA_HARMONIZATION_TOKEN=${CAVATICA_HARMONIZATION_TOKEN:-None}
-      - CAVATICA_DELIVERY_TOKEN=${CAVATICA_DELIVERY_TOKEN:-None}
+      - CAVATICA_HARMONIZATION_TOKEN
+      - CAVATICA_DELIVERY_TOKEN
     volumes:
       - .:/app
     ports:
