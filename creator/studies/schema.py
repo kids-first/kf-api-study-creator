@@ -18,7 +18,7 @@ from graphene import (
 )
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-
+from dateutil.parser import parse
 from .models import Study
 from creator.projects.cavatica import setup_cavatica
 from creator.events.models import Event
@@ -147,6 +147,9 @@ class CreateStudyMutation(Mutation):
             raise GraphQLError(f"Problem creating study: {error}")
 
         attributes = resp.json()["results"]
+        created_at = attributes.get("created_at")
+        if created_at:
+            attributes["created_at"] = parse(created_at)
         study = Study(**attributes)
         study.save()
 
