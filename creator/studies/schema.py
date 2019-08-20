@@ -146,7 +146,8 @@ class CreateStudyMutation(Mutation):
                 error = error["message"]
             raise GraphQLError(f"Problem creating study: {error}")
 
-        attributes = resp.json()["results"]
+        # Merge dataservice response attributes with the original input
+        attributes = {**input, **resp.json()["results"]}
         created_at = attributes.get("created_at")
         if created_at:
             attributes["created_at"] = parse(created_at)
@@ -232,8 +233,8 @@ class UpdateStudyMutation(Mutation):
             raise GraphQLError(f"Problem updating study: {error}")
 
         # We will update with the attributes received from dataservice to
-        # ensure we are completely in-sync
-        attributes = resp.json()["results"]
+        # ensure we are completely in-sync and merge  with the original input
+        attributes = {**input, **resp.json()["results"]}
         study = Study(**attributes)
         study.save()
 
