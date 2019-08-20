@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import text, integers
+from hypothesis.strategies import text, integers, characters
 from graphql_relay import to_global_id
 
 from creator.files.models import Study
@@ -215,7 +215,7 @@ def test_dataservice_error(db, admin_client, mock_error, mock_study):
     assert resp_message.startswith("Problem updating study:")
 
 
-@given(s=text())
+@given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
 @settings(max_examples=10)
 @pytest.mark.parametrize(
     "field",
