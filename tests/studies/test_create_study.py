@@ -3,11 +3,12 @@ from hypothesis import given, settings
 from hypothesis.strategies import text, integers, characters, dates
 
 from creator.files.models import Study
+from creator.projects.models import Project
 
 
 CREATE_STUDY_MUTATION = """
-mutation newStudy($input: StudyInput!) {
-    createStudy(input: $input) {
+mutation newStudy($input: StudyInput!, $workflows: [WorkflowType]) {
+    createStudy(input: $input, workflows: $workflows) {
         study {
             kfId
             externalId
@@ -204,6 +205,44 @@ def test_dataservice_error(db, admin_client, mock_error):
     assert Study.objects.count() == 0
     resp_message = resp.json()["errors"][0]["message"]
     assert resp_message.startswith("Problem creating study:")
+
+
+def test_workflows(db, settings, mocker, admin_client, mock_post):
+    """
+    Test that a new study may be created with specific workflows
+    """
+    settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
+    settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
+    cavatica = mocker.patch("creator.projects.cavatica.create_project")
+
+    variables = {
+        "workflows": ["bwa_mem"],
+        "input": {"externalId": "Test Study"},
+    }
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert cavatica.call_count == 2
+    cavatica.assert_called_with(Study.objects.first(), "HAR", "bwa-mem")
+
+    # Try multiple workflows
+    cavatica.reset_mock()
+    workflows = ["bwa_mem", "mutect2_somatic_mode", "kallisto"]
+    variables = {"workflows": workflows, "input": {"externalId": "Test Study"}}
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert cavatica.call_count == 4
+    for workflow in workflows:
+        cavatica.assert_any_call(
+            Study.objects.first(), "HAR", workflow.replace("_", "-")
+        )
 
 
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))

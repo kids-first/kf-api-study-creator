@@ -7,6 +7,7 @@ from graphql import GraphQLError
 from graphql_relay import from_global_id
 from graphene import (
     relay,
+    List,
     Boolean,
     Date,
     InputObjectType,
@@ -132,10 +133,15 @@ class CreateStudyMutation(Mutation):
         input = StudyInput(
             required=True, description="Attributes for the new study"
         )
+        workflows = List(
+            "creator.projects.schema.WorkflowType",
+            description="Workflows to be run for this study",
+            required=False,
+        )
 
     study = Field(StudyNode)
 
-    def mutate(self, info, input):
+    def mutate(self, info, input, workflows=None):
         """
         Creates a new study.
         If FEAT_DATASERVICE_CREATE_STUDIES is enabled, try to first create
@@ -198,7 +204,7 @@ class CreateStudyMutation(Mutation):
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
-            setup_cavatica(study)
+            setup_cavatica(study, workflows=workflows)
 
         # Log an event
         message = f"{user.username} created created study {study.kf_id}"
