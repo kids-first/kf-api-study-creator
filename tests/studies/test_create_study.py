@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import text, integers, characters
+from hypothesis.strategies import text, integers, characters, dates
 
 from creator.files.models import Study
 
@@ -21,6 +21,7 @@ mutation newStudy($input: StudyInput!) {
             version
             anticipatedSamples
             awardeeOrganization
+            releaseDate
         }
     }
 }
@@ -256,3 +257,47 @@ def test_integer_fields(db, admin_client, settings, mock_post, s, field):
     )
 
     assert "errors" not in resp.json()
+
+
+@given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
+def test_internal_fields(db, admin_client, settings, mock_post, s, field):
+    """
+    Test that inputs for our internal study fields are saved correctly.
+
+    TODO: Merge with test_text_fields by making dataservice mock more flexible
+    """
+    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
+
+    variables = {"input": {"externalId": "TEST"}}
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+    assert "errors" not in resp.json()
+    assert resp.json()["data"]["createStudy"]["study"][field] == s
+
+
+@given(s=dates())
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["releaseDate"])
+def test_internal_datetime_fields(
+    db, admin_client, settings, mock_post, s, field
+):
+    """
+    Test that inputs datetime study fields are saved correctly.
+    """
+    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
+
+    variables = {"input": {"externalId": "TEST"}}
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+    assert "errors" not in resp.json()
+    assert resp.json()["data"]["createStudy"]["study"][field] == str(s)

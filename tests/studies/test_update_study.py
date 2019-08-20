@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import text, integers, characters
+from hypothesis.strategies import text, integers, characters, dates
 from graphql_relay import to_global_id
 
 from creator.files.models import Study
@@ -22,6 +22,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
             version
             anticipatedSamples
             awardeeOrganization
+            releaseDate
         }
     }
 }
@@ -271,3 +272,47 @@ def test_integer_fields(
     )
 
     assert "errors" not in resp.json()
+
+
+@given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
+def test_internal_fields(db, admin_client, mock_patch, mock_study, s, field):
+    """
+    Test that inputs for our internal study fields are updated  correctly.
+    """
+    variables = {
+        "id": to_global_id("StudyNode", mock_study.kf_id),
+        "input": {},
+    }
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+    assert "errors" not in resp.json()
+    assert resp.json()["data"]["updateStudy"]["study"][field] == s
+
+
+@given(s=dates())
+@settings(max_examples=10)
+@pytest.mark.parametrize("field", ["releaseDate"])
+def test_internal_datetime_fields(
+    db, admin_client, mock_patch, mock_study, s, field
+):
+    """
+    Test that inputs for study datetime fields are updated correctly.
+    """
+    variables = {
+        "id": to_global_id("StudyNode", mock_study.kf_id),
+        "input": {},
+    }
+    variables["input"][field] = s
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+    assert "errors" not in resp.json()
+    assert resp.json()["data"]["updateStudy"]["study"][field] == str(s)
