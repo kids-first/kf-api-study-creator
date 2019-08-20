@@ -8,6 +8,7 @@ from graphql_relay import from_global_id
 from graphene import (
     relay,
     Boolean,
+    Date,
     InputObjectType,
     ID,
     ObjectType,
@@ -89,6 +90,7 @@ class StudyInput(InputObjectType):
     description = String()
     anticipated_samples = Int()
     awardee_organization = String()
+    release_date = Date()
 
 
 class CreateStudyMutation(Mutation):
