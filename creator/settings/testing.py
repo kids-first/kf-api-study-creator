@@ -204,7 +204,7 @@ CAVATICA_HARMONIZATION_TOKEN = os.environ.get(
 )
 CAVATICA_DELIVERY_TOKEN = os.environ.get("CAVATICA_DELIVERY_TOKEN", None)
 CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
-    "CAVATICA_DEFAULT_WORKFLOWS", "bwa-mem,gatk-haplotypecaller"
+    "CAVATICA_DEFAULT_WORKFLOWS", "bwa_mem,gatk_haplotypecaller"
 ).split(",")
 
 ### Feature Flags
