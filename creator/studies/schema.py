@@ -45,6 +45,8 @@ def sanitize_fields(attributes):
 
 
 class StudyNode(DjangoObjectType):
+    """ A study in Kids First """
+
     class Meta:
         model = Study
         filter_fields = ["name"]
@@ -127,7 +129,9 @@ class StudyInput(InputObjectType):
 
 class CreateStudyMutation(Mutation):
     class Arguments:
-        input = StudyInput(required=True)
+        input = StudyInput(
+            required=True, description="Attributes for the new study"
+        )
 
     study = Field(StudyNode)
 
@@ -209,8 +213,10 @@ class CreateStudyMutation(Mutation):
 
 class UpdateStudyMutation(Mutation):
     class Arguments:
-        id = ID(required=True)
-        input = StudyInput(required=True)
+        id = ID(required=True, description="The ID of the study to update")
+        input = StudyInput(
+            required=True, description="Attributes for the new study"
+        )
 
     study = Field(StudyNode)
 

@@ -54,7 +54,10 @@ class Mutation(graphene.ObjectType):
         description="Update the currently logged in user's profile"
     )
     create_study = creator.studies.schema.CreateStudyMutation.Field(
-        description="Create a new study"
+        description="""Create a new study including setup in external systems.
+        This involves: creating the study in the dataservice, mirroring the
+        study in the study-creator api, creating a new bucket for the study
+        data, and setting up new projects in Cavatica."""
     )
     update_study = creator.studies.schema.UpdateStudyMutation.Field(
         description="Update a given study"
