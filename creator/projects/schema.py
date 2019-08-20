@@ -1,4 +1,4 @@
-from graphene import relay, Mutation, Field, ID
+from graphene import relay, Mutation, Enum, Field, ID
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
@@ -8,10 +8,17 @@ from creator.studies.schema import StudyNode
 from creator.studies.models import Study
 
 from creator.projects.cavatica import sync_cavatica_projects
-from .models import Project
+from .models import Project, WORKFLOW_TYPES
+
+
+WorkflowType = Enum(
+    "WorkflowType", [(workflow[0], workflow[1]) for workflow in WORKFLOW_TYPES]
+)
 
 
 class ProjectNode(DjangoObjectType):
+    workflow_type = WorkflowType()
+
     class Meta:
         model = Project
         filter_fields = ["name", "project_id", "project_type", "workflow_type"]
