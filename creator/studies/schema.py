@@ -45,10 +45,12 @@ def sanitize_fields(attributes):
 
 
 class StudyNode(DjangoObjectType):
+    """ A study in Kids First """
+
     class Meta:
         model = Study
-        filter_fields = ['name']
-        interfaces = (relay.Node, )
+        filter_fields = ["name"]
+        interfaces = (relay.Node,)
 
     @classmethod
     def get_node(cls, info, kf_id):
@@ -76,26 +78,60 @@ class StudyNode(DjangoObjectType):
 
 class StudyInput(InputObjectType):
     # These fields are from the study model in dataservice
-    name = String()
-    visible = Boolean()
+    name = String(description="The full name of the study")
+    visible = Boolean(
+        description="Whether or not the study is visible in the dataservice"
+    )
 
-    attribution = String()
-    data_access_authority = String()
-    external_id = String(required=False)
-    release_status = String()
-    short_name = String()
-    version = String()
+    attribution = String(
+        description="URL providing more information about the study"
+    )
+    data_access_authority = String(
+        description="The organization that moderates access to the study"
+    )
+    external_id = String(
+        required=False,
+        description=(
+            "The primary identifier this study is know by outside of "
+            "Kids-First, often the dbGaP phsid."
+        ),
+    )
+    release_status = String(
+        description="Release status as set in the dataservice"
+    )
+    short_name = String(
+        description=(
+            "Short name of the study for use in space-restricted containers"
+        )
+    )
+    version = String(
+        description=(
+            "Study version, often the provided by the data access authority"
+        )
+    )
 
     # These fields are unique to study-creator
-    description = String()
-    anticipated_samples = Int()
-    awardee_organization = String()
-    release_date = Date()
+    description = String(
+        description="Study description, often a grant abstract"
+    )
+    anticipated_samples = Int(
+        description="Number of expected samples for this study"
+    )
+    awardee_organization = String(
+        description="Organization associated with the X01 grant"
+    )
+    release_date = Date(
+        description=(
+            "Date that this study is expected to be released to the public"
+        )
+    )
 
 
 class CreateStudyMutation(Mutation):
     class Arguments:
-        input = StudyInput(required=True)
+        input = StudyInput(
+            required=True, description="Attributes for the new study"
+        )
 
     study = Field(StudyNode)
 
@@ -177,8 +213,10 @@ class CreateStudyMutation(Mutation):
 
 class UpdateStudyMutation(Mutation):
     class Arguments:
-        id = ID(required=True)
-        input = StudyInput(required=True)
+        id = ID(required=True, description="The ID of the study to update")
+        input = StudyInput(
+            required=True, description="Attributes for the new study"
+        )
 
     study = Field(StudyNode)
 
