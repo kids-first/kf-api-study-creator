@@ -93,8 +93,21 @@ def sync_cavatica_account(project_type):
 
     created_projects = []
     updated_projects = []
+    # Keep track of all the projects Cavatica side so we can compare internally
+    # later to determine if anything was deleted
+    seen_projects = set()
+    db_projects = {
+        project["project_id"]
+        for project in Project.objects.filter(
+            project_type=project_type, deleted=False
+        )
+        .values("project_id")
+        .all()
+    }
 
     for cavatica_project in api.projects.query().all():
+        seen_projects.add(cavatica_project.id)
+
         if project_type == "HAR" and (
             "harmonization" not in cavatica_project.id
             or not any(
@@ -142,14 +155,32 @@ def sync_cavatica_account(project_type):
         elif modified_on and modified_on < project.modified_on:
             updated_projects.append(project)
 
-    return created_projects, updated_projects
+    # If there are projects in the database that weren't seen in Cavatica,
+    # mark them as deleted
+    deleted_projects = db_projects - seen_projects
+    for project in deleted_projects:
+        Project.objects.filter(project_id=project).update(deleted=True)
+    deleted_projects = list(
+        Project.objects.in_bulk(list(deleted_projects)).values()
+    )
+
+    # Save everything
+    for project in created_projects + updated_projects + deleted_projects:
+        project.save()
+
+    print(created_projects, updated_projects, deleted_projects)
+    return created_projects, updated_projects, deleted_projects
 
 
 def sync_cavatica_projects():
     """
     Synchronize projects for all types
     """
-    created_har, updated_har = sync_cavatica_account("HAR")
-    created_del, updated_del = sync_cavatica_account("DEL")
+    created_har, updated_har, deleted_har = sync_cavatica_account("HAR")
+    created_del, updated_del, deleted_del = sync_cavatica_account("DEL")
 
-    return created_har + created_del, updated_har + updated_del
+    return (
+        created_har + created_del,
+        updated_har + updated_del,
+        deleted_har + deleted_del,
+    )

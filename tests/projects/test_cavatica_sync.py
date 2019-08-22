@@ -40,7 +40,7 @@ def mock_sync_cavatica_account(mocker):
     sync_cavatica_account = mocker.patch(
         "creator.projects.cavatica.sync_cavatica_account"
     )
-    sync_cavatica_account.return_value = [], []
+    sync_cavatica_account.return_value = [], [], []
     return sync_cavatica_account
 
 
