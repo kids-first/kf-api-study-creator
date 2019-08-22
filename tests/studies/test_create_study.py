@@ -226,7 +226,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
     )
 
     assert cavatica.call_count == 2
-    cavatica.assert_called_with(Study.objects.first(), "HAR", "bwa-mem")
+    cavatica.assert_called_with(Study.objects.first(), "HAR", "bwa_mem")
 
     # Try multiple workflows
     cavatica.reset_mock()
@@ -240,9 +240,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
 
     assert cavatica.call_count == 4
     for workflow in workflows:
-        cavatica.assert_any_call(
-            Study.objects.first(), "HAR", workflow.replace("_", "-")
-        )
+        cavatica.assert_any_call(Study.objects.first(), "HAR", workflow)
 
 
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
