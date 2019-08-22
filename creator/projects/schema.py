@@ -21,7 +21,13 @@ class ProjectNode(DjangoObjectType):
 
     class Meta:
         model = Project
-        filter_fields = ["name", "project_id", "project_type", "workflow_type"]
+        filter_fields = [
+            "name",
+            "project_id",
+            "project_type",
+            "workflow_type",
+            "deleted",
+        ]
         interfaces = (relay.Node,)
 
     @classmethod
@@ -49,10 +55,13 @@ class ProjectNode(DjangoObjectType):
 class SyncProjectsMutation(Mutation):
     created = DjangoFilterConnectionField(ProjectNode)
     updated = DjangoFilterConnectionField(ProjectNode)
+    deleted = DjangoFilterConnectionField(ProjectNode)
 
     def mutate(self, info):
-        created, updated = sync_cavatica_projects()
-        return SyncProjectsMutation(created=created, updated=updated)
+        created, updated, deleted = sync_cavatica_projects()
+        return SyncProjectsMutation(
+            created=created, updated=updated, deleted=deleted
+        )
 
 
 class LinkProjectMutation(Mutation):

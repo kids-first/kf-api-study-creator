@@ -82,6 +82,11 @@ class Project(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
+    deleted = models.BooleanField(
+        null=False,
+        default=False,
+        help_text="Whether this project has been deleted from Cavatica",
+    )
 
     def __str__(self):
         return self.project_id
