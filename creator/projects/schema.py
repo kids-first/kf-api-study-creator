@@ -21,7 +21,13 @@ class ProjectNode(DjangoObjectType):
 
     class Meta:
         model = Project
-        filter_fields = ["name", "project_id", "project_type", "workflow_type"]
+        filter_fields = [
+            "name",
+            "project_id",
+            "project_type",
+            "workflow_type",
+            "deleted",
+        ]
         interfaces = (relay.Node,)
 
     @classmethod
