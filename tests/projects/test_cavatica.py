@@ -96,10 +96,10 @@ def test_create_harmonization_projects(db, mock_cavatica_api):
     study = Study(kf_id="SD_00000000", name="test")
     study.save()
 
-    create_project(study, "HAR", "bwa-mem")
+    create_project(study, "HAR", "bwa_mem")
 
     mock_cavatica_api.Api().projects.create.assert_any_call(
-        name=study.kf_id + "-bwa-mem"
+        name=study.kf_id + "-bwa_mem"
     )
     assert Project.objects.count() == 1
-    assert Project.objects.first().workflow_type == "bwa-mem"
+    assert Project.objects.first().workflow_type == "bwa_mem"
