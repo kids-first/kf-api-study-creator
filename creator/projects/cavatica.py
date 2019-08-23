@@ -168,7 +168,6 @@ def sync_cavatica_account(project_type):
     for project in created_projects + updated_projects + deleted_projects:
         project.save()
 
-    print(created_projects, updated_projects, deleted_projects)
     return created_projects, updated_projects, deleted_projects
 
 
