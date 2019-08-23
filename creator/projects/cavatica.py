@@ -139,7 +139,7 @@ def sync_cavatica_account(project_type):
                 "description": description,
                 "url": cavatica_project.href,
                 "project_type": project_type,
-                "workflow_type": "bwa-mem",
+                "workflow_type": "bwa_mem",
                 "created_by": cavatica_project.created_by,
                 "created_on": cavatica_project.created_on.replace(
                     tzinfo=pytz.UTC
