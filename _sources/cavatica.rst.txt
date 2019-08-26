@@ -13,6 +13,12 @@ The Cavatica integration features may enabled with the following feature flags.
 
     Create new projects in Cavatica when new studies are created
 
+.. py:data:: FEAT_CAVATICA_COPY_USERS
+
+   New analysis projects created by the study creator will have users copied
+   over from a template project supplied by the
+   :py:data:`CAVATICA_USER_ACCESS_PROJECT` setting.
+
 
 Configuration Settings
 ----------------------
@@ -43,6 +49,14 @@ integration to function correctly.
     **default:** ``bwa-mem,gatk-haplotypecaller``
 
     A comma separated list of the workflow projects to set up for a new study
+
+.. py:data:: CAVATICA_USER_ACCESS_PROJECT
+
+    **default:** ``kids-first-drc/user-access``
+
+    The project_id of a Cavatica project which contains users and permissions
+    that will be copied over to new Cavatica analysis projects.
+
 
 Configuration
 -------------

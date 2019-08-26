@@ -179,6 +179,14 @@ projects for bioinformatics work.</p>
 <dd><p>Create new projects in Cavatica when new studies are created</p>
 </dd></dl>
 
+<dl class="data">
+<dt id="FEAT_CAVATICA_COPY_USERS">
+<code class="descname">FEAT_CAVATICA_COPY_USERS</code><a class="headerlink" href="#FEAT_CAVATICA_COPY_USERS" title="Permalink to this definition">¶</a></dt>
+<dd><p>New analysis projects created by the study creator will have users copied
+over from a template project supplied by the
+<a class="reference internal" href="#CAVATICA_USER_ACCESS_PROJECT" title="CAVATICA_USER_ACCESS_PROJECT"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_USER_ACCESS_PROJECT</span></code></a> setting.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="configuration-settings">
 <h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this headline">¶</a></h2>
@@ -210,6 +218,14 @@ integration to function correctly.</p>
 <code class="descname">CAVATICA_DEFAULT_WORKFLOWS</code><a class="headerlink" href="#CAVATICA_DEFAULT_WORKFLOWS" title="Permalink to this definition">¶</a></dt>
 <dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">bwa-mem,gatk-haplotypecaller</span></code></p>
 <p>A comma separated list of the workflow projects to set up for a new study</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_USER_ACCESS_PROJECT">
+<code class="descname">CAVATICA_USER_ACCESS_PROJECT</code><a class="headerlink" href="#CAVATICA_USER_ACCESS_PROJECT" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">kids-first-drc/user-access</span></code></p>
+<p>The project_id of a Cavatica project which contains users and permissions
+that will be copied over to new Cavatica analysis projects.</p>
 </dd></dl>
 
 </div>
