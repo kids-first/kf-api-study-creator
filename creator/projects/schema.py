@@ -12,7 +12,11 @@ from .models import Project, WORKFLOW_TYPES
 
 
 WorkflowType = Enum(
-    "WorkflowType", [(workflow[0], workflow[0]) for workflow in WORKFLOW_TYPES]
+    "WorkflowType",
+    [
+        (workflow[0], workflow[0].replace("-", "_"))
+        for workflow in WORKFLOW_TYPES
+    ],
 )
 
 
