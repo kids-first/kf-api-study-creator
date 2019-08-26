@@ -198,6 +198,12 @@ CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
     "CAVATICA_DEFAULT_WORKFLOWS", "bwa_mem,gatk_haplotypecaller"
 ).split(",")
 
+# The project_id of the Cavatica project which will be used to clone user
+# access grants
+CAVATICA_USER_ACCESS_PROJECT = os.environ.get(
+    "CAVATICA_USER_ACCESS_PROJECT", "kids-first-drc/user-access"
+)
+
 ### Feature Flags
 # Synchronize updates to studies with dataservice
 FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(

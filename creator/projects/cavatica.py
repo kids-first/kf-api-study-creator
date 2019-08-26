@@ -54,7 +54,33 @@ def create_project(study, project_type, workflow_type=None):
     )
     project.save()
 
+    # Only copy users for analysis projects
+    if project_type == "HAR":
+        copy_users(api, cavatica_project)
+
     return project
+
+
+def copy_users(api, project):
+    """
+    Copy users from a given template project onto a different project.
+    Users will be copied using the CAVATICA_HARMONIZATION_TOKEN account and
+    so whatever account is associated with that token will need to have access
+    to the template project, as defined by the CAVATICA_USER_ACCESS_PROJECT.
+    """
+    user_project = api.projects.get(id=settings.CAVATICA_USER_ACCESS_PROJECT)
+    # Couldn't find project
+    if user_project.id is None:
+        return
+
+    users = list(user_project.get_members())
+    for user in users:
+        try:
+            project.add_member(user.username, permissions=user.permissions)
+        except sbg.errors.Conflict:
+            # We may have tried to add ourselves back to the project that
+            # we already own, so ignore that error.
+            pass
 
 
 def setup_cavatica(study, workflows=None):
