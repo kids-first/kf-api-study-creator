@@ -24,6 +24,7 @@ from dateutil.parser import parse
 from .models import Study
 from creator.projects.cavatica import setup_cavatica
 from creator.events.models import Event
+from creator.events.schema import EventNode, EventFilter
 
 
 def sanitize_fields(attributes):
@@ -47,6 +48,10 @@ def sanitize_fields(attributes):
 
 class StudyNode(DjangoObjectType):
     """ A study in Kids First """
+
+    events = DjangoFilterConnectionField(
+        EventNode, filterset_class=EventFilter, description="List all events"
+    )
 
     class Meta:
         model = Study
