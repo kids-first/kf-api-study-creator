@@ -68,6 +68,12 @@ def copy_users(api, project):
     so whatever account is associated with that token will need to have access
     to the template project, as defined by the CAVATICA_USER_ACCESS_PROJECT.
     """
+    if (
+        not settings.FEAT_CAVATICA_COPY_USERS
+        or not settings.CAVATICA_USER_ACCESS_PROJECT
+    ):
+        return
+
     user_project = api.projects.get(id=settings.CAVATICA_USER_ACCESS_PROJECT)
     # Couldn't find project
     if user_project.id is None:
