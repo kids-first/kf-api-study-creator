@@ -3,6 +3,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
 from graphql_relay import from_global_id
+from django_filters import OrderingFilter
 
 from creator.studies.schema import StudyNode
 from creator.studies.models import Study
@@ -22,6 +23,7 @@ WorkflowType = Enum(
 
 class ProjectNode(DjangoObjectType):
     workflow_type = WorkflowType()
+    order_by = OrderingFilter(fields=("created_on", "modified_on"))
 
     class Meta:
         model = Project
