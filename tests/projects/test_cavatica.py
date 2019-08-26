@@ -1,10 +1,15 @@
 import pytest
 import pytz
+import sevenbridges as sbg
 from unittest.mock import MagicMock
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Callable
-from creator.projects.cavatica import setup_cavatica, create_project
+from creator.projects.cavatica import (
+    setup_cavatica,
+    create_project,
+    copy_users,
+)
 from creator.studies.models import Study
 from creator.projects.models import Project
 
@@ -103,3 +108,59 @@ def test_create_harmonization_projects(db, mock_cavatica_api):
     )
     assert Project.objects.count() == 1
     assert Project.objects.first().workflow_type == "bwa_mem"
+
+
+def test_user_copy_is_called(db, mocker, mock_cavatica_api):
+    """
+    Test that creating a new project will copy users
+    """
+    study = Study(kf_id="SD_00000000", name="test")
+    study.save()
+    copy_users = mocker.patch("creator.projects.cavatica.copy_users")
+
+    create_project(study, "HAR", "bwa_mem")
+
+    assert copy_users.call_count == 1
+    call = copy_users.call_args_list[0]
+
+
+def test_user_copy(db, settings, mocker, mock_cavatica_api):
+    """
+    Test that an analysis project is setup with users from the template
+    repository.
+    """
+    settings.CAVATICA_USER_ACCESS_PROJECT = "test/user-access"
+    # Mock the new project
+    new_project = sbg.models.project.Project(
+        id="test/my-project", name="Test project"
+    )
+    # Mock the user  access project and call to get it
+    project = sbg.models.project.Project(
+        id="test/user-access", name="User access project"
+    )
+    mock_cavatica_api.Api().projects.get.return_value = project
+    # Mock a user inside the user access project
+    user = sbg.models.member.Member(
+        username="test",
+        permissions={
+            "write": True,
+            "read": True,
+            "copy": True,
+            "execute": False,
+            "admin": False,
+        },
+    )
+    project.get_members = MagicMock()
+    project.get_members.return_value = [user]
+    new_project.add_member = MagicMock()
+    new_project.add_member.return_value = user
+
+    copy_users(mock_cavatica_api.Api(), new_project)
+
+    mock_cavatica_api.Api().projects.get.assert_called_with(
+        id=settings.CAVATICA_USER_ACCESS_PROJECT
+    )
+    assert project.get_members.call_count == 1
+    new_project.add_member.assert_called_with(
+        "test", permissions=user.permissions
+    )

@@ -18,6 +18,8 @@ services:
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
       - CAVATICA_HARMONIZATION_TOKEN
       - CAVATICA_DELIVERY_TOKEN
+      - CAVATICA_USER_ACCESS_PROJECT
+      - FEAT_CAVATICA_COPY_USERS=False
     volumes:
       - .:/app
     ports:
