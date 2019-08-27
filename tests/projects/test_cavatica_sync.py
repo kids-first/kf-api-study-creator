@@ -8,7 +8,7 @@ from creator.projects.cavatica import (
 )
 from creator.studies.models import Study
 from creator.projects.models import Project
-from conftest import CavaticaProject
+from .conftest import CavaticaProject
 
 
 SYNC_PROJECTS_MUTATION = """
