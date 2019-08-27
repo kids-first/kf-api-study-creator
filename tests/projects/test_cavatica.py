@@ -21,35 +21,6 @@ def mock_create_project(mocker):
     return create_project
 
 
-@pytest.fixture
-def mock_cavatica_api(mocker):
-    """ Mocks out api for creating Cavatica project functions """
-
-    @dataclass
-    class CavaticaProject:
-        id: str = "author/test"
-        name: str = "Test name"
-        description: str = "Test description"
-        href: str = "test_url"
-        created_by: str = "author"
-        created_on: datetime = datetime.now(pytz.utc)
-        modified_on: datetime = datetime.now(pytz.utc)
-        save: Callable = MagicMock()
-
-    sbg = mocker.patch("creator.projects.cavatica.sbg")
-
-    # Project subresource of the sbg api
-    ProjectMock = MagicMock()
-    ProjectMock.create.return_value = CavaticaProject()
-
-    Api = MagicMock()
-    Api().projects = ProjectMock
-
-    sbg.Api = Api
-
-    return sbg
-
-
 def test_correct_projects(db, mock_create_project):
     study = Study(kf_id="SD_00000000", name="test")
     study.save()
