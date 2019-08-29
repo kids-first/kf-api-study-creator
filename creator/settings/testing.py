@@ -190,6 +190,12 @@ LOGGING = {
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
 
+# User roles and groups overrides applied during auth
+USER_ROLES = os.environ.get("USER_ROLES", "")
+USER_ROLES = None if USER_ROLES == "" else USER_ROLES.split(",")
+USER_GROUPS  = os.environ.get("USER_GROUPS", "")
+USER_GROUPS = None if USER_GROUPS == "" else  USER_GROUPS.split(",")
+
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = 10
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/testing (python-requests)"}

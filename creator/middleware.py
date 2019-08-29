@@ -38,9 +38,14 @@ class EgoJWTAuthenticationMiddleware():
         treated as requests from an admin to grant permission to all data
         """
         if settings.DEVELOP:
-            # Assume user is admin if running in dev mode
             User = get_user_model()
-            return User.objects.get(username="devadmin")
+            # Pretend the user is admin when running in development
+            user = User.objects.get(username="devadmin")
+            # Assign specific auth permissions if they are specified in env
+            if settings.USER_ROLES or settings.USER_GROUPS:
+                user.ego_roles = settings.USER_ROLES
+                user.ego_groups = settings.USER_GROUPS
+            return user
 
         user = request.user
         if user.is_authenticated:
@@ -158,9 +163,14 @@ class Auth0AuthenticationMiddleware():
         treated as requests from an admin to grant permission to all data
         """
         if settings.DEVELOP:
-            # Assume user is admin if running in dev mode
             User = get_user_model()
-            return User.objects.get(username="devadmin")
+            # Pretend the user is admin when running in development
+            user = User.objects.get(username="devadmin")
+            # Assign specific auth permissions if they are specified in env
+            if settings.USER_ROLES or settings.USER_GROUPS:
+                user.ego_roles = settings.USER_ROLES
+                user.ego_groups = settings.USER_GROUPS
+            return user
 
         user = request.user
         if user.is_authenticated:

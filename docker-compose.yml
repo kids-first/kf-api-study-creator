@@ -20,6 +20,8 @@ services:
       - CAVATICA_DELIVERY_TOKEN
       - CAVATICA_USER_ACCESS_PROJECT
       - FEAT_CAVATICA_COPY_USERS=False
+      - USER_ROLES
+      - USER_GROUPS
     volumes:
       - .:/app
     ports:
