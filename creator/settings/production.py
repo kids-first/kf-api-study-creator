@@ -181,6 +181,11 @@ CACHE_AUTH0_TIMEOUT = 86400
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
 
+# User roles and groups overrides applied during auth
+# These should never be set in prod and should be left up to the auth provider
+USER_ROLES = None
+USER_GROUPS = None
+
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = 10
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/production (python-requests)"}

@@ -1,6 +1,6 @@
 import graphene
 import django_filters
-from graphene import relay, ObjectType, Field
+from graphene import relay, ObjectType, Field, List, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
@@ -14,6 +14,16 @@ User = get_user_model()
 
 
 class UserNode(DjangoObjectType):
+    roles = List(String, description="Roles that the user has")
+
+    def resolve_roles(self, info):
+        return self.ego_roles
+
+    groups = List(String, description="Groups that the user belongs to")
+
+    def resolve_groups(self, info):
+        return self.ego_groups
+
     class Meta:
         model = User
         interfaces = (relay.Node,)

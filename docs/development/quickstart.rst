@@ -147,3 +147,20 @@ This setting may also be applied when running docker-compose, for example:
     DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up
 
 Will run the api with development settings.
+
+
+Authorization Overrides
+-----------------------
+
+When running in with the development settings, the default user's roles and
+groups may be overridden for all requests.
+This is done through the ``USER_ROLES`` and ``USER_GROUPS`` environment
+variables.
+For example:
+
+.. code-block:: bash
+
+    DJANGO_SETTINGS_MODULE=creator.settings.development USER_ROLES=ADMIN,DEV USER_GROUPS=SD_ABCABC12 docker-compose up
+
+Will authenticate all requests as a user with the ``ADMIN`` and ``DEV`` roles
+and as a member of the ``SD_ABCABC12`` group.
