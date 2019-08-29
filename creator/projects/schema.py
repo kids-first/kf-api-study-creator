@@ -64,7 +64,7 @@ class ProjectInput(InputObjectType):
         "creator.projects.schema.WorkflowType",
         description="Workflows to be run for this study",
     )
-    study = String(
+    study = ID(
         required=True,
         description="The study that the new project will belong to",
     )
@@ -91,8 +91,8 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError(
                 "Creating projects is not enabled. "
                 "You may need to make sure that the api is configured with a "
-                "valid dataservice url and FEAT_DATASERVICE_UPDATE_STUDIES "
-                "has been set."
+                "valid Cavatica url and credentials and that "
+                "FEAT_CAVATICA_CREATE_PROJECTS has been set."
             )
 
         user = info.context.user
@@ -104,7 +104,8 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError("Not authenticated to create a project.")
 
         try:
-            study = Study.objects.get(kf_id=input["study"])
+            _, kf_id = from_global_id(input["study"])
+            study = Study.objects.get(kf_id=kf_id)
         except Study.DoesNotExist:
             raise GraphQLError("Study does not exist.")
 

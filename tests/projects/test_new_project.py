@@ -1,6 +1,7 @@
 import pytest
 import pytz
 import sevenbridges as sbg
+from graphql_relay import to_global_id
 from unittest.mock import MagicMock
 from dataclasses import dataclass
 from datetime import datetime
@@ -68,7 +69,8 @@ def test_create_project_mutation(
         "user": user_client,
         None: client,
     }[user_type]
-    variables = {"input": {"workflowType": "rsem", "study": "SD_00000000"}}
+    kf_id = to_global_id("StudyNode", "SD_00000000")
+    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
     resp = api_client.post(
         "/graphql",
         content_type="application/json",
@@ -90,7 +92,8 @@ def test_create_project_study_does_not_exist(db, admin_client):
     """
     Test that a project may not be created when a study is not valid
     """
-    variables = {"input": {"workflowType": "rsem", "study": "SD_00000000"}}
+    kf_id = to_global_id("StudyNode", "SD_00000000")
+    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
     resp = admin_client.post(
         "/graphql",
         content_type="application/json",
@@ -112,7 +115,8 @@ def test_create_project_no_duplicate_workflows(
     study = Study(kf_id="SD_00000000")
     study.save()
 
-    variables = {"input": {"workflowType": "rsem", "study": "SD_00000000"}}
+    kf_id = to_global_id("StudyNode", "SD_00000000")
+    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
     resp = admin_client.post(
         "/graphql",
         content_type="application/json",
