@@ -1,3 +1,60 @@
+# Kids First Study Creator Release 1.6.0
+
+## Features
+
+Introduces study creation and Cavatica project automation features.
+
+### Summary
+
+Feature Emojis: ✨x20 🐛x7 📝x3 ⬆️x3 ♻️x2 🔧x2 🐳x2 👷x1 🗃x1 🔥
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x19 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x11 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x8 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x4 [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x3
+
+### New features and changes
+
+- (#280) ✨ Add overrides for user's roles and groups - @dankolbman
+- (#278) 🐛 Fix datetime issues - @dankolbman
+- (#279) ♻️ Use ID type for study argument in createProject mutation - @dankolbman
+- (#276) ✨ Add createProject mutation - @dankolbman
+- (#273) ✨ Copy users into new projects - @dankolbman
+- (#274) ✨ Make event subqueries filterable - @dankolbman
+- (#272) ✨ Make projects sortable - @dankolbman
+- (#268) 🐛 Replace workflow type enum underscores - @dankolbman
+- (#259) 👷 Load cavatica secrets to environment - @dankolbman
+- (#267) ✨ Mark projects as deleted on sync - @dankolbman
+- (#266) 🗃 Add migration to adjust workflow choices - @dankolbman
+- (#264) ✨ Add workflows argument to createStudy mutation - @dankolbman
+- (#262) 📝 Input docs - @dankolbman
+- (#261) 🐛 Add release date to mutations - @dankolbman
+- (#260) 🐛 Fix study createdAt date parsing - @XuTheBunny
+- (#258) ✨ Add unlinkProject mutation - @dankolbman
+- (#256) 🐛 Make Cavatica times timezone aware - @dankolbman
+- (#255) ✨ Add linkProject mutation - @dankolbman
+- (#254) 🔧 Remove default Cavatica token settings - @dankolbman
+- (#253) 📝 Add page about Cavatica integration - @dankolbman
+- (#252) ✨ Create events when studies are created - @dankolbman
+- (#251) 📝 Add descriptions to all queries - @dankolbman
+- (#249) ✨ New study fields - @dankolbman
+- (#250) ✨ Add sync projects mutation - @XuTheBunny
+- (#245) 🔥 Remove batches - @dankolbman
+- (#244) ✨ Study description - @dankolbman
+- (#243) 🐛 Fix project creation error with naming - @XuTheBunny
+- (#240) ♻️ Rename event filter arguments - @dankolbman
+- (#238) ✨ Add release date to study - @dankolbman
+- (#242) ✨ Add workflow_type field to project model - @XuTheBunny
+- (#229) ✨ Create new projects in Cavatica on study creation - @XuTheBunny
+- (#235) ⬆️ Bump up moto to version 1.3.10 - @XuTheBunny
+- (#234) 🐳 Fix docker environment formatting - @XuTheBunny
+- (#227) ✨ Create CavaticaProject model - @XuTheBunny
+- (#226) ⬆️ Bump django from 2.1.10 to 2.1.11 - @dependabot[bot]
+- (#225) ✨ Add updateStudy mutation - @dankolbman
+- (#223) 🐛 Don't try to recreate dev user - @dankolbman
+- (#224) 🐳 Use common postgres versions for containers - @dankolbman
+- (#219) ✨Add integration with dataservice for new studies - @dankolbman
+- (#215) 🔧 Authenticate requests as admin for development - @dankolbman
+- (#214) ✨ Add filter by file kf_id to allVersions - @dankolbman
+- (#210) ⬆️ Bump django from 2.1.9 to 2.1.10 - @dependabot[bot]
+
+
 # Kids First Study Creator Release 1.5.0
 
 ## Features
