@@ -91,8 +91,8 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError(
                 "Creating projects is not enabled. "
                 "You may need to make sure that the api is configured with a "
-                "valid dataservice url and FEAT_DATASERVICE_UPDATE_STUDIES "
-                "has been set."
+                "valid Cavatica url and credentials and that "
+                "FEAT_CAVATICA_CREATE_PROJECTS has been set."
             )
 
         user = info.context.user
