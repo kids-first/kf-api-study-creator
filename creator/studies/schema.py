@@ -286,11 +286,12 @@ class UpdateStudyMutation(Mutation):
         # We will update with the attributes received from dataservice to
         # ensure we are completely in-sync and merge  with the original input
         attributes = {**input, **resp.json()["results"]}
-        study = Study(**attributes)
+        for attr, value in attributes.items():
+            setattr(study, attr, value)
         study.save()
 
         # Log an event
-        message = f"{user.username} created updated study {study.kf_id}"
+        message = f"{user.username} updated study {study.kf_id}"
         event = Event(study=study, description=message, event_type="SD_UPD")
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
