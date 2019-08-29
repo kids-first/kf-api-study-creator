@@ -64,7 +64,7 @@ class ProjectInput(InputObjectType):
         "creator.projects.schema.WorkflowType",
         description="Workflows to be run for this study",
     )
-    study = String(
+    study = ID(
         required=True,
         description="The study that the new project will belong to",
     )
@@ -104,7 +104,8 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError("Not authenticated to create a project.")
 
         try:
-            study = Study.objects.get(kf_id=input["study"])
+            _, kf_id = from_global_id(input["study"])
+            study = Study.objects.get(kf_id=kf_id)
         except Study.DoesNotExist:
             raise GraphQLError("Study does not exist.")
 
