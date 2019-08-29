@@ -286,6 +286,8 @@ class UpdateStudyMutation(Mutation):
         # We will update with the attributes received from dataservice to
         # ensure we are completely in-sync and merge  with the original input
         attributes = {**input, **resp.json()["results"]}
+        if "created_at" in attributes:
+            attributes["created_at"] = parse(attributes["created_at"])
         for attr, value in attributes.items():
             setattr(study, attr, value)
         study.save()
