@@ -15,6 +15,8 @@ UPDATE_PROFILE = """
                 username
                 slackNotify
                 slackMemberId
+                roles
+                groups
             }
         }
     }
