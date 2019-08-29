@@ -1,4 +1,5 @@
-from graphene import relay, Mutation, Enum, Field, ID
+from django.conf import settings
+from graphene import relay, Mutation, Enum, Field, ID, InputObjectType, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
@@ -8,7 +9,7 @@ from django_filters import OrderingFilter
 from creator.studies.schema import StudyNode
 from creator.studies.models import Study
 
-from creator.projects.cavatica import sync_cavatica_projects
+from creator.projects.cavatica import sync_cavatica_projects, create_project
 from .models import Project, WORKFLOW_TYPES
 
 
@@ -56,6 +57,65 @@ class ProjectNode(DjangoObjectType):
             return project
 
         return Project.objects.none()
+
+
+class ProjectInput(InputObjectType):
+    workflow_type = Field(
+        "creator.projects.schema.WorkflowType",
+        description="Workflows to be run for this study",
+    )
+    study = String(
+        required=True,
+        description="The study that the new project will belong to",
+    )
+
+
+class CreateProjectMutation(Mutation):
+    class Arguments:
+        input = ProjectInput(
+            required=True, description="Attributes for the new project"
+        )
+
+    project = Field(ProjectNode)
+
+    def mutate(self, info, input):
+        """
+        Create a new project with a given workflow type and study if that study
+        does not already have a project with that workflow type.
+        """
+        if not (
+            settings.FEAT_CAVATICA_CREATE_PROJECTS
+            and settings.CAVATICA_URL
+            and settings.CAVATICA_HARMONIZATION_TOKEN
+        ):
+            raise GraphQLError(
+                "Creating projects is not enabled. "
+                "You may need to make sure that the api is configured with a "
+                "valid dataservice url and FEAT_DATASERVICE_UPDATE_STUDIES "
+                "has been set."
+            )
+
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Not authenticated to create a project.")
+
+        try:
+            study = Study.objects.get(kf_id=input["study"])
+        except Study.DoesNotExist:
+            raise GraphQLError("Study does not exist.")
+
+        if Project.objects.filter(
+            workflow_type=input["workflow_type"], study=study
+        ).exists():
+            raise GraphQLError(
+                f"Study already has a {input['workflow_type']} project."
+            )
+        project = create_project(study, "HAR", input["workflow_type"])
+        return CreateProjectMutation(project=project)
 
 
 class SyncProjectsMutation(Mutation):
