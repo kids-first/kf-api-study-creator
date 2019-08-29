@@ -95,6 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#developing-outside-docker">Developing Outside Docker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authorization-overrides">Authorization Overrides</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
@@ -287,6 +288,19 @@ By default, the <cite>creator.settings.production</cite> settings will be used.<
 </pre></div>
 </div>
 <p>Will run the api with development settings.</p>
+</div>
+<div class="section" id="authorization-overrides">
+<h2>Authorization Overrides<a class="headerlink" href="#authorization-overrides" title="Permalink to this headline">¶</a></h2>
+<p>When running in with the development settings, the default user’s roles and
+groups may be overridden for all requests.
+This is done through the <code class="docutils literal notranslate"><span class="pre">USER_ROLES</span></code> and <code class="docutils literal notranslate"><span class="pre">USER_GROUPS</span></code> environment
+variables.
+For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>creator.settings.development <span class="nv">USER_ROLES</span><span class="o">=</span>ADMIN,DEV <span class="nv">USER_GROUPS</span><span class="o">=</span>SD_ABCABC12 docker-compose up
+</pre></div>
+</div>
+<p>Will authenticate all requests as a user with the <code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> and <code class="docutils literal notranslate"><span class="pre">DEV</span></code> roles
+and as a member of the <code class="docutils literal notranslate"><span class="pre">SD_ABCABC12</span></code> group.</p>
 </div>
 </div>
 
