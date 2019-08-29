@@ -48,8 +48,8 @@ def create_project(study, project_type, workflow_type=None):
         project_type=project_type,
         workflow_type=workflow_type,
         created_by=cavatica_project.created_by,
-        created_on=cavatica_project.created_on,
-        modified_on=cavatica_project.modified_on,
+        created_on=cavatica_project.created_on.replace(tzinfo=pytz.UTC),
+        modified_on=cavatica_project.modified_on.replace(tzinfo=pytz.UTC),
         study=study,
     )
     project.save()
