@@ -132,3 +132,35 @@ def test_create_project_no_duplicate_workflows(
     assert "errors" in resp.json()
     assert resp.json()["errors"][0]["message"].startswith("Study already has")
     assert Project.objects.count() == 1
+
+
+def test_new_project_mounted_volume(
+    db, settings, admin_client, mock_cavatica_api
+):
+    """ Test that new projects have volumes mounted """
+    # Setup correct settings for volume mounting
+    settings.FEAT_CAVATICA_MOUNT_VOLUMES = True
+    settings.CAVATICA_READ_ACCESS_KEY = "test"
+    settings.CAVATICA_READ_SECRET_KEY = "test"
+    settings.CAVATICA_READWRITE_ACCESS_KEY = "test"
+    settings.CAVATICA_READWRITE_SECRET_KEY = "test"
+
+    # Create a new project for a study
+    study = Study(kf_id="SD_00000000")
+    study.save()
+
+    kf_id = to_global_id("StudyNode", "SD_00000000")
+    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
+    )
+
+    mock_cavatica_api.Api().volumes.create_s3_volume.assert_called_with(
+        name="study_bucket_volume_SD_00000000",
+        bucket="",
+        access_key_id="test",
+        secret_access_key="test",
+        access_mode="RW",
+    )

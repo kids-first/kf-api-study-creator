@@ -12,6 +12,8 @@ def create_project(study, project_type, workflow_type=None, user=None):
     The provided workflow_type will be appended at the end of the project_id
     for the project, and the display value of workflow type name will be
     appended at the end of the name for the project.
+    If volume mounting is enabled, the study's bucket will be attached to the
+    new project.
     """
     token = None
     name = study.kf_id
@@ -72,6 +74,8 @@ def create_project(study, project_type, workflow_type=None, user=None):
     if project_type == "HAR":
         copy_users(api, cavatica_project)
 
+    # Attach S3 volume, no-op if the correct settings are not set
+    attach_volume(api, project)
     return project
 
 
@@ -101,6 +105,46 @@ def copy_users(api, project):
             # We may have tried to add ourselves back to the project that
             # we already own, so ignore that error.
             pass
+
+
+def attach_volume(api, project):
+    """
+    Attaches the project's study's bucket to the project in Cavatica.
+    Will use the CAVATICA_READ_* keys for delivery projects for read-only
+    access and the CAVATICA_READWRITE_* keys for analysis projects
+    """
+    # Check that mounting volumes is enabled
+    if not settings.FEAT_CAVATICA_MOUNT_VOLUMES:
+        return
+
+    access_key = None
+    secret_key = None
+
+    if project.project_type == "DEL":
+        access_key = settings.CAVATICA_READ_ACCESS_KEY
+        secret_key = settings.CAVATICA_READ_SECRET_KEY
+        access_mode = "RO"
+
+    if project.project_type == "HAR":
+        access_key = settings.CAVATICA_READWRITE_ACCESS_KEY
+        secret_key = settings.CAVATICA_READWRITE_SECRET_KEY
+        access_mode = "RW"
+
+    # Make sure that the keys were set correctly
+    if access_key is None or secret_key is None:
+        raise "Volume mounting is enabled but keys are not set correctly"
+
+    # Now we know that all settings are in place to attach a volume
+
+    new_volume = api.volumes.create_s3_volume(
+        name=f"study_bucket_volume_{project.study.kf_id}",
+        bucket=project.study.bucket,
+        access_key_id=access_key,
+        secret_access_key=secret_key,
+        access_mode=access_mode,
+    )
+
+    return new_volume
 
 
 def setup_cavatica(study, workflows=None, user=None):
