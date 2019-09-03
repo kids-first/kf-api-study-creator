@@ -19,6 +19,10 @@ The Cavatica integration features may enabled with the following feature flags.
    over from a template project supplied by the
    :py:data:`CAVATICA_USER_ACCESS_PROJECT` setting.
 
+.. py:data:: FEAT_CAVATICA_MOUNT_VOLUMES
+
+   New Cavatica projects will have the study's bucket attached as a volume
+   upon creation.
 
 Configuration Settings
 ----------------------
@@ -56,6 +60,32 @@ integration to function correctly.
 
     The project_id of a Cavatica project which contains users and permissions
     that will be copied over to new Cavatica analysis projects.
+
+.. py:data:: CAVATICA_READ_ACCESS_KEY
+
+    **default:** ``None``
+
+    The AWS access key for a read-only user with priviledges for the study
+    buckets.
+
+.. py:data:: CAVATICA_READ_SECRET_KEY
+
+    **default:** ``None``
+
+    The AWS secret key for a read-only user with priviledges for the study
+    buckets.
+
+.. py:data:: CAVATICA_READWRITE_ACCESS_KEY
+
+    **default:** ``None``
+
+    The AWS access key for a user with priviledges for the study buckets.
+
+.. py:data:: CAVATICA_READWRITE_SECRET_KEY
+
+    **default:** ``None``
+
+    The AWS secret key for a user with priviledges for the study buckets.
 
 
 Configuration
@@ -103,3 +133,19 @@ projects for *both cavatica tokens* and ensure that all the projects within
 the Study Creator exist and are up to date.
 This is a purely passive operation meaning that no data will be updated in
 Cavatica, only in the Study Creator's view of the projects.
+
+Volume Mounting
+---------------
+
+New projects created through new studies or directly for existing studies may
+automatically have the study's bucket attached in Cavatica for ease of access
+when setting up a new project.
+Delivery projects will have volumes mounted using the
+:py:data:`CAVATICA_READ_ACCESS_KEY` and :py:data:`CAVATICA_READ_SECRET_KEY`
+key-pair to ensure that files may only be copied and read from the bucket.
+Analysis projects utilize the :py:data:`CAVATICA_READWRITE_ACCESS_KEY`
+and :py:data:`CAVATICA_READWRITE_SECRET_KEY` key pair so that results from
+analysis may be stored back into the buckets.
+
+To utilize this feature, the :py:data:`FEAT_CAVATICA_MOUNT_VOLUMES` flag
+should be set in addition to the :py:data:`FEAT_CAVATICA_CREATE_PROJECTS` flag.
