@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 from graphql_relay import to_global_id
 from creator.studies.models import Study
+from creator.projects.models import Project
 from creator.events.models import Event
 from django.contrib.auth import get_user_model
 
@@ -23,11 +24,16 @@ mutation ($id: ID! $input: StudyInput!) {
 """
 
 
-def test_new_study_event(admin_client, db, mocker, settings):
+def test_new_study_event(
+    admin_client, db, mocker, settings, mock_cavatica_api
+):
     """
     Test that new studies creates an event
     """
-    settings.FEAT_CAVATICA_CREATE_PROJECTS = False
+    settings.FEAT_CAVATICA_CREATE_PROJECTS = True
+    settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
+    settings.CAVATICA_DELIVERY_TOKEN = "abc"
+
     post = mocker.patch("requests.post")
     MockResp = MagicMock()
     MockResp.status_code = 201
@@ -41,13 +47,21 @@ def test_new_study_event(admin_client, db, mocker, settings):
         data={"query": CREATE_STUDY, "variables": variables},
     )
 
-    assert Event.objects.count() == 1
+    assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="SD_CRE").count() == 1
 
     sd_cre = Event.objects.filter(event_type="SD_CRE").first()
     assert sd_cre.user == User.objects.first()
     assert sd_cre.file is None
     assert sd_cre.study == Study.objects.first()
+
+    assert Event.objects.filter(event_type="PR_CRE").count() == 3
+    pr_cre = Event.objects.filter(event_type="PR_CRE").first()
+    assert pr_cre.user == User.objects.first()
+    assert pr_cre.file is None
+    assert pr_cre.version is None
+    assert pr_cre.study == Study.objects.first()
+    assert pr_cre.project in Project.objects.all()
 
 
 def test_update_study_event(admin_client, db, mocker):

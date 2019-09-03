@@ -2,6 +2,7 @@ import pytz
 import sevenbridges as sbg
 from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
+from creator.events.models import Event
 
 
 def create_project(study, project_type, workflow_type=None, user=None):
@@ -53,6 +54,19 @@ def create_project(study, project_type, workflow_type=None, user=None):
         study=study,
     )
     project.save()
+
+    # Log an event
+    if user:
+        message = f"{user.username} created project {cavatica_project.id}"
+    else:
+        message = f"A new project was created {cavatica_project.id}"
+    event = Event(
+        study=study, project=project, description=message, event_type="PR_CRE"
+    )
+    # Only add the user if they are in the database (not a service user)
+    if user and not user._state.adding:
+        event.user = user
+    event.save()
 
     # Only copy users for analysis projects
     if project_type == "HAR":
