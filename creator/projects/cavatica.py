@@ -4,7 +4,7 @@ from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
 
 
-def create_project(study, project_type, workflow_type=None):
+def create_project(study, project_type, workflow_type=None, user=None):
     """
     Create Cavatica project for a given study of a project type
     either 'harmonization' or 'delivery'
@@ -89,7 +89,7 @@ def copy_users(api, project):
             pass
 
 
-def setup_cavatica(study, workflows=None):
+def setup_cavatica(study, workflows=None, user=None):
     """
     Entry point to set up Cavatica projects for a study
     On creating a new study, the user can give a list of workflow types, and
@@ -100,10 +100,10 @@ def setup_cavatica(study, workflows=None):
     if workflows is None:
         workflows = settings.CAVATICA_DEFAULT_WORKFLOWS
 
-    delivery_project = create_project(study, "DEL")
+    delivery_project = create_project(study, "DEL", user=user)
     projects = [delivery_project]
     for workflow in workflows:
-        projects.append(create_project(study, "HAR", workflow))
+        projects.append(create_project(study, "HAR", workflow, user=user))
 
     return projects
 
