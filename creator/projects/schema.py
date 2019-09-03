@@ -4,7 +4,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
 from graphql_relay import from_global_id
-from django_filters import OrderingFilter
+from django_filters import FilterSet, OrderingFilter
 
 from creator.studies.schema import StudyNode
 from creator.studies.models import Study
@@ -24,18 +24,11 @@ WorkflowType = Enum(
 
 class ProjectNode(DjangoObjectType):
     workflow_type = WorkflowType()
-    order_by = OrderingFilter(fields=("created_on", "modified_on"))
 
     class Meta:
         model = Project
-        filter_fields = [
-            "name",
-            "project_id",
-            "project_type",
-            "workflow_type",
-            "deleted",
-        ]
         interfaces = (relay.Node,)
+        filter_fields = ()
 
     @classmethod
     def get_node(cls, info, project_id):
@@ -57,6 +50,21 @@ class ProjectNode(DjangoObjectType):
             return project
 
         return Project.objects.none()
+
+
+class ProjectFilter(FilterSet):
+    order_by = OrderingFilter(fields=("created_on", "modified_on"))
+
+    class Meta:
+        model = Project
+        fields = [
+            "name",
+            "project_id",
+            "project_type",
+            "workflow_type",
+            "deleted",
+            "study"
+        ]
 
 
 class ProjectInput(InputObjectType):
@@ -220,7 +228,9 @@ class UnlinkProjectMutation(Mutation):
 class Query(object):
     project = relay.Node.Field(ProjectNode, description="Get a single project")
     all_projects = DjangoFilterConnectionField(
-        ProjectNode, description="Get all projects"
+        ProjectNode,
+        filterset_class=ProjectFilter,
+        description="Get all projects",
     )
 
     def resolve_all_projects(self, info, **kwargs):
@@ -234,6 +244,9 @@ class Query(object):
             return Project.objects.none()
 
         if user.is_admin:
-            return Project.objects.all()
+            qs = Project.objects
+            if kwargs.get("study") == "":
+                qs = qs.filter(study=None)
+            return qs.all()
 
         return Project.objects.none()
