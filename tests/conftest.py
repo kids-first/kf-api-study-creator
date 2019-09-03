@@ -14,6 +14,8 @@ from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
 from creator.middleware import EgoJWTAuthenticationMiddleware
 
+from tests.projects.fixtures import mock_cavatica_api
+
 
 @pytest.fixture(scope="module", autouse=True)
 def ego_key_mock():
