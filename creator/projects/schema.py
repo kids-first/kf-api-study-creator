@@ -8,6 +8,7 @@ from django_filters import FilterSet, OrderingFilter
 
 from creator.studies.schema import StudyNode
 from creator.studies.models import Study
+from creator.events.models import Event
 
 from creator.projects.cavatica import sync_cavatica_projects, create_project
 from .models import Project, WORKFLOW_TYPES
@@ -179,6 +180,23 @@ class LinkProjectMutation(Mutation):
 
         project.study = study
         project.save()
+
+        # Log an event
+        message = (
+            f"{user.username} linked project {project.project_id} to "
+            f"study {study.kf_id}"
+        )
+        event = Event(
+            study=study,
+            project=project,
+            description=message,
+            event_type="PR_LIN",
+        )
+        # Only add the user if they are in the database (not a service user)
+        if user and not user._state.adding:
+            event.user = user
+        event.save()
+
         return LinkProjectMutation(project=project, study=study)
 
 
@@ -222,6 +240,23 @@ class UnlinkProjectMutation(Mutation):
 
         project.study = None
         project.save()
+
+        # Log an event
+        message = (
+            f"{user.username} unlinked project {project.project_id} from "
+            f"study {study.kf_id}"
+        )
+        event = Event(
+            study=study,
+            project=project,
+            description=message,
+            event_type="PR_UNL",
+        )
+
+        # Only add the user if they are in the database (not a service user)
+        if user and not user._state.adding:
+            event.user = user
+        event.save()
         return UnlinkProjectMutation(project=project, study=study)
 
 
