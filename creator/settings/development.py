@@ -187,7 +187,7 @@ USER_GROUPS  = os.environ.get("USER_GROUPS", "")
 USER_GROUPS = None if USER_GROUPS == "" else  USER_GROUPS.split(",")
 
 # Number of seconds after which to timeout any outgoing requests
-REQUESTS_TIMEOUT = 10
+REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
 
 DATASERVICE_URL = "dataservice"
