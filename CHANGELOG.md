@@ -1,3 +1,20 @@
+# Kids First Study Creator Release 1.6.1
+
+## Features
+
+Makes request timeouts configurable.
+
+### Summary
+
+Feature Emojis: 🔧x1 ✨x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x2
+
+### New features and changes
+
+- (#284) 🔧 Make requests timout configurable - @dankolbman
+- (#283) ✨ Add project study filter - @dankolbman
+
+
 # Kids First Study Creator Release 1.6.0
 
 ## Features
