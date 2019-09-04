@@ -214,6 +214,30 @@ def sync_cavatica_account(project_type):
     for project in created_projects + updated_projects + deleted_projects:
         project.save()
 
+    # Emit events
+    for project in created_projects:
+        message = (
+            f"New project was discovered in Cavatica: {cavatica_project.id}"
+        )
+        event = Event(
+            project=project, description=message, event_type="PR_CRE"
+        )
+        event.save()
+
+    for project in updated_projects:
+        message = f"Project was updated in Cavatica: {cavatica_project.id}"
+        event = Event(
+            project=project, description=message, event_type="PR_UPD"
+        )
+        event.save()
+
+    for project in deleted_projects:
+        message = f"Project was deleted in Cavatica: {cavatica_project.id}"
+        event = Event(
+            project=project, description=message, event_type="PR_DEL"
+        )
+        event.save()
+
     return created_projects, updated_projects, deleted_projects
 
 
