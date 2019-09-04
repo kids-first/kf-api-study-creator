@@ -329,6 +329,6 @@ class Query(object):
             return Study.objects.none()
 
         if user.is_admin:
-            return Study.objects.all()
+            return Study.objects.filter(deleted=False).all()
 
-        return Study.objects.filter(kf_id__in=user.ego_groups)
+        return Study.objects.filter(kf_id__in=user.ego_groups, deleted=False)

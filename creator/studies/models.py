@@ -62,6 +62,10 @@ class Study(models.Model):
         default="",
         help_text="The organization that the grant was awarded to",
     )
+    deleted = models.BooleanField(
+        default=False,
+        help_text="Whether the study hase been deleted from the dataservice",
+    )
 
     def __str__(self):
         return self.kf_id

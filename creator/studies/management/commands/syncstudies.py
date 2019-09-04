@@ -44,3 +44,11 @@ class Command(BaseCommand):
                 print('Created', study['kf_id'])
             else:
                 print('Updated', study['kf_id'])
+
+        ds_studies = {study['kf_id'] for study in studies}
+        creator_studies = {study.kf_id for study in Study.objects.all()}
+        deleted_studies = creator_studies - ds_studies
+
+        for study in deleted_studies:
+            Study.objects.filter(kf_id=study).update(deleted=True)
+        print(f'{len(deleted_studies)} studies were marked as deleted')
