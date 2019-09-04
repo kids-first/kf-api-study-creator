@@ -7,8 +7,8 @@ query (
     $studyId: String,
     $fileId: String,
     $versionId: String,
-    $createdAt_Gt: DateTime,
-    $createdAt_Lt: DateTime,
+    $createdAfter: DateTime,
+    $createdBefore: DateTime,
     $username: String,
     $eventType: String,
 ) {
@@ -16,8 +16,8 @@ query (
         studyKfId: $studyId,
         fileKfId: $fileId,
         versionKfId: $versionId,
-        createdAt_Gt: $createdAt_Gt,
-        createdAt_Lt: $createdAt_Lt,
+        createdAfter: $createdAfter,
+        createdBefore: $createdBefore,
         username: $username,
         eventType: $eventType,
     ) {
