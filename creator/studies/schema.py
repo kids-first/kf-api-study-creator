@@ -203,21 +203,21 @@ class CreateStudyMutation(Mutation):
         study = Study(**attributes)
         study.save()
 
+        # Log an event
+        message = f"{user.username} created study {study.kf_id}"
+        event = Event(study=study, description=message, event_type="SD_CRE")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
         if (
             settings.FEAT_CAVATICA_CREATE_PROJECTS
             and settings.CAVATICA_URL
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
-            setup_cavatica(study, workflows=workflows)
-
-        # Log an event
-        message = f"{user.username} created created study {study.kf_id}"
-        event = Event(study=study, description=message, event_type="SD_CRE")
-        # Only add the user if they are in the database (not a service user)
-        if not user._state.adding:
-            event.user = user
-        event.save()
+            setup_cavatica(study, workflows=workflows, user=user)
 
         return CreateStudyMutation(study=study)
 

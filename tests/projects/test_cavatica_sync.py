@@ -8,7 +8,8 @@ from creator.projects.cavatica import (
 )
 from creator.studies.models import Study
 from creator.projects.models import Project
-from .conftest import CavaticaProject
+from creator.events.models import Event
+from tests.projects.fixtures import CavaticaProject
 
 
 SYNC_PROJECTS_MUTATION = """
@@ -109,6 +110,8 @@ def test_sync_mutation(db, mocker, admin_client, settings):
     )
 
     assert len(resp.json()["data"]["syncProjects"]["created"]["edges"]) == 2
+    assert Event.objects.count() == 2
+    assert Event.objects.filter(event_type="PR_CRE").count() == 2
 
     project_list = [
         CavaticaProject(
@@ -127,6 +130,10 @@ def test_sync_mutation(db, mocker, admin_client, settings):
         content_type="application/json",
         data={"query": SYNC_PROJECTS_MUTATION},
     )
+
+    assert Event.objects.count() == 4
+    assert Event.objects.filter(event_type="PR_CRE").count() == 3
+    assert Event.objects.filter(event_type="PR_UPD").count() == 1
 
     assert len(resp.json()["data"]["syncProjects"]["created"]["edges"]) == 1
     assert len(resp.json()["data"]["syncProjects"]["updated"]["edges"]) == 1

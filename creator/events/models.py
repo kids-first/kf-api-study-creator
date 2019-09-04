@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from creator.studies.models import Study
 from creator.files.models import File, Version
+from creator.projects.models import Project
 
 User = get_user_model()
 
@@ -30,6 +31,11 @@ class Event(models.Model):
             ("FV_UPD", "File Version Updated"),
             ("SD_CRE", "Study Created"),
             ("SD_UPD", "Study Updated"),
+            ("PR_CRE", "Project Created"),
+            ("PR_UPD", "Project Updated"),
+            ("PR_DEL", "Project Deleted"),
+            ("PR_LIN", "Project Linked"),
+            ("PR_UNL", "Project Unlinked"),
             ("OTH", "Other"),
         ),
         default="OTH",
@@ -47,6 +53,14 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="Study related to this event",
+    )
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Project related to this event",
     )
     file = models.ForeignKey(
         File,

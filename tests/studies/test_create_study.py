@@ -1,9 +1,12 @@
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import text, integers, characters, dates
+from django.contrib.auth import get_user_model
 
 from creator.files.models import Study
 from creator.projects.models import Project
+
+User = get_user_model()
 
 
 CREATE_STUDY_MUTATION = """
@@ -225,8 +228,12 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
 
+    user = User.objects.first()
+
     assert cavatica.call_count == 2
-    cavatica.assert_called_with(Study.objects.first(), "HAR", "bwa_mem")
+    cavatica.assert_called_with(
+        Study.objects.first(), "HAR", "bwa_mem", user=user
+    )
 
     # Try multiple workflows
     cavatica.reset_mock()
@@ -240,7 +247,9 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
 
     assert cavatica.call_count == 4
     for workflow in workflows:
-        cavatica.assert_any_call(Study.objects.first(), "HAR", workflow)
+        cavatica.assert_any_call(
+            Study.objects.first(), "HAR", workflow, user=user
+        )
 
 
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))

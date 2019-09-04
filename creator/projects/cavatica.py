@@ -2,9 +2,10 @@ import pytz
 import sevenbridges as sbg
 from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
+from creator.events.models import Event
 
 
-def create_project(study, project_type, workflow_type=None):
+def create_project(study, project_type, workflow_type=None, user=None):
     """
     Create Cavatica project for a given study of a project type
     either 'harmonization' or 'delivery'
@@ -54,6 +55,19 @@ def create_project(study, project_type, workflow_type=None):
     )
     project.save()
 
+    # Log an event
+    if user:
+        message = f"{user.username} created project {cavatica_project.id}"
+    else:
+        message = f"A new project was created {cavatica_project.id}"
+    event = Event(
+        study=study, project=project, description=message, event_type="PR_CRE"
+    )
+    # Only add the user if they are in the database (not a service user)
+    if user and not user._state.adding:
+        event.user = user
+    event.save()
+
     # Only copy users for analysis projects
     if project_type == "HAR":
         copy_users(api, cavatica_project)
@@ -89,7 +103,7 @@ def copy_users(api, project):
             pass
 
 
-def setup_cavatica(study, workflows=None):
+def setup_cavatica(study, workflows=None, user=None):
     """
     Entry point to set up Cavatica projects for a study
     On creating a new study, the user can give a list of workflow types, and
@@ -100,10 +114,10 @@ def setup_cavatica(study, workflows=None):
     if workflows is None:
         workflows = settings.CAVATICA_DEFAULT_WORKFLOWS
 
-    delivery_project = create_project(study, "DEL")
+    delivery_project = create_project(study, "DEL", user=user)
     projects = [delivery_project]
     for workflow in workflows:
-        projects.append(create_project(study, "HAR", workflow))
+        projects.append(create_project(study, "HAR", workflow, user=user))
 
     return projects
 
@@ -199,6 +213,30 @@ def sync_cavatica_account(project_type):
     # Save everything
     for project in created_projects + updated_projects + deleted_projects:
         project.save()
+
+    # Emit events
+    for project in created_projects:
+        message = (
+            f"New project was discovered in Cavatica: {cavatica_project.id}"
+        )
+        event = Event(
+            project=project, description=message, event_type="PR_CRE"
+        )
+        event.save()
+
+    for project in updated_projects:
+        message = f"Project was updated in Cavatica: {cavatica_project.id}"
+        event = Event(
+            project=project, description=message, event_type="PR_UPD"
+        )
+        event.save()
+
+    for project in deleted_projects:
+        message = f"Project was deleted in Cavatica: {cavatica_project.id}"
+        event = Event(
+            project=project, description=message, event_type="PR_DEL"
+        )
+        event.save()
 
     return created_projects, updated_projects, deleted_projects
 
