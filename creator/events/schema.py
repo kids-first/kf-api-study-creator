@@ -29,13 +29,16 @@ class EventFilter(django_filters.FilterSet):
     username = django_filters.CharFilter(
         field_name="user__username", lookup_expr="exact"
     )
+    created_before = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="lt"
+    )
+    created_after = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="gt"
+    )
 
     class Meta:
         model = Event
-        fields = {
-            "event_type": ["exact"],
-            "created_at": ["gt", "lt"],
-        }
+        fields = {"event_type": ["exact"]}
 
     order_by = OrderingFilter(fields=("created_at",))
 
