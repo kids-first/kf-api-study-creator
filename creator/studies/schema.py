@@ -131,6 +131,9 @@ class StudyInput(InputObjectType):
             "Date that this study is expected to be released to the public"
         )
     )
+    bucket = String(
+        description="The s3 bucket where data for this study resides"
+    )
 
 
 class CreateStudyMutation(Mutation):
