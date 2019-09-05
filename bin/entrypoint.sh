@@ -47,6 +47,15 @@ for s in $(cat cavatica.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring
     export $s
 done
 
+if [[ -n $CAVATICA_VOLUMES ]]; then
+    echo "Loading Cavatica volume credentials from S3"
+    aws s3 cp $CAVATICA_VOLUMES ./cavatica_volumes.env
+    echo `Loading ${wc -l ./cavatica_volumes.env} secrets`
+    source ./cavatica_volumes.env
+    export $(cut -d= -f1 ./cavatica_volumes.env)
+    rm ./cavatica_volumes.env
+fi
+
 python manage.py syncstudies --api $DATASERVICE_URL
 /app/manage.py migrate
 exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
