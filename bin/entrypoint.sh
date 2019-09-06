@@ -14,6 +14,13 @@ if [[ -n $VAULT_ADDR ]] && [[ -n $VAULT_ROLE ]]; then
     fi
 fi
 
+# Try to load any database secrets, these will override the above
+if [[ -n $DATABASE_SECRETS]] ; then
+    aws s3 cp $DATABASE_SECRETS ./database.env
+    source ./database.env
+    rm ./database.env
+fi
+
 # This will export our secrets from S3 into our environment
 echo "Getting studies from $CAVATICA_SECRETS"
 aws s3 cp $CAVATICA_SECRETS ./cavatica.json
