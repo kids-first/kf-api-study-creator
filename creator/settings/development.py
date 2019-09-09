@@ -194,6 +194,8 @@ DATASERVICE_URL = "dataservice"
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
 
+BUCKETSERVICE_URL = os.environ.get("BUCKETSERVICE_URL", "http://bucketservice")
+
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
 )
@@ -225,3 +227,7 @@ FEAT_CAVATICA_CREATE_PROJECTS = os.environ.get(
 )
 # Copy users from the CAVATICA_USER_ACCESS_PROJECT
 FEAT_CAVATICA_COPY_USERS = os.environ.get("FEAT_CAVATICA_COPY_USERS", True)
+# Create buckets for new studies
+FEAT_BUCKETSERVICE_CREATE_BUCKETS = os.environ.get(
+    "FEAT_BUCKETSERVICE_CREATE_BUCKETS", False
+)
