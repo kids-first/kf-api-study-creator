@@ -43,3 +43,4 @@ pre-populated database of mock data.
    authentication
    authorization
    cavatica
+   bucketservice
