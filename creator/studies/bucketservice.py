@@ -4,7 +4,8 @@ from django.conf import settings
 from django.core.cache import cache
 from graphql import GraphQLError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def bucketservice_headers():
@@ -55,6 +56,7 @@ def setup_bucket(study):
     Calls the bucket service to create a bucket for a given study, then saves
     the resulting bucket's location to the study object.
     """
+    logger.info(f"Setting up a bucket for {study.kf_id}")
     try:
         resp = requests.post(
             f"{settings.BUCKETSERVICE_URL}/buckets",
@@ -66,6 +68,7 @@ def setup_bucket(study):
     except requests.exceptions.RequestException as err:
         logger.error(f"Problem calling the bucket service: {err}")
         raise GraphQLError(f"Problem calling the bucket service: {err}")
+    logger.info(f"Bucket setup complete for {study.kf_id}")
 
     study.bucket = resp.json()["bucket"]
 
