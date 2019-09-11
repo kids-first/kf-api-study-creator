@@ -21,6 +21,13 @@ if [[ -n $DATABASE_SECRETS]] ; then
     rm ./database.env
 fi
 
+# Try to load auth0 secrets from S3
+if [[ -n $AUTH0_SECRETS]] ; then
+    aws s3 cp $AUTH0_SECRETS ./auth0.env
+    source ./auth0.env
+    rm ./auth0.env
+fi
+
 # This will export our secrets from S3 into our environment
 echo "Getting studies from $CAVATICA_SECRETS"
 aws s3 cp $CAVATICA_SECRETS ./cavatica.json
