@@ -15,17 +15,27 @@ if [[ -n $VAULT_ADDR ]] && [[ -n $VAULT_ROLE ]]; then
 fi
 
 # Try to load any database secrets, these will override the above
-if [[ -n $DATABASE_SECRETS]] ; then
+if [ -n $DATABASE_SECRETS ]; then
     aws s3 cp $DATABASE_SECRETS ./database.env
     source ./database.env
+    export $(cut -d= -f1 ./database.env)
     rm ./database.env
 fi
 
 # Try to load auth0 secrets from S3
-if [[ -n $AUTH0_SECRETS]] ; then
+if [ -n $AUTH0_SECRETS ]; then
     aws s3 cp $AUTH0_SECRETS ./auth0.env
     source ./auth0.env
+    export $(cut -d= -f1 ./auth0.env)
     rm ./auth0.env
+fi
+
+# Try to load general settings from S3
+if [ -n $SETTINGS ]; then
+    aws s3 cp $SETTINGS ./settings.env
+    source ./settings.env
+    export $(cut -d= -f1 ./settings.env)
+    rm ./settings.env
 fi
 
 # This will export our secrets from S3 into our environment
