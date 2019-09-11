@@ -173,11 +173,22 @@ CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
 CACHE_EGO_TIMEOUT = 86400
 
 # Auth0 settings
-AUTH0_API = 'https://kids-first.auth0.com'
-AUTH0_JWKS = 'https://kids-first.auth0.com/.well-known/jwks.json'
-AUTH0_AUD = 'https://kf-study-creator.kidsfirstdrc.org'
-CACHE_AUTH0_KEY = 'AUTH0_PUBLIC_KEY'
-CACHE_AUTH0_TIMEOUT = 86400
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "kids-first.auth0.com")
+AUTH0_JWKS = os.environ.get(
+    "AUTH0_JWKS", "https://kids-first.auth0.com/.well-known/jwks.json"
+)
+AUTH0_AUD = os.environ.get(
+    "AUTH0_AUD", "https://kf-study-creator.kidsfirstdrc.org"
+)
+# Service auth credentials
+AUTH0_CLIENT = os.environ.get("AUTH0_CLIENT")
+AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
+
+CACHE_AUTH0_KEY = os.environ.get("CACHE_AUTH0_KEY", "AUTH0_PUBLIC_KEY")
+CACHE_AUTH0_SERVICE_KEY = os.environ.get(
+    "CACHE_AUTH0_SERVICE_KEY", "AUTH0_SERVICE_KEY"
+)
+CACHE_AUTH0_TIMEOUT = os.environ.get("CACHE_AUTH0_TIMEOUT", 86400)
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
 
