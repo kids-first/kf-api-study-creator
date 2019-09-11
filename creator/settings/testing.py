@@ -181,6 +181,9 @@ AUTH0_AUD = os.environ.get(
     "AUTH0_AUD", "https://kf-study-creator.kidsfirstdrc.org"
 )
 # Service auth credentials
+AUTH0_SERVICE_AUD = os.environ.get(
+    "AUTH0_SERVICE_AUD", "https://kf-study-creator.kidsfirstdrc.org"
+)
 AUTH0_CLIENT = os.environ.get("AUTH0_CLIENT")
 AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
 

@@ -22,6 +22,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
+from creator.studies.bucketservice import setup_bucket
 from creator.projects.cavatica import setup_cavatica
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
@@ -198,6 +199,11 @@ class CreateStudyMutation(Mutation):
                 error = error["message"]
             raise GraphQLError(f"Problem creating study: {error}")
 
+        logger.info(
+            f"Created new study in Data Service: "
+            f"{resp.json()['results']['kf_id']}"
+        )
+
         # Merge dataservice response attributes with the original input
         attributes = {**input, **resp.json()["results"]}
         created_at = attributes.get("created_at")
@@ -214,6 +220,17 @@ class CreateStudyMutation(Mutation):
             event.user = user
         event.save()
 
+        # Setup bucket
+        if (
+            settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
+            and settings.BUCKETSERVICE_URL
+        ):
+            # Setting up bucket will set the s3 location on the study so it
+            # needs to be captured and saved
+            study = setup_bucket(study)
+            study.save()
+
+        # Setup Cavatica
         if (
             settings.FEAT_CAVATICA_CREATE_PROJECTS
             and settings.CAVATICA_URL
