@@ -216,6 +216,7 @@ class CreateStudyMutation(Mutation):
         created_at = attributes.get("created_at")
         if created_at:
             attributes["created_at"] = parse(created_at)
+        attributes["deleted"] = False
         study = Study(**attributes)
         study.save()
 
