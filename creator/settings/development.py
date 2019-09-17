@@ -172,11 +172,25 @@ CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
 CACHE_EGO_TIMEOUT = 86400
 
 # Auth0 settings
-AUTH0_API = 'https://kids-first.auth0.com'
-AUTH0_JWKS = 'https://kids-first.auth0.com/.well-known/jwks.json'
-AUTH0_AUD = 'https://kf-study-creator.kidsfirstdrc.org'
-CACHE_AUTH0_KEY = 'AUTH0_PUBLIC_KEY'
-CACHE_AUTH0_TIMEOUT = 86400
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "kids-first.auth0.com")
+AUTH0_JWKS = os.environ.get(
+    "AUTH0_JWKS", "https://kids-first.auth0.com/.well-known/jwks.json"
+)
+AUTH0_AUD = os.environ.get(
+    "AUTH0_AUD", "https://kf-study-creator.kidsfirstdrc.org"
+)
+# Service auth credentials
+AUTH0_SERVICE_AUD = os.environ.get(
+    "AUTH0_SERIVCE_AUD", "https://kf-study-creator.kidsfirstdrc.org"
+)
+AUTH0_CLIENT = os.environ.get("AUTH0_CLIENT")
+AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
+
+CACHE_AUTH0_KEY = os.environ.get("CACHE_AUTH0_KEY", "AUTH0_PUBLIC_KEY")
+CACHE_AUTH0_SERVICE_KEY = os.environ.get(
+    "CACHE_AUTH0_SERVICE_KEY", "AUTH0_SERVICE_KEY"
+)
+CACHE_AUTH0_TIMEOUT = os.environ.get("CACHE_AUTH0_TIMEOUT", 86400)
 
 CLIENT_ADMIN_SCOPE = 'role:admin'
 
@@ -193,6 +207,8 @@ REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
 DATASERVICE_URL = "dataservice"
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
+
+BUCKETSERVICE_URL = os.environ.get("BUCKETSERVICE_URL", "http://bucketservice")
 
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
@@ -225,3 +241,7 @@ FEAT_CAVATICA_CREATE_PROJECTS = os.environ.get(
 )
 # Copy users from the CAVATICA_USER_ACCESS_PROJECT
 FEAT_CAVATICA_COPY_USERS = os.environ.get("FEAT_CAVATICA_COPY_USERS", True)
+# Create buckets for new studies
+FEAT_BUCKETSERVICE_CREATE_BUCKETS = os.environ.get(
+    "FEAT_BUCKETSERVICE_CREATE_BUCKETS", False
+)

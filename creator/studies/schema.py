@@ -1,3 +1,4 @@
+import logging
 import requests
 
 from django.conf import settings
@@ -22,9 +23,13 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
+from creator.studies.bucketservice import setup_bucket
 from creator.projects.cavatica import setup_cavatica
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def sanitize_fields(attributes):
@@ -179,6 +184,7 @@ class CreateStudyMutation(Mutation):
             )
 
         attributes = sanitize_fields(input)
+        logger.info("Creating a new study in Data Service")
         try:
             resp = requests.post(
                 f"{settings.DATASERVICE_URL}/studies",
@@ -187,6 +193,7 @@ class CreateStudyMutation(Mutation):
                 headers=settings.REQUESTS_HEADERS,
             )
         except requests.exceptions.RequestException as e:
+            logger.error(f"Problem creating study: {e}")
             raise GraphQLError(f"Problem creating study: {e}")
 
         # Raise an error if it looks like study failed to create
@@ -196,13 +203,20 @@ class CreateStudyMutation(Mutation):
                 error = error["_status"]
             if "message" in error:
                 error = error["message"]
+            logger.error(f"Problem creating study: {error}")
             raise GraphQLError(f"Problem creating study: {error}")
+
+        logger.info(
+            f"Created new study in Data Service: "
+            f"{resp.json()['results']['kf_id']}"
+        )
 
         # Merge dataservice response attributes with the original input
         attributes = {**input, **resp.json()["results"]}
         created_at = attributes.get("created_at")
         if created_at:
             attributes["created_at"] = parse(created_at)
+        attributes["deleted"] = False
         study = Study(**attributes)
         study.save()
 
@@ -214,12 +228,27 @@ class CreateStudyMutation(Mutation):
             event.user = user
         event.save()
 
+        # Setup bucket
+        if (
+            settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
+            and settings.BUCKETSERVICE_URL
+        ):
+            logger.info(
+                f"Creating a new bucket with Bucket Service for {study.kf_id}"
+            )
+            # Setting up bucket will set the s3 location on the study so it
+            # needs to be captured and saved
+            study = setup_bucket(study)
+            study.save()
+
+        # Setup Cavatica
         if (
             settings.FEAT_CAVATICA_CREATE_PROJECTS
             and settings.CAVATICA_URL
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
+            logger.info(f"Creating projects in Cavatica for {study.kf_id}")
             setup_cavatica(study, workflows=workflows, user=user)
 
         return CreateStudyMutation(study=study)
