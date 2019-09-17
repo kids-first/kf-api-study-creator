@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; Kids First Study Creator  documentation</title>
+  <title>Bucket Service Integration &mdash; Kids First Study Creator  documentation</title>
   
 
   
@@ -36,8 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Authorization" href="authorization.html" />
-    <link rel="prev" title="Downloads" href="downloads.html" />
+    <link rel="prev" title="Cavatica Integration" href="cavatica.html" />
     <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
  
 </head>
@@ -92,17 +91,15 @@
 <li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#ego-authentication">Ego Authentication</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#auth0-authentication">Auth0 Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#service-tokens">Service Tokens</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cavatica.html">Cavatica Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bucketservice.html">Bucket Service Integration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bucket Service Integration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#feature-flags">Feature Flags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-settings">Configuration Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operation">Operation</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -148,13 +145,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Authentication</li>
+      <li>Bucket Service Integration</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/authentication.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/bucketservice.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -167,40 +164,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="authentication">
-<h1>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h1>
-<p>The Study Creator API uses JWTs issued from either Ego or Auth0 as its method
-of authentication.
-Also supported are JWTs created with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant for
-Auth0 tokens to allow services to communicate with the API.</p>
-<div class="section" id="ego-authentication">
-<h2>Ego Authentication<a class="headerlink" href="#ego-authentication" title="Permalink to this headline">¶</a></h2>
-<p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
-public key found at the <code class="docutils literal notranslate"><span class="pre">/oauth/token/public_key</span></code> endpoint.
-The API will cache these keys for some period of time so that it will not need
-to be retrieved for every authenticated request.</p>
-<p>Upon successfully validating a user for the first time, the user’s profile
-will be persisted to the database.</p>
+  <div class="section" id="bucket-service-integration">
+<h1>Bucket Service Integration<a class="headerlink" href="#bucket-service-integration" title="Permalink to this headline">¶</a></h1>
+<p>The Study Creator may integrate with the
+<a class="reference external" href="https://github.com/kids-first/kf-api-bucketservice">Bucket Service</a>
+to setup buckets for new studies.</p>
+<div class="section" id="feature-flags">
+<h2>Feature Flags<a class="headerlink" href="#feature-flags" title="Permalink to this headline">¶</a></h2>
+<p>The Cavatica integration features may enabled with the following feature flags.</p>
+<dl class="data">
+<dt id="FEAT_BUCKETSERVICE_CREATE_BUCKETS">
+<code class="descname">FEAT_BUCKETSERVICE_CREATE_BUCKETS</code><a class="headerlink" href="#FEAT_BUCKETSERVICE_CREATE_BUCKETS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new study bucket when a new study is created</p>
+</dd></dl>
+
 </div>
-<div class="section" id="auth0-authentication">
-<h2>Auth0 Authentication<a class="headerlink" href="#auth0-authentication" title="Permalink to this headline">¶</a></h2>
-<p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
-public key found at <code class="docutils literal notranslate"><span class="pre">https://kids-first.auth0.com/.well-known/jwks.json</span></code>.
-The API will cache these keys for some period of time so that it will not need
-to be retrieved for every authenticated request.</p>
-<p>Upon successfull validation, the user’s <code class="docutils literal notranslate"><span class="pre">roles</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">permissions</span></code> will be read from the token’s
-<code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/groups</span></code>, <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/roles</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/permissions</span></code> fields.
-If it is the first time this user has authenticated with the API, a request
-will be made to fetch additional information about the user from Auth0.
-Once additional info has been retrieved from Auth0, the user’s profile will be
-saved to the database so that this query will not have to be made again.</p>
-<div class="section" id="service-tokens">
-<h3>Service Tokens<a class="headerlink" href="#service-tokens" title="Permalink to this headline">¶</a></h3>
-<p>Valid tokens with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant type will automatically be
-given the <code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> role, but they will not be saved to the database.</p>
+<div class="section" id="configuration-settings">
+<h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this headline">¶</a></h2>
+<p>The following settings need to be provided in order for the Cavatica
+integration to function correctly.</p>
+<dl class="data">
+<dt id="BUCKETSERVICE_URL">
+<code class="descname">BUCKETSERVICE_URL</code><a class="headerlink" href="#BUCKETSERVICE_URL" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">http://bucketservice</span></code></p>
+<p>The url of the Bucket Service api endpoint</p>
+</dd></dl>
+
 </div>
+<div class="section" id="operation">
+<h2>Operation<a class="headerlink" href="#operation" title="Permalink to this headline">¶</a></h2>
+<p>When the :py:data`FEAT_BUCKETSERVICE_CREATE_BUCKETS` flag is enabled, the
+Study Creator will make a call to the Bucket Service during the <cite>createStudy</cite>
+mutation to setup the necessary bucket resources for a study.
+This will happen after the study has been created in the Data Service and
+a new Kids First ID has been generated, but before creating new projects in
+Cavatica.</p>
 </div>
 </div>
 
@@ -212,10 +210,8 @@ given the <code class="docutils literal notranslate"><span class="pre">ADMIN</sp
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="authorization.html" class="btn btn-neutral float-right" title="Authorization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="downloads.html" class="btn btn-neutral float-left" title="Downloads" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cavatica.html" class="btn btn-neutral float-left" title="Cavatica Integration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
