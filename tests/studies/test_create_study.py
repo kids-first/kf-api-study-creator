@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 from creator.files.models import Study
 from creator.projects.models import Project
+from creator.projects.cavatica import attach_volume
 
 User = get_user_model()
 
@@ -347,3 +348,26 @@ def test_internal_datetime_fields(
     )
     assert "errors" not in resp.json()
     assert resp.json()["data"]["createStudy"]["study"][field] == str(s)
+
+
+def test_attach_volumes(db, admin_client, settings, mock_cavatica_api):
+    """ Test that volumes are attached for new studies """
+    settings.FEAT_CAVATICA_MOUNT_VOLUMES = True
+    settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
+    settings.CAVATICA_READWRITE_ACCESS_KEY = "abc"
+    settings.CAVATICA_READWRITE_SECRET_KEY = "123"
+    settings.CAVATICA_DELIVERY_ACCOUNT = "kids-first"
+
+    study = Study(kf_id="SD_00000000", name="test", bucket="my bucket")
+    study.save()
+
+    attach_volume(study)
+
+    mock_cavatica_api.Api().volumes.create_s3_volume.assert_called_with(
+        name=study.kf_id,
+        description="Created by the Study Creator for 'test'",
+        bucket=study.bucket,
+        access_key_id="abc",
+        secret_access_key="123",
+        access_mode="RW",
+    )

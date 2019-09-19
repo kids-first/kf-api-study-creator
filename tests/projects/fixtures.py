@@ -64,6 +64,7 @@ def mock_cavatica_api(mocker):
     ]
     VolumeMock.query().all.return_value = volume_list
     VolumeMock.create_s3_volume.return_value = CavaticaVolume()
+    VolumeMock.add_member = MagicMock()
 
     Api = MagicMock()
     Api().projects = ProjectMock

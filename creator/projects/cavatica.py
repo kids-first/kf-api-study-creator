@@ -4,6 +4,9 @@ from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
 from creator.events.models import Event
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 def create_project(study, project_type, workflow_type=None, user=None):
     """
@@ -75,7 +78,6 @@ def create_project(study, project_type, workflow_type=None, user=None):
         copy_users(api, cavatica_project)
 
     # Attach S3 volume, no-op if the correct settings are not set
-    attach_volume(api, project)
     return project
 
 
@@ -107,28 +109,24 @@ def copy_users(api, project):
             pass
 
 
-def attach_volume(api, project):
+def attach_volume(study):
     """
-    Attaches the project's study's bucket to the project in Cavatica.
-    Will use the CAVATICA_READ_* keys for delivery projects for read-only
-    access and the CAVATICA_READWRITE_* keys for analysis projects
+    Attaches a study bucket to the Harmonization's Cavatica account.
+    Will use the CAVATICA_READWRITE_* keys to create the volume in the
+    CAVATICA_HARMONIZATION_ACCOUNT and will add the CAVATICA_DELIVERY_ACCOUNT
+    as a member of the volume with read and copy permissions.
     """
     # Check that mounting volumes is enabled
     if not settings.FEAT_CAVATICA_MOUNT_VOLUMES:
         return
 
-    access_key = None
-    secret_key = None
+    api = sbg.Api(
+        url=settings.CAVATICA_URL, token=settings.CAVATICA_HARMONIZATION_TOKEN
+    )
 
-    if project.project_type == "DEL":
-        access_key = settings.CAVATICA_READ_ACCESS_KEY
-        secret_key = settings.CAVATICA_READ_SECRET_KEY
-        access_mode = "RO"
-
-    if project.project_type == "HAR":
-        access_key = settings.CAVATICA_READWRITE_ACCESS_KEY
-        secret_key = settings.CAVATICA_READWRITE_SECRET_KEY
-        access_mode = "RW"
+    access_key = settings.CAVATICA_READWRITE_ACCESS_KEY
+    secret_key = settings.CAVATICA_READWRITE_SECRET_KEY
+    access_mode = "RW"
 
     # Make sure that the keys were set correctly
     if access_key is None or secret_key is None:
@@ -137,11 +135,22 @@ def attach_volume(api, project):
     # Now we know that all settings are in place to attach a volume
 
     new_volume = api.volumes.create_s3_volume(
-        name=f"study_bucket_volume_{project.study.kf_id}",
-        bucket=project.study.bucket,
+        name=study.kf_id,
+        description=f"Created by the Study Creator for '{study.name}'",
+        bucket=study.bucket,
         access_key_id=access_key,
         secret_access_key=secret_key,
         access_mode=access_mode,
+    )
+
+    new_volume.add_member(
+        settings.CAVATICA_DELIVERY_ACCOUNT,
+        permissions={
+            "write": False,
+            "read": True,
+            "copy": True,
+            "admin": False,
+        },
     )
 
     return new_volume
@@ -162,6 +171,16 @@ def setup_cavatica(study, workflows=None, user=None):
     projects = [delivery_project]
     for workflow in workflows:
         projects.append(create_project(study, "HAR", workflow, user=user))
+
+    if (
+        settings.FEAT_CAVATICA_MOUNT_VOLUMES
+        and settings.CAVATICA_URL
+        and settings.CAVATICA_HARMONIZATION_TOKEN
+        and settings.CAVATICA_READWRITE_ACCESS_KEY
+        and settings.CAVATICA_READWRITE_SECRET_KEY
+        and settings.CAVATICA_DELIVERY_ACCOUNT
+    ):
+        attach_volume(study)
 
     return projects
 
