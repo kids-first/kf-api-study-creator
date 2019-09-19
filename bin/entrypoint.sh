@@ -39,18 +39,16 @@ if [ -n $SETTINGS ]; then
 fi
 
 # This will export our secrets from S3 into our environment
-echo "Getting studies from $CAVATICA_SECRETS"
-aws s3 cp $CAVATICA_SECRETS ./cavatica.json
-echo "Found the following variables to export:"
-cat cavatica.json | jq -r 'to_entries|.[].key'
-for s in $(cat cavatica.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do
-    export $s
-done
+if [ -n $CAVATICA_SECRETS ]; then
+    aws s3 cp $CAVATICA_SECRETS ./cavatica.env
+    source ./cavatica.env
+    export $(cut -d= -f1 ./cavatica.env)
+    rm ./cavatica.env
+fi
 
 if [[ -n $CAVATICA_VOLUMES ]]; then
     echo "Loading Cavatica volume credentials from S3"
     aws s3 cp $CAVATICA_VOLUMES ./cavatica_volumes.env
-    echo `Loading ${wc -l ./cavatica_volumes.env} secrets`
     source ./cavatica_volumes.env
     export $(cut -d= -f1 ./cavatica_volumes.env)
     rm ./cavatica_volumes.env
