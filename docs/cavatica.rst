@@ -36,11 +36,25 @@ integration to function correctly.
 
     The url of the Cavatica api endpoint
 
+.. py:data:: CAVATICA_HARMONIZATION_ACCOUNT
+
+    **required**
+
+    The username for the Cavatica account associated with the token given by
+    :py:data:`CAVATICA_HARMONIZATION_TOKEN`.
+
 .. py:data:: CAVATICA_HARMONIZATION_TOKEN
 
     **required**
 
     The api token for the harmonization Cavatica account
+
+.. py:data:: CAVATICA_DELIVERY_ACCOUNT
+
+    **required**
+
+    The username for the Cavatica account associated with the token given by
+    :py:data:`CAVATICA_DELIVERY_TOKEN`.
 
 .. py:data:: CAVATICA_DELIVERY_TOKEN
 
@@ -137,15 +151,15 @@ Cavatica, only in the Study Creator's view of the projects.
 Volume Mounting
 ---------------
 
-New projects created through new studies or directly for existing studies may
-automatically have the study's bucket attached in Cavatica for ease of access
-when setting up a new project.
-Delivery projects will have volumes mounted using the
-:py:data:`CAVATICA_READ_ACCESS_KEY` and :py:data:`CAVATICA_READ_SECRET_KEY`
-key-pair to ensure that files may only be copied and read from the bucket.
-Analysis projects utilize the :py:data:`CAVATICA_READWRITE_ACCESS_KEY`
-and :py:data:`CAVATICA_READWRITE_SECRET_KEY` key pair so that results from
-analysis may be stored back into the buckets.
+A bucket will be created for new studies as part of the study creation flow
+given that :py:data:`FEAT_BUCKETSERVICE_CREATE_BUCKETS` is enabled.
+This bucket may optionally be added as a volume during the study creation flow
+by enabling :py:data:`FEAT_CAVATICA_MOUNT_VOLUMES` and providing S3
+credentials in the configuration given with
+the :py:data:`CAVATICA_READWRITE_ACCESS_KEY` and
+:py:data:`CAVATICA_READWRITE_SECRET_KEY` key-pair.
 
-To utilize this feature, the :py:data:`FEAT_CAVATICA_MOUNT_VOLUMES` flag
-should be set in addition to the :py:data:`FEAT_CAVATICA_CREATE_PROJECTS` flag.
+The new Cavatica volume will be added to the account of the token given by
+:py:data:`CAVATICA_HARMONIZATION_TOKEN` with full privileges and the account
+specified by :py:data:`CAVATICA_DELIVERY_ACCOUNT` will be added as a user with
+read and copy permissions.
