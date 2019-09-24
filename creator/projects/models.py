@@ -27,7 +27,11 @@ WORKFLOW_TYPES = (
     ("peddy", "peddy"),
 )
 
-PROJECT_TYPES = (("HAR", "harmonization"), ("DEL", "delivery"))
+PROJECT_TYPES = (
+    ("HAR", "harmonization"),
+    ("DEL", "delivery"),
+    ("RES", "research"),
+)
 
 
 class Project(models.Model):
