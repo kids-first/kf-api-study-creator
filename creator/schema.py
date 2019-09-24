@@ -65,6 +65,9 @@ class Mutation(graphene.ObjectType):
     create_project = creator.projects.schema.CreateProjectMutation.Field(
         description="Create a new project for a study"
     )
+    update_project = creator.projects.schema.UpdateProjectMutation.Field(
+        description="Update an existing project"
+    )
     sync_projects = creator.projects.schema.SyncProjectsMutation.Field(
         description=(
             "Synchronize projects in the study creator api with "
