@@ -27,6 +27,8 @@ WORKFLOW_TYPES = (
     ("peddy", "peddy"),
 )
 
+PROJECT_TYPES = (("HAR", "harmonization"), ("DEL", "delivery"))
+
 
 class Project(models.Model):
     """
@@ -53,8 +55,8 @@ class Project(models.Model):
         max_length=500, null=False, help_text="The url of the Cavatica project"
     )
     project_type = models.CharField(
+        choices=PROJECT_TYPES,
         max_length=3,
-        choices=(("HAR", "harmonization"), ("DEL", "delivery")),
         default="HAR",
         help_text="The Cavatica project type",
     )

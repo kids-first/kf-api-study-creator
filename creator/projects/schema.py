@@ -11,7 +11,7 @@ from creator.studies.models import Study
 from creator.events.models import Event
 
 from creator.projects.cavatica import sync_cavatica_projects, create_project
-from .models import Project, WORKFLOW_TYPES
+from .models import Project, PROJECT_TYPES, WORKFLOW_TYPES
 
 
 WorkflowType = Enum(
@@ -19,6 +19,14 @@ WorkflowType = Enum(
     [
         (workflow[0], workflow[0].replace("-", "_"))
         for workflow in WORKFLOW_TYPES
+    ],
+)
+
+ProjectType = Enum(
+    "ProjectType",
+    [
+        (project_type[0], projcet_type[0].replace("-", "_"))
+        for project_type in PROJECT_TYPES
     ],
 )
 
