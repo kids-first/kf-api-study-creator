@@ -11,7 +11,7 @@ from creator.studies.models import Study
 from creator.events.models import Event
 
 from creator.projects.cavatica import sync_cavatica_projects, create_project
-from .models import Project, WORKFLOW_TYPES
+from .models import Project, PROJECT_TYPES, WORKFLOW_TYPES
 
 
 WorkflowType = Enum(
@@ -19,6 +19,14 @@ WorkflowType = Enum(
     [
         (workflow[0], workflow[0].replace("-", "_"))
         for workflow in WORKFLOW_TYPES
+    ],
+)
+
+ProjectType = Enum(
+    "ProjectType",
+    [
+        (project_type[0], project_type[0].replace("-", "_"))
+        for project_type in PROJECT_TYPES
     ],
 )
 
@@ -126,6 +134,68 @@ class CreateProjectMutation(Mutation):
             )
         project = create_project(study, "HAR", input["workflow_type"])
         return CreateProjectMutation(project=project)
+
+
+class UpdateProjectInput(InputObjectType):
+    """
+    Fields that may be updated for a project
+    """
+
+    workflow_type = Field(
+        "creator.projects.schema.WorkflowType",
+        description="Workflows to be run for this study",
+    )
+    project_type = Field(
+        "creator.projects.schema.ProjectType",
+        description="The type of project",
+    )
+
+
+class UpdateProjectMutation(Mutation):
+    class Arguments:
+        id = ID(required=True, description="The ID of the project to update")
+        input = UpdateProjectInput(
+            required=True, description="Attributes for the project"
+        )
+
+    project = Field(ProjectNode)
+
+    def mutate(self, info, id, input):
+        """
+        Update a project
+        """
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Not authenticated to update a project.")
+
+        try:
+            _, project_id = from_global_id(id)
+            project = Project.objects.get(project_id=project_id)
+        except Project.DoesNotExist:
+            raise GraphQLError("Project does not exist.")
+
+        for attr, value in input.items():
+            setattr(project, attr, value)
+        project.save()
+
+        # Log an event
+        message = f"{user.username} updated project {project.project_id}"
+        event = Event(
+            study=project.study,
+            project=project,
+            description=message,
+            event_type="PR_UPD",
+        )
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return UpdateProjectMutation(project=project)
 
 
 class SyncProjectsMutation(Mutation):
