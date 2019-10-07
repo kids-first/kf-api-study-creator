@@ -1,3 +1,26 @@
+# Kids First Study Creator Release 1.7.0
+
+## Features
+
+### Summary
+
+Feature Emojis: ✨x5 🔧x2 📝x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x5 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x3 [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x1 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1
+
+### New features and changes
+
+- (#306) ✨ Add updateProject mutation - @dankolbman
+- (#304) 📝 Add page on Data Service settings - @dankolbman
+- (#300) ✨ Integrate bucketservice - @dankolbman
+- (#302) Terraform 0.12 Upgrade - @blackdenc
+- (#296) 🔧 Update port for study creator - @dankolbman
+- (#298) 🔧 Load database creds from S3 - @dankolbman
+- (#294) ✨ Make bucket modifiable - @dankolbman
+- (#293) ✨ Mark studies as deleted from dataservice - @dankolbman
+- (#291) ✏️ Rename datetime filters - @dankolbman
+- (#289) ✨ Emit events for projects - @dankolbman
+
+
 # Kids First Study Creator Release 1.6.1
 
 ## Features
