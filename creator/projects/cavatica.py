@@ -154,17 +154,6 @@ def sync_cavatica_account(project_type):
     for cavatica_project in api.projects.query().all():
         seen_projects.add(cavatica_project.id)
 
-        if project_type == "HAR" and (
-            "harmonization" not in cavatica_project.id
-            or not any(
-                [
-                    workflow_choice[1] in cavatica_project.name
-                    for workflow_choice in WORKFLOW_TYPES
-                ]
-            )
-        ):
-            continue
-
         description = (
             cavatica_project.description
             if cavatica_project.description
@@ -184,7 +173,6 @@ def sync_cavatica_account(project_type):
                 "name": cavatica_project.name,
                 "description": description,
                 "url": cavatica_project.href,
-                "project_type": project_type,
                 "workflow_type": "bwa_mem",
                 "created_by": cavatica_project.created_by,
                 "created_on": cavatica_project.created_on.replace(
