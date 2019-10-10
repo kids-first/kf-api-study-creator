@@ -39,6 +39,9 @@ class Command(BaseCommand):
                     kf_id=fields['kf_id'])
             s3_id = fields['kf_id'].lower().replace('_', '-')
             new_study.bucket = f"{bucket}{s3_id}"
+
+            # If the study was found in the dataservice, it must not be deleted
+            new_study.deleted = False
             new_study.save()
             if created:
                 print('Created', study['kf_id'])
@@ -51,4 +54,7 @@ class Command(BaseCommand):
 
         for study in deleted_studies:
             Study.objects.filter(kf_id=study).update(deleted=True)
-        print(f'{len(deleted_studies)} studies were marked as deleted')
+        print(
+            f"{len(deleted_studies)} studies were marked as deleted: ",
+            "{deleted_studies}",
+        )
