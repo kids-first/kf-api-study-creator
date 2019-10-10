@@ -1,3 +1,20 @@
+# Kids First Study Creator Release 1.7.1
+
+## Features
+
+Hot fix to un-delete studies that have reappeared in dataservice and stop trying to configure Cavatica projects' type on sync.
+
+### Summary
+
+Feature Emojis: ♻️x2
+Feature Labels: [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1
+
+### New features and changes
+
+- (#308) ♻️ Don't set project type based on project name - @dankolbman
+- (#309) ♻️ Un-delete studies that have reappeared - @dankolbman
+
+
 # Kids First Study Creator Release 1.7.0
 
 ## Features
