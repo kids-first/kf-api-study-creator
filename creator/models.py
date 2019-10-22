@@ -65,6 +65,10 @@ class User(AbstractUser):
     study_subscriptions = models.ManyToManyField(
         Study, help_text="Tracks studies that user is following"
     )
+    email_notify = models.BooleanField(
+        default=False,
+        help_text="Whether the user has enabled email notifications",
+    )
 
     objects = MyUserManager()
 

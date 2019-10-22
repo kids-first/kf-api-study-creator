@@ -6,15 +6,21 @@ User = get_user_model()
 
 
 UPDATE_PROFILE = """
-    mutation ($slackNotify: Boolean, $slackMemberId: String) {
+    mutation (
+        $slackNotify: Boolean,
+        $slackMemberId: String,
+        $emailNotify: Boolean
+    ) {
         updateMyProfile(
             slackNotify: $slackNotify,
             slackMemberId: $slackMemberId
+            emailNotify: $emailNotify,
         ) {
             user {
                 username
                 slackNotify
                 slackMemberId
+                emailNotify
                 roles
                 groups
             }
@@ -99,13 +105,18 @@ def test_my_profile_mutation(
         "/graphql",
         data={
             "query": UPDATE_PROFILE,
-            "variables": {"slackNotify": True, "slackMemberId": "U123"},
+            "variables": {
+                "slackNotify": True,
+                "slackMemberId": "U123",
+                "emailNotify": True,
+            },
         },
         content_type="application/json",
     )
 
     if expected:
         assert resp.json()["data"]["updateMyProfile"]["user"]["slackNotify"]
+        assert resp.json()["data"]["updateMyProfile"]["user"]["emailNotify"]
         assert (
             resp.json()["data"]["updateMyProfile"]["user"]["slackMemberId"]
             == "U123"

@@ -38,6 +38,7 @@ class UserNode(DjangoObjectType):
             "study_subscriptions",
             "slack_notify",
             "slack_member_id",
+            "email_notify",
         ]
 
     @classmethod
@@ -90,6 +91,7 @@ class MyProfileMutation(graphene.Mutation):
     class Arguments:
         slack_notify = graphene.Boolean()
         slack_member_id = graphene.String()
+        email_notify = graphene.Boolean()
 
     user = graphene.Field(UserNode)
 
@@ -106,6 +108,8 @@ class MyProfileMutation(graphene.Mutation):
             user.slack_notify = kwargs.get("slack_notify")
         if kwargs.get("slack_member_id"):
             user.slack_member_id = kwargs.get("slack_member_id")
+        if kwargs.get("email_notify"):
+            user.email_notify = kwargs.get("email_notify")
         user.save()
 
         return MyProfileMutation(user=user)
