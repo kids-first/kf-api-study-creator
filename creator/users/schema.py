@@ -104,11 +104,11 @@ class MyProfileMutation(graphene.Mutation):
         if not user.is_authenticated or user is None or user.email == "":
             raise GraphQLError("Not authenticated to mutate profile")
 
-        if kwargs.get("slack_notify"):
+        if "slack_notify" in kwargs:
             user.slack_notify = kwargs.get("slack_notify")
-        if kwargs.get("slack_member_id"):
+        if "slack_member_id" in kwargs:
             user.slack_member_id = kwargs.get("slack_member_id")
-        if kwargs.get("email_notify"):
+        if "email_notify" in kwargs:
             user.email_notify = kwargs.get("email_notify")
         user.save()
 
