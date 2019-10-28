@@ -86,7 +86,7 @@ def test_hidden_fields(db, admin_client, field):
     "user_type,expected",
     [("admin", True), ("service", False), ("user", True), (None, False)],
 )
-def test_my_profile_mutation(
+def test_my_profile_mutation_add_notification(
     db, admin_client, service_client, user_client, client, user_type, expected
 ):
     """
@@ -99,7 +99,7 @@ def test_my_profile_mutation(
         None: client,
     }[user_type]
     """
-    Test that users may update their profile
+    Test that users may update their profile with notify set to True
     """
     resp = api_client.post(
         "/graphql",
@@ -107,7 +107,7 @@ def test_my_profile_mutation(
             "query": UPDATE_PROFILE,
             "variables": {
                 "slackNotify": True,
-                "slackMemberId": "U123",
+                "slackMemberId": "U123TRUE",
                 "emailNotify": True,
             },
         },
@@ -119,12 +119,41 @@ def test_my_profile_mutation(
         assert resp.json()["data"]["updateMyProfile"]["user"]["emailNotify"]
         assert (
             resp.json()["data"]["updateMyProfile"]["user"]["slackMemberId"]
-            == "U123"
+            == "U123TRUE"
         )
         assert User.objects.first().slack_notify
-        assert User.objects.first().slack_member_id == "U123"
+        assert User.objects.first().email_notify
+        assert User.objects.first().slack_member_id == "U123TRUE"
     else:
         assert (
             resp.json()["errors"][0]["message"]
             == "Not authenticated to mutate profile"
         )
+
+
+def test_my_profile_mutation_remove_notification(db, admin_client):
+    """
+    Test that users may update their profile with notify set to False
+    """
+    resp = admin_client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_PROFILE,
+            "variables": {
+                "slackNotify": False,
+                "slackMemberId": "U123FALSE",
+                "emailNotify": False,
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert not resp.json()["data"]["updateMyProfile"]["user"]["slackNotify"]
+    assert not resp.json()["data"]["updateMyProfile"]["user"]["emailNotify"]
+    assert (
+        resp.json()["data"]["updateMyProfile"]["user"]["slackMemberId"]
+        == "U123FALSE"
+    )
+    assert not User.objects.first().slack_notify
+    assert not User.objects.first().email_notify
+    assert User.objects.first().slack_member_id == "U123FALSE"
