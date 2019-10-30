@@ -31,7 +31,8 @@ jobs:
           name: Run code tests
           working_directory: ~/workdir
           command: |
-            pytest
+            pytest --cov=./
+            codecov --token=$CODECOV_TOKEN
       - run:
           name: Lint documentation
           working_directory: ~/workdir
