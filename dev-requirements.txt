@@ -9,3 +9,5 @@ pycodestyle==2.5.0
 pytest-codestyle==1.4.0
 pytest-mock==1.10.4
 hypothesis==4.32.3
+pytest-cov==2.8.1
+codecov==2.0.15
