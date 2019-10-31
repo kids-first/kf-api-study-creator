@@ -1,3 +1,4 @@
+import logging
 import pytz
 import sevenbridges as sbg
 from django.conf import settings
@@ -143,15 +144,26 @@ def attach_volume(study):
         access_mode=access_mode,
     )
 
-    new_volume.add_member(
-        settings.CAVATICA_DELIVERY_ACCOUNT,
-        permissions={
-            "write": False,
-            "read": True,
-            "copy": True,
-            "admin": False,
-        },
+    logger.info(
+        f"Adding {settings.CAVATICA_DELIVERY_ACCOUNT} "
+        "as a member to the volume"
     )
+
+    try:
+        member = new_volume.add_member(
+            settings.CAVATICA_DELIVERY_ACCOUNT,
+            permissions={
+                "write": False,
+                "read": True,
+                "copy": True,
+                "admin": False,
+            },
+        )
+    except sbg.errors.Conflict as err:
+        logger.warn(
+            f"Unable to add {settings.CAVATICA_DELIVERY_ACCOUNT} to the "
+            f"volume. Perhaps they are already a member? {err}"
+        )
 
     return new_volume
 
