@@ -1,8 +1,12 @@
+import logging
 import pytz
 import sevenbridges as sbg
 from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
 from creator.events.models import Event
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def create_project(study, project_type, workflow_type=None, user=None):
@@ -12,6 +16,8 @@ def create_project(study, project_type, workflow_type=None, user=None):
     The provided workflow_type will be appended at the end of the project_id
     for the project, and the display value of workflow type name will be
     appended at the end of the name for the project.
+    If volume mounting is enabled, the study's bucket will be attached to the
+    new project.
     """
     token = None
     name = study.kf_id
@@ -72,6 +78,7 @@ def create_project(study, project_type, workflow_type=None, user=None):
     if project_type == "HAR":
         copy_users(api, cavatica_project)
 
+    # Attach S3 volume, no-op if the correct settings are not set
     return project
 
 
@@ -103,6 +110,64 @@ def copy_users(api, project):
             pass
 
 
+def attach_volume(study):
+    """
+    Attaches a study bucket to the Harmonization's Cavatica account.
+    Will use the CAVATICA_READWRITE_* keys to create the volume in the
+    CAVATICA_HARMONIZATION_ACCOUNT and will add the CAVATICA_DELIVERY_ACCOUNT
+    as a member of the volume with read and copy permissions.
+    """
+    # Check that mounting volumes is enabled
+    if not settings.FEAT_CAVATICA_MOUNT_VOLUMES:
+        return
+
+    api = sbg.Api(
+        url=settings.CAVATICA_URL, token=settings.CAVATICA_HARMONIZATION_TOKEN
+    )
+
+    access_key = settings.CAVATICA_READWRITE_ACCESS_KEY
+    secret_key = settings.CAVATICA_READWRITE_SECRET_KEY
+    access_mode = "RW"
+
+    # Make sure that the keys were set correctly
+    if access_key is None or secret_key is None:
+        raise "Volume mounting is enabled but keys are not set correctly"
+
+    # Now we know that all settings are in place to attach a volume
+
+    new_volume = api.volumes.create_s3_volume(
+        name=study.kf_id,
+        description=f"Created by the Study Creator for '{study.name}'",
+        bucket=study.bucket,
+        access_key_id=access_key,
+        secret_access_key=secret_key,
+        access_mode=access_mode,
+    )
+
+    logger.info(
+        f"Adding {settings.CAVATICA_DELIVERY_ACCOUNT} "
+        "as a member to the volume"
+    )
+
+    try:
+        member = new_volume.add_member(
+            settings.CAVATICA_DELIVERY_ACCOUNT,
+            permissions={
+                "write": False,
+                "read": True,
+                "copy": True,
+                "admin": False,
+            },
+        )
+    except sbg.errors.Conflict as err:
+        logger.warn(
+            f"Unable to add {settings.CAVATICA_DELIVERY_ACCOUNT} to the "
+            f"volume. Perhaps they are already a member? {err}"
+        )
+
+    return new_volume
+
+
 def setup_cavatica(study, workflows=None, user=None):
     """
     Entry point to set up Cavatica projects for a study
@@ -118,6 +183,16 @@ def setup_cavatica(study, workflows=None, user=None):
     projects = [delivery_project]
     for workflow in workflows:
         projects.append(create_project(study, "HAR", workflow, user=user))
+
+    if (
+        settings.FEAT_CAVATICA_MOUNT_VOLUMES
+        and settings.CAVATICA_URL
+        and settings.CAVATICA_HARMONIZATION_TOKEN
+        and settings.CAVATICA_READWRITE_ACCESS_KEY
+        and settings.CAVATICA_READWRITE_SECRET_KEY
+        and settings.CAVATICA_DELIVERY_ACCOUNT
+    ):
+        attach_volume(study)
 
     return projects
 

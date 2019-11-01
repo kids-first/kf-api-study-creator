@@ -221,9 +221,13 @@ BUCKETSERVICE_URL = os.environ.get("BUCKETSERVICE_URL", "http://bucketservice")
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
 )
+CAVATICA_HARMONIZATION_ACCOUNT = os.environ.get(
+    "CAVATICA_HARMONIZATION_ACCOUNT", None
+)
 CAVATICA_HARMONIZATION_TOKEN = os.environ.get(
     "CAVATICA_HARMONIZATION_TOKEN", None
 )
+CAVATICA_DELIVERY_ACCOUNT = os.environ.get("CAVATICA_DELIVERY_ACCOUNT", None)
 CAVATICA_DELIVERY_TOKEN = os.environ.get("CAVATICA_DELIVERY_TOKEN", None)
 CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
     "CAVATICA_DEFAULT_WORKFLOWS", "bwa_mem,gatk_haplotypecaller"
@@ -235,19 +239,37 @@ CAVATICA_USER_ACCESS_PROJECT = os.environ.get(
     "CAVATICA_USER_ACCESS_PROJECT", "kids-first-drc/user-access"
 )
 
+# AWS keys used to attach volumes in Cavatica
+CAVATICA_READ_ACCESS_KEY = os.environ.get("CAVATICA_READ_ACCESS_KEY")
+CAVATICA_READ_SECRET_KEY = os.environ.get("CAVATICA_READ_SECRET_KEY")
+CAVATICA_READWRITE_ACCESS_KEY = os.environ.get("CAVATICA_READWRITE_ACCESS_KEY")
+CAVATICA_READWRITE_SECRET_KEY = os.environ.get("CAVATICA_READWRITE_SECRET_KEY")
+
+################################################################################
 ### Feature Flags
+
 # Synchronize updates to studies with dataservice
 FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
     "FEAT_DATASERVICE_CREATE_STUDIES", True
 )
+
+# Relay updates to studies to the dataservice
 FEAT_DATASERVICE_UPDATE_STUDIES = os.environ.get(
     "FEAT_DATASERVICE_UPDATE_STUDIES", True
 )
+
+# Create new projects in Cavatica for each new study or existing studies
 FEAT_CAVATICA_CREATE_PROJECTS = os.environ.get(
     "FEAT_CAVATICA_CREATE_PROJECTS", True
 )
-# Copy users from the CAVATICA_USER_ACCESS_PROJECT
+
+# Copy users from the CAVATICA_USER_ACCESS_PROJECT to new projects on creation
 FEAT_CAVATICA_COPY_USERS = os.environ.get("FEAT_CAVATICA_COPY_USERS", True)
+
+# Attach study buckets to new Cavatica projects on creation
+FEAT_CAVATICA_MOUNT_VOLUMES = os.environ.get(
+    "FEAT_CAVATICA_MOUNT_VOLUMES", False
+)
 # Create buckets for new studies
 FEAT_BUCKETSERVICE_CREATE_BUCKETS = os.environ.get(
     "FEAT_BUCKETSERVICE_CREATE_BUCKETS", False
