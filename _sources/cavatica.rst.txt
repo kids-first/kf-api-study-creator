@@ -19,6 +19,10 @@ The Cavatica integration features may enabled with the following feature flags.
    over from a template project supplied by the
    :py:data:`CAVATICA_USER_ACCESS_PROJECT` setting.
 
+.. py:data:: FEAT_CAVATICA_MOUNT_VOLUMES
+
+   New Cavatica projects will have the study's bucket attached as a volume
+   upon creation.
 
 Configuration Settings
 ----------------------
@@ -32,11 +36,25 @@ integration to function correctly.
 
     The url of the Cavatica api endpoint
 
+.. py:data:: CAVATICA_HARMONIZATION_ACCOUNT
+
+    **required**
+
+    The username for the Cavatica account associated with the token given by
+    :py:data:`CAVATICA_HARMONIZATION_TOKEN`.
+
 .. py:data:: CAVATICA_HARMONIZATION_TOKEN
 
     **required**
 
     The api token for the harmonization Cavatica account
+
+.. py:data:: CAVATICA_DELIVERY_ACCOUNT
+
+    **required**
+
+    The username for the Cavatica account associated with the token given by
+    :py:data:`CAVATICA_DELIVERY_TOKEN`.
 
 .. py:data:: CAVATICA_DELIVERY_TOKEN
 
@@ -56,6 +74,32 @@ integration to function correctly.
 
     The project_id of a Cavatica project which contains users and permissions
     that will be copied over to new Cavatica analysis projects.
+
+.. py:data:: CAVATICA_READ_ACCESS_KEY
+
+    **default:** ``None``
+
+    The AWS access key for a read-only user with priviledges for the study
+    buckets.
+
+.. py:data:: CAVATICA_READ_SECRET_KEY
+
+    **default:** ``None``
+
+    The AWS secret key for a read-only user with priviledges for the study
+    buckets.
+
+.. py:data:: CAVATICA_READWRITE_ACCESS_KEY
+
+    **default:** ``None``
+
+    The AWS access key for a user with priviledges for the study buckets.
+
+.. py:data:: CAVATICA_READWRITE_SECRET_KEY
+
+    **default:** ``None``
+
+    The AWS secret key for a user with priviledges for the study buckets.
 
 
 Configuration
@@ -103,3 +147,19 @@ projects for *both cavatica tokens* and ensure that all the projects within
 the Study Creator exist and are up to date.
 This is a purely passive operation meaning that no data will be updated in
 Cavatica, only in the Study Creator's view of the projects.
+
+Volume Mounting
+---------------
+
+A bucket will be created for new studies as part of the study creation flow
+given that :py:data:`FEAT_BUCKETSERVICE_CREATE_BUCKETS` is enabled.
+This bucket may optionally be added as a volume during the study creation flow
+by enabling :py:data:`FEAT_CAVATICA_MOUNT_VOLUMES` and providing S3
+credentials in the configuration given with
+the :py:data:`CAVATICA_READWRITE_ACCESS_KEY` and
+:py:data:`CAVATICA_READWRITE_SECRET_KEY` key-pair.
+
+The new Cavatica volume will be added to the account of the token given by
+:py:data:`CAVATICA_HARMONIZATION_TOKEN` with full privileges and the account
+specified by :py:data:`CAVATICA_DELIVERY_ACCOUNT` will be added as a user with
+read and copy permissions.

@@ -101,6 +101,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#operation">Operation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cavatica-accounts">Cavatica Accounts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#synchronizing-projects">Synchronizing Projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-mounting">Volume Mounting</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="bucketservice.html">Bucket Service Integration</a></li>
@@ -190,6 +191,13 @@ over from a template project supplied by the
 <a class="reference internal" href="#CAVATICA_USER_ACCESS_PROJECT" title="CAVATICA_USER_ACCESS_PROJECT"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_USER_ACCESS_PROJECT</span></code></a> setting.</p>
 </dd></dl>
 
+<dl class="data">
+<dt id="FEAT_CAVATICA_MOUNT_VOLUMES">
+<code class="descname">FEAT_CAVATICA_MOUNT_VOLUMES</code><a class="headerlink" href="#FEAT_CAVATICA_MOUNT_VOLUMES" title="Permalink to this definition">¶</a></dt>
+<dd><p>New Cavatica projects will have the study’s bucket attached as a volume
+upon creation.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="configuration-settings">
 <h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this headline">¶</a></h2>
@@ -203,10 +211,26 @@ integration to function correctly.</p>
 </dd></dl>
 
 <dl class="data">
+<dt id="CAVATICA_HARMONIZATION_ACCOUNT">
+<code class="descname">CAVATICA_HARMONIZATION_ACCOUNT</code><a class="headerlink" href="#CAVATICA_HARMONIZATION_ACCOUNT" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The username for the Cavatica account associated with the token given by
+<a class="reference internal" href="#CAVATICA_HARMONIZATION_TOKEN" title="CAVATICA_HARMONIZATION_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_HARMONIZATION_TOKEN</span></code></a>.</p>
+</dd></dl>
+
+<dl class="data">
 <dt id="CAVATICA_HARMONIZATION_TOKEN">
 <code class="descname">CAVATICA_HARMONIZATION_TOKEN</code><a class="headerlink" href="#CAVATICA_HARMONIZATION_TOKEN" title="Permalink to this definition">¶</a></dt>
 <dd><p><strong>required</strong></p>
 <p>The api token for the harmonization Cavatica account</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_DELIVERY_ACCOUNT">
+<code class="descname">CAVATICA_DELIVERY_ACCOUNT</code><a class="headerlink" href="#CAVATICA_DELIVERY_ACCOUNT" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The username for the Cavatica account associated with the token given by
+<a class="reference internal" href="#CAVATICA_DELIVERY_TOKEN" title="CAVATICA_DELIVERY_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_DELIVERY_TOKEN</span></code></a>.</p>
 </dd></dl>
 
 <dl class="data">
@@ -229,6 +253,36 @@ integration to function correctly.</p>
 <dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">kids-first-drc/user-access</span></code></p>
 <p>The project_id of a Cavatica project which contains users and permissions
 that will be copied over to new Cavatica analysis projects.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_READ_ACCESS_KEY">
+<code class="descname">CAVATICA_READ_ACCESS_KEY</code><a class="headerlink" href="#CAVATICA_READ_ACCESS_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<p>The AWS access key for a read-only user with priviledges for the study
+buckets.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_READ_SECRET_KEY">
+<code class="descname">CAVATICA_READ_SECRET_KEY</code><a class="headerlink" href="#CAVATICA_READ_SECRET_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<p>The AWS secret key for a read-only user with priviledges for the study
+buckets.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_READWRITE_ACCESS_KEY">
+<code class="descname">CAVATICA_READWRITE_ACCESS_KEY</code><a class="headerlink" href="#CAVATICA_READWRITE_ACCESS_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<p>The AWS access key for a user with priviledges for the study buckets.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CAVATICA_READWRITE_SECRET_KEY">
+<code class="descname">CAVATICA_READWRITE_SECRET_KEY</code><a class="headerlink" href="#CAVATICA_READWRITE_SECRET_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<p>The AWS secret key for a user with priviledges for the study buckets.</p>
 </dd></dl>
 
 </div>
@@ -271,6 +325,20 @@ projects for <em>both cavatica tokens</em> and ensure that all the projects with
 the Study Creator exist and are up to date.
 This is a purely passive operation meaning that no data will be updated in
 Cavatica, only in the Study Creator’s view of the projects.</p>
+</div>
+<div class="section" id="volume-mounting">
+<h2>Volume Mounting<a class="headerlink" href="#volume-mounting" title="Permalink to this headline">¶</a></h2>
+<p>A bucket will be created for new studies as part of the study creation flow
+given that <a class="reference internal" href="bucketservice.html#FEAT_BUCKETSERVICE_CREATE_BUCKETS" title="FEAT_BUCKETSERVICE_CREATE_BUCKETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">FEAT_BUCKETSERVICE_CREATE_BUCKETS</span></code></a> is enabled.
+This bucket may optionally be added as a volume during the study creation flow
+by enabling <a class="reference internal" href="#FEAT_CAVATICA_MOUNT_VOLUMES" title="FEAT_CAVATICA_MOUNT_VOLUMES"><code class="xref py py-data docutils literal notranslate"><span class="pre">FEAT_CAVATICA_MOUNT_VOLUMES</span></code></a> and providing S3
+credentials in the configuration given with
+the <a class="reference internal" href="#CAVATICA_READWRITE_ACCESS_KEY" title="CAVATICA_READWRITE_ACCESS_KEY"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_READWRITE_ACCESS_KEY</span></code></a> and
+<a class="reference internal" href="#CAVATICA_READWRITE_SECRET_KEY" title="CAVATICA_READWRITE_SECRET_KEY"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_READWRITE_SECRET_KEY</span></code></a> key-pair.</p>
+<p>The new Cavatica volume will be added to the account of the token given by
+<a class="reference internal" href="#CAVATICA_HARMONIZATION_TOKEN" title="CAVATICA_HARMONIZATION_TOKEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_HARMONIZATION_TOKEN</span></code></a> with full privileges and the account
+specified by <a class="reference internal" href="#CAVATICA_DELIVERY_ACCOUNT" title="CAVATICA_DELIVERY_ACCOUNT"><code class="xref py py-data docutils literal notranslate"><span class="pre">CAVATICA_DELIVERY_ACCOUNT</span></code></a> will be added as a user with
+read and copy permissions.</p>
 </div>
 </div>
 
