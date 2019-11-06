@@ -1,3 +1,23 @@
+# Kids First Study Creator Release 1.7.2
+
+## Features
+
+Add user setting for email preference.
+Setup Cavatica volumes for new projects.
+
+### Summary
+
+Feature Emojis: ✨x2 ✅x1 🐛x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x2 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x1 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x1
+
+### New features and changes
+
+- (#287) ✨ Attach Cavatica volumes - @dankolbman
+- (#313) ✅ Add Codecov test as default pull request checking method - @XuTheBunny
+- (#312) 🐛 Fix the user email/slack notify toggle mutation - @XuTheBunny
+- (#311) ✨ Add email notification field - @dankolbman
+
+
 # Kids First Study Creator Release 1.7.1
 
 ## Features
