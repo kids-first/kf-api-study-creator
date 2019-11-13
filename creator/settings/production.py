@@ -184,7 +184,7 @@ CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
 CACHE_EGO_TIMEOUT = 86400
 
 # Auth0 settings
-AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "kids-first.auth0.com")
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "https://kids-first.auth0.com")
 AUTH0_JWKS = os.environ.get(
     "AUTH0_JWKS", "https://kids-first.auth0.com/.well-known/jwks.json"
 )
