@@ -207,7 +207,7 @@ class Auth0AuthenticationMiddleware():
             token.get("gty") == "client-credentials"
             and settings.CLIENT_ADMIN_SCOPE in token.get("scope", "").split()
         ):
-            user = User()
+            user = User(username=None)
             user.ego_roles = ["ADMIN"]
             user.ego_groups = []
             # We will return the service user here without trying to save it

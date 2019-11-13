@@ -30,7 +30,7 @@ UPDATE_PROFILE = """
 
 
 @pytest.mark.parametrize(
-    "user_type,email",
+    "user_type,username",
     [
         ("admin", "user@d3b.center"),
         ("service", None),
@@ -39,7 +39,7 @@ UPDATE_PROFILE = """
     ],
 )
 def test_my_profile(
-    db, admin_client, service_client, user_client, client, user_type, email
+    db, admin_client, service_client, user_client, client, user_type, username
 ):
     """
     Test that the myProfile query returns correct user
@@ -53,13 +53,13 @@ def test_my_profile(
 
     users = UserFactory.create_batch(25)
 
-    query = "{ myProfile { email } }"
+    query = "{ myProfile { username email } }"
     resp = api_client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
-    if email:
-        assert resp.json()["data"]["myProfile"]["email"] == email
+    if username:
+        assert resp.json()["data"]["myProfile"]["username"] == username
     else:
         assert (
             resp.json()["errors"][0]["message"]
