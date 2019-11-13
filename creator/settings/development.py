@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'graphene_django',
     'django_s3_storage',
+    'django_rq',
     'creator.files',
     'creator.studies',
     'creator.users',
@@ -109,6 +110,20 @@ CACHES = {
     }
 }
 
+# Redis for RQ
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = os.environ.get("REDIS_PORT", 6379)
+redis_pass = os.environ.get("REDIS_PASS", False)
+RQ_QUEUES = {
+    "default": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+    },
+}
+if redis_pass:
+    RQ_QUEUES["default"]["PASSWORD"] = redis_pass
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
