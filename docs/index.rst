@@ -34,7 +34,7 @@ pre-populated database of mock data.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Development:
 
    development/quickstart
    model
@@ -42,6 +42,12 @@ pre-populated database of mock data.
    downloads
    authentication
    authorization
-   cavatica
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Deployment:
+
+   auth0
    bucketservice
+   cavatica
    dataservice
