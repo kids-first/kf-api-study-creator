@@ -159,15 +159,36 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Logging Configuration
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "loggers": {
-        "": {
-            "handlers": ["console"],
-            "level": "INFO",
+    "formatters": {
+        "worker": {
+            "format": "[{asctime}] {levelname} {module}: {message}",
+            "datefmt": "%H:%M:%S",
+            "style": "{",
         }
+    },
+    "handlers": {
+        "rq_console": {
+            "level": "ERROR",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        },
+        "task": {
+            "level": "INFO",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        }
+    },
+    "loggers": {
+        "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
+        "creator.tasks": {"handlers": ["task"], "level": "INFO"},
+        "creator.studies.bucketservice": {
+            "handlers": ["task"],
+            "level": "INFO",
+        },
     },
 }
 
