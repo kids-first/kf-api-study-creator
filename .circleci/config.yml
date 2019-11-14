@@ -33,7 +33,7 @@ jobs:
           name: Run code tests
           working_directory: ~/workdir
           command: |
-            pytest --cov=./
+            pytest
             codecov --token=$CODECOV_TOKEN
       - run:
           name: Lint documentation
