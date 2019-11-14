@@ -47,7 +47,7 @@ def test_new_study_event(
         data={"query": CREATE_STUDY, "variables": variables},
     )
 
-    assert Event.objects.count() == 4
+    assert Event.objects.count() == 6
     assert Event.objects.filter(event_type="SD_CRE").count() == 1
 
     sd_cre = Event.objects.filter(event_type="SD_CRE").first()
@@ -55,9 +55,11 @@ def test_new_study_event(
     assert sd_cre.file is None
     assert sd_cre.study == Study.objects.first()
 
+    assert Event.objects.filter(event_type="PR_STR").count() == 1
+    assert Event.objects.filter(event_type="PR_SUC").count() == 1
+
     assert Event.objects.filter(event_type="PR_CRE").count() == 3
     pr_cre = Event.objects.filter(event_type="PR_CRE").first()
-    assert pr_cre.user == User.objects.first()
     assert pr_cre.file is None
     assert pr_cre.version is None
     assert pr_cre.study == Study.objects.first()

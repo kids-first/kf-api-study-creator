@@ -25,7 +25,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
 from creator.tasks import setup_bucket_task
-from creator.projects.cavatica import setup_cavatica
+from creator.tasks import setup_cavatica_task
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
 
@@ -243,8 +243,9 @@ class CreateStudyMutation(Mutation):
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
-            logger.info(f"Creating projects in Cavatica for {study.kf_id}")
-            setup_cavatica(study, workflows=workflows, user=user)
+            django_rq.enqueue(
+                setup_cavatica_task, study.kf_id, workflows, user.sub
+            )
 
         return CreateStudyMutation(study=study)
 
