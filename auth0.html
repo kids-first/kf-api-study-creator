@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Auth0 Integration &mdash; Kids First Study Creator  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bucket Service Integration" href="bucketservice.html" />
+    <link rel="prev" title="Authorization" href="authorization.html" />
+    <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
+ 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/study_creator.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Development:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="development/quickstart.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Deployment:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Auth0 Integration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#feature-flags">Feature Flags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-settings">Configuration Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bucketservice.html">Bucket Service Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cavatica.html">Cavatica Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataservice.html">Data Service Integration</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Kids First Study Creator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Auth0 Integration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/auth0.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="auth0-integration">
+<span id="auth0"></span><h1>Auth0 Integration<a class="headerlink" href="#auth0-integration" title="Permalink to this headline">¶</a></h1>
+<p>The Study Creator integrates with Auth0 (or another OIDC serivce) to
+authenticate users of the API.</p>
+<p>See <a class="reference internal" href="authentication.html#authentication"><span class="std std-ref">Authentication</span></a> for more information.</p>
+<div class="section" id="feature-flags">
+<h2>Feature Flags<a class="headerlink" href="#feature-flags" title="Permalink to this headline">¶</a></h2>
+<p>Authentication will be performed by default so long as the Study Creator is
+being run outside of <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> mode.
+Otherwise, a default admin user will be used as the default authenticated
+user for all requests.
+This should only be used for local development needs.</p>
+</div>
+<div class="section" id="configuration-settings">
+<h2>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="AUTH0_DOMAIN">
+<code class="descname">AUTH0_DOMAIN</code><a class="headerlink" href="#AUTH0_DOMAIN" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default:</strong> <code class="docutils literal notranslate"><span class="pre">https://kids-first.auth0.com</span></code></p>
+<p>The base url for the OIDC complient endpoint.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="AUTH0_JKWS">
+<code class="descname">AUTH0_JKWS</code><a class="headerlink" href="#AUTH0_JKWS" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">https://kids-first.auth0.com/.well-known/jwks.json</span></code></p>
+<p>The endpoint from which to retriev a JWK to verify tokens being sent to
+the Study Creator as specified by the <code class="docutils literal notranslate"><span class="pre">jwks_uri</span></code> in the
+<a class="reference external" href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata">OIDC Discovery configuration</a>
+of the auth provider.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="AUTH0_AUD">
+<code class="descname">AUTH0_AUD</code><a class="headerlink" href="#AUTH0_AUD" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">https://kf-study-creator.kidsfirstdrc.org</span></code></p>
+<p>The trusted audience of tokens which the Study Creator will accept.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="AUTH0_SERVICE_AUD">
+<code class="descname">AUTH0_SERVICE_AUD</code><a class="headerlink" href="#AUTH0_SERVICE_AUD" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">https://kf-study-creator.kidsfirstdrc.org</span></code></p>
+<p>The audience for which the Study Creator will retrieve
+<code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> service tokens for.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="AUTH0_CLIENT">
+<code class="descname">AUTH0_CLIENT</code><a class="headerlink" href="#AUTH0_CLIENT" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The client id for use in the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> flow.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="AUTH0_SECRET">
+<code class="descname">AUTH0_SECRET</code><a class="headerlink" href="#AUTH0_SECRET" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>required</strong></p>
+<p>The client secret for use in the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> flow.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CACHE_AUTH0_KEY">
+<code class="descname">CACHE_AUTH0_KEY</code><a class="headerlink" href="#CACHE_AUTH0_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">AUTH0_PUBLIC_KEY</span></code></p>
+<p>The key name to store the public key from <a class="reference internal" href="#AUTH0_JKWS" title="AUTH0_JKWS"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_JKWS</span></code></a> under in the
+cache.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CACHE_AUTH0_SERVICE_KEY">
+<code class="descname">CACHE_AUTH0_SERVICE_KEY</code><a class="headerlink" href="#CACHE_AUTH0_SERVICE_KEY" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">AUTH0_SERVICE_KEY</span></code></p>
+<p>The key name to store the service token retrieved from the
+<code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> flow under in the cache.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="CACHE_AUTH0_TIMEOUT">
+<code class="descname">CACHE_AUTH0_TIMEOUT</code><a class="headerlink" href="#CACHE_AUTH0_TIMEOUT" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>default</strong> <code class="docutils literal notranslate"><span class="pre">86400</span></code></p>
+<p>The time in seconds after which the <a class="reference internal" href="#CACHE_AUTH0_KEY" title="CACHE_AUTH0_KEY"><code class="xref py py-data docutils literal notranslate"><span class="pre">CACHE_AUTH0_KEY</span></code></a> and
+<a class="reference internal" href="#CACHE_AUTH0_SERVICE_KEY" title="CACHE_AUTH0_SERVICE_KEY"><code class="xref py py-data docutils literal notranslate"><span class="pre">CACHE_AUTH0_SERVICE_KEY</span></code></a> will expire and be refetched.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The Study Creator will work with the auth provider to both to verify incoming
+requests against the public key specified by <a class="reference internal" href="#AUTH0_JKWS" title="AUTH0_JKWS"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_JKWS</span></code></a> and
+verify itself by attaching tokens with a <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant obtained
+through the <a class="reference internal" href="#AUTH0_CLIENT" title="AUTH0_CLIENT"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_CLIENT</span></code></a> and <a class="reference internal" href="#AUTH0_SECRET" title="AUTH0_SECRET"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_SECRET</span></code></a> pair.
+The verification of incoming tokens may be done by the Study Creator through
+the public JWK endpoint as well as any other service that wishes to verify
+them.</p>
+<p>To verify outgoing requests by the Study Creator such as those needed for the
+<a class="reference internal" href="bucketservice.html#bucketservice"><span class="std std-ref">Bucket Service Integration</span></a>, however, require secrets to be stored to obtain tokens.
+To do this, <a class="reference internal" href="#AUTH0_CLIENT" title="AUTH0_CLIENT"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_CLIENT</span></code></a> and <a class="reference internal" href="#AUTH0_SECRET" title="AUTH0_SECRET"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_SECRET</span></code></a> need to be
+supplied in the environment.
+These are generated by registering an application for the Study Creator in
+Auth0 and registering a corresponding Auth0 API which allows Study Creator
+application to access it.
+The API’s <code class="docutils literal notranslate"><span class="pre">Identifier</span></code> will be the <code class="docutils literal notranslate"><span class="pre">aud</span></code> used to request new
+<code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> token and will need to be set for
+<a class="reference internal" href="#AUTH0_SERVICE_AUD" title="AUTH0_SERVICE_AUD"><code class="xref py py-data docutils literal notranslate"><span class="pre">AUTH0_SERVICE_AUD</span></code></a> so that the Study Creator may request the correct
+<code class="docutils literal notranslate"><span class="pre">aud</span></code>.
+See <a class="reference external" href="https://auth0.com/docs/api-auth/tutorials/client-credentials">How to implement the Client Credentials Grant</a>
+on Auth0 for more information.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="bucketservice.html" class="btn btn-neutral float-right" title="Bucket Service Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="authorization.html" class="btn btn-neutral float-left" title="Authorization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Kids First
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

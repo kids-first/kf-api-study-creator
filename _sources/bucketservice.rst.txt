@@ -1,3 +1,5 @@
+.. _bucketservice:
+
 Bucket Service Integration
 ==========================
 

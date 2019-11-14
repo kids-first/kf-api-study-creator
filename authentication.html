@@ -86,23 +86,24 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Development:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="development/quickstart.html">Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#ego-authentication">Ego Authentication</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#auth0-authentication">Auth0 Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#service-tokens">Service Tokens</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#request-verification">Request Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#service-tokens">Service Tokens</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cavatica.html">Cavatica Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Deployment:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="auth0.html">Auth0 Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bucketservice.html">Bucket Service Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cavatica.html">Cavatica Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataservice.html">Data Service Integration</a></li>
 </ul>
 
@@ -169,39 +170,34 @@
            <div itemprop="articleBody">
             
   <div class="section" id="authentication">
-<h1>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h1>
-<p>The Study Creator API uses JWTs issued from either Ego or Auth0 as its method
-of authentication.
+<span id="id1"></span><h1>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h1>
+<p>The Study Creator API uses JWTs issued from Auth0 as its method of
+authentication.
 Also supported are JWTs created with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant for
-Auth0 tokens to allow services to communicate with the API.</p>
-<div class="section" id="ego-authentication">
-<h2>Ego Authentication<a class="headerlink" href="#ego-authentication" title="Permalink to this headline">¶</a></h2>
-<p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
-public key found at the <code class="docutils literal notranslate"><span class="pre">/oauth/token/public_key</span></code> endpoint.
-The API will cache these keys for some period of time so that it will not need
-to be retrieved for every authenticated request.</p>
-<p>Upon successfully validating a user for the first time, the user’s profile
-will be persisted to the database.</p>
-</div>
-<div class="section" id="auth0-authentication">
-<h2>Auth0 Authentication<a class="headerlink" href="#auth0-authentication" title="Permalink to this headline">¶</a></h2>
+Auth0 tokens to allow services to communicate with the API and to verify
+outgoing requests from the Study Creator to other inegrations.</p>
+<div class="section" id="request-verification">
+<h2>Request Verification<a class="headerlink" href="#request-verification" title="Permalink to this headline">¶</a></h2>
 <p>The API will attempt to validate a request’s <code class="docutils literal notranslate"><span class="pre">Bearer</span></code> token against the
 public key found at <code class="docutils literal notranslate"><span class="pre">https://kids-first.auth0.com/.well-known/jwks.json</span></code>.
-The API will cache these keys for some period of time so that it will not need
+The API will cache this key for some period of time so that it will not need
 to be retrieved for every authenticated request.</p>
 <p>Upon successfull validation, the user’s <code class="docutils literal notranslate"><span class="pre">roles</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">permissions</span></code> will be read from the token’s
 <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/groups</span></code>, <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/roles</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/permissions</span></code> fields.
+and <code class="docutils literal notranslate"><span class="pre">https://kidsfirstdrc.org/permissions</span></code> claims.
 If it is the first time this user has authenticated with the API, a request
-will be made to fetch additional information about the user from Auth0.
+will be made to fetch additional information about the user from Auth0 using
+the <code class="docutils literal notranslate"><span class="pre">/userinfo</span></code> endpoint as decribed by the <a class="reference external" href="https://openid.net/specs/openid-connect-core-1_0.html#UserInfo">OIDC UserInfo</a>
+specification.
 Once additional info has been retrieved from Auth0, the user’s profile will be
 saved to the database so that this query will not have to be made again.</p>
+<p>See <a class="reference internal" href="auth0.html#auth0"><span class="std std-ref">Auth0 Integration</span></a> for more details on how to set up the integration.</p>
+</div>
 <div class="section" id="service-tokens">
-<h3>Service Tokens<a class="headerlink" href="#service-tokens" title="Permalink to this headline">¶</a></h3>
+<h2>Service Tokens<a class="headerlink" href="#service-tokens" title="Permalink to this headline">¶</a></h2>
 <p>Valid tokens with the <code class="docutils literal notranslate"><span class="pre">client_credentials</span></code> grant type will automatically be
 given the <code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> role, but they will not be saved to the database.</p>
-</div>
 </div>
 </div>
 
