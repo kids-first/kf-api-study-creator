@@ -1,3 +1,4 @@
+import django_rq
 import logging
 import requests
 
@@ -23,7 +24,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
-from creator.studies.bucketservice import setup_bucket
+from creator.tasks import setup_bucket_task
 from creator.projects.cavatica import setup_cavatica
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
@@ -233,13 +234,7 @@ class CreateStudyMutation(Mutation):
             settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
             and settings.BUCKETSERVICE_URL
         ):
-            logger.info(
-                f"Creating a new bucket with Bucket Service for {study.kf_id}"
-            )
-            # Setting up bucket will set the s3 location on the study so it
-            # needs to be captured and saved
-            study = setup_bucket(study)
-            study.save()
+            django_rq.enqueue(setup_bucket_task, study.kf_id)
 
         # Setup Cavatica
         if (
