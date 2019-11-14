@@ -10,6 +10,7 @@ jobs:
           - PG_USER=study-creator
           - PG_PASS=password
           - PG_HOST=localhost
+          - REDIS_HOST=localhost
           - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
           - AWS_ACCESS_KEY_ID=foobar_secret
           - AWS_SECRET_ACCESS_KEY=foobar_secret
@@ -18,6 +19,7 @@ jobs:
           - POSTGRES_DB=study-creator
           - POSTGRES_USER=study-creator
           - POSTGRES_PASSWORD=password
+      - image: redis:latest
     steps:
       - checkout:
           path: ~/workdir
