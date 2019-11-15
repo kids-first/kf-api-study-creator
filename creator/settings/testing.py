@@ -190,6 +190,7 @@ LOGGING = {
             "handlers": ["task"],
             "level": "INFO",
         },
+        "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
     },
 }
 

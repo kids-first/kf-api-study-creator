@@ -29,7 +29,7 @@ from creator.tasks import setup_cavatica_task
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
@@ -234,7 +234,15 @@ class CreateStudyMutation(Mutation):
             settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
             and settings.BUCKETSERVICE_URL
         ):
+            logger.info(
+                f"Scheduling Bucket Service setup for study {study.kf_id}"
+            )
             django_rq.enqueue(setup_bucket_task, study.kf_id)
+        else:
+            logger.info(
+                f"Bucket Service integration not configured. Skipping setup of"
+                f"new bucket resources for study {study.kf_id}"
+            )
 
         # Setup Cavatica
         if (
@@ -243,8 +251,16 @@ class CreateStudyMutation(Mutation):
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
+            logger.info(
+                f"Scheduling Cavatica project setup for study {study.kf_id}"
+            )
             django_rq.enqueue(
                 setup_cavatica_task, study.kf_id, workflows, user.sub
+            )
+        else:
+            logger.info(
+                f"Cavatica integration not configured. Skipping setup of "
+                f"new projects for study {study.kf_id}"
             )
 
         return CreateStudyMutation(study=study)
