@@ -55,7 +55,7 @@ if [[ -n $CAVATICA_VOLUMES ]]; then
 fi
 
 if $WORKER ; then
-    exec /app/manage.py rqworker default
+    supervisord -c  /etc/supervisor/conf.d/worker.conf
 else
     python manage.py syncstudies --api $DATASERVICE_URL
     /app/manage.py migrate
