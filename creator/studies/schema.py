@@ -230,6 +230,7 @@ class CreateStudyMutation(Mutation):
         event.save()
 
         # Setup bucket
+        bucket_job = None
         if (
             settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
             and settings.BUCKETSERVICE_URL
@@ -237,7 +238,7 @@ class CreateStudyMutation(Mutation):
             logger.info(
                 f"Scheduling Bucket Service setup for study {study.kf_id}"
             )
-            django_rq.enqueue(setup_bucket_task, study.kf_id)
+            bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)
         else:
             logger.info(
                 f"Bucket Service integration not configured. Skipping setup of"
@@ -254,8 +255,12 @@ class CreateStudyMutation(Mutation):
             logger.info(
                 f"Scheduling Cavatica project setup for study {study.kf_id}"
             )
-            django_rq.enqueue(
-                setup_cavatica_task, study.kf_id, workflows, user.sub
+            cav_job = django_rq.enqueue(
+                setup_cavatica_task,
+                study.kf_id,
+                workflows,
+                user.sub,
+                depends_on=bucket_job,
             )
         else:
             logger.info(

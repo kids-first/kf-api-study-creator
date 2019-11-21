@@ -238,6 +238,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         Study.objects.first().kf_id,
         ["bwa_mem"],
         User.objects.first().sub,
+        depends_on=None
     )
 
     # Try multiple workflows
@@ -256,6 +257,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         Study.objects.first().kf_id,
         workflows,
         User.objects.first().sub,
+        depends_on=None
     )
 
 
