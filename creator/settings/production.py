@@ -183,13 +183,13 @@ LOGGING = {
         }
     },
     "loggers": {
-        "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
-        "creator.tasks": {"handlers": ["task"], "level": "INFO"},
+        "rq.worker": {"handlers": ["rq_console"]},
+        "creator.tasks": {"handlers": ["task"]},
         "creator.studies.bucketservice": {
             "handlers": ["task"],
             "level": "INFO",
         },
-        "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
+        "creator.studies.schema": {"handlers": ["task"]},
     },
 }
 
