@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from graphene_file_upload.django import FileUploadGraphQLView
@@ -19,6 +19,7 @@ urlpatterns = [
         r'graphql',
         csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))
     ),
+    path("django-rq/", include("django_rq.urls")),
     path(
         r'download/study/<study_id>/file/<file_id>/version/<version_id>',
         creator.files.views.download

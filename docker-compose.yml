@@ -10,6 +10,8 @@ services:
       - PG_USER=study-creator
       - PG_PASS=password
       - PG_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
       - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
       - AWS_ACCESS_KEY_ID=foo
@@ -26,12 +28,36 @@ services:
       - .:/app
     ports:
       - '5002:8080'
+    depends_on:
+      - postgres
+      - redis
+  worker:
+    build:
+      context: .
+      target: dev
+    command: '/app/bin/dev_worker.sh'
+    volumes:
+      - ./:/app/
+    environment:
+      - PG_NAME=study-creator
+      - PG_USER=study-creator
+      - PG_PASS=password
+      - PG_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
+    depends_on:
+      - postgres
+      - redis
+      - web
   postgres:
     image: postgres:11.1
     environment:
       - POSTGRES_DB=study-creator
       - POSTGRES_USER=study-creator
       - POSTGRES_PASSWORD=password
+  redis:
+    image: redis:latest
 networks:
   default:
     external:

@@ -16,3 +16,5 @@ base32-crockford==0.3.0
 requests==2.21.0
 cryptography==2.5
 sevenbridges-python==0.24.0
+django-rq==2.1.0
+rq==1.1.0

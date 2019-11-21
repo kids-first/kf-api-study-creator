@@ -26,7 +26,10 @@ CMD /app/bin/dev_entrypoint.sh
 
 FROM base as prd
 
-RUN apt-get update && apt-get install -y jq wget
+RUN apt-get update && apt-get install -y jq wget supervisor
+
+RUN mkdir -p /var/log/supervisor/conf.d
+COPY bin/worker.conf /etc/supervisor/conf.d/worker.conf
 
 RUN wget -q -O vault.zip https://releases.hashicorp.com/vault/1.0.3/vault_1.0.3_linux_amd64.zip \ 
     && unzip vault.zip \

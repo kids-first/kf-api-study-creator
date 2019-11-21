@@ -3,6 +3,7 @@ from hypothesis import given, settings
 from hypothesis.strategies import text, integers, characters, dates
 from django.contrib.auth import get_user_model
 
+from creator.tasks import setup_cavatica_task
 from creator.files.models import Study
 from creator.projects.models import Project
 from creator.projects.cavatica import attach_volume
@@ -38,7 +39,7 @@ def mock_cavatica(mocker, settings):
     """ Mocks out project setup functions """
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
-    cavatica = mocker.patch("creator.studies.schema.setup_cavatica")
+    cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
     return cavatica
 
 
@@ -217,7 +218,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
     """
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
-    cavatica = mocker.patch("creator.projects.cavatica.create_project")
+    setup_cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
 
     variables = {
         "workflows": ["bwa_mem"],
@@ -231,13 +232,17 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
 
     user = User.objects.first()
 
-    assert cavatica.call_count == 2
-    cavatica.assert_called_with(
-        Study.objects.first(), "HAR", "bwa_mem", user=user
+    assert setup_cavatica.call_count == 1
+    setup_cavatica.assert_called_with(
+        setup_cavatica_task,
+        Study.objects.first().kf_id,
+        ["bwa_mem"],
+        User.objects.first().sub,
+        depends_on=None
     )
 
     # Try multiple workflows
-    cavatica.reset_mock()
+    setup_cavatica.reset_mock()
     workflows = ["bwa_mem", "mutect2_somatic_mode", "kallisto"]
     variables = {"workflows": workflows, "input": {"externalId": "Test Study"}}
     resp = admin_client.post(
@@ -246,11 +251,14 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
 
-    assert cavatica.call_count == 4
-    for workflow in workflows:
-        cavatica.assert_any_call(
-            Study.objects.first(), "HAR", workflow, user=user
-        )
+    assert setup_cavatica.call_count == 1
+    setup_cavatica.assert_called_with(
+        setup_cavatica_task,
+        Study.objects.first().kf_id,
+        workflows,
+        User.objects.first().sub,
+        depends_on=None
+    )
 
 
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'graphene_django',
     'django_s3_storage',
+    'django_rq',
     'creator.files',
     'creator.studies',
     'creator.users',
@@ -109,6 +110,20 @@ CACHES = {
     }
 }
 
+# Redis for RQ
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = os.environ.get("REDIS_PORT", 6379)
+redis_pass = os.environ.get("REDIS_PASS", False)
+RQ_QUEUES = {
+    "default": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+    },
+}
+if redis_pass:
+    RQ_QUEUES["default"]["PASSWORD"] = redis_pass
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -143,6 +158,39 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "worker": {
+            "format": "[{asctime}] {levelname} {module}: {message}",
+            "datefmt": "%H:%M:%S",
+            "style": "{",
+        }
+    },
+    "handlers": {
+        "rq_console": {
+            "level": "ERROR",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        },
+        "task": {
+            "level": "INFO",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        }
+    },
+    "loggers": {
+        "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
+        "creator.tasks": {"handlers": ["task"], "level": "INFO"},
+        "creator.studies.bucketservice": {
+            "handlers": ["task"],
+            "level": "INFO",
+        },
+        "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
+    },
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/

@@ -54,6 +54,10 @@ if [[ -n $CAVATICA_VOLUMES ]]; then
     rm ./cavatica_volumes.env
 fi
 
-python manage.py syncstudies --api $DATASERVICE_URL
-/app/manage.py migrate
-exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
+if $WORKER ; then
+    supervisord -c  /etc/supervisor/conf.d/worker.conf
+else
+    python manage.py syncstudies --api $DATASERVICE_URL
+    /app/manage.py migrate
+    exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
+fi

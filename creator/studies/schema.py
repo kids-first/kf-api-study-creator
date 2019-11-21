@@ -1,3 +1,4 @@
+import django_rq
 import logging
 import requests
 
@@ -23,12 +24,12 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
-from creator.studies.bucketservice import setup_bucket
-from creator.projects.cavatica import setup_cavatica
+from creator.tasks import setup_bucket_task
+from creator.tasks import setup_cavatica_task
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
@@ -229,17 +230,20 @@ class CreateStudyMutation(Mutation):
         event.save()
 
         # Setup bucket
+        bucket_job = None
         if (
             settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
             and settings.BUCKETSERVICE_URL
         ):
             logger.info(
-                f"Creating a new bucket with Bucket Service for {study.kf_id}"
+                f"Scheduling Bucket Service setup for study {study.kf_id}"
             )
-            # Setting up bucket will set the s3 location on the study so it
-            # needs to be captured and saved
-            study = setup_bucket(study)
-            study.save()
+            bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)
+        else:
+            logger.info(
+                f"Bucket Service integration not configured. Skipping setup of"
+                f"new bucket resources for study {study.kf_id}"
+            )
 
         # Setup Cavatica
         if (
@@ -248,8 +252,21 @@ class CreateStudyMutation(Mutation):
             and settings.CAVATICA_HARMONIZATION_TOKEN
             and settings.CAVATICA_DELIVERY_TOKEN
         ):
-            logger.info(f"Creating projects in Cavatica for {study.kf_id}")
-            setup_cavatica(study, workflows=workflows, user=user)
+            logger.info(
+                f"Scheduling Cavatica project setup for study {study.kf_id}"
+            )
+            cav_job = django_rq.enqueue(
+                setup_cavatica_task,
+                study.kf_id,
+                workflows,
+                user.sub,
+                depends_on=bucket_job,
+            )
+        else:
+            logger.info(
+                f"Cavatica integration not configured. Skipping setup of "
+                f"new projects for study {study.kf_id}"
+            )
 
         return CreateStudyMutation(study=study)
 
