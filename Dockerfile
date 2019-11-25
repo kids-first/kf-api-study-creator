@@ -1,15 +1,17 @@
-FROM python:3.7 as base
+FROM python:3.7-alpine as base
 ENV PYTHONUNBUFFERED 1
 
 RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt /app/
-RUN pip install -r requirements.txt
-RUN pip install awscli
+RUN apk add --no-cache postgresql-libs && \
+    apk add --no-cache --virtual .build-deps gcc libffi-dev musl-dev postgresql-dev && \
+    pip install awscli && \
+    pip install -r requirements.txt --no-cache-dir && \
+    apk --purge del .build-deps
 COPY . /app/
 
 EXPOSE 80
-RUN apt-get update && apt-get install -y postgresql postgresql-contrib
 
 CMD /app/bin/entrypoint.sh
 
@@ -18,14 +20,16 @@ FROM base as dev
 
 ENV PRELOAD_DATA false
 COPY dev-requirements.txt /app/
-RUN pip install -r /app/dev-requirements.txt
+RUN apk add --no-cache --virtual .build-deps git && \
+    pip install -r /app/dev-requirements.txt && \
+    apk --purge del .build-deps
 
 CMD /app/bin/dev_entrypoint.sh
 
 
 FROM base as prd
 
-RUN apt-get update && apt-get install -y jq wget supervisor
+RUN apk add --no-cache jq wget supervisor
 
 RUN mkdir -p /var/log/supervisor/conf.d
 COPY bin/worker.conf /etc/supervisor/conf.d/worker.conf

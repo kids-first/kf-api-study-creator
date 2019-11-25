@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ash
 if [[ -n $VAULT_ADDR ]] && [[ -n $VAULT_ROLE ]]; then
     vault login -method=aws role=$VAULT_ROLE 2>&1 | grep authent
 
