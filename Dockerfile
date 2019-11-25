@@ -9,13 +9,12 @@ RUN pip install awscli
 COPY . /app/
 
 EXPOSE 80
+RUN apt-get update && apt-get install -y postgresql postgresql-contrib
 
 CMD /app/bin/entrypoint.sh
 
 
 FROM base as dev
-
-RUN apt-get update && apt-get install -y postgresql postgresql-contrib
 
 ENV PRELOAD_DATA false
 COPY dev-requirements.txt /app/
