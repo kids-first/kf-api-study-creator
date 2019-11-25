@@ -11,6 +11,14 @@ RUN apk add --no-cache postgresql-libs && \
     apk --purge del .build-deps
 COPY . /app/
 
+# Bake version number
+RUN apk add --no-cache --virtual .build-deps git && \
+    cd /app && \
+    COMMIT=`git rev-parse --short HEAD` && echo "COMMIT=\"${COMMIT}\"" > /app/creator/version_info.py && \
+    VERSION=`git describe --always --tags` && echo "VERSION=\"${VERSION}\"" >> /app/creator/version_info.py && \
+    cd / && \
+    apk --purge del .build-deps
+
 EXPOSE 80
 
 CMD /app/bin/entrypoint.sh
