@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt /app/
-RUN apk add --no-cache postgresql-libs && \
+RUN apk add --no-cache postgresql-libs postgresql-client && \
     apk add --no-cache --virtual .build-deps gcc libffi-dev musl-dev postgresql-dev && \
     pip install awscli && \
     pip install -r requirements.txt --no-cache-dir && \
