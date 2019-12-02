@@ -61,6 +61,9 @@ class Features(graphene.ObjectType):
             "created"
         )
     )
+    create_slack_channels = graphene.Boolean(
+        description=("Create a Slack channel for new studies")
+    )
 
 
 class Settings(graphene.ObjectType):
@@ -112,6 +115,10 @@ class Settings(graphene.ObjectType):
             "The prefix under which access logs will be stored in the logging "
             "and dr logging buckets"
         )
+    )
+    slack_users = graphene.List(
+        graphene.String,
+        description=("Slack IDs of users to add to new study channels"),
     )
 
 
@@ -165,6 +172,7 @@ class Status(graphene.ObjectType):
             "study_buckets_create_buckets": (
                 settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
             ),
+            "create_slack_channels": (settings.FEAT_SLACK_CREATE_CHANNELS),
         }
 
         return Features(**features)
@@ -200,6 +208,7 @@ class Status(graphene.ObjectType):
                 settings.STUDY_BUCKETS_INVENTORY_LOCATION
             ),
             "study_buckets_log_prefix": settings.STUDY_BUCKETS_LOG_PREFIX,
+            "slack_users": (settings.SLACK_USERS),
         }
         return Settings(**conf)
 

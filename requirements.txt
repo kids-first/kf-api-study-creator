@@ -19,3 +19,4 @@ sevenbridges-python==0.24.0
 django-rq==2.1.0
 rq==1.1.0
 rq-scheduler==0.9.1
+slackclient==2.6.1
