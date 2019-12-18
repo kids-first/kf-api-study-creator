@@ -156,6 +156,10 @@ When running in with the development settings, the default user's roles and
 groups may be overridden for all requests.
 This is done through the ``USER_ROLES`` and ``USER_GROUPS`` environment
 variables.
+
+``DEV`` role is use for development environment and local server.
+``BETA`` role is used for new features test within ADMIN team.
+
 For example:
 
 .. code-block:: bash
