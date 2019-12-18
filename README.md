@@ -15,6 +15,7 @@ Create studies and upload files for ingestion into the Kids First datamodel.
 ## Development Quick Start
 
 To get started developing, bring up the service with docker compose:
+
 ```
 # If you haven't already, create the kf-data-stack network
 docker network create kf-data-stack
@@ -27,16 +28,13 @@ Some mock data will automatically be loaded upon starting for immediate use
 of the api.
 
 The graphql endpoint and GraphiQL interface is available at
-http://localhost:8080/graphql
-
-Data may also be added and modified through the Django admin dashboard.
-A Django superuser will be created with username `admin` and password `admin`.
-You can log in to the admin dashboard at http://localhost:8080/admin.
+http://localhost:5002/graphql
 
 ## Documentation
 
 The below will build and auto-reload the documentation found within the
 `docs/` directory:
+
 ```
 sphinx-autobuild docs/ build -p 8000
 ```

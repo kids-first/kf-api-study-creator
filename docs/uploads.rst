@@ -44,7 +44,7 @@ Curl example
 ^^^^^^^^^^^^
 .. code-block:: bash
 
-    curl localhost:8080/graphql \
+    curl localhost:5002/graphql \
       -F operations='{ "query": "mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }", "variables": { "file": null, "studyId": <study kf id> } }' \
       -F map='{ "0": ["variables.file"] }' \
       -F 0=@<your filepath>
@@ -85,7 +85,7 @@ Python example
             }),
             '0': ('foo.bar', open('foo.bar', 'rb'), 'text/plain')}
     )
-    response = requests.post('http://localhost:8080/graphql', data=m,
+    response = requests.post('http://localhost:5002/graphql', data=m,
                              headers={'Content-Type': m.content_type})
 
 
