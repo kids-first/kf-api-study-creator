@@ -209,7 +209,7 @@ request and will need to be followed with a file.
 See the examples below for how this works.</p>
 <div class="section" id="curl-example">
 <h3>Curl example<a class="headerlink" href="#curl-example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl localhost:8080/graphql <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl localhost:5002/graphql <span class="se">\</span>
   -F <span class="nv">operations</span><span class="o">=</span><span class="s1">&#39;{ &quot;query&quot;: &quot;mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }&quot;, &quot;variables&quot;: { &quot;file&quot;: null, &quot;studyId&quot;: &lt;study kf id&gt; } }&#39;</span> <span class="se">\</span>
   -F <span class="nv">map</span><span class="o">=</span><span class="s1">&#39;{ &quot;0&quot;: [&quot;variables.file&quot;] }&#39;</span> <span class="se">\</span>
   -F <span class="nv">0</span><span class="o">=</span>@&lt;your filepath&gt;
@@ -250,7 +250,7 @@ See the examples below for how this works.</p>
         <span class="p">}),</span>
         <span class="s1">&#39;0&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;foo.bar&#39;</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;foo.bar&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">)}</span>
 <span class="p">)</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;http://localhost:8080/graphql&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;http://localhost:5002/graphql&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">m</span><span class="p">,</span>
                          <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">content_type</span><span class="p">})</span>
 </pre></div>
 </div>

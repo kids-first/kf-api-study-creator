@@ -300,8 +300,10 @@ By default, the <cite>creator.settings.production</cite> settings will be used.<
 <p>When running in with the development settings, the default user’s roles and
 groups may be overridden for all requests.
 This is done through the <code class="docutils literal notranslate"><span class="pre">USER_ROLES</span></code> and <code class="docutils literal notranslate"><span class="pre">USER_GROUPS</span></code> environment
-variables.
-For example:</p>
+variables.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DEV</span></code> role is use for development environment and local server.
+<code class="docutils literal notranslate"><span class="pre">BETA</span></code> role is used for new features test within ADMIN team.</p>
+<p>For example:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>creator.settings.development <span class="nv">USER_ROLES</span><span class="o">=</span>ADMIN,DEV <span class="nv">USER_GROUPS</span><span class="o">=</span>SD_ABCABC12 docker-compose up
 </pre></div>
 </div>
