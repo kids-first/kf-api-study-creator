@@ -66,7 +66,6 @@ class Project(models.Model):
     )
     workflow_type = models.CharField(
         max_length=200,
-        choices=WORKFLOW_TYPES,
         null=True,
         help_text="The Cavatica project workflow type",
     )
