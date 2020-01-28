@@ -326,6 +326,7 @@ def sync_cavatica_projects():
 class NotLinkedError(Exception):
     pass
 
+
 class VolumeNotFound(Exception):
     pass
 
