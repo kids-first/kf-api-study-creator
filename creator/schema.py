@@ -14,7 +14,7 @@ import creator.files.schema
 import creator.studies.schema
 import creator.users.schema
 import creator.events.schema
-import creator.projects.schema
+from creator.projects import schema as project_mutations
 
 
 def get_version_info():
@@ -245,10 +245,8 @@ class Mutation(graphene.ObjectType):
     create_dev_token = creator.files.schema.DevDownloadTokenMutation.Field(
         description="Create a new developer token"
     )
-    delete_dev_token = (
-        creator.files.schema.DeleteDevDownloadTokenMutation.Field(
-            description="Delete a developer token"
-        )
+    delete_dev_token = creator.files.schema.DeleteDevDownloadTokenMutation.Field(
+        description="Delete a developer token"
     )
 
     subscribe_to = creator.users.schema.SubscribeToMutation.Field(
@@ -281,10 +279,13 @@ class Mutation(graphene.ObjectType):
             "project in Cavatica"
         )
     )
-    link_project = creator.projects.schema.LinkProjectMutation.Field(
+    link_project = project_mutations.LinkProjectMutation.Field(
         description="Link a Cavatica project to a Study"
     )
-    unlink_project = creator.projects.schema.UnlinkProjectMutation.Field(
+    unlink_project = project_mutations.UnlinkProjectMutation.Field(
+        description="Unlink a Cavatica project from a Study"
+    )
+    import_volume_files = project_mutations.ImportVolumeFilesMutation.Field(
         description="Unlink a Cavatica project from a Study"
     )
 

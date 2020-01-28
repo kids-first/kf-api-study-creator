@@ -1,4 +1,5 @@
 import re
+import django_rq
 from django.conf import settings
 from graphene import relay, Mutation, Enum, Field, ID, InputObjectType, String
 from graphene_django import DjangoObjectType
@@ -10,6 +11,7 @@ from django_filters import FilterSet, OrderingFilter
 from creator.studies.schema import StudyNode
 from creator.studies.models import Study
 from creator.events.models import Event
+from creator.tasks import import_delivery_files_task
 
 from creator.projects.cavatica import sync_cavatica_projects, create_project
 from .models import Project, PROJECT_TYPES
@@ -63,7 +65,7 @@ class ProjectFilter(FilterSet):
             "project_type",
             "workflow_type",
             "deleted",
-            "study"
+            "study",
         ]
 
 
@@ -326,6 +328,35 @@ class UnlinkProjectMutation(Mutation):
             event.user = user
         event.save()
         return UnlinkProjectMutation(project=project, study=study)
+
+
+class ImportVolumeFilesMutation(Mutation):
+    class Arguments:
+        project = ID(
+            required=True,
+            description="The relay ID of the project to import to",
+        )
+
+    project = Field(ProjectNode)
+
+    def mutate(self, info, project):
+        user = info.context.user
+
+        if not user.is_authenticated or user is None or not user.is_admin:
+            raise GraphQLError(
+                "Not authenticated to import files to a project."
+            )
+
+        try:
+            _, project_id = from_global_id(project)
+            project = Project.objects.get(project_id=project_id)
+        except (Project.DoesNotExist, UnicodeDecodeError):
+            raise GraphQLError("Project does not exist.")
+
+        import_job = django_rq.enqueue(
+            import_delivery_files_task, project.project_id, user.sub
+        )
+        return ImportVolumeFilesMutation(project=project)
 
 
 class Query(object):

@@ -5,7 +5,12 @@ from django_rq import job
 from django.contrib.auth import get_user_model
 
 from creator.studies.bucketservice import setup_bucket
-from creator.projects.cavatica import setup_cavatica, sync_cavatica_projects
+from creator.projects.cavatica import (
+    setup_cavatica,
+    sync_cavatica_projects,
+    import_volume_files,
+)
+from creator.projects.models import Project
 from creator.studies.models import Study
 from creator.events.models import Event
 from creator.models import Job
@@ -99,6 +104,61 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
             f"{kf_id}: {exc}"
         )
         event = Event(study=study, description=message, event_type="PR_ERR")
+        event.save()
+
+        logger.error(message)
+        return
+
+
+@job
+def import_delivery_files_task(project_id, user_sub):
+    """
+    Import all files from a volume for a given study into a project.
+
+    The name of the volume will be assumed to be that of the kf_id,
+    if it is not, the task will fail out.
+
+    :param project_id: The project to import files to
+    """
+    logger.info(f"Importing volume files to Cavatica for project {project_id}")
+
+    try:
+        project = Project.objects.get(project_id=project_id)
+    except Project.DoesNotExist:
+        logger.error(f"Could not find project {project_id}")
+        raise
+
+    study = project.study
+
+    try:
+        user = User.objects.get(sub=user_sub)
+    except User.DoesNotExist:
+        logger.warn(f"Could not find user with sub {user_sub}")
+        user = None
+
+    try:
+        message = f"Importing volume files to Cavatica project {project_id}"
+        event = Event(
+            study=study, description=message, user=user, event_type="IM_STR"
+        )
+        event.save()
+
+        folder_name = import_volume_files(project)
+
+        message = (
+            f"Successfully imported volume files to "
+            f"Cavatica project {project_id} under the {folder_name} folder"
+        )
+        event = Event(study=study, description=message, event_type="IM_SUC")
+        event.save()
+
+        logger.info(message)
+    except Exception as exc:
+        message = (
+            f"There was a problem importing volume files to the Cavatica "
+            f"project {project_id}: {exc}"
+        )
+        event = Event(study=study, description=message, event_type="IM_ERR")
         event.save()
 
         logger.error(message)

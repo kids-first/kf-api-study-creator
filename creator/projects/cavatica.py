@@ -1,6 +1,8 @@
+from datetime import datetime
 import logging
 import pytz
 import sevenbridges as sbg
+from sevenbridges.errors import NotFound, Conflict
 from django.conf import settings
 from creator.projects.models import Project, WORKFLOW_TYPES
 from creator.events.models import Event
@@ -319,3 +321,91 @@ def sync_cavatica_projects():
         updated_har + updated_del,
         deleted_har + deleted_del,
     )
+
+
+class NotLinkedError(Exception):
+    pass
+
+class VolumeNotFound(Exception):
+    pass
+
+
+def import_volume_files(project):
+    """
+    Import files from a volume to a Cavatica project.
+    """
+    api = sbg.Api(
+        url=settings.CAVATICA_URL, token=settings.CAVATICA_DELIVERY_TOKEN
+    )
+
+    if project.study is None:
+        raise NotLinkedError(
+            f"Project {project.project_id} is not linked to a study"
+        )
+
+    # Projects are assumed to be named with the kf_id
+    volume_id = f"{settings.CAVATICA_DELIVERY_ACCOUNT}/{project.study.kf_id}"
+    try:
+        volume = api.volumes.get(volume_id)
+    except NotFound:
+        volume = None
+
+    if volume is None:
+        raise VolumeNotFound(
+            f"Volume {volume_id} was not found. "
+            "It may not be attached to the current user's account"
+        )
+
+    # Create a new folder
+    folder_name = f"{datetime.now().strftime('%Y-%m-%d')}-kf-data-delivery"
+    try:
+        delivery_folder = api.files.create_folder(
+            name=folder_name, project=project.project_id
+        )
+    except Conflict:
+        # There is no way to get a sigle folder by name in Cavatica so we
+        # have to iterate through all of them
+        delivery_folder = None
+        folders = api.files.query(project=project.project_id)
+        for folder in folders:
+            if folder.name == folder_name:
+                delivery_folder = folder
+                break
+        else:
+            raise NotFound(
+                f"Could not create or find the delivery folder '{folder_name}'"
+            )
+
+    imports = []
+
+    # Iterate all source/ prefixes and import them individually
+    prefixes = volume.list(prefix="source").prefixes
+    for prefix in prefixes:
+        # Uploads is the study creator files, we don't want to deliver them
+        if prefix.prefix == "source/uploads":
+            continue
+        imp = {
+            "volume": volume_id,
+            "parent": delivery_folder.id,
+            "location": prefix.prefix + "/",
+            "overwrite": True,
+        }
+        imports.append(imp)
+
+    # Iterate all files at the source/ level
+    for obj in volume.list(prefix="source"):
+        imp = {
+            "volume": volume_id,
+            "parent": delivery_folder.id,
+            "location": obj.location,
+            "overwrite": True,
+        }
+        imports.append(imp)
+
+    res = api.imports.bulk_submit(imports)
+
+    logger.info(
+        f"Started {len(imports)} imports from {volume_id} "
+        f"to {delivery_folder.name} in project {project.project_id}"
+    )
+    return folder_name
