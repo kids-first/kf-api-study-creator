@@ -78,6 +78,9 @@ class ProjectFilter(FilterSet):
 
 class ProjectInput(InputObjectType):
     workflow_type = String(description="Workflows to be run for this study")
+    project_type = Field(
+        "creator.projects.schema.ProjectType",
+        description="The type of project",
     )
     study = ID(
         required=True,
@@ -130,7 +133,9 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError(
                 f"Study already has a {input['workflow_type']} project."
             )
-        project = create_project(study, "HAR", input["workflow_type"])
+        project = create_project(
+            study, input["project_type"], input["workflow_type"]
+        )
         return CreateProjectMutation(project=project)
 
 
