@@ -1,3 +1,4 @@
+import re
 from django.conf import settings
 from graphene import relay, Mutation, Enum, Field, ID, InputObjectType, String
 from graphene_django import DjangoObjectType
@@ -11,16 +12,8 @@ from creator.studies.models import Study
 from creator.events.models import Event
 
 from creator.projects.cavatica import sync_cavatica_projects, create_project
-from .models import Project, PROJECT_TYPES, WORKFLOW_TYPES
+from .models import Project, PROJECT_TYPES
 
-
-# WorkflowType = Enum(
-#     "WorkflowType",
-#     [
-#         (workflow[0], workflow[0].replace("-", "_"))
-#         for workflow in WORKFLOW_TYPES
-#     ],
-# )
 
 ProjectType = Enum(
     "ProjectType",
@@ -32,8 +25,6 @@ ProjectType = Enum(
 
 
 class ProjectNode(DjangoObjectType):
-    # workflow_type = WorkflowType()
-
     class Meta:
         model = Project
         interfaces = (relay.Node,)
@@ -133,6 +124,13 @@ class CreateProjectMutation(Mutation):
             raise GraphQLError(
                 f"Study already has a {input['workflow_type']} project."
             )
+
+        regex = re.compile("[~`!@#$%^&*()+}{:;<>?/\\\\|]")
+        if not regex.search(input["workflow_type"]) is None:
+            raise GraphQLError(
+                f"No special characters allowed in workflow type"
+            )
+
         project = create_project(
             study, input["project_type"], input["workflow_type"]
         )
