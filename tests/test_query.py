@@ -174,11 +174,17 @@ def test_status_query(client):
     """
     Test that the status endpoint returns git info
     """
-    query = "{ status { commit name version } }"
+    query = """
+    {
+        status {
+            commit name version
+            features { studyCreation }
+            settings { dataserviceUrl }
+        }
+    }"""
     resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
-    print(resp.json())
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "status" in resp.json()["data"]
@@ -186,3 +192,34 @@ def test_status_query(client):
     assert status["name"] == "Kids First Study Creator"
     assert status["version"].count("-") == 2
     assert len(status["commit"]) == 7
+    assert "features" in status
+    assert status["settings"] is None
+    assert "errors" in resp.json()
+    assert len(resp.json()["errors"]) == 1
+
+
+def test_admin_status_query(db, admin_client):
+    """
+    Test that an admin may see settings variables
+    """
+    query = """
+    {
+        status {
+            commit name version
+            features { studyCreation }
+            settings { dataserviceUrl }
+        }
+    }"""
+    resp = admin_client.post(
+        "/graphql", data={"query": query}, content_type="application/json"
+    )
+    assert resp.status_code == 200
+    assert "data" in resp.json()
+    assert "status" in resp.json()["data"]
+    status = resp.json()["data"]["status"]
+    assert status["name"] == "Kids First Study Creator"
+    assert status["version"].count("-") == 2
+    assert len(status["commit"]) == 7
+    assert "features" in status
+    assert status["settings"]["dataserviceUrl"] == "http://dataservice"
+    assert "errors" not in resp.json()
