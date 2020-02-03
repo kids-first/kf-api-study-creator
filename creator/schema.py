@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.cache import cache
 import creator.files.schema
 import creator.studies.schema
@@ -13,10 +14,49 @@ def get_version_info():
     return {"commit": COMMIT, "version": VERSION}
 
 
+class Features(graphene.ObjectType):
+    study_creation = graphene.Boolean(
+        description=(
+            "Will create new studies in the dataservice when a createStudy "
+            "mutation is performed"
+        )
+    )
+    study_updates = graphene.Boolean(
+        description=(
+            "Studies will be updated in the dataservice when "
+            "changed through an updateStudy mutation"
+        )
+    )
+    cavatica_create_projects = graphene.Boolean(
+        description=(
+            "Cavatica projects may be created through the createProject "
+            "mutation"
+        )
+    )
+    cavatica_copy_users = graphene.Boolean(
+        description=(
+            "Users will be copied from the CAVATICA_USER_ACCESS_PROJECT to "
+            "any new project"
+        )
+    )
+    cavatica_mount_volumes = graphene.Boolean(
+        description=(
+            "New projects will automatically have a new S3 volume mounted"
+        )
+    )
+    bucketservice_create_buckets = graphene.Boolean(
+        description=(
+            "New buckets will be created for new studies via the bucketservice"
+            " when a new study is created"
+        )
+    )
+
+
 class Status(graphene.ObjectType):
     name = graphene.String()
     version = graphene.String()
     commit = graphene.String()
+    features = graphene.Field(Features)
 
 
 class Query(
@@ -37,7 +77,21 @@ class Query(
         # to get version details.
         info = cache.get_or_set("VERSION_INFO", get_version_info)
 
-        return Status(name="Kids First Study Creator", **info)
+        features = {
+            "study_creation": settings.FEAT_DATASERVICE_CREATE_STUDIES,
+            "study_updates": settings.FEAT_DATASERVICE_UPDATE_STUDIES,
+            "cavatica_create_projects": settings.FEAT_CAVATICA_CREATE_PROJECTS,
+            "cavatica_copy_users": settings.FEAT_CAVATICA_COPY_USERS,
+            "cavatica_mount_volumes": settings.FEAT_CAVATICA_MOUNT_VOLUMES,
+            "bucketservice_create_buckets": (
+                settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
+            ),
+        }
+        features = Features(**features)
+
+        return Status(
+            name="Kids First Study Creator", **info, features=features
+        )
 
 
 class Mutation(graphene.ObjectType):
@@ -67,6 +121,7 @@ class Mutation(graphene.ObjectType):
             description="Delete a developer token"
         )
     )
+
     subscribe_to = creator.users.schema.SubscribeToMutation.Field(
         description="Subscribe the current user to a study"
     )
