@@ -24,6 +24,8 @@ services:
       - FEAT_CAVATICA_COPY_USERS=False
       - USER_ROLES
       - USER_GROUPS
+      - VERSION=LOCAL
+      - COMMIT=abc
     volumes:
       - .:/app
     ports:
