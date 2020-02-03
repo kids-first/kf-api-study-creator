@@ -1,5 +1,6 @@
 import pytest
 import pytz
+from datetime import datetime
 import sevenbridges as sbg
 from unittest.mock import MagicMock
 from dataclasses import dataclass
@@ -9,9 +10,16 @@ from creator.projects.cavatica import (
     setup_cavatica,
     create_project,
     copy_users,
+    import_volume_files,
+    NotLinkedError,
+    VolumeNotFound,
 )
+
 from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
+
 from creator.projects.models import Project
+from creator.projects.factories import ProjectFactory
 
 
 @pytest.fixture
@@ -136,4 +144,119 @@ def test_user_copy(db, settings, mocker, mock_cavatica_api):
     assert project.get_members.call_count == 1
     new_project.add_member.assert_called_with(
         "test", permissions=user.permissions
+    )
+
+
+def test_import_volume_files_not_linked(db, mock_cavatica_api):
+    cavatica_project = mock_cavatica_api.Api().projects.create.return_value
+
+    project = ProjectFactory()
+
+    with pytest.raises(NotLinkedError):
+        import_volume_files(project)
+
+
+def test_import_volume_files_no_volume(db, settings, mock_cavatica_api):
+    settings.CAVATICA_DELIVERY_ACCOUNT = "test-acct"
+    cavatica_project = mock_cavatica_api.Api().projects.create.return_value
+
+    study = StudyFactory()
+    project = ProjectFactory(study=study)
+
+    mock_cavatica_api.Api().volumes.get.return_value = None
+
+    with pytest.raises(VolumeNotFound):
+        import_volume_files(project)
+
+
+def test_import_volume_files_could_not_get_volume(
+    db, settings, mock_cavatica_api
+):
+    settings.CAVATICA_DELIVERY_ACCOUNT = "test-acct"
+    cavatica_project = mock_cavatica_api.Api().projects.create.return_value
+
+    study = StudyFactory()
+    project = ProjectFactory(study=study)
+
+    mock_cavatica_api.Api().volumes.get.side_effect = sbg.errors.NotFound
+
+    with pytest.raises(VolumeNotFound):
+        import_volume_files(project)
+
+
+def test_import_volume_files_folder_exists(db, settings, mock_cavatica_api):
+    settings.CAVATICA_DELIVERY_ACCOUNT = "test-acct"
+    cavatica_project = mock_cavatica_api.Api().projects.create.return_value
+
+    class Folder:
+        def __init__(self, name):
+            self.name = name
+
+    mock_cavatica_api.Api().files.create_folder.side_effect = (
+        sbg.errors.Conflict()
+    )
+    folder_name = f"{datetime.now().strftime('%Y-%m-%d')}-kf-data-delivery"
+    mock_cavatica_api.Api().files.query.return_value = [
+        Folder("abc"),
+        Folder("123"),
+        Folder(folder_name),
+    ]
+
+    study = StudyFactory()
+    project = ProjectFactory(study=study)
+
+    import_volume_files(project)
+
+    assert mock_cavatica_api.Api().files.query.call_count == 1
+    mock_cavatica_api.Api().files.query.assert_called_with(
+        project=project.project_id
+    )
+
+
+def test_import_volume_files(db, settings, mock_cavatica_api):
+    settings.CAVATICA_DELIVERY_ACCOUNT = "test-acct"
+    cavatica_project = mock_cavatica_api.Api().projects.create.return_value
+
+    study = StudyFactory()
+    project = ProjectFactory(study=study)
+
+    class VolumeObject:
+        def __init__(self, path):
+            self.location = path
+
+    class PrefixObj:
+        def __init__(self, prefix):
+            self.prefix = prefix
+
+    class PrefixList:
+        @property
+        def prefixes(self):
+            return [
+                PrefixObj("source/uploads"),
+                PrefixObj("source/bams"),
+                PrefixObj("source/test"),
+            ]
+
+        def __iter__(self):
+            return iter([VolumeObject("123"), VolumeObject("abc")])
+
+    class Volume:
+        def __init__(self):
+            self.id = f"test-acct/{study.kf_id}"
+
+        def list(self, prefix):
+            return PrefixList()
+
+    mock_cavatica_api.Api().volumes.get.return_value = Volume()
+
+    import_volume_files(project)
+
+    mock_cavatica_api.Api().volumes.get.assert_called_with(
+        f"test-acct/{study.kf_id}"
+    )
+
+    # two valid subdirectories and two objects in the source directory = 4
+    assert mock_cavatica_api.Api().imports.bulk_submit.call_count == 1
+    assert (
+        len(mock_cavatica_api.Api().imports.bulk_submit.call_args_list[0]) == 2
     )
