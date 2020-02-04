@@ -123,6 +123,12 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 30,
         "ASYNC": False,
     },
+    "cavatica": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+    },
 }
 if redis_pass:
     RQ_QUEUES["default"]["PASSWORD"] = redis_pass
@@ -172,6 +178,11 @@ LOGGING = {
         }
     },
     "handlers": {
+        "command": {
+            "level": "INFO",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        },
         "rq_console": {
             "level": "ERROR",
             "class": "rq.utils.ColorizingStreamHandler",
@@ -184,6 +195,7 @@ LOGGING = {
         }
     },
     "loggers": {
+        "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.bucketservice": {
