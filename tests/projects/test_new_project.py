@@ -138,3 +138,35 @@ def test_create_project_no_duplicate_workflows(
     assert "errors" in resp.json()
     assert resp.json()["errors"][0]["message"].startswith("Study already has")
     assert Project.objects.count() == 1
+
+
+def test_create_project_invalid_workflows(db, admin_client, mock_cavatica_api):
+    """
+    Test that research projects with invalid workflow input may not be created.
+    """
+    study = Study(kf_id="SD_00000000")
+    study.save()
+
+    kf_id = to_global_id("StudyNode", "SD_00000000")
+    variables = {
+        "input": {
+            "workflowType": "invalid@workflow*input",
+            "study": kf_id,
+            "projectType": "RES",
+        }
+    }
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
+    )
+
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"].startswith("No special")
+    assert Project.objects.count() == 0
