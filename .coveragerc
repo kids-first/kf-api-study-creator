@@ -2,4 +2,5 @@
 omit =
     */migrations/*
     */settings/*
+    creator/version_info.py
 source = creator
