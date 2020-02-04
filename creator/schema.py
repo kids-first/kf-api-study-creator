@@ -1,5 +1,8 @@
 import graphene
+from django.conf import settings
 from django.core.cache import cache
+from graphql import GraphQLError
+
 import creator.files.schema
 import creator.studies.schema
 import creator.users.schema
@@ -13,10 +16,109 @@ def get_version_info():
     return {"commit": COMMIT, "version": VERSION}
 
 
+class Features(graphene.ObjectType):
+    study_creation = graphene.Boolean(
+        description=(
+            "Will create new studies in the dataservice when a createStudy "
+            "mutation is performed"
+        )
+    )
+    study_updates = graphene.Boolean(
+        description=(
+            "Studies will be updated in the dataservice when "
+            "changed through an updateStudy mutation"
+        )
+    )
+    cavatica_create_projects = graphene.Boolean(
+        description=(
+            "Cavatica projects may be created through the createProject "
+            "mutation"
+        )
+    )
+    cavatica_copy_users = graphene.Boolean(
+        description=(
+            "Users will be copied from the CAVATICA_USER_ACCESS_PROJECT to "
+            "any new project"
+        )
+    )
+    cavatica_mount_volumes = graphene.Boolean(
+        description=(
+            "New projects will automatically have a new S3 volume mounted"
+        )
+    )
+    bucketservice_create_buckets = graphene.Boolean(
+        description=(
+            "New buckets will be created for new studies via the bucketservice"
+            " when a new study is created"
+        )
+    )
+
+
+class Settings(graphene.ObjectType):
+    dataservice_url = graphene.String(description="The URL of the Dataservice")
+    bucketservice_url = graphene.String(
+        description="The URL of the Bucketservice"
+    )
+    cavatica_url = graphene.String(description="The URL of the Cavatica API")
+    cavatica_delivery_account = graphene.String(
+        description="The Cavatica account used for delivery projects"
+    )
+    cavatica_harmonization_account = graphene.String(
+        description=(
+            "The Cavatica account used for harmonization and " "other projects"
+        )
+    )
+    cavatica_user_access_project = graphene.String(
+        description="The project to copy users from for new projects"
+    )
+
+
 class Status(graphene.ObjectType):
     name = graphene.String()
     version = graphene.String()
     commit = graphene.String()
+    features = graphene.Field(Features)
+    settings = graphene.Field(Settings)
+
+    def resolve_features(self, info):
+        features = {
+            "study_creation": settings.FEAT_DATASERVICE_CREATE_STUDIES,
+            "study_updates": settings.FEAT_DATASERVICE_UPDATE_STUDIES,
+            "cavatica_create_projects": settings.FEAT_CAVATICA_CREATE_PROJECTS,
+            "cavatica_copy_users": settings.FEAT_CAVATICA_COPY_USERS,
+            "cavatica_mount_volumes": settings.FEAT_CAVATICA_MOUNT_VOLUMES,
+            "bucketservice_create_buckets": (
+                settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
+            ),
+        }
+
+        return Features(**features)
+
+    def resolve_settings(self, info):
+        """
+        Settings may only be resolved by an admin
+        """
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Must be an admin to view settings")
+
+        conf = {
+            "dataservice_url": settings.DATASERVICE_URL,
+            "bucketservice_url": settings.BUCKETSERVICE_URL,
+            "cavatica_url": settings.CAVATICA_URL,
+            "cavatica_delivery_account": settings.CAVATICA_DELIVERY_ACCOUNT,
+            "cavatica_harmonization_account": (
+                settings.CAVATICA_HARMONIZATION_ACCOUNT
+            ),
+            "cavatica_user_access_project": (
+                settings.CAVATICA_USER_ACCESS_PROJECT
+            ),
+        }
+        return Settings(**conf)
 
 
 class Query(
@@ -67,6 +169,7 @@ class Mutation(graphene.ObjectType):
             description="Delete a developer token"
         )
     )
+
     subscribe_to = creator.users.schema.SubscribeToMutation.Field(
         description="Subscribe the current user to a study"
     )

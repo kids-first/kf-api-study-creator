@@ -28,6 +28,14 @@ def test_setup_bucket_success(db, mocker, settings):
     assert Event.objects.filter(event_type="BK_SUC").count() == 1
 
 
+def test_setup_bucket_no_study(db, mocker, settings):
+    """
+    Test that the setup task operates correctly when the setup succeeds
+    """
+    with pytest.raises(Study.DoesNotExist):
+        setup_bucket_task("ABC")
+
+
 def test_setup_bucket_fail(db, mocker, settings):
     """
     Test that the setup task operates correctly when the setup fails

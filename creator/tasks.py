@@ -26,6 +26,7 @@ def setup_bucket_task(kf_id):
         study = Study.objects.get(kf_id=kf_id)
     except Study.DoesNotExist:
         logger.error(f"Could not find study {kf_id}")
+        raise
 
     try:
         message = f"Creating a bucket for study {kf_id}"
@@ -69,6 +70,7 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
         study = Study.objects.get(kf_id=kf_id)
     except Study.DoesNotExist:
         logger.error(f"Could not find study {kf_id}")
+        raise
 
     try:
         user = User.objects.get(sub=user_sub)
