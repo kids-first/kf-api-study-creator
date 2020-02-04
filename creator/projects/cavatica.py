@@ -21,7 +21,7 @@ def create_project(study, project_type, workflow_type=None, user=None):
     """
     token = None
     name = study.kf_id
-    if project_type == "HAR":
+    if project_type == "HAR" or project_type == "RES":
         token = settings.CAVATICA_HARMONIZATION_TOKEN
         name = study.kf_id + "-" + workflow_type
     elif project_type == "DEL":
@@ -32,7 +32,8 @@ def create_project(study, project_type, workflow_type=None, user=None):
     api = sbg.Api(url=settings.CAVATICA_URL, token=token)
     cavatica_project = api.projects.create(name=name)
     cavatica_project.name = study.name if study.name else study.kf_id
-
+    if workflow_type:
+        cavatica_project.name = cavatica_project.name + " " + workflow_type
     for workflow_choice in WORKFLOW_TYPES:
         if workflow_choice[0] == workflow_type:
             cavatica_project.name = (

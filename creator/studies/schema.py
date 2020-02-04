@@ -148,7 +148,7 @@ class CreateStudyMutation(Mutation):
             required=True, description="Attributes for the new study"
         )
         workflows = List(
-            "creator.projects.schema.WorkflowType",
+            String,
             description="Workflows to be run for this study",
             required=False,
         )
