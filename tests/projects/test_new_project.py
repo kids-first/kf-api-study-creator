@@ -58,7 +58,7 @@ def test_create_project_mutation(
     expected,
 ):
     """
-    Only Admins should be allowed to create new projects
+    Only Admins should be allowed to create new analysis projects
     """
     study = Study(kf_id="SD_00000000")
     study.save()
@@ -70,7 +70,9 @@ def test_create_project_mutation(
         None: client,
     }[user_type]
     kf_id = to_global_id("StudyNode", "SD_00000000")
-    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
+    variables = {
+        "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
+    }
     resp = api_client.post(
         "/graphql",
         content_type="application/json",
@@ -93,7 +95,9 @@ def test_create_project_study_does_not_exist(db, admin_client):
     Test that a project may not be created when a study is not valid
     """
     kf_id = to_global_id("StudyNode", "SD_00000000")
-    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
+    variables = {
+        "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
+    }
     resp = admin_client.post(
         "/graphql",
         content_type="application/json",
@@ -116,7 +120,9 @@ def test_create_project_no_duplicate_workflows(
     study.save()
 
     kf_id = to_global_id("StudyNode", "SD_00000000")
-    variables = {"input": {"workflowType": "rsem", "study": kf_id}}
+    variables = {
+        "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
+    }
     resp = admin_client.post(
         "/graphql",
         content_type="application/json",
