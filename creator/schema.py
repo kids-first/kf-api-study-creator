@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django_rq.utils import get_statistics
 from django.core.cache import cache
 from graphql import GraphQLError
 
@@ -79,6 +80,7 @@ class Status(graphene.ObjectType):
     commit = graphene.String()
     features = graphene.Field(Features)
     settings = graphene.Field(Settings)
+    queues = graphene.JSONString()
 
     def resolve_features(self, info):
         features = {
@@ -119,6 +121,29 @@ class Status(graphene.ObjectType):
             ),
         }
         return Settings(**conf)
+
+    def resolve_queues(self, info):
+        """
+        Queues may only be resolved by an admin
+        """
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Must be an admin to view queues")
+
+        stats = get_statistics().get("queues")
+
+        # Remove connection info
+        cleaned = []
+        for stat in stats:
+            if "connection_kwargs" in stat:
+                del stat["connection_kwargs"]
+            cleaned.append(stat)
+
+        return cleaned
 
 
 class Query(
