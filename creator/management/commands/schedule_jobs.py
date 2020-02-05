@@ -1,11 +1,12 @@
 import django_rq
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand, CommandError
 
 from django.conf import settings
 
-from creator.projects.cavatica import sync_cavatica_projects
+from creator.models import Job
+from creator.tasks import sync_cavatica_projects_task
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +30,20 @@ class Command(BaseCommand):
 
     def setup_cavatica_sync(self):
         logger.info("Scheduling Cavatica Sync jobs")
+        name = "cavatica_sync"
+        description = "Syncronize Cavatica projects to the Study Creator"
+
+        self.scheduler.cancel("cavatica_sync")
 
         self.scheduler.schedule(
-            id="cavatica_sync",
-            description="Syncronize Cavatica projects to the Study Creator",
+            id=name,
+            description=description,
             scheduled_time=datetime.utcnow(),
-            func=sync_cavatica_projects,
+            func=sync_cavatica_projects_task,
+            repeat=None,
             interval=300,
         )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="cavatica"
+        )
+        job.save()
