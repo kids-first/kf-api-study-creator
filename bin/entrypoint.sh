@@ -58,7 +58,7 @@ if $WORKER ; then
     supervisord -c  /etc/supervisor/conf.d/worker.conf
 elif [[ $1 = scheduler ]]; then
     /app/manage.py schedule_jobs
-    /app/manage.py rqscheduler
+    supervisord -c  /etc/supervisor/conf.d/scheduler.conf
 else
     python manage.py syncstudies --api $DATASERVICE_URL
     /app/manage.py migrate

@@ -41,6 +41,7 @@ RUN apk add --no-cache jq wget supervisor
 
 RUN mkdir -p /var/log/supervisor/conf.d
 COPY bin/worker.conf /etc/supervisor/conf.d/worker.conf
+COPY bin/scheduler.conf /etc/supervisor/conf.d/scheduler.conf
 
 RUN wget -q -O vault.zip https://releases.hashicorp.com/vault/1.0.3/vault_1.0.3_linux_amd64.zip \ 
     && unzip vault.zip \
