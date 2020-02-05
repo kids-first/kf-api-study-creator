@@ -23,10 +23,7 @@ class Command(BaseCommand):
 
         logger.info(f"Found {len(jobs)} jobs scheduled on the Cavatica queue")
 
-        if "cavatica_sync" not in self.scheduler:
-            self.setup_cavatica_sync()
-        else:
-            logger.info("Cavatica Sync jobs have already been scheduled")
+        self.setup_cavatica_sync()
 
     def setup_cavatica_sync(self):
         logger.info("Scheduling Cavatica Sync jobs")
