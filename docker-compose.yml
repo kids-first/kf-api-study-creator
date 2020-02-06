@@ -52,6 +52,21 @@ services:
       - postgres
       - redis
       - web
+  scheduler:
+    build:
+      context: .
+      target: dev
+    command: './manage.py rqscheduler -i 5'
+    volumes:
+      - ./:/app/
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
+    depends_on:
+      - postgres
+      - redis
+      - web
   postgres:
     image: postgres:11.1
     environment:

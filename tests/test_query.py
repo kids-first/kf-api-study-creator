@@ -180,6 +180,8 @@ def test_status_query(client):
             commit name version
             features { studyCreation }
             settings { dataserviceUrl }
+            queues
+            jobs { edges { node { id name } } }
         }
     }"""
     resp = client.post(
@@ -194,13 +196,14 @@ def test_status_query(client):
     assert len(status["commit"]) == 7
     assert "features" in status
     assert status["settings"] is None
+    assert status["queues"] is None
     assert "errors" in resp.json()
-    assert len(resp.json()["errors"]) == 1
+    assert len(resp.json()["errors"]) == 3
 
 
 def test_admin_status_query(db, admin_client):
     """
-    Test that an admin may see settings variables
+    Test that an admin may see settings and queues variables
     """
     query = """
     {
@@ -208,6 +211,8 @@ def test_admin_status_query(db, admin_client):
             commit name version
             features { studyCreation }
             settings { dataserviceUrl }
+            queues
+            jobs { edges { node { id name } } }
         }
     }"""
     resp = admin_client.post(
@@ -221,5 +226,7 @@ def test_admin_status_query(db, admin_client):
     assert status["version"].count("-") == 2
     assert len(status["commit"]) == 7
     assert "features" in status
+    assert "queues" in status
+    assert "jobs" in status
     assert status["settings"]["dataserviceUrl"] == "http://dataservice"
     assert "errors" not in resp.json()

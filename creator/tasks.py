@@ -1,11 +1,14 @@
 import logging
+import pytz
+from datetime import datetime
 from django_rq import job
 from django.contrib.auth import get_user_model
 
 from creator.studies.bucketservice import setup_bucket
-from creator.projects.cavatica import setup_cavatica
+from creator.projects.cavatica import setup_cavatica, sync_cavatica_projects
 from creator.studies.models import Study
 from creator.events.models import Event
+from creator.models import Job
 
 User = get_user_model()
 
@@ -100,3 +103,28 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
 
         logger.error(message)
         return
+
+
+def sync_cavatica_projects_task():
+    """
+    Synchronize Cavatica projects with the Study Creator
+    """
+    job = Job.objects.get(name="cavatica_sync")
+
+    if not job.active:
+        logger.info("The cavatica_sync job is not active, will not run")
+        return
+    logger.info("Running the cavatica_sync job")
+
+    try:
+        sync_cavatica_projects()
+    except Exception as err:
+        job.failing = True
+        job.last_error = str(err)
+    else:
+        job.failing = False
+        job.last_error = ""
+
+    job.last_run = datetime.utcnow()
+    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
+    job.save()

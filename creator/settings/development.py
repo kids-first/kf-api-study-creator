@@ -121,9 +121,16 @@ RQ_QUEUES = {
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
     },
+    "cavatica": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+    },
 }
 if redis_pass:
     RQ_QUEUES["default"]["PASSWORD"] = redis_pass
+    RQ_QUEUES["cavatica"]["PASSWORD"] = redis_pass
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -170,6 +177,11 @@ LOGGING = {
         }
     },
     "handlers": {
+        "command": {
+            "level": "INFO",
+            "class": "rq.utils.ColorizingStreamHandler",
+            "formatter": "worker",
+        },
         "rq_console": {
             "level": "ERROR",
             "class": "rq.utils.ColorizingStreamHandler",
@@ -179,9 +191,10 @@ LOGGING = {
             "level": "INFO",
             "class": "rq.utils.ColorizingStreamHandler",
             "formatter": "worker",
-        }
+        },
     },
     "loggers": {
+        "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.bucketservice": {
