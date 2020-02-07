@@ -8,13 +8,13 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import FilterSet, OrderingFilter
 
-
 from creator.models import Job
-import creator.files.schema
+
+from creator.files import schema as file_mutations
 import creator.studies.schema
 import creator.users.schema
 import creator.events.schema
-import creator.projects.schema
+from creator.projects import schema as project_mutations
 
 
 def get_version_info():
@@ -203,11 +203,11 @@ class Status(graphene.ObjectType):
 
 
 class Query(
-    creator.files.schema.Query,
+    file_mutations.Query,
     creator.studies.schema.Query,
     creator.users.schema.Query,
     creator.events.schema.Query,
-    creator.projects.schema.Query,
+    project_mutations.Query,
     graphene.ObjectType,
 ):
     status = graphene.Field(Status)
@@ -224,31 +224,29 @@ class Query(
 
 
 class Mutation(graphene.ObjectType):
-    create_file = creator.files.schema.file.FileUploadMutation.Field(
+    create_file = file_mutations.file.FileUploadMutation.Field(
         description="Upload a new file to a study"
     )
-    create_version = creator.files.schema.version.VersionUploadMutation.Field(
+    create_version = file_mutations.version.VersionUploadMutation.Field(
         description="Upload a new version of a file"
     )
-    update_file = creator.files.schema.file.FileMutation.Field(
+    update_file = file_mutations.file.FileMutation.Field(
         description="Update a file"
     )
-    delete_file = creator.files.schema.file.DeleteFileMutation.Field(
+    delete_file = file_mutations.file.DeleteFileMutation.Field(
         description="Delete a file"
     )
-    update_version = creator.files.schema.version.VersionMutation.Field(
+    update_version = file_mutations.version.VersionMutation.Field(
         description="Update a file version"
     )
-    signed_url = creator.files.schema.SignedUrlMutation.Field(
+    signed_url = file_mutations.SignedUrlMutation.Field(
         description="Create a new signed url"
     )
-    create_dev_token = creator.files.schema.DevDownloadTokenMutation.Field(
+    create_dev_token = file_mutations.DevDownloadTokenMutation.Field(
         description="Create a new developer token"
     )
-    delete_dev_token = (
-        creator.files.schema.DeleteDevDownloadTokenMutation.Field(
-            description="Delete a developer token"
-        )
+    delete_dev_token = file_mutations.DeleteDevDownloadTokenMutation.Field(
+        description="Delete a developer token"
     )
 
     subscribe_to = creator.users.schema.SubscribeToMutation.Field(
@@ -281,10 +279,13 @@ class Mutation(graphene.ObjectType):
             "project in Cavatica"
         )
     )
-    link_project = creator.projects.schema.LinkProjectMutation.Field(
+    link_project = project_mutations.LinkProjectMutation.Field(
         description="Link a Cavatica project to a Study"
     )
-    unlink_project = creator.projects.schema.UnlinkProjectMutation.Field(
+    unlink_project = project_mutations.UnlinkProjectMutation.Field(
+        description="Unlink a Cavatica project from a Study"
+    )
+    import_volume_files = project_mutations.ImportVolumeFilesMutation.Field(
         description="Unlink a Cavatica project from a Study"
     )
 

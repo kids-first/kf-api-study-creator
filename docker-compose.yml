@@ -5,27 +5,11 @@ services:
     build:
       context: .
       target: dev
+    env_file: docker.env
     environment:
-      - PG_NAME=study-creator
-      - PG_USER=study-creator
-      - PG_PASS=password
-      - PG_HOST=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
-      - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
-      - AWS_ACCESS_KEY_ID=foo
-      - AWS_SECRET_ACCESS_KEY=bar
       # Options are: DATASERVICE, url of dataservice, or FAKE
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
-      - CAVATICA_HARMONIZATION_TOKEN
-      - CAVATICA_DELIVERY_TOKEN
-      - CAVATICA_USER_ACCESS_PROJECT
-      - FEAT_CAVATICA_COPY_USERS=False
-      - USER_ROLES
-      - USER_GROUPS
-      - VERSION=LOCAL
-      - COMMIT=abc
     volumes:
       - .:/app
     ports:
@@ -40,13 +24,8 @@ services:
     command: '/app/bin/dev_worker.sh'
     volumes:
       - ./:/app/
+    env_file: docker.env
     environment:
-      - PG_NAME=study-creator
-      - PG_USER=study-creator
-      - PG_PASS=password
-      - PG_HOST=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
     depends_on:
       - postgres
@@ -59,9 +38,8 @@ services:
     command: './manage.py rqscheduler -i 5'
     volumes:
       - ./:/app/
+    env_file: docker.env
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
     depends_on:
       - postgres
