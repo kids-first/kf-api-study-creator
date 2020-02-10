@@ -1,7 +1,10 @@
+import copy
 import logging
 import requests
 from requests.exceptions import RequestException
 from django.conf import settings
+
+from .models import Study
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +61,6 @@ def sync_dataservice_studies():
         Study.objects.filter(kf_id=study).update(deleted=True)
 
     logger.info(
-        f"{len(deleted_studies)} studies were marked as deleted: ",
-        "{deleted_studies}",
+        f"{len(deleted_studies)} studies were marked as deleted: "
+        "{deleted_studies}"
     )
