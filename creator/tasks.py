@@ -5,6 +5,7 @@ from django_rq import job
 from django.contrib.auth import get_user_model
 
 from creator.studies.bucketservice import setup_bucket
+from creator.studies.dataservice import sync_dataservice_studies
 from creator.projects.cavatica import (
     setup_cavatica,
     sync_cavatica_projects,
@@ -178,6 +179,31 @@ def sync_cavatica_projects_task():
 
     try:
         sync_cavatica_projects()
+    except Exception as err:
+        job.failing = True
+        job.last_error = str(err)
+    else:
+        job.failing = False
+        job.last_error = ""
+
+    job.last_run = datetime.utcnow()
+    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
+    job.save()
+
+
+def sync_dataservice_studies_task():
+    """
+    Synchronize Dataservice studies with the Study Creator
+    """
+    job = Job.objects.get(name="dataservice_sync")
+
+    if not job.active:
+        logger.info("The dataserivce_sync job is not active, will not run")
+        return
+    logger.info("Running the dataservice_sync job")
+
+    try:
+        sync_dataservice_studies()
     except Exception as err:
         job.failing = True
         job.last_error = str(err)
