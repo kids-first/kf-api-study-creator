@@ -1,3 +1,31 @@
+# Kids First Study Creator Release 1.7.3
+
+## Features
+
+Adds task scheduler and status queries for exposing configuration.
+
+### Summary
+
+Feature Emojis: ✨x7 🐳x3 📝x2 ⬆️x1 🔧x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x7 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x3 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x2 [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x2 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1
+
+### New features and changes
+
+- (#336) ✨ Add Dataservice sync job - @dankolbman
+- (#334) ✨ Import volume files - @dankolbman
+- (#333) ✨ Add scheduled tasks - @dankolbman
+- (#328) ✨ Allow users to specify and name research projects on creation - @XuTheBunny
+- (#330) ✨ Features in status - @dankolbman
+- (#329) ⬆️ Bump psycopg2 to 2.8.4 - @dankolbman
+- (#325) 📝 Update localhost port to 5002 and add description for use roles - @XuTheBunny
+- (#322) 🐳 Add postgresql client as persistent dep - @dankolbman
+- (#321) 🐳 Use alpine image - @dankolbman
+- (#320) 🐳 Install postgres in base image - @dankolbman
+- (#319) ✨ Add status query - @dankolbman
+- (#318) ✨ Run study setup in tasks - @dankolbman
+- (#316) 🔧 Make sub the primary user id - @dankolbman
+- (#317) 📝 Add documentation for Auth0 configuration - @dankolbman
+
 # Kids First Study Creator Release 1.7.2
 
 ## Features
@@ -17,7 +45,6 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#312) 🐛 Fix the user email/slack notify toggle mutation - @XuTheBunny
 - (#311) ✨ Add email notification field - @dankolbman
 
-
 # Kids First Study Creator Release 1.7.1
 
 ## Features
@@ -33,7 +60,6 @@ Feature Labels: [refactor](https://api.github.com/repos/kids-first/kf-api-study-
 
 - (#308) ♻️ Don't set project type based on project name - @dankolbman
 - (#309) ♻️ Un-delete studies that have reappeared - @dankolbman
-
 
 # Kids First Study Creator Release 1.7.0
 
@@ -57,7 +83,6 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#291) ✏️ Rename datetime filters - @dankolbman
 - (#289) ✨ Emit events for projects - @dankolbman
 
-
 # Kids First Study Creator Release 1.6.1
 
 ## Features
@@ -73,7 +98,6 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 
 - (#284) 🔧 Make requests timout configurable - @dankolbman
 - (#283) ✨ Add project study filter - @dankolbman
-
 
 # Kids First Study Creator Release 1.6.0
 
@@ -131,7 +155,6 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#214) ✨ Add filter by file kf_id to allVersions - @dankolbman
 - (#210) ⬆️ Bump django from 2.1.9 to 2.1.10 - @dependabot[bot]
 
-
 # Kids First Study Creator Release 1.5.0
 
 ## Features
@@ -144,9 +167,8 @@ Feature Labels: [documentation](https://api.github.com/repos/kids-first/kf-api-s
 ### New features and changes
 
 - (#208) 📝 Update docs - @dankolbman
-- (#207) ⬆️  Bump django from 2.1.7 to 2.1.9 - @dependabot[bot]
+- (#207) ⬆️ Bump django from 2.1.7 to 2.1.9 - @dependabot[bot]
 - (#206) 🐛 raises study short_name character limit to 500 - @bdolly
-
 
 # Kids First Study Creator Release 1.4.0
 
@@ -165,12 +187,11 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#198) ✨ Add events - @dankolbman
 - (#197) ✨ Add user notification settings - @dankolbman
 - (#194) ✨ Add myProfile query - @dankolbman
-- (#193) ♻️  Split file and version upload mutations - @dankolbman
+- (#193) ♻️ Split file and version upload mutations - @dankolbman
 - (#192) 🐛 Use version file_name for downloads - @dankolbman
 - (#191) ✨ Add creator field to files and versions - @dankolbman
 - (#188) 🐛 No service users - @dankolbman
 - (#185) ✨ Save users to database - @dankolbman
-
 
 # Kids First Study Creator Release 1.3.0
 
@@ -180,7 +201,7 @@ Adds new features for file version uploads.
 
 ### Summary
 
-Feature Emojis: ✨x4 ✏️x1 ♻️x1 🔧  x1
+Feature Emojis: ✨x4 ✏️x1 ♻️x1 🔧 x1
 Feature Labels: [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x4 [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x3
 
 ### New features and changes
@@ -188,11 +209,10 @@ Feature Labels: [refactor](https://api.github.com/repos/kids-first/kf-api-study-
 - (#182) ✨ Add version file_name field - @dankolbman
 - (#172) ✨ Version state field - @dankolbman
 - (#170) ✨ Add descriptions to versions - @dankolbman
-- (#168) ✏️  Rename objects - @dankolbman
-- (#166) ♻️  Reorganize tests - @dankolbman
+- (#168) ✏️ Rename objects - @dankolbman
+- (#166) ♻️ Reorganize tests - @dankolbman
 - (#164) 🔧 Increase max description length - @dankolbman
 - (#157) ✨ Version uploads - @dankolbman
-
 
 # Kids First Study Creator Release 1.2.1
 
@@ -208,7 +228,6 @@ Feature Labels: [bug](https://api.github.com/repos/kids-first/kf-api-study-creat
 ### New features and changes
 
 - (#153) ♻️ Return kf_id from delete file mutation - @dankolbman
-
 
 # Kids First Study Creator Release 1.2.0
 
@@ -230,11 +249,11 @@ Feature Labels: [bug](https://api.github.com/repos/kids-first/kf-api-study-creat
 - (#145) 🐛 Add Content-Type header to downloads - @dankolbman
 - (#143) ✨ Look for tokens in Authorization header - @dankolbman
 
-
 # Kids First Study Creator Release 1.1.0
 
 Added new authentication through auth0, developer download tokens, signed
 download urls, and service tokens.
+
 ## Features
 
 ### Summary
@@ -248,7 +267,7 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#136) ✨ Add deleteFile mutation - @dankolbman
 - (#135) ✨ Add file type to update mutation - @dankolbman
 - (#134) ✨ Service token auth - @dankolbman
-- (#132) ♻️  Cache JWKS for future validation - @dankolbman
+- (#132) ♻️ Cache JWKS for future validation - @dankolbman
 - (#130) 🔥 Remove django admin - @dankolbman
 - (#129) ✨ Add mutation to make signed url - @dankolbman
 - (#128) ✨ Require study id in download to be valid - @dankolbman
@@ -257,7 +276,7 @@ Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-c
 - (#117) 🗃 Add missing migration - @dankolbman
 - (#116) 🚨 Add pycodestyle - @dankolbman
 - (#113) 📝Update uploads page - @znatty22
-- (#109)  Release 1.0.0 - @dankolbman
+- (#109) Release 1.0.0 - @dankolbman
 
 # Kids First Study Creator Release 1.0.0
 
