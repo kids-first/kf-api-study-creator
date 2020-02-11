@@ -1,3 +1,18 @@
+# Kids First Study Creator Release 1.7.4
+
+## Features
+
+Hot fix to correct a test that fails for tagged branches.
+
+### Summary
+
+Feature Emojis: 🚑x1
+Feature Labels: [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x1
+
+### New features and changes
+
+- (#338) 🚑 Version test hotfix - @dankolbman
+
 # Kids First Study Creator Release 1.7.3
 
 ## Features
