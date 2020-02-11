@@ -192,7 +192,9 @@ def test_status_query(client):
     assert "status" in resp.json()["data"]
     status = resp.json()["data"]["status"]
     assert status["name"] == "Kids First Study Creator"
-    assert status["version"].count("-") == 2
+    assert (
+        status["version"].count("-") == 2 or status["version"].count(".") == 2
+    )
     assert len(status["commit"]) == 7
     assert "features" in status
     assert status["settings"] is None
@@ -223,7 +225,9 @@ def test_admin_status_query(db, admin_client):
     assert "status" in resp.json()["data"]
     status = resp.json()["data"]["status"]
     assert status["name"] == "Kids First Study Creator"
-    assert status["version"].count("-") == 2
+    assert (
+        status["version"].count("-") == 2 or status["version"].count(".") == 2
+    )
     assert len(status["commit"]) == 7
     assert "features" in status
     assert "queues" in status
