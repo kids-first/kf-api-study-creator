@@ -50,4 +50,5 @@ pre-populated database of mock data.
    auth0
    bucketservice
    cavatica
+   study_buckets
    dataservice

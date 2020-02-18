@@ -1,5 +1,11 @@
 .. _bucketservice:
 
+.. admonition:: Deprecated
+    :class: danger
+
+    The Bucket Services has been superseded by the direct integration
+    of study buckets.
+
 Bucket Service Integration
 ==========================
 
