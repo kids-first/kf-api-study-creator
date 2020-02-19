@@ -1,4 +1,5 @@
 import django_rq
+import json
 import logging
 import requests
 
@@ -199,9 +200,14 @@ class CreateStudyMutation(Mutation):
                 timeout=settings.REQUESTS_TIMEOUT,
                 headers=settings.REQUESTS_HEADERS,
             )
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Problem creating study: {e}")
-            raise GraphQLError(f"Problem creating study: {e}")
+            # Try decoding the json payload to verify it's valid
+            resp.json()
+        except (
+            requests.exceptions.RequestException,
+            json.decoder.JSONDecodeError,
+        ) as e:
+            logger.error(f"Problem creating study in Data Service: {e}")
+            raise GraphQLError(f"Problem creating study in Data Service: {e}")
 
         # Raise an error if it looks like study failed to create
         if not resp.status_code == 201 or "results" not in resp.json():
@@ -241,9 +247,7 @@ class CreateStudyMutation(Mutation):
             settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
             and settings.BUCKETSERVICE_URL
         ):
-            logger.info(
-                f"Scheduling Bucket Service setup for study {study.kf_id}"
-            )
+            logger.info(f"Scheduling bucket setup for study {study.kf_id}")
             bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)
         else:
             logger.info(

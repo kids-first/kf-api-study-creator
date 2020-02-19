@@ -212,6 +212,40 @@ def test_dataservice_error(db, admin_client, mock_error):
     assert resp_message.startswith("Problem creating study:")
 
 
+def test_study_buckets_settings(db, admin_client, mock_post, settings, mocker):
+    """
+    Test that buckets are only created if the correct settings are configured
+    """
+    settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS = True
+    settings.STUDY_BUCKETS_REGION = "us-east-1"
+    settings.STUDY_BUCKETS_LOGGING_BUCKET = "bucket"
+    settings.STUDY_BUCKETS_DR_LOGGING_BUCKET = "logging-bucket"
+    settings.STUDY_BUCKETS_REPLICATION_ROLE = "arn:::"
+    settings.STUDY_BUCKETS_INVENTORY_LOCATION = "bucket-metrics/inventory"
+
+    mock_setup = mocker.patch("creator.studies.schema.django_rq.enqueue")
+
+    variables = {"input": {"externalId": "Test Study"}}
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert mock_setup.call_count == 1
+
+    settings.STUDY_BUCKETS_REGION = None
+
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    # Setup should not have been called
+    assert mock_setup.call_count == 1
+
+
 def test_workflows(db, settings, mocker, admin_client, mock_post):
     """
     Test that a new study may be created with specific workflows

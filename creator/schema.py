@@ -53,10 +53,10 @@ class Features(graphene.ObjectType):
             "New projects will automatically have a new S3 volume mounted"
         )
     )
-    bucketservice_create_buckets = graphene.Boolean(
+    study_buckets_create_buckets = graphene.Boolean(
         description=(
-            "New buckets will be created for new studies via the bucketservice"
-            " when a new study is created"
+            "New buckets will be created for new studies when a new study is "
+            "created"
         )
     )
 
@@ -77,6 +77,39 @@ class Settings(graphene.ObjectType):
     )
     cavatica_user_access_project = graphene.String(
         description="The project to copy users from for new projects"
+    )
+    study_buckets_region = graphene.String(
+        description=("The AWS region where new study buckets will be created")
+    )
+    study_buckets_logging_bucket = graphene.String(
+        description=(
+            "The bucket where access logs for the new study buckets will be "
+            "stored"
+        )
+    )
+    study_buckets_dr_region = graphene.String(
+        description=(
+            "The AWS region where new study buckets recovery buckets "
+            "will be created"
+        )
+    )
+    study_buckets_dr_logging_bucket = graphene.String(
+        description=(
+            "The bucket where access logs for the new study bucket recovery "
+            "buckets will be stored"
+        )
+    )
+    study_buckets_inventory_location = graphene.String(
+        description=(
+            "The full aws bucket with prefix where bucket inventories will be "
+            "dumped"
+        )
+    )
+    study_buckets_log_prefix = graphene.String(
+        description=(
+            "The prefix under which access logs will be stored in the logging "
+            "and dr logging buckets"
+        )
     )
 
 
@@ -131,8 +164,8 @@ class Status(graphene.ObjectType):
             "cavatica_create_projects": settings.FEAT_CAVATICA_CREATE_PROJECTS,
             "cavatica_copy_users": settings.FEAT_CAVATICA_COPY_USERS,
             "cavatica_mount_volumes": settings.FEAT_CAVATICA_MOUNT_VOLUMES,
-            "bucketservice_create_buckets": (
-                settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
+            "study_buckets_create_buckets": (
+                settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
             ),
         }
 
@@ -152,7 +185,6 @@ class Status(graphene.ObjectType):
 
         conf = {
             "dataservice_url": settings.DATASERVICE_URL,
-            "bucketservice_url": settings.BUCKETSERVICE_URL,
             "cavatica_url": settings.CAVATICA_URL,
             "cavatica_delivery_account": settings.CAVATICA_DELIVERY_ACCOUNT,
             "cavatica_harmonization_account": (
@@ -161,6 +193,18 @@ class Status(graphene.ObjectType):
             "cavatica_user_access_project": (
                 settings.CAVATICA_USER_ACCESS_PROJECT
             ),
+            "study_buckets_region": settings.STUDY_BUCKETS_REGION,
+            "study_buckets_logging_bucket": (
+                settings.STUDY_BUCKETS_LOGGING_BUCKET
+            ),
+            "study_buckets_dr_region": settings.STUDY_BUCKETS_DR_REGION,
+            "study_buckets_dr_logging_bucket": (
+                settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
+            ),
+            "study_buckets_inventory_location": (
+                settings.STUDY_BUCKETS_INVENTORY_LOCATION
+            ),
+            "study_buckets_log_prefix": settings.STUDY_BUCKETS_LOG_PREFIX,
         }
         return Settings(**conf)
 

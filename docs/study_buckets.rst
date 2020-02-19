@@ -27,11 +27,11 @@ integration to function correctly.
 
     The region in aws where new study buckets will be created
 
-.. py:data:: STUDY_BUCKETS_LOGGING_BUCKET 
+.. py:data:: STUDY_BUCKETS_LOGGING_BUCKET
 
     The bucket that access logs for new buckets will be sent to.
 
-.. py:data:: STUDY_BUCKETS_DR_LOGGING_BUCKET 
+.. py:data:: STUDY_BUCKETS_DR_LOGGING_BUCKET
 
     The bucket that access logs for new data recovery buckets will be sent to.
 
@@ -39,15 +39,15 @@ integration to function correctly.
 
     The region in aws where new replication buckets will be created
 
-.. py:data:: STUDY_BUCKETS_INVENTORY_LOCATION 
+.. py:data:: STUDY_BUCKETS_INVENTORY_LOCATION
 
     The S3 location that bucket inventories will be stored in for new buckets.
 
-.. py:data:: STUDY_BUCKETS_REPLICATION_ROLE 
+.. py:data:: STUDY_BUCKETS_REPLICATION_ROLE
 
     The arn of the role to use for replication on new buckets.
-    
-.. py:data:: STUDY_BUCKETS_LOG_PREFIX 
+
+.. py:data:: STUDY_BUCKETS_LOG_PREFIX
 
     The prefix where bucket logs will be stored in the logging buckets.
 

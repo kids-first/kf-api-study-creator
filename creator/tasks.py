@@ -61,7 +61,7 @@ def setup_bucket_task(kf_id):
         event.save()
 
         logger.error(message)
-        return
+        raise
 
 
 @job
