@@ -204,10 +204,7 @@ LOGGING = {
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
-        "creator.studies.bucketservice": {
-            "handlers": ["task"],
-            "level": "INFO",
-        },
+        "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
     },
 }
@@ -275,8 +272,6 @@ REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
 DATASERVICE_URL = "dataservice"
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
-
-BUCKETSERVICE_URL = os.environ.get("BUCKETSERVICE_URL", "http://bucketservice")
 
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"

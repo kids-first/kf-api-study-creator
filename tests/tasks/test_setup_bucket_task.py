@@ -18,7 +18,7 @@ def test_setup_bucket_success(db, mocker, settings):
     settings.STUDY_BUCKETS_INVENTORY_LOCATION = "bucket-metrics/inventory"
 
     study = StudyFactory()
-    mock_setup = mocker.patch("creator.tasks.setup_bucket")
+    mock_setup = mocker.patch("creator.tasks.new_bucket")
     mock_setup.return_value = study
 
     assert Event.objects.count() == 0
@@ -44,11 +44,10 @@ def test_setup_bucket_fail(db, mocker, settings):
     """
     Test that the setup task operates correctly when the setup fails
     """
-    settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS = True
-    settings.BUCKETSERVICE_URL = "http://bucketservice"
+    settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS = True
 
     study = StudyFactory()
-    mock_setup = mocker.patch("creator.tasks.setup_bucket")
+    mock_setup = mocker.patch("creator.tasks.new_bucket")
     mock_setup.side_effect = Exception("error making bucket")
 
     assert Event.objects.count() == 0

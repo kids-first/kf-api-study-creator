@@ -4,7 +4,7 @@ from datetime import datetime
 from django_rq import job
 from django.contrib.auth import get_user_model
 
-from creator.studies.bucketservice import setup_bucket
+from creator.studies.buckets import new_bucket
 from creator.studies.dataservice import sync_dataservice_studies
 from creator.projects.cavatica import (
     setup_cavatica,
@@ -25,11 +25,11 @@ logger.setLevel(logging.INFO)
 @job
 def setup_bucket_task(kf_id):
     """
-    Setup new s3 resources for a study by calling the bucket service
+    Setup new s3 resources for a study
 
     :param kf_id: The kf_id of the study to set up the bucket for
     """
-    logger.info(f"Creating a new bucket with Bucket Service for {kf_id}")
+    logger.info(f"Creating new buckets for study {kf_id}")
 
     try:
         study = Study.objects.get(kf_id=kf_id)
@@ -38,23 +38,23 @@ def setup_bucket_task(kf_id):
         raise
 
     try:
-        message = f"Creating a bucket for study {kf_id}"
+        message = f"Creating buckets for study {kf_id}"
         event = Event(study=study, description=message, event_type="BK_STR")
         event.save()
 
         # Setting up bucket will set the s3 location on the study so it
         # needs to be captured and saved
-        study = setup_bucket(study)
+        study = new_bucket(study)
         study.save()
 
-        message = f"Successfully created bucket for study {kf_id}"
+        message = f"Successfully created buckets for study {kf_id}"
         event = Event(study=study, description=message, event_type="BK_SUC")
         event.save()
 
         logger.info(message)
     except Exception as exc:
         message = (
-            f"There was a problem calling the bucket service for study "
+            f"There was a problem creating buckets for study "
             f"{kf_id}: {exc}"
         )
         event = Event(study=study, description=message, event_type="BK_ERR")

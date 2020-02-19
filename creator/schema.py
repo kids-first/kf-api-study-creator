@@ -63,9 +63,6 @@ class Features(graphene.ObjectType):
 
 class Settings(graphene.ObjectType):
     dataservice_url = graphene.String(description="The URL of the Dataservice")
-    bucketservice_url = graphene.String(
-        description="The URL of the Bucketservice"
-    )
     cavatica_url = graphene.String(description="The URL of the Cavatica API")
     cavatica_delivery_account = graphene.String(
         description="The Cavatica account used for delivery projects"

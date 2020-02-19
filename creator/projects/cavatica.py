@@ -194,8 +194,7 @@ def setup_cavatica(study, workflows=None, user=None):
         and settings.CAVATICA_READWRITE_ACCESS_KEY
         and settings.CAVATICA_READWRITE_SECRET_KEY
         and settings.CAVATICA_DELIVERY_ACCOUNT
-        and settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
-        and settings.BUCKETSERVICE_URL
+        and settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
     ):
         attach_volume(study)
 

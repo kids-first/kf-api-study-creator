@@ -244,14 +244,18 @@ class CreateStudyMutation(Mutation):
         # Setup bucket
         bucket_job = None
         if (
-            settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
-            and settings.BUCKETSERVICE_URL
+            settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
+            and settings.STUDY_BUCKETS_REGION
+            and settings.STUDY_BUCKETS_LOGGING_BUCKET
+            and settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
+            and settings.STUDY_BUCKETS_REPLICATION_ROLE
+            and settings.STUDY_BUCKETS_INVENTORY_LOCATION
         ):
             logger.info(f"Scheduling bucket setup for study {study.kf_id}")
             bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)
         else:
             logger.info(
-                f"Bucket Service integration not configured. Skipping setup of"
+                f"Bucket setup integration not configured. Skipping setup of"
                 f"new bucket resources for study {study.kf_id}"
             )
 
