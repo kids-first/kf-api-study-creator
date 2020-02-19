@@ -87,10 +87,12 @@ class DevDownloadTokenMutation(graphene.Mutation):
         Generates a developer token with a given name.
         """
         user = info.context.user
-        if ((user is None
-             or not user.is_authenticated
-             or 'ADMIN' not in user.ego_roles
-             or user.email is '')):
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+            or user.email == ""
+        ):
             return GraphQLError('Not authenticated to generate a token.')
 
         token = DevDownloadToken(name=name, creator=user)
