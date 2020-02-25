@@ -56,6 +56,8 @@ class FileNode(DjangoObjectType):
 
 
 class FileFilter(django_filters.FilterSet):
+    tag = django_filters.CharFilter(field_name="tags", lookup_expr="icontains")
+
     class Meta:
         model = File
         fields = ["name", "study__kf_id", "file_type"]
