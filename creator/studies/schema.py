@@ -15,6 +15,7 @@ from graphene import (
     Date,
     InputObjectType,
     ID,
+    List,
     ObjectType,
     Field,
     String,
@@ -35,6 +36,8 @@ from creator.files.schema.file import FileNode, FileFilter
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+User = get_user_model()
+
 
 def sanitize_fields(attributes):
     """
@@ -51,8 +54,26 @@ def sanitize_fields(attributes):
         "release_status",
         "short_name",
         "version",
+        "collaborators",
     }
     return {k: attributes[k] for k in attributes.keys() & fields}
+
+
+def get_collaborators(input):
+    """
+    Convert a list of relay ids of collaborators into a list of User objects
+    """
+    collaborators = input.get("collaborators", [])
+
+    users = []
+    for collab in collaborators:
+        model, collab_id = from_global_id(collab)
+        try:
+            users.append(User.objects.get(sub=collab_id))
+        except User.DoesNotExist:
+            raise GraphQLError("A provided user does not exist")
+
+    return users
 
 
 class StudyNode(DjangoObjectType):
@@ -69,6 +90,7 @@ class StudyNode(DjangoObjectType):
     class Meta:
         model = Study
         filter_fields = ["name"]
+        exclude_fields = ["user_set"]
         interfaces = (relay.Node,)
 
     @classmethod
@@ -147,6 +169,7 @@ class StudyInput(InputObjectType):
     bucket = String(
         description="The s3 bucket where data for this study resides"
     )
+    collaborators = List(ID, description="Investigators related to the study")
 
 
 class CreateStudyMutation(Mutation):
@@ -224,6 +247,10 @@ class CreateStudyMutation(Mutation):
             f"{resp.json()['results']['kf_id']}"
         )
 
+        collaborators = get_collaborators(input)
+        if "collaborators" in input:
+            del input["collaborators"]
+
         # Merge dataservice response attributes with the original input
         attributes = {**input, **resp.json()["results"]}
         created_at = attributes.get("created_at")
@@ -231,6 +258,8 @@ class CreateStudyMutation(Mutation):
             attributes["created_at"] = parse(created_at)
         attributes["deleted"] = False
         study = Study(**attributes)
+        study.save()
+        study.collaborators.set(collaborators)
         study.save()
 
         # Log an event
@@ -325,6 +354,10 @@ class UpdateStudyMutation(Mutation):
         model, kf_id = from_global_id(id)
         study = Study.objects.get(kf_id=kf_id)
 
+        collaborators = get_collaborators(input)
+        if "collaborators" in input:
+            del input["collaborators"]
+
         attributes = sanitize_fields(input)
 
         try:
@@ -353,6 +386,7 @@ class UpdateStudyMutation(Mutation):
             attributes["created_at"] = parse(attributes["created_at"])
         for attr, value in attributes.items():
             setattr(study, attr, value)
+        study.collaborators.set(collaborators)
         study.save()
 
         # Log an event

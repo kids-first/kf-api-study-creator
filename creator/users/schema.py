@@ -9,6 +9,7 @@ from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 
 from creator.studies.models import Study
+from creator.studies.schema import StudyNode
 
 User = get_user_model()
 
@@ -39,6 +40,7 @@ class UserNode(DjangoObjectType):
             "slack_notify",
             "slack_member_id",
             "email_notify",
+            "studies"
         ]
 
     @classmethod

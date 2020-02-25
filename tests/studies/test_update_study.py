@@ -4,6 +4,7 @@ from hypothesis.strategies import text, integers, characters, dates
 from graphql_relay import to_global_id
 
 from creator.files.models import Study
+from creator.users.factories import UserFactory
 
 
 UPDATE_STUDY_MUTATION = """
@@ -121,6 +122,7 @@ def test_update_study_mutation(
     """
     Only admins should be allowed to update studies
     """
+    user = UserFactory()
     api_client = {
         "admin": admin_client,
         "service": service_client,
@@ -129,7 +131,10 @@ def test_update_study_mutation(
     }[user_type]
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
-        "input": {"externalId": "NEW"},
+        "input": {
+            "externalId": "NEW",
+            "collaborators": [to_global_id("UserNode", user.sub)],
+        },
     }
     resp = api_client.post(
         "/graphql",
@@ -141,6 +146,7 @@ def test_update_study_mutation(
         resp_body = resp.json()["data"]["updateStudy"]["study"]
         assert resp_body["externalId"] == "NEW"
         assert Study.objects.first().external_id == "NEW"
+        assert Study.objects.first().collaborators.count() == 1
     else:
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")

@@ -1,10 +1,12 @@
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import text, integers, characters, dates
+from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_cavatica_task
 from creator.files.models import Study
+from creator.users.factories import UserFactory
 from creator.projects.models import Project
 from creator.projects.cavatica import attach_volume
 
@@ -28,6 +30,7 @@ mutation newStudy($input: StudyInput!, $workflows: [String]) {
             anticipatedSamples
             awardeeOrganization
             releaseDate
+            collaborators { edges { node { id username } } }
         }
     }
 }
@@ -128,13 +131,19 @@ def test_create_study_mutation(
     """
     Only admins should be allowed to create studies
     """
+    user = UserFactory()
     api_client = {
         "admin": admin_client,
         "service": service_client,
         "user": user_client,
         None: client,
     }[user_type]
-    variables = {"input": {"externalId": "Test Study"}}
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "collaborators": [to_global_id("UserNode", user.sub)],
+        }
+    }
     resp = api_client.post(
         "/graphql",
         content_type="application/json",
@@ -147,11 +156,37 @@ def test_create_study_mutation(
         assert Study.objects.count() == 1
         assert Study.objects.first().external_id == "Test Study"
         assert mock_cavatica.call_count == 1
+        assert Study.objects.first().collaborators.count() == 1
     else:
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
         assert Study.objects.count() == 0
         assert mock_cavatica.call_count == 0
+
+
+def test_create_study_collaborator_does_not_exist(
+    db, admin_client, mock_post, mock_cavatica
+):
+    """
+    Study should not be created and an error returned if one of the
+    collaborators does not exist
+    """
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "collaborators": [to_global_id("UserNode", "non existant")],
+        }
+    }
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert "does not exist" in resp.json()["errors"][0]["message"]
+    assert Study.objects.count() == 0
+    assert mock_cavatica.call_count == 0
 
 
 def test_dataservice_call(db, admin_client, mock_post, settings):
@@ -272,7 +307,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         Study.objects.first().kf_id,
         ["bwa_mem"],
         User.objects.first().sub,
-        depends_on=None
+        depends_on=None,
     )
 
     # Try multiple workflows
@@ -291,7 +326,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         Study.objects.first().kf_id,
         workflows,
         User.objects.first().sub,
-        depends_on=None
+        depends_on=None,
     )
 
 
