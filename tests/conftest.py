@@ -101,6 +101,7 @@ def upload_file(client, tmp_uploads_local):
                 $description: String!,
                 $fileType: FileFileType!,
                 $studyId: String!
+                $tags: [String]
             ) {
                 createFile(
                   file: $file,
@@ -108,9 +109,10 @@ def upload_file(client, tmp_uploads_local):
                   studyId: $studyId,
                   description: $description,
                   fileType: $fileType
+                  tags: $tags
                 ) {
                     success
-                    file { kfId name description fileType }
+                    file { kfId name description fileType tags }
               }
             }
         """
@@ -125,6 +127,7 @@ def upload_file(client, tmp_uploads_local):
                             "studyId": study_id,
                             "description": "This is my test file",
                             "fileType": "OTH",
+                            "tags": ["tag1", "tag2"],
                         },
                     }
                 ),

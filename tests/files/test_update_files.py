@@ -6,14 +6,16 @@ mutation (
     $description: String!,
     $name: String!,
     $fileType: FileFileType!
+    $tags: [String]
 ) {
     updateFile(
         kfId: $kfId,
         name: $name,
         description:$description,
         fileType: $fileType
+        tags: $tags
     ) {
-        file { id kfId description name fileType }
+        file { id kfId description name fileType tags }
     }
 }
 """
@@ -54,6 +56,7 @@ def test_my_file_mutation_query(user_client, db, prep_file):
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
+        "tags": ["tag1", "tag2"],
     }
     resp = user_client.post(
         "/graphql",
@@ -64,6 +67,7 @@ def test_my_file_mutation_query(user_client, db, prep_file):
     resp_file = resp.json()["data"]["updateFile"]["file"]
     assert resp_file["name"] == "New name"
     assert resp_file["description"] == "New description"
+    assert resp_file["tags"] == ["tag1", "tag2"]
 
 
 def test_not_my_file_mutation_query(user_client, db, prep_file):
@@ -101,6 +105,7 @@ def test_admin_file_mutation_query(admin_client, db, prep_file):
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
+        "tags": ["tag1", "tag2"],
     }
     resp = admin_client.post(
         "/graphql",
@@ -111,3 +116,4 @@ def test_admin_file_mutation_query(admin_client, db, prep_file):
     resp_file = resp.json()["data"]["updateFile"]["file"]
     assert resp_file["name"] == "New name"
     assert resp_file["description"] == "New description"
+    assert resp_file["tags"] == ["tag1", "tag2"]
