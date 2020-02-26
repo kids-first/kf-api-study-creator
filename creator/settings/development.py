@@ -25,7 +25,7 @@ SECRET_KEY = 'q$ol+cu=#pp=bgni6d7rn$+$07(!q8g_=aep0w_n+rkhy5q060'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+STAGE = "dev"
 CORS_ORIGIN_ALLOW_ALL = True
 
 DEVELOP = True
@@ -204,10 +204,7 @@ LOGGING = {
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
-        "creator.studies.bucketservice": {
-            "handlers": ["task"],
-            "level": "INFO",
-        },
+        "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
     },
 }
@@ -276,8 +273,6 @@ DATASERVICE_URL = "dataservice"
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
 
-BUCKETSERVICE_URL = os.environ.get("BUCKETSERVICE_URL", "http://bucketservice")
-
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
 )
@@ -305,6 +300,27 @@ CAVATICA_READ_SECRET_KEY = os.environ.get("CAVATICA_READ_SECRET_KEY")
 CAVATICA_READWRITE_ACCESS_KEY = os.environ.get("CAVATICA_READWRITE_ACCESS_KEY")
 CAVATICA_READWRITE_SECRET_KEY = os.environ.get("CAVATICA_READWRITE_SECRET_KEY")
 
+# AWS Settings for study buckets
+STUDY_BUCKETS_REGION = os.environ.get("STUDY_BUCKETS_REGION", "us-east-1")
+STUDY_BUCKETS_LOGGING_BUCKET = os.environ.get("STUDY_BUCKETS_LOGGING_BUCKET")
+STUDY_BUCKETS_DR_REGION = os.environ.get(
+    "STUDY_BUCKETS_DR_REGION", "us-west-2"
+)
+STUDY_BUCKETS_DR_LOGGING_BUCKET = os.environ.get(
+    "STUDY_BUCKETS_DR_LOGGING_BUCKET"
+)
+# Location where the study bucket inventories will be dumped
+STUDY_BUCKETS_INVENTORY_LOCATION = os.environ.get(
+    "STUDY_BUCKETS_INVENTORY_LOCATION", ""
+)
+STUDY_BUCKETS_REPLICATION_ROLE = os.environ.get(
+    "STUDY_BUCKETS_REPLICATION_ROLE"
+)
+# The prefix where bucket logs will be stored
+STUDY_BUCKETS_LOG_PREFIX = os.environ.get(
+    "STUDY_BUCKETS_LOG_PREFIX", "/studies/dev/"
+)
+
 ################################################################################
 ### Feature Flags
 
@@ -331,6 +347,6 @@ FEAT_CAVATICA_MOUNT_VOLUMES = os.environ.get(
     "FEAT_CAVATICA_MOUNT_VOLUMES", False
 )
 # Create buckets for new studies
-FEAT_BUCKETSERVICE_CREATE_BUCKETS = os.environ.get(
-    "FEAT_BUCKETSERVICE_CREATE_BUCKETS", False
+FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
+    "FEAT_STUDY_BUCKETS_CREATE_BUCKETS", False
 )

@@ -1,4 +1,5 @@
 import django_rq
+import json
 import logging
 import requests
 
@@ -199,9 +200,14 @@ class CreateStudyMutation(Mutation):
                 timeout=settings.REQUESTS_TIMEOUT,
                 headers=settings.REQUESTS_HEADERS,
             )
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Problem creating study: {e}")
-            raise GraphQLError(f"Problem creating study: {e}")
+            # Try decoding the json payload to verify it's valid
+            resp.json()
+        except (
+            requests.exceptions.RequestException,
+            json.decoder.JSONDecodeError,
+        ) as e:
+            logger.error(f"Problem creating study in Data Service: {e}")
+            raise GraphQLError(f"Problem creating study in Data Service: {e}")
 
         # Raise an error if it looks like study failed to create
         if not resp.status_code == 201 or "results" not in resp.json():
@@ -238,16 +244,18 @@ class CreateStudyMutation(Mutation):
         # Setup bucket
         bucket_job = None
         if (
-            settings.FEAT_BUCKETSERVICE_CREATE_BUCKETS
-            and settings.BUCKETSERVICE_URL
+            settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
+            and settings.STUDY_BUCKETS_REGION
+            and settings.STUDY_BUCKETS_LOGGING_BUCKET
+            and settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
+            and settings.STUDY_BUCKETS_REPLICATION_ROLE
+            and settings.STUDY_BUCKETS_INVENTORY_LOCATION
         ):
-            logger.info(
-                f"Scheduling Bucket Service setup for study {study.kf_id}"
-            )
+            logger.info(f"Scheduling bucket setup for study {study.kf_id}")
             bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)
         else:
             logger.info(
-                f"Bucket Service integration not configured. Skipping setup of"
+                f"Bucket setup integration not configured. Skipping setup of"
                 f"new bucket resources for study {study.kf_id}"
             )
 
