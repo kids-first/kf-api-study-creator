@@ -34,6 +34,7 @@ def test_upload_query_s3(admin_client, db, upload_file, tmp_uploads_s3):
         "fileType": "OTH",
         "name": "Test file",
         "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
+        "tags": ["tag1", "tag2"],
     }
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
@@ -86,6 +87,7 @@ def test_upload_query_local(admin_client, db, tmp_uploads_local, upload_file):
         "fileType": "OTH",
         "name": "Test file",
         "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
+        "tags": ["tag1", "tag2"],
     }
     assert studies[-1].files.count() == 1
 
@@ -210,6 +212,7 @@ def test_upload_unauthed_study(user_client, db, upload_file):
         "fileType": "OTH",
         "name": "Test file",
         "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
+        "tags": ["tag1", "tag2"],
     }
     assert my_study.files.count() == 1
 

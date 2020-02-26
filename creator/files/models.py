@@ -8,6 +8,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 
@@ -51,6 +52,13 @@ class File(models.Model):
                 ('FAM', 'Familial Relationships')),
             default='OTH',
             )
+
+    tags = ArrayField(
+        models.CharField(max_length=50, blank=True),
+        blank=True,
+        default=list,
+        help_text="Tags to group the files by",
+    )
 
     def __str__(self):
         return f'{self.kf_id}'

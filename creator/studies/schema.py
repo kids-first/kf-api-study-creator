@@ -28,6 +28,8 @@ from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
 from creator.events.models import Event
 from creator.events.schema import EventNode, EventFilter
+from creator.files.models import File
+from creator.files.schema.file import FileNode, FileFilter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -57,6 +59,10 @@ class StudyNode(DjangoObjectType):
 
     events = DjangoFilterConnectionField(
         EventNode, filterset_class=EventFilter, description="List all events"
+    )
+
+    files = DjangoFilterConnectionField(
+        FileNode, filterset_class=FileFilter, description="List all files"
     )
 
     class Meta:

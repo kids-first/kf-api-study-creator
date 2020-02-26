@@ -56,6 +56,8 @@ class FileNode(DjangoObjectType):
 
 
 class FileFilter(django_filters.FilterSet):
+    tag = django_filters.CharFilter(field_name="tags", lookup_expr="icontains")
+
     class Meta:
         model = File
         fields = ["name", "study__kf_id", "file_type"]
@@ -80,12 +82,13 @@ class FileUploadMutation(graphene.Mutation):
         # This extracts the FileFileType enum from the auto-created field
         # made from the django model inside of the FileNode
         fileType = FileNode._meta.fields["file_type"].type
+        tags = graphene.List(graphene.String)
 
     success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
     def mutate(
-        self, info, file, studyId, name, description, fileType, **kwargs
+        self, info, file, studyId, name, description, fileType, tags, **kwargs
     ):
         """
         Uploads a file given a studyId and creates a new file and file version
@@ -114,6 +117,7 @@ class FileUploadMutation(graphene.Mutation):
                     creator=user,
                     description=description,
                     file_type=fileType,
+                    tags=tags,
                 )
                 root_file.save()
                 # Now create the version
@@ -147,6 +151,7 @@ class FileMutation(graphene.Mutation):
         # This extracts the FileFileType enum from the auto-created field
         # made from the django model inside of the FileNode
         file_type = FileNode._meta.fields["file_type"].type
+        tags = graphene.List(graphene.String)
 
     file = graphene.Field(FileNode)
 
@@ -175,6 +180,8 @@ class FileMutation(graphene.Mutation):
                 file.description = kwargs.get("description")
             if kwargs.get("file_type"):
                 file.file_type = kwargs.get("file_type")
+            if kwargs.get("tags"):
+                file.tags = kwargs.get("tags")
             file.save()
         except ClientError:
             raise GraphQLError("Failed to save file mutation.")
