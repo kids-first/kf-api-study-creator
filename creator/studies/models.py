@@ -67,5 +67,11 @@ class Study(models.Model):
         help_text="Whether the study hase been deleted from the dataservice",
     )
 
+    collaborators = models.ManyToManyField(
+        "creator.User",
+        related_name="studies",
+        help_text="Users working on this study",
+    )
+
     def __str__(self):
         return self.kf_id
