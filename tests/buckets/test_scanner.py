@@ -75,7 +75,7 @@ def test_sync_buckets_study_linked(db):
     """
     Test that the study bucket is correctly linked to a study
     """
-    study = StudyFactory(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000", buckets=None)
     client = boto3.client("s3")
     bucket1 = client.create_bucket(Bucket="not-a-study")
     bucket1 = client.create_bucket(Bucket="kf-dev-sd-00000000")

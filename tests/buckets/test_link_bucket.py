@@ -48,7 +48,7 @@ def test_link_bucket(
     """
     Test that only admins may link a bucket to a study
     """
-    study = StudyFactory()
+    study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
     api_client = {
@@ -72,11 +72,7 @@ def test_link_bucket(
 
     if expected:
         assert (
-            len(
-                resp.json()["data"]["linkBucket"]["study"]["buckets"][
-                    "edges"
-                ]
-            )
+            len(resp.json()["data"]["linkBucket"]["study"]["buckets"]["edges"])
             == 1
         )
         assert Bucket.objects.first().study == study
@@ -92,7 +88,7 @@ def test_double_link_bucket(db, admin_client):
     """
     Test that linking a bucket again does not remove or change a link
     """
-    study = StudyFactory()
+    study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
     variables = {
@@ -132,7 +128,7 @@ def test_bucket_does_not_exist(db, admin_client, query):
     """
     Test that a bucket cannot be (un)linked if it doesn't exist
     """
-    study = StudyFactory()
+    study = StudyFactory(buckets=None)
 
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
@@ -181,7 +177,7 @@ def test_unlink_bucket(
     """
     Test that only admins may unlink a bucket
     """
-    study = StudyFactory()
+    study = StudyFactory(buckets=None)
     bucket = BucketFactory()
     bucket.study = study
     bucket.save()
@@ -230,7 +226,7 @@ def test_unlink_bucket_no_link(db, admin_client):
     """
     Test that unlinking a bucket that isn't linked doesn't change anything
     """
-    study = StudyFactory()
+    study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
     assert Bucket.objects.first().study is None
