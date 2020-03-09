@@ -4,7 +4,7 @@ import pytest
 from moto import mock_s3
 from botocore.exceptions import ClientError
 from creator.studies.factories import StudyFactory
-from creator.studies.buckets import (
+from creator.buckets.buckets import (
     new_bucket,
     get_bucket_name,
     _add_replication,
@@ -98,7 +98,7 @@ def test_replication_bucket_exists(settings, logging_bucket, mocker):
         CreateBucketConfiguration={"LocationConstraint": "us-west-2"},
     )
 
-    mock_encryption = mocker.patch("creator.studies.buckets._add_encryption")
+    mock_encryption = mocker.patch("creator.buckets.buckets._add_encryption")
 
     _add_replication(bucket_name, study_id)
 
@@ -226,13 +226,13 @@ def test_logging_no_bucket(settings, logging_bucket):
 @mock_s3
 def test_new_bucket(db, mocker):
     study = StudyFactory()
-    mock_encryption = mocker.patch("creator.studies.buckets._add_encryption")
-    mock_tagging = mocker.patch("creator.studies.buckets._add_tagging")
-    mock_versioning = mocker.patch("creator.studies.buckets._add_versioning")
-    mock_logging = mocker.patch("creator.studies.buckets._add_logging")
-    mock_cors = mocker.patch("creator.studies.buckets._add_cors")
-    mock_replication = mocker.patch("creator.studies.buckets._add_replication")
-    mock_inventory = mocker.patch("creator.studies.buckets._add_inventory")
+    mock_encryption = mocker.patch("creator.buckets.buckets._add_encryption")
+    mock_tagging = mocker.patch("creator.buckets.buckets._add_tagging")
+    mock_versioning = mocker.patch("creator.buckets.buckets._add_versioning")
+    mock_logging = mocker.patch("creator.buckets.buckets._add_logging")
+    mock_cors = mocker.patch("creator.buckets.buckets._add_cors")
+    mock_replication = mocker.patch("creator.buckets.buckets._add_replication")
+    mock_inventory = mocker.patch("creator.buckets.buckets._add_inventory")
 
     new_bucket(study)
 

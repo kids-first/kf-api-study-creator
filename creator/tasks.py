@@ -4,7 +4,7 @@ from datetime import datetime
 from django_rq import job
 from django.contrib.auth import get_user_model
 
-from creator.studies.buckets import new_bucket
+from creator.buckets.buckets import new_bucket
 from creator.studies.dataservice import sync_dataservice_studies
 from creator.projects.cavatica import (
     setup_cavatica,

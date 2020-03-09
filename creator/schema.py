@@ -15,6 +15,7 @@ import creator.studies.schema
 import creator.users.schema
 import creator.events.schema
 from creator.projects import schema as project_mutations
+from creator.buckets import schema as bucket_mutations
 
 
 def get_version_info():
@@ -249,6 +250,7 @@ class Query(
     creator.users.schema.Query,
     creator.events.schema.Query,
     project_mutations.Query,
+    bucket_mutations.Query,
     graphene.ObjectType,
 ):
     status = graphene.Field(Status)
@@ -328,6 +330,12 @@ class Mutation(graphene.ObjectType):
     )
     import_volume_files = project_mutations.ImportVolumeFilesMutation.Field(
         description="Unlink a Cavatica project from a Study"
+    )
+    link_bucket = bucket_mutations.LinkBucketMutation.Field(
+        description="Link a bucket to a Study"
+    )
+    unlink_bucket = bucket_mutations.UnlinkBucketMutation.Field(
+        description="Unlink a bucket from a Study"
     )
 
 

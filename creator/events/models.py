@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from creator.studies.models import Study
 from creator.files.models import File, Version
 from creator.projects.models import Project
+from creator.buckets.models import Bucket
 
 User = get_user_model()
 
@@ -42,6 +43,8 @@ class Event(models.Model):
             ("BK_STR", "Bucket Creation Start"),
             ("BK_ERR", "Bucket Creation Error"),
             ("BK_SUC", "Bucket Creation Success"),
+            ("BK_LIN", "Bucket Linked"),
+            ("BK_UNL", "Bucket Unlinked"),
             ("IM_STR", "File Import Start"),
             ("IM_ERR", "File Import Error"),
             ("IM_SUC", "File Import Success"),
@@ -62,6 +65,14 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="Study related to this event",
+    )
+    bucket = models.ForeignKey(
+        Bucket,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="buckets",
+        help_text="Bucket related to this event",
     )
     project = models.ForeignKey(
         Project,
