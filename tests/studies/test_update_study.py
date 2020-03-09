@@ -133,7 +133,6 @@ def test_update_study_mutation(
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {
             "externalId": "NEW",
-            "collaborators": [to_global_id("UserNode", user.sub)],
         },
     }
     resp = api_client.post(
@@ -146,7 +145,6 @@ def test_update_study_mutation(
         resp_body = resp.json()["data"]["updateStudy"]["study"]
         assert resp_body["externalId"] == "NEW"
         assert Study.objects.first().external_id == "NEW"
-        assert Study.objects.first().collaborators.count() == 1
     else:
         assert "errors" in resp.json()
         assert resp.json()["errors"][0]["message"].startswith("Not auth")
@@ -322,3 +320,26 @@ def test_internal_datetime_fields(
     )
     assert "errors" not in resp.json()
     assert resp.json()["data"]["updateStudy"]["study"][field] == str(s)
+
+
+def test_update_study_collaborators_not_mutable(
+    db, settings, mock_study, mock_patch, admin_client
+):
+    """
+    Collaborators should not be modifiable
+    """
+    user = UserFactory()
+    variables = {
+        "id": to_global_id("StudyNode", mock_study.kf_id),
+        "input": {
+            "externalId": "NEW",
+            "collaborators": [to_global_id("UserNode", user.sub)],
+        },
+    }
+    resp = admin_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert Study.objects.first().collaborators.count() == 0

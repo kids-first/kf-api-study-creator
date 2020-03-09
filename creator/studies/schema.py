@@ -168,12 +168,21 @@ class StudyInput(InputObjectType):
     bucket = String(
         description="The s3 bucket where data for this study resides"
     )
-    collaborators = List(ID, description="Investigators related to the study")
+
+
+class CreateStudyInput(StudyInput):
+    collaborators = List(
+        ID,
+        description=(
+            "Users related to the study. "
+            "If null, the collaborators will not be modified."
+        ),
+    )
 
 
 class CreateStudyMutation(Mutation):
     class Arguments:
-        input = StudyInput(
+        input = CreateStudyInput(
             required=True, description="Attributes for the new study"
         )
         workflows = List(
@@ -353,10 +362,6 @@ class UpdateStudyMutation(Mutation):
         model, kf_id = from_global_id(id)
         study = Study.objects.get(kf_id=kf_id)
 
-        collaborators = get_collaborators(input)
-        if "collaborators" in input:
-            del input["collaborators"]
-
         attributes = sanitize_fields(input)
 
         try:
@@ -385,7 +390,6 @@ class UpdateStudyMutation(Mutation):
             attributes["created_at"] = parse(attributes["created_at"])
         for attr, value in attributes.items():
             setattr(study, attr, value)
-        study.collaborators.set(collaborators)
         study.save()
 
         # Log an event

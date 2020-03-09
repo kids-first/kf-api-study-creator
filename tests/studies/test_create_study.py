@@ -14,7 +14,7 @@ User = get_user_model()
 
 
 CREATE_STUDY_MUTATION = """
-mutation newStudy($input: StudyInput!, $workflows: [String]) {
+mutation newStudy($input: CreateStudyInput!, $workflows: [String]) {
     createStudy(input: $input, workflows: $workflows) {
         study {
             kfId

@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 CREATE_STUDY = """
-mutation ($input: StudyInput!) {
+mutation ($input: CreateStudyInput!) {
     createStudy(input: $input) {
         study { id kfId externalId name }
     }
