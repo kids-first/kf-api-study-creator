@@ -11,6 +11,7 @@ from creator.projects.cavatica import (
     sync_cavatica_projects,
     import_volume_files,
 )
+from creator.buckets.scanner import sync_buckets
 from creator.projects.models import Project
 from creator.studies.models import Study
 from creator.events.models import Event
@@ -204,6 +205,31 @@ def sync_dataservice_studies_task():
 
     try:
         sync_dataservice_studies()
+    except Exception as err:
+        job.failing = True
+        job.last_error = str(err)
+    else:
+        job.failing = False
+        job.last_error = ""
+
+    job.last_run = datetime.utcnow()
+    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
+    job.save()
+
+
+def sync_buckets_task():
+    """
+    Synchronize buckets in S3
+    """
+    job = Job.objects.get(name="buckets_sync")
+
+    if not job.active:
+        logger.info("The buckets_sync job is not active, will not run")
+        return
+    logger.info("Running the buckets_sync job")
+
+    try:
+        sync_buckets()
     except Exception as err:
         job.failing = True
         job.last_error = str(err)

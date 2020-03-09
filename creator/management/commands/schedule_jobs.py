@@ -9,6 +9,7 @@ from creator.models import Job
 from creator.tasks import (
     sync_cavatica_projects_task,
     sync_dataservice_studies_task,
+    sync_buckets_task,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ class Command(BaseCommand):
 
         self.cavatica_scheduler = django_rq.get_scheduler("cavatica")
         self.dataservice_scheduler = django_rq.get_scheduler("dataservice")
+        self.aws_scheduler = django_rq.get_scheduler("aws")
 
         jobs = list(self.cavatica_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the Cavatica queue")
@@ -32,6 +34,10 @@ class Command(BaseCommand):
             f"Found {len(jobs)} jobs scheduled on the Dataservice queue"
         )
         self.setup_dataservice_sync()
+
+        jobs = list(self.aws_scheduler.get_jobs())
+        logger.info(f"Found {len(jobs)} jobs scheduled on the AWS queue")
+        self.setup_buckets_sync()
 
     def setup_cavatica_sync(self):
         logger.info("Scheduling Cavatica Sync jobs")
@@ -70,5 +76,25 @@ class Command(BaseCommand):
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="dataservice"
+        )
+        job.save()
+
+    def setup_buckets_sync(self):
+        logger.info("Scheduling Buckets Sync jobs")
+        name = "buckets_sync"
+        description = "Syncronize Buckets to the Study Creator"
+
+        self.aws_scheduler.cancel("buckets_sync")
+
+        self.aws_scheduler.schedule(
+            id=name,
+            description=description,
+            scheduled_time=datetime.utcnow(),
+            func=sync_buckets_task,
+            repeat=None,
+            interval=900,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="aws"
         )
         job.save()
