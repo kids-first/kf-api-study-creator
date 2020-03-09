@@ -54,7 +54,6 @@ def sanitize_fields(attributes):
         "release_status",
         "short_name",
         "version",
-        "collaborators",
     }
     return {k: attributes[k] for k in attributes.keys() & fields}
 
