@@ -11,7 +11,7 @@ from django_filters import FilterSet, OrderingFilter
 from creator.models import Job
 
 from creator.files import schema as file_mutations
-import creator.studies.schema
+from creator.studies import schema as study_mutations
 import creator.users.schema
 import creator.events.schema
 from creator.projects import schema as project_mutations
@@ -301,14 +301,20 @@ class Mutation(graphene.ObjectType):
     update_my_profile = creator.users.schema.MyProfileMutation.Field(
         description="Update the currently logged in user's profile"
     )
-    create_study = creator.studies.schema.CreateStudyMutation.Field(
+    create_study = study_mutations.CreateStudyMutation.Field(
         description="""Create a new study including setup in external systems.
         This involves: creating the study in the dataservice, mirroring the
         study in the study-creator api, creating a new bucket for the study
         data, and setting up new projects in Cavatica."""
     )
-    update_study = creator.studies.schema.UpdateStudyMutation.Field(
+    update_study = study_mutations.UpdateStudyMutation.Field(
         description="Update a given study"
+    )
+    add_collaborator = study_mutations.AddCollaboratorMutation.Field(
+        description="Add a collaborator to a study"
+    )
+    remove_collaborator = study_mutations.RemoveCollaboratorMutation.Field(
+        description="Add a collaborator to a study"
     )
     create_project = creator.projects.schema.CreateProjectMutation.Field(
         description="Create a new project for a study"

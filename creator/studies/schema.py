@@ -54,7 +54,6 @@ def sanitize_fields(attributes):
         "release_status",
         "short_name",
         "version",
-        "collaborators",
     }
     return {k: attributes[k] for k in attributes.keys() & fields}
 
@@ -169,12 +168,21 @@ class StudyInput(InputObjectType):
     bucket = String(
         description="The s3 bucket where data for this study resides"
     )
-    collaborators = List(ID, description="Investigators related to the study")
+
+
+class CreateStudyInput(StudyInput):
+    collaborators = List(
+        ID,
+        description=(
+            "Users related to the study. "
+            "If null, the collaborators will not be modified."
+        ),
+    )
 
 
 class CreateStudyMutation(Mutation):
     class Arguments:
-        input = StudyInput(
+        input = CreateStudyInput(
             required=True, description="Attributes for the new study"
         )
         workflows = List(
@@ -354,10 +362,6 @@ class UpdateStudyMutation(Mutation):
         model, kf_id = from_global_id(id)
         study = Study.objects.get(kf_id=kf_id)
 
-        collaborators = get_collaborators(input)
-        if "collaborators" in input:
-            del input["collaborators"]
-
         attributes = sanitize_fields(input)
 
         try:
@@ -386,7 +390,6 @@ class UpdateStudyMutation(Mutation):
             attributes["created_at"] = parse(attributes["created_at"])
         for attr, value in attributes.items():
             setattr(study, attr, value)
-        study.collaborators.set(collaborators)
         study.save()
 
         # Log an event
@@ -398,6 +401,117 @@ class UpdateStudyMutation(Mutation):
         event.save()
 
         return CreateStudyMutation(study=study)
+
+
+class AddCollaboratorMutation(Mutation):
+    class Arguments:
+        study = ID(
+            required=True,
+            description="The ID of the study to add the collaborator to",
+        )
+        user = ID(
+            required=True,
+            description="The ID of the user to add the to the study",
+        )
+
+    study = Field(StudyNode)
+
+    def mutate(self, info, study, user):
+        """
+        Add a user as a collaborator to a study
+        """
+        user_id = user
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError("Not authenticated to add a user to a study.")
+
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist):
+            raise GraphQLError(f"Study {study_id} does not exist.")
+
+        try:
+            _, user_id = from_global_id(user_id)
+            collaborator = User.objects.get(sub=user_id)
+        except (User.DoesNotExist):
+            raise GraphQLError(f"User {user_id} does not exist.")
+
+        study.collaborators.add(collaborator)
+        study.save()
+
+        # Log an event
+        message = (
+            f"{user.username} added as collaborator to study {study.kf_id}"
+        )
+        event = Event(study=study, description=message, event_type="CB_ADD")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return AddCollaboratorMutation(study=study)
+
+
+class RemoveCollaboratorMutation(Mutation):
+    class Arguments:
+        study = ID(
+            required=True,
+            description="The ID of the study to remove the collaborator from",
+        )
+        user = ID(
+            required=True,
+            description="The ID of the user to remove from the study",
+        )
+
+    study = Field(StudyNode)
+
+    def mutate(self, info, study, user):
+        """
+        Remove a user as a collaborator to a study
+        """
+        user_id = user
+        user = info.context.user
+        if (
+            user is None
+            or not user.is_authenticated
+            or "ADMIN" not in user.ego_roles
+        ):
+            raise GraphQLError(
+                "Not authenticated to remove a user from a study."
+            )
+
+        # Translate relay id to kf_id
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist):
+            raise GraphQLError(f"Study {study_id} does not exist.")
+
+        try:
+            _, user_id = from_global_id(user_id)
+            user = User.objects.get(sub=user_id)
+        except (User.DoesNotExist):
+            raise GraphQLError(f"User {user_id} does not exist.")
+
+        study.collaborators.remove(user)
+        study.save()
+
+        # Log an event
+        message = (
+            f"{user.username} removed as collaborator from study {study.kf_id}"
+        )
+        event = Event(study=study, description=message, event_type="CB_REM")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return RemoveCollaboratorMutation(study=study)
 
 
 class Query(object):
