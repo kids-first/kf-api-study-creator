@@ -1,4 +1,5 @@
 import pytest
+from creator.files.models import File
 
 update_query = """
 mutation (
@@ -117,3 +118,43 @@ def test_admin_file_mutation_query(admin_client, db, prep_file):
     assert resp_file["name"] == "New name"
     assert resp_file["description"] == "New description"
     assert resp_file["tags"] == ["tag1", "tag2"]
+
+
+def test_no_tags(user_client, db, prep_file):
+    """
+    Files should be able to be updated with empty tagset.
+    """
+    (_, file_id, _) = prep_file(authed=True)
+    query = update_query
+    variables = {
+        "kfId": file_id,
+        "name": "New name",
+        "description": "New description",
+        "fileType": "FAM",
+        "tags": ["tag1", "tag2"],
+    }
+    resp = user_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+    resp_file = resp.json()["data"]["updateFile"]["file"]
+    assert resp_file["tags"] == ["tag1", "tag2"]
+    assert len(File.objects.first().tags) == 2
+
+    # Update file with empty tagset
+    variables = {
+        "kfId": file_id,
+        "name": "New name",
+        "description": "New description",
+        "fileType": "FAM",
+        "tags": [],
+    }
+    resp = user_client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+    resp_file = resp.json()["data"]["updateFile"]["file"]
+    assert resp_file["tags"] == []
+    assert len(File.objects.first().tags) == 0

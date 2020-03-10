@@ -180,7 +180,7 @@ class FileMutation(graphene.Mutation):
                 file.description = kwargs.get("description")
             if kwargs.get("file_type"):
                 file.file_type = kwargs.get("file_type")
-            if kwargs.get("tags"):
+            if "tags" in kwargs:
                 file.tags = kwargs.get("tags")
             file.save()
         except ClientError:
