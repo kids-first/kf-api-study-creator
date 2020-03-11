@@ -48,6 +48,8 @@ class Event(models.Model):
             ("IM_STR", "File Import Start"),
             ("IM_ERR", "File Import Error"),
             ("IM_SUC", "File Import Success"),
+            ("CB_ADD", "Collaborator Added"),
+            ("CB_REM", "Collaborator Removed"),
             ("OTH", "Other"),
         ),
         default="OTH",
