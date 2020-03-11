@@ -68,8 +68,8 @@ def get_collaborators(input):
     for collab in collaborators:
         model, collab_id = from_global_id(collab)
         try:
-            users.append(User.objects.get(sub=collab_id))
-        except User.DoesNotExist:
+            users.append(User.objects.get(id=int(collab_id)))
+        except (User.DoesNotExist, TypeError):
             raise GraphQLError("A provided user does not exist")
 
     return users
@@ -437,8 +437,8 @@ class AddCollaboratorMutation(Mutation):
 
         try:
             _, user_id = from_global_id(user_id)
-            collaborator = User.objects.get(sub=user_id)
-        except (User.DoesNotExist):
+            collaborator = User.objects.get(id=int(user_id))
+        except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
         study.collaborators.add(collaborator)
@@ -494,8 +494,8 @@ class RemoveCollaboratorMutation(Mutation):
 
         try:
             _, user_id = from_global_id(user_id)
-            user = User.objects.get(sub=user_id)
-        except (User.DoesNotExist):
+            user = User.objects.get(id=int(user_id))
+        except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
         study.collaborators.remove(user)
