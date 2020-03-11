@@ -1,3 +1,24 @@
+# Kids First Study Creator Release 1.8.0
+
+## Features
+
+Add bucket models and tags to documents.
+
+### Summary
+
+Feature Emojis: ✨x5 🐛x1 ♻️x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x6 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x1 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x1
+
+### New features and changes
+
+- (#354) 🐛 Allow files to be updated with no tags - @dankolbman
+- (#353) ♻️ Refactor collaborator mutations - @dankolbman
+- (#351) ✨ Bucket sync task - @dankolbman
+- (#350) ✨ Add bucket models - @dankolbman
+- (#345) ✨ Add collaborators to studies - @dankolbman
+- (#342) ✨ Consolidate bucket service - @dankolbman
+- (#344) ✨ Add tags field to file model and allow updating - @XuTheBunny
+
 # Kids First Study Creator Release 1.7.4
 
 ## Features
