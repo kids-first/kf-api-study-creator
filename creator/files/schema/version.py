@@ -22,7 +22,7 @@ class VersionNode(DjangoObjectType):
     download_url = graphene.String()
 
     def resolve_download_url(self, info):
-        return f"{info.context.scheme}://{info.context.get_host()}{self.path}"
+        return f"https://{info.context.get_host()}{self.path}"
 
     @classmethod
     def get_node(cls, info, kf_id):

@@ -66,7 +66,7 @@ def test_file_download_url(admin_client, db, prep_file):
         "/graphql", data=query_data, content_type="application/json"
     )
     file = resp.json()["data"]["allFiles"]["edges"][0]["node"]
-    expect_url = f"http://testserver/download/study/{study_id}/file/{file_id}"
+    expect_url = f"https://testserver/download/study/{study_id}/file/{file_id}"
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "allFiles" in resp.json()["data"]
@@ -90,7 +90,7 @@ def test_version_download_url(admin_client, db, prep_file):
     assert resp.status_code == 200
     version = resp.json()["data"]["allVersions"]["edges"][0]["node"]
     expect_url = (
-        f"http://testserver/download/study/{study_id}/file/{file_id}"
+        f"https://testserver/download/study/{study_id}/file/{file_id}"
         f"/version/{version_id}"
     )
     assert version["downloadUrl"] == expect_url
