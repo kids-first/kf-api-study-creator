@@ -34,6 +34,8 @@ case $PRELOAD_DATA in
         ;;
 esac
 
+/app/manage.py setup_permissions
+
 # Make an admin user
 echo "from django.contrib.auth import get_user_model;
 from django.db.utils import IntegrityError;

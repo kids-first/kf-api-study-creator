@@ -62,5 +62,6 @@ elif [[ $1 = scheduler ]]; then
 else
     python manage.py syncstudies --api $DATASERVICE_URL
     /app/manage.py migrate
+    /app/manage.py setup_permissions
     exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
 fi
