@@ -141,7 +141,7 @@ def test_create_study_mutation(
     variables = {
         "input": {
             "externalId": "Test Study",
-            "collaborators": [to_global_id("UserNode", user.sub)],
+            "collaborators": [to_global_id("UserNode", user.id)],
         }
     }
     resp = api_client.post(
@@ -174,7 +174,7 @@ def test_create_study_collaborator_does_not_exist(
     variables = {
         "input": {
             "externalId": "Test Study",
-            "collaborators": [to_global_id("UserNode", "non existant")],
+            "collaborators": [to_global_id("UserNode", 123)],
         }
     }
     resp = admin_client.post(

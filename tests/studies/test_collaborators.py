@@ -73,7 +73,7 @@ def test_add_collaborator_mutation(
     }[user_type]
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
-        "user": to_global_id("UserNode", user.sub),
+        "user": to_global_id("UserNode", user.id),
     }
     resp = api_client.post(
         "/graphql",
@@ -131,7 +131,7 @@ def test_remove_collaborator_mutation(
     }[user_type]
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
-        "user": to_global_id("UserNode", user.sub),
+        "user": to_global_id("UserNode", user.id),
     }
     resp = api_client.post(
         "/graphql",
@@ -159,7 +159,7 @@ def test_study_not_found(db, admin_client, mutation):
     user = UserFactory()
     variables = {
         "study": to_global_id("StudyNode", "KF_00000000"),
-        "user": to_global_id("UserNode", user.sub),
+        "user": to_global_id("UserNode", user.id),
     }
     resp = admin_client.post(
         "/graphql",
@@ -181,7 +181,7 @@ def test_user_not_found(db, admin_client, mutation):
     study = StudyFactory()
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
-        "user": to_global_id("UserNode", "ABC"),
+        "user": to_global_id("UserNode", 123),
     }
     resp = admin_client.post(
         "/graphql",
@@ -190,4 +190,4 @@ def test_user_not_found(db, admin_client, mutation):
     )
 
     assert "errors" in resp.json()
-    assert "ABC does not exist" in resp.json()["errors"][0]["message"]
+    assert "123 does not exist" in resp.json()["errors"][0]["message"]
