@@ -7,6 +7,7 @@ from django_filters import OrderingFilter
 
 from graphql import GraphQLError
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 
 from creator.studies.models import Study
 from creator.studies.schema import StudyNode
@@ -67,6 +68,47 @@ class UserNode(DjangoObjectType):
         return None
 
 
+class GroupNode(DjangoObjectType):
+    class Meta:
+        model = Group
+        interfaces = (relay.Node,)
+
+    @classmethod
+    def get_node(cls, info, id):
+        """
+        Only return node if user is an admin or is self
+        """
+        user = info.context.user
+        if not user.has_perm("auth.view_group"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            obj = cls._meta.model.objects.get(id=id)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Group not found")
+
+        return obj
+
+
+class PermissionNode(DjangoObjectType):
+    class Meta:
+        model = Permission
+        interfaces = (relay.Node,)
+
+    @classmethod
+    def get_node(cls, info, id):
+        user = info.context.user
+        if not user.has_perm("auth.view_permission"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            obj = cls._meta.model.objects.get(id=id)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Permission not found")
+
+        return obj
+
+
 class UserFilter(django_filters.FilterSet):
     class Meta:
         model = User
@@ -80,6 +122,26 @@ class UserFilter(django_filters.FilterSet):
         }
 
     order_by = OrderingFilter(fields=("date_joined",))
+
+
+class GroupFilter(django_filters.FilterSet):
+    name_contains = django_filters.CharFilter(
+        field_name="name", lookup_expr="contains"
+    )
+
+    class Meta:
+        model = Group
+        fields = {"name": ["exact"]}
+
+
+class PermissionFilter(django_filters.FilterSet):
+    name_contains = django_filters.CharFilter(
+        field_name="name", lookup_expr="contains"
+    )
+
+    class Meta:
+        model = Permission
+        fields = {"name": ["exact"], "codename": ["exact"]}
 
 
 class MyProfileMutation(graphene.Mutation):
@@ -189,6 +251,18 @@ class Query(object):
         UserNode, filterset_class=UserFilter
     )
     my_profile = Field(UserNode)
+    group = relay.Node.Field(GroupNode, description="Get a group")
+    all_groups = DjangoFilterConnectionField(
+        GroupNode, filterset_class=GroupFilter, description="List all groups"
+    )
+    permission = relay.Node.Field(
+        PermissionNode, description="Get a permission"
+    )
+    all_permissions = DjangoFilterConnectionField(
+        PermissionNode,
+        filterset_class=PermissionFilter,
+        description="List all permissions",
+    )
 
     def resolve_all_users(self, info, **kwargs):
         """
@@ -218,3 +292,17 @@ class Query(object):
             raise GraphQLError("not authenticated as a user with a profile")
 
         return user
+
+    def resolve_all_groups(self, info, **kwargs):
+        user = info.context.user
+        if not user.has_perm("auth.view_group"):
+            raise GraphQLError("Not allowed")
+
+        return Group.objects.all()
+
+    def resolve_all_permissions(self, info, **kwargs):
+        user = info.context.user
+        if not user.has_perm("auth.view_permission"):
+            raise GraphQLError("Not allowed")
+
+        return Permission.objects.all()
