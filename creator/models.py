@@ -48,6 +48,9 @@ class User(AbstractUser):
     Stores only basic information about the user, namely their primary id
     that may be used to fetch their full profile.
     """
+    class Meta:
+        permissions = [("list_all_user", "Can list all users")]
+
     USERNAME_FIELD = "sub"
     # This overrides the AbstractUser username which has a unique contraint
     # on it in preference of the sub being the unique field.

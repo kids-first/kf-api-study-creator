@@ -271,14 +271,15 @@ class Query(object):
         If user is unauthed, return no users
         """
         user = info.context.user
-
-        if not user.is_authenticated or user is None:
+        if user is None or not user.is_authenticated:
             return User.objects.none()
 
-        if user.is_admin:
-            return User.objects.all()
+        if user.is_authenticated and not user.has_perm(
+            "creator.list_all_user"
+        ):
+            return [user]
 
-        return [user]
+        return User.objects.all()
 
     def resolve_my_profile(self, info, **kwargs):
         """

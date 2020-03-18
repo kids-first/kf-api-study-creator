@@ -3,7 +3,7 @@
 # group has.
 
 GROUPS = {
-    "Administrators": ["view_group", "view_permission"],
+    "Administrators": ["list_all_user", "view_group", "view_permission"],
     "Developers": [],
     "Investigators": [],
     "Bioinformatics": [],
