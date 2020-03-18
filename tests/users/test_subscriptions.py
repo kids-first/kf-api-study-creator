@@ -74,18 +74,16 @@ def test_subscribe_own(db, token, service_token, user_type, expected):
             == study.kf_id
         )
         if user_type not in [None, "service"]:
-            assert User.objects.first().study_subscriptions.count() == 1
-            assert (
-                User.objects.first().study_subscriptions.first().kf_id
-                == study.kf_id
+            user = User.objects.get(
+                username=resp.json()["data"]["subscribeTo"]["user"]["username"]
             )
+            assert user.study_subscriptions.count() == 1
+            assert user.study_subscriptions.first().kf_id == study.kf_id
     else:
         assert (
             resp.json()["errors"][0]["message"]
             == "Not authenticated to subscribe"
         )
-        if user_type not in [None, "service"]:
-            assert User.objects.first().study_subscriptions.count() == 0
 
 
 @pytest.mark.parametrize(
@@ -128,11 +126,11 @@ def test_subscribe_other(db, token, service_token, user_type, expected):
             == studies[0].kf_id
         )
         if user_type not in [None, "service"]:
-            assert User.objects.first().study_subscriptions.count() == 1
-            assert (
-                User.objects.first().study_subscriptions.first().kf_id
-                == studies[0].kf_id
+            user = User.objects.get(
+                username=resp.json()["data"]["subscribeTo"]["user"]["username"]
             )
+            assert user.study_subscriptions.count() == 1
+            assert user.study_subscriptions.first().kf_id == studies[0].kf_id
     else:
         assert (
             resp.json()["errors"][0]["message"]
@@ -200,4 +198,7 @@ def test_unsubscribe(db, admin_client):
     assert studies[-1].kf_id not in [s["node"]["kfId"] for s in subs]
 
     # Unsubscribe from the last study
-    assert User.objects.first().study_subscriptions.count() == 4
+    user = User.objects.get(
+        username=resp.json()["data"]["unsubscribeFrom"]["user"]["username"]
+    )
+    assert user.study_subscriptions.count() == 4

@@ -5,7 +5,7 @@ from creator.users.factories import UserFactory
 
 @pytest.mark.parametrize(
     "user_type,expected_count",
-    [("admin", 26), ("service", 25), ("user", 1), (None, 0)],
+    [("admin", 31), ("service", 30), ("user", 1), (None, 0)],
 )
 def test_list_users_counts(
     db,
