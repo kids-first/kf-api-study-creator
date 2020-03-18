@@ -8,13 +8,20 @@ import jwt
 from unittest import mock
 
 from django.test.client import Client
+from django.contrib.auth.models import Group, Permission
+from django.contrib.auth import get_user_model
 
 from creator.files.models import File
+from creator.users.factories import UserFactory
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
 from creator.middleware import EgoJWTAuthenticationMiddleware
+from creator.groups import GROUPS
+
 
 from tests.projects.fixtures import mock_cavatica_api
+
+User = get_user_model()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -68,6 +75,44 @@ def auth0_profile_mock():
         get_prof.return_value = profile
         yield get_prof
 
+
+@pytest.fixture(scope="module", autouse=True)
+def groups(django_db_setup, django_db_blocker):
+    """
+    Setup the default permission groups
+    """
+    with django_db_blocker.unblock():
+        for group_name, permissions in GROUPS.items():
+            g, created = Group.objects.get_or_create(
+                name=group_name, defaults={"name": group_name}
+            )
+
+            for code in permissions:
+                p = Permission.objects.get(codename=code)
+                g.permissions.add(p)
+            g.save()
+
+
+@pytest.yield_fixture(scope="module", autouse=False)
+def clients(django_db_setup, django_db_blocker, groups, token):
+    """
+    Sets up api test clients with a user for each permission group
+    available.
+    """
+    clients = {}
+    with django_db_blocker.unblock():
+        for group in Group.objects.all():
+            user = UserFactory(username=f"{group.name} User")
+            user.groups.add(group)
+            user_token = token([], [], sub=user.sub)
+            client = Client(HTTP_AUTHORIZATION=f"Bearer {user_token}")
+            clients[group.name] = client
+        clients[None] = Client()
+        yield clients
+
+        # Remove groups and users to maintain state for next module
+        Group.objects.all().delete()
+        User.objects.all().delete()
 
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
@@ -184,7 +229,7 @@ def upload_version(client, tmp_uploads_local):
     return upload
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def token():
     """
     Returns a function that will generate a token for a user in given groups
@@ -193,9 +238,14 @@ def token():
     with open("tests/keys/private_key.pem", "rb") as f:
         ego_key = f.read()
 
-    def make_token(groups=None, roles=None, iss="ego"):
+    def make_token(
+        groups=None,
+        roles=None,
+        iss="ego",
+        sub="cfa211bc-6fa8-4a03-bb81-cf377f99da47",
+    ):
         """
-        Returns an ego or auth0 JWT for a user with given roles and groups
+        Returns an ego or auth0 JWT for a user with given roles and groups.
         """
         if groups is None:
             groups = []
@@ -207,7 +257,7 @@ def token():
         token = {
             "iat": now.timestamp(),
             "exp": tomorrow.timestamp(),
-            "sub": "cfa211bc-6fa8-4a03-bb81-cf377f99da47",
+            "sub": sub,
             "iss": iss,
             "aud": "creator",
             "jti": "7b42a89d-85e3-4954-81a0-beccb12f32d5",
