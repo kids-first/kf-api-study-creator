@@ -8,6 +8,13 @@ class Bucket(models.Model):
     Represents a study bucket in S3
     """
 
+    class Meta:
+        permissions = [
+            ("list_all_bucket", "Can list all buckets"),
+            ("link_bucket", "Can link a bucket to a study"),
+            ("unlink_bucket", "Can unlink a bucket to a study"),
+        ]
+
     name = models.CharField(
         primary_key=True,
         max_length=512,

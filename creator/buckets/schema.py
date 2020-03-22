@@ -34,13 +34,13 @@ class BucketNode(DjangoObjectType):
         Only return bucket if user is admin
         """
         user = info.context.user
-        if not user.is_authenticated or not user.is_admin:
-            return None
+        if not user.has_perm("buckets.view_bucket"):
+            raise GraphQLError("Not allowed")
 
         try:
             return cls._meta.model.objects.get(name=name)
         except cls._meta.model.DoesNotExist:
-            return None
+            raise GraphQLError("Bucket not found")
 
         return None
 
@@ -68,8 +68,8 @@ class LinkBucketMutation(Mutation):
     def mutate(self, info, bucket, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to link a bucket.")
+        if not user.has_perm("buckets.link_bucket"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, name = from_global_id(bucket)
@@ -128,8 +128,8 @@ class UnlinkBucketMutation(Mutation):
     def mutate(self, info, bucket, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to unlink a bucket.")
+        if not user.has_perm("buckets.unlink_bucket"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, name = from_global_id(bucket)
@@ -173,18 +173,13 @@ class Query(object):
 
     def resolve_all_buckets(self, info, **kwargs):
         """
-        If user is ADMIN, return all buckets
-        If user is unauthed, return no buckets
+        Return all buckets if the user has the 'list_all_bucket' permission
         """
         user = info.context.user
+        if not user.has_perm("buckets.list_all_bucket"):
+            raise GraphQLError("Not allowed")
 
-        if not user.is_authenticated or user is None:
-            return Bucket.objects.none()
-
-        if user.is_admin:
-            qs = Bucket.objects
-            if kwargs.get("study") == "":
-                qs = qs.filter(study=None)
-            return qs.all()
-
-        return Bucket.objects.none()
+        qs = Bucket.objects
+        if kwargs.get("study") == "":
+            qs = qs.filter(study=None)
+        return qs.all()

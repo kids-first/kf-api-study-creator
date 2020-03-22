@@ -39,26 +39,26 @@ mutation ($study: ID!, $bucket: ID!) {
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", True), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
 )
-def test_link_bucket(
-    db, user_type, expected, admin_client, service_client, user_client, client
-):
+def test_link_bucket(db, user_group, allowed, clients):
     """
     Test that only admins may link a bucket to a study
     """
     study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
 
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": LINK_BUCKET,
@@ -70,24 +70,23 @@ def test_link_bucket(
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             len(resp.json()["data"]["linkBucket"]["study"]["buckets"]["edges"])
             == 1
         )
         assert Bucket.objects.first().study == study
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to link a bucket."
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Bucket.objects.first().study is None
 
 
-def test_double_link_bucket(db, admin_client):
+def test_double_link_bucket(db, clients):
     """
     Test that linking a bucket again does not remove or change a link
     """
+    client = clients.get("Administrators")
+
     study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
@@ -99,7 +98,7 @@ def test_double_link_bucket(db, admin_client):
     assert Bucket.objects.first().study is None
 
     # Link once
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": LINK_BUCKET, "variables": variables},
         content_type="application/json",
@@ -111,7 +110,7 @@ def test_double_link_bucket(db, admin_client):
     assert Bucket.objects.first().study == study
 
     # Link again
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": LINK_BUCKET, "variables": variables},
         content_type="application/json",
@@ -124,10 +123,11 @@ def test_double_link_bucket(db, admin_client):
 
 
 @pytest.mark.parametrize("query", [LINK_BUCKET, UNLINK_BUCKET])
-def test_bucket_does_not_exist(db, admin_client, query):
+def test_bucket_does_not_exist(db, clients, query):
     """
     Test that a bucket cannot be (un)linked if it doesn't exist
     """
+    client = clients.get("Administrators")
     study = StudyFactory(buckets=None)
 
     variables = {
@@ -135,7 +135,7 @@ def test_bucket_does_not_exist(db, admin_client, query):
         "bucket": "blah",
     }
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": query, "variables": variables},
         content_type="application/json",
@@ -146,10 +146,11 @@ def test_bucket_does_not_exist(db, admin_client, query):
 
 
 @pytest.mark.parametrize("query", [LINK_BUCKET, UNLINK_BUCKET])
-def test_study_does_not_exist(db, admin_client, query):
+def test_study_does_not_exist(db, clients, query):
     """
     Test that a bucket cannot be (un)linked if it the study doesn't exist
     """
+    client = clients.get("Administrators")
     bucket = BucketFactory()
 
     variables = {
@@ -157,7 +158,7 @@ def test_study_does_not_exist(db, admin_client, query):
         "bucket": to_global_id("BucketNode", bucket.name),
     }
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": query, "variables": variables},
         content_type="application/json",
@@ -168,12 +169,17 @@ def test_study_does_not_exist(db, admin_client, query):
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", True), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
 )
-def test_unlink_bucket(
-    db, user_type, expected, admin_client, service_client, user_client, client
-):
+def test_unlink_bucket(db, user_group, allowed, clients):
     """
     Test that only admins may unlink a bucket
     """
@@ -184,14 +190,9 @@ def test_unlink_bucket(
 
     assert Bucket.objects.first().study == study
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
 
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": UNLINK_BUCKET,
@@ -203,7 +204,7 @@ def test_unlink_bucket(
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             len(
                 resp.json()["data"]["unlinkBucket"]["study"]["buckets"][
@@ -215,23 +216,21 @@ def test_unlink_bucket(
         assert resp.json()["data"]["unlinkBucket"]["bucket"]["study"] is None
         assert Bucket.objects.first().study is None
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to unlink a bucket."
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Bucket.objects.first().study == study
 
 
-def test_unlink_bucket_no_link(db, admin_client):
+def test_unlink_bucket_no_link(db, clients):
     """
     Test that unlinking a bucket that isn't linked doesn't change anything
     """
+    client = clients.get("Administrators")
     study = StudyFactory(buckets=None)
     bucket = BucketFactory()
 
     assert Bucket.objects.first().study is None
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": UNLINK_BUCKET,
