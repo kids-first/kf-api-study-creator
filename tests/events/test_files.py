@@ -33,14 +33,15 @@ mutation ($kfId: String!) {
 """
 
 
-def test_new_file_event(admin_client, db, upload_file):
+def test_new_file_event(clients, db, upload_file):
     """
     Test that new file uploads create new events for both files and versions
     """
+    client = clients.get("Administrators")
     assert Event.objects.count() == 0
     studies = StudyFactory.create_batch(1)
     study_id = studies[-1].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    resp = upload_file(study_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)
     version = file.versions.first()
@@ -48,7 +49,7 @@ def test_new_file_event(admin_client, db, upload_file):
     assert Event.objects.count() == 2
     assert Event.objects.filter(event_type="SF_CRE").count() == 1
     assert Event.objects.filter(event_type="FV_CRE").count() == 1
-    user = User.objects.first()
+    user = User.objects.filter(groups__name="Administrators").first()
 
     sf_cre = Event.objects.filter(event_type="SF_CRE").first()
     assert sf_cre.user == user

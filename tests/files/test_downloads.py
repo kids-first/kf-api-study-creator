@@ -3,129 +3,158 @@ import pytest
 import json
 import boto3
 from moto import mock_s3
+from django.http.response import HttpResponse
 
 from creator.files.models import Version, File, DownloadToken
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
 
-def test_download_local(admin_client, db, prep_file):
-    (study1_id, file1_id, version1_id) = prep_file()
-    (study2_id, file2_id, version2_id) = prep_file(file_name="data.csv")
-    resp = admin_client.get(f"/download/study/{study1_id}/file/{file1_id}")
+def test_download_local(clients, db, mocker):
+    client = clients.get("Administrators")
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+    study1 = StudyFactory()
+    study2 = StudyFactory()
+    file1 = FileFactory(study=study1)
+    file2 = FileFactory(study=study2)
+    version1 = file1.versions.latest("created_at")
+    version2 = file2.versions.latest("created_at")
+    resp = client.get(f"/download/study/{study1.kf_id}/file/{file1.kf_id}")
     assert resp.status_code == 200
-    assert (
-        resp.get("Content-Disposition")
-        == f"attachment; filename*=UTF-8''{version1_id}_manifest.txt"
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''"
+        f"{version1.kf_id}_{version1.file_name}"
     )
-    assert resp.content == b"aaa\nbbb\nccc\n"
-    resp = admin_client.get(
-        f"/download/study/{study2_id}/file/{file2_id}/version/{version2_id}"
+    assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
+    resp = client.get(
+        f"/download/study/{study2.kf_id}/file/{file2.kf_id}"
+        f"/version/{version2.kf_id}"
     )
     assert resp.status_code == 200
-    obj = File.objects.get(kf_id=file2_id).versions.get(kf_id=version2_id)
-    assert obj.size == 24
+    obj = File.objects.get(kf_id=file2.kf_id).versions.get(
+        kf_id=version2.kf_id
+    )
     assert resp.get("Content-Length") == str(obj.size)
     assert resp.get("Content-Type") == "application/octet-stream"
     assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
 
 
-@mock_s3
-def test_download_s3(admin_client, db, prep_file):
-    s3 = boto3.client("s3")
-    (study_id, file_id, version_id) = prep_file()
-    resp = admin_client.get(f"/download/study/{study_id}/file/{file_id}")
-    assert resp.status_code == 200
-    assert (
-        resp.get("Content-Disposition")
-        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
-    )
-    assert resp.content == b"aaa\nbbb\nccc\n"
-    resp = admin_client.get(
-        f"/download/study/{study_id}/file/{file_id}" f"/version/{version_id}"
-    )
-    assert resp.status_code == 200
-    obj = File.objects.get(kf_id=file_id).versions.get(kf_id=version_id)
-    assert obj.size == 12
-    assert resp.get("Content-Length") == str(obj.size)
-    assert resp.get("Content-Type") == "application/octet-stream"
-    assert resp.content == b"aaa\nbbb\nccc\n"
-
-
-def test_no_file(admin_client, db):
-    resp = admin_client.get(f"/download/study/study_id/file/123")
+def test_no_file(clients, db):
+    client = clients.get("Administrators")
+    resp = client.get(f"/download/study/study_id/file/123")
     assert resp.status_code == 404
 
 
-def test_file_download_url(admin_client, db, prep_file):
-    (study_id, file_id, version_id) = prep_file()
+def test_file_download_url(clients, db, mocker):
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+
     assert File.objects.count() == 1
+
     query = "{allFiles { edges { node { downloadUrl } } } }"
     query_data = {"query": query.strip()}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data=query_data, content_type="application/json"
     )
-    file = resp.json()["data"]["allFiles"]["edges"][0]["node"]
-    expect_url = f"https://testserver/download/study/{study_id}/file/{file_id}"
+    file_json = resp.json()["data"]["allFiles"]["edges"][0]["node"]
+    expect_url = (
+        f"https://testserver/download/study/{study.kf_id}/file/{file.kf_id}"
+    )
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "allFiles" in resp.json()["data"]
-    assert file["downloadUrl"] == expect_url
-    resp = admin_client.get(file["downloadUrl"])
+    assert file_json["downloadUrl"] == expect_url
+    resp = client.get(file_json["downloadUrl"])
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
+        == f"attachment; filename*=UTF-8''{version.kf_id}_{version.file_name}"
     )
 
 
-def test_version_download_url(admin_client, db, prep_file):
-    (study_id, file_id, version_id) = prep_file()
-    assert Version.objects.count() == 1
-    query = "{allVersions { edges { node { downloadUrl } } } }"
+def test_version_download_url(db, clients, mocker):
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+
+    query = """
+    {
+        allVersions(orderBy: "-created_at") {
+            edges { node { downloadUrl } }
+        }
+    }
+    """
     query_data = {"query": query.strip()}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data=query_data, content_type="application/json"
     )
     assert resp.status_code == 200
-    version = resp.json()["data"]["allVersions"]["edges"][0]["node"]
+    version_json = resp.json()["data"]["allVersions"]["edges"][0]["node"]
     expect_url = (
-        f"https://testserver/download/study/{study_id}/file/{file_id}"
-        f"/version/{version_id}"
+        f"https://testserver/download/study/{study.kf_id}/file/{file.kf_id}"
+        f"/version/{version.kf_id}"
     )
-    assert version["downloadUrl"] == expect_url
-    resp = admin_client.get(version["downloadUrl"])
+    assert version_json["downloadUrl"] == expect_url
+    resp = client.get(version_json["downloadUrl"])
     assert resp.status_code == 200
     assert (
         resp.get("Content-Disposition")
-        == f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
+        == f"attachment; filename*=UTF-8''{version.kf_id}_{version.file_name}"
     )
 
 
-def test_study_does_not_exist(admin_client, db, prep_file):
+def test_study_does_not_exist(db, mocker, clients):
     """
     Test that a file may not be downloaded if the study_id is not correct,
     even if the file/object ids are
     """
-    (study_id, file_id, version_id) = prep_file()
-    assert Version.objects.count() == 1
-    url = Version.objects.first().path
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+
+    url = version.path
     # Use a different study id that the object does not belong to
     url = url.replace("/SD_", "/XX_")
-    resp = admin_client.get(url)
+    resp = client.get(url)
     assert resp.content == b"No file exists for given ID and study"
     assert resp.status_code == 404
 
 
-def test_download_file_name_with_spaces(admin_client, db, prep_file):
-    study_id, file_id, version_id = prep_file(file_name="name with spaces.txt")
-    resp1 = admin_client.get(f"/download/study/{study_id}/file/{file_id}")
-    resp2 = admin_client.get(
-        f"/download/study/{study_id}/file/{file_id}" f"/version/{version_id}"
+def test_download_file_name_with_spaces(db, clients, mocker, upload_file):
+    client = clients.get("Administrators")
+    study = StudyFactory()
+
+    file_name = "name with spaces.txt"
+    upload = upload_file(study.kf_id, file_name, client)
+    file_id = upload.json()["data"]["createFile"]["file"]["kfId"]
+    file = File.objects.get(kf_id=file_id)
+    version = file.versions.latest("created_at")
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open(f"tests/data/{file_name}"))
+
+    resp1 = client.get(f"/download/study/{study.kf_id}/file/{file.kf_id}")
+    resp2 = client.get(
+        f"/download/study/{study.kf_id}/file/{file.kf_id}"
+        f"/version/{version.kf_id}"
     )
     assert resp1.status_code == resp2.status_code == 200
     expected_name = (
-        f"attachment; filename*=UTF-8''{version_id}_name%20with%20spaces.txt"
+        f"attachment; filename*=UTF-8''"
+        f"{version.kf_id}_name%20with%20spaces.txt"
     )
     assert resp1.get("Content-Disposition") == expected_name
     assert resp2.get("Content-Disposition") == expected_name
@@ -133,128 +162,105 @@ def test_download_file_name_with_spaces(admin_client, db, prep_file):
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, True),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", True),
+        ("Developers", True),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
-def test_download_auth(
-    db,
-    admin_client,
-    user_client,
-    service_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_download_auth(db, mocker, clients, user_group, allowed):
     """
     For a given user_type attempting to download a file in an authorized study,
     we expect them to be allowed/not allowed to download that file.
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    study_id, file_id, version_id = prep_file(authed=authorized)
-    expected_name = f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
-    resp = api_client.get(f"/download/study/{study_id}/file/{file_id}")
+    client = clients.get(user_group)
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
 
-    if expected:
+    expected_name = (
+        f"attachment; filename*=UTF-8''{version.kf_id}_{version.file_name}"
+    )
+    resp = client.get(f"/download/study/{study.kf_id}/file/{file.kf_id}")
+
+    if allowed:
         assert resp.status_code == 200
         assert resp.get("Content-Disposition") == expected_name
         assert resp.content == b"aaa\nbbb\nccc\n"
     else:
         assert resp.status_code == 401
-        assert resp.content == b'Not authorized to download the file'
+        assert resp.content == b"Not authorized to download the file"
         assert resp.get("Content-Disposition") is None
 
 
-def test_file_no_longer_exist(admin_client, db):
+def test_file_no_longer_exist(db, clients):
+    client = clients.get("Administrators")
     study = StudyFactory.create_batch(1)
     file = FileFactory.create_batch(1)
     file_id = file[0].kf_id
     query = "{allFiles { edges { node { downloadUrl } } } }"
     query_data = {"query": query.strip()}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data=query_data, content_type="application/json"
     )
     file = resp.json()["data"]["allFiles"]["edges"][0]["node"]
-    resp = admin_client.get(file["downloadUrl"])
+    resp = client.get(file["downloadUrl"])
     assert resp.status_code == 404
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, True),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
-def test_signed_url(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_signed_url(db, clients, user_group, allowed):
     """
     Verify that a signed url may only be issued for files which the user is
     allowed to access.
     Admins can access all files, users may only access files in studies which
     they belong to, and unauthed users may not generate download urls.
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    study_id, file_id, version_id = prep_file(authed=authorized)
-    resp = api_client.get(f"/signed-url/study/{study_id}/file/{file_id}")
+    client = clients.get(user_group)
+    study = StudyFactory()
+    file = FileFactory(study=study)
 
-    if expected:
+    resp = client.get(f"/signed-url/study/{study.kf_id}/file/{file.kf_id}")
+
+    if allowed:
         assert resp.status_code == 200
-        assert resp.json()["url"].startswith(f"/download/study/{study_id}/")
+        assert resp.json()["url"].startswith(f"/download/study/{study.kf_id}/")
     else:
         assert resp.status_code == 404
 
 
-def test_signed_url_study_does_not_exist(admin_client, db, prep_file):
+def test_signed_url_study_does_not_exist(db, clients):
     """
     Test that a signed url may not be generated if the study_id is not correct,
     even if the file/object ids are
     """
-    (study_id, file_id, version_id) = prep_file()
-    assert Version.objects.count() == 1
-    url = Version.objects.first().path
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
     # Use a different study id that the object does not belong to
-    resp = admin_client.get(f"/signed-url/study/SD_XXXXXXXX/file/{file_id}")
+    resp = client.get(f"/signed-url/study/SD_XXXXXXXX/file/{file.kf_id}")
     assert resp.content == b"No file exists for given ID and study"
     assert resp.status_code == 404
 
 
-def test_signed_download_flow(db, user_client, admin_client, prep_file):
+def test_signed_download_flow(db, mocker, clients):
     """
     Test the download flow of a signed url.
 
@@ -262,48 +268,63 @@ def test_signed_download_flow(db, user_client, admin_client, prep_file):
     Get a signed url to access that url with the admin user
     Download the file at that url with an unauthed user
     """
-    study_id, file_id, version_id = prep_file()
-    obj = Version.objects.get(kf_id=version_id)
-    resp = admin_client.get(f"/signed-url/study/{study_id}/file/{file_id}")
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
+
+    resp = client.get(f"/signed-url/study/{study.kf_id}/file/{file.kf_id}")
     assert resp.status_code == 200
     assert "url" in resp.json()
     assert len(resp.json()["url"].split("=")[1]) == 27
     # Check that a new token was generated
     assert DownloadToken.objects.count() == 1
     token = DownloadToken.objects.first()
-    assert token.root_version == Version.objects.first()
+    assert token.root_version == version
     # Check that token is not yet claimed
     assert token.claimed is False
-    assert token.is_valid(obj) is True
+    assert token.is_valid(version) is True
 
-    expected = f"attachment; filename*=UTF-8''{version_id}_manifest.txt"
-    resp = user_client.get(resp.json()["url"])
+    expected = (
+        f"attachment; filename*=UTF-8''{version.kf_id}_{version.file_name}"
+    )
+    resp = client.get(resp.json()["url"])
     assert resp.status_code == 200
     assert resp.get("Content-Disposition") == expected
     assert resp.content == b"aaa\nbbb\nccc\n"
     # Check that token is now claimed and invalid
     token.refresh_from_db()
     assert token.claimed is True
-    assert token.is_valid(obj) is False
+    assert token.is_valid(version) is False
 
 
-def test_signed_download_expired(
-    db, settings, user_client, admin_client, prep_file
-):
+def test_signed_download_expired(db, settings, clients, mocker):
     """
     Test that files may not be downloaded if token is expired
     """
+    client = clients.get("Developers")
     # Tokens expire immediately
     settings.DOWNLOAD_TOKEN_TTL = -1
-    study_id, file_id, version_id = prep_file()
-    obj = Version.objects.get(kf_id=version_id)
-    resp = admin_client.get(f"/signed-url/study/{study_id}/file/{file_id}")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
+
+    resp = client.get(f"/signed-url/study/{study.kf_id}/file/{file.kf_id}")
     assert resp.status_code == 200
     token = DownloadToken.objects.first()
     # Check that token is expired
     assert token.expired is True
     # Check that token is invalid
-    assert token.is_valid(obj) is False
+    assert token.is_valid(version) is False
 
-    resp = user_client.get(resp.json()["url"])
+    client = clients.get(None)
+    resp = client.get(resp.json()["url"])
     assert resp.status_code == 401

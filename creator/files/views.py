@@ -20,7 +20,7 @@ def _resolve_version(
     if version_id:
         obj = file.versions.get(kf_id=version_id)
     else:
-        obj = file.versions.latest('created_at')
+        obj = file.versions.latest("created_at")
     return file, obj
 
 
@@ -32,11 +32,13 @@ def download(request, study_id, file_id, version_id=None):
     user = request.user
     # Try to resolve a download token first from the url query params, then
     # from the Authorization header
-    token = request.GET.get('token')
-    if (not token and
-            'HTTP_AUTHORIZATION' in request.META and
-            request.META.get('HTTP_AUTHORIZATION').startswith('Token ')):
-        token = request.META.get('HTTP_AUTHORIZATION').replace('Token ', '')
+    token = request.GET.get("token")
+    if (
+        not token
+        and "HTTP_AUTHORIZATION" in request.META
+        and request.META.get("HTTP_AUTHORIZATION").startswith("Token ")
+    ):
+        token = request.META.get("HTTP_AUTHORIZATION").replace("Token ", "")
     # If there is a token provided, check if it is valid for download
     download_token = None
     dev_token = None
@@ -47,9 +49,11 @@ def download(request, study_id, file_id, version_id=None):
             _, obj = _resolve_version(file_id, version_id)
             if not download_token.is_valid(obj):
                 download_token = None
-        except (File.DoesNotExist,
-                Version.DoesNotExist,
-                DownloadToken.DoesNotExist):
+        except (
+            File.DoesNotExist,
+            Version.DoesNotExist,
+            DownloadToken.DoesNotExist,
+        ):
             # If the file, version, or download token does not exist, just set
             # the token to None.
             # This could be inefficient as multiple trips may be made for the
@@ -62,13 +66,12 @@ def download(request, study_id, file_id, version_id=None):
         except DevDownloadToken.DoesNotExist:
             dev_token = None
 
-    if ((user is None                           # No user present
-         or not user.is_authenticated           # User is not authed
-         or study_id not in user.ego_groups     # User does not belong to study
-            and 'ADMIN' not in user.ego_roles)  # User is not admin
-            and download_token is None          # No valid download token
-            and dev_token is None):             # There is no valid dev token
-        return HttpResponse('Not authorized to download the file', status=401)
+    if (
+        not user.is_authenticated or not user.has_perm("files.view_file")
+    ) and (
+        download_token is None and dev_token is None
+    ):  # There is no valid dev token
+        return HttpResponse("Not authorized to download the file", status=401)
 
     try:
         file, obj = _resolve_version(file_id, version_id)
@@ -114,9 +117,8 @@ def signed_url(request, study_id, file_id, version_id=None):
     back to the dowload endpoint.
     """
     user = request.user
-    if (user is None or not user.is_authenticated or
-       study_id not in user.ego_groups and 'ADMIN' not in user.ego_roles):
-        return HttpResponseNotFound('Not authenticated to generate a url.')
+    if not user.has_perm("files.add_downloadtoken"):
+        return HttpResponseNotFound("Not authenticated to generate a url.")
 
     try:
         file = File.objects.get(kf_id=file_id)

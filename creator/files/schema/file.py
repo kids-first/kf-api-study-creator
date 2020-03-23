@@ -36,23 +36,20 @@ class FileNode(DjangoObjectType):
         """
         Only return node if user is an admin or is in the study group
         """
+
         try:
             file = cls._meta.model.objects.get(kf_id=kf_id)
         except cls._meta.model.DoesNotExist:
-            return None
+            raise GraphQLError("File was not found")
 
         user = info.context.user
-
-        if not user.is_authenticated:
-            return None
-
-        if user.is_admin:
+        if user.has_perm("files.view_file") or (
+            user.has_perm("files.view_my_file")
+            and user.studies.filter(kf_id=file.study.kf_id).exists()
+        ):
             return file
 
-        if file.study.kf_id in user.ego_groups:
-            return file
-
-        return None
+        raise GraphQLError("Not allowed")
 
 
 class FileFilter(django_filters.FilterSet):
@@ -95,16 +92,19 @@ class FileUploadMutation(graphene.Mutation):
         if the file does not exist.
         """
         user = info.context.user
-        if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to upload a file.")
+        study = Study.objects.get(kf_id=studyId)
 
-        if studyId not in user.ego_groups and "ADMIN" not in user.ego_roles:
-            raise GraphQLError("Not authenticated to upload to the study.")
+        if not (
+            user.has_perm("files.add_file")
+            or (
+                user.has_perm("files.add_my_study_file")
+                and user.studies.filter(kf_id=study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         if file.size > settings.FILE_MAX_SIZE:
             raise GraphQLError("File is too large.")
-
-        study = Study.objects.get(kf_id=studyId)
 
         try:
             # We will do this in a transaction so that if something fails, we
@@ -161,17 +161,25 @@ class FileMutation(graphene.Mutation):
             User must be authenticated and belongs to the study, or be ADMIN.
         """
         user = info.context.user
-        if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to mutate a file.")
+        if not (
+            user.has_perm("files.change_file")
+            or user.has_perm("files.change_my_study_file")
+        ):
+            raise GraphQLError("Not allowed")
 
         try:
             file = File.objects.get(kf_id=kf_id)
         except File.DoesNotExist:
             raise GraphQLError("File does not exist.")
 
-        study_id = file.study.kf_id
-        if study_id not in user.ego_groups and "ADMIN" not in user.ego_roles:
-            raise GraphQLError("Not authenticated to mutate a file.")
+        if not (
+            user.has_perm("files.change_file")
+            or (
+                user.has_perm("files.change_my_study_file")
+                and user.studies.filter(kf_id=file.study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         try:
             if kwargs.get("name"):
@@ -212,12 +220,8 @@ class DeleteFileMutation(graphene.Mutation):
         Deletes a file if the user is an admin and the file exists
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to mutate a file.")
+        if not user.has_perm("files.delete_file"):
+            raise GraphQLError("Not allowed")
 
         try:
             file = File.objects.get(kf_id=kf_id)
@@ -251,11 +255,11 @@ class FileQuery:
         If user is unauthed, return no files
         """
         user = info.context.user
-
-        if not user.is_authenticated or user is None:
-            return File.objects.none()
-
-        if user.is_admin:
+        if user.has_perm("files.list_all_file"):
             return File.objects.all()
 
-        return File.objects.filter(study__kf_id__in=user.ego_groups)
+        # Only return files that the user is a member of
+        if user.has_perm("files.view_my_file"):
+            return File.objects.filter(study__in=user.studies.all()).all()
+
+        raise GraphQLError("Not allowed")

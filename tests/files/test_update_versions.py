@@ -1,5 +1,7 @@
 import pytest
 from creator.files.models import Version
+from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
 
 
 update_query = """
@@ -19,68 +21,65 @@ mutation (
 """
 
 
+@pytest.fixture
+def versions(db, clients, mocker):
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
+
+    return study, file, version
+
+
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, True),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", False),
+        (None, False),
     ],
 )
-def test_update_version_auth(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_update_version_auth(db, clients, versions, user_group, allowed):
     """
     Test that versions may bu updated only by admin or owners.
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    study_id, file_id, version_id = prep_file(authed=authorized)
+    client = clients.get(user_group)
+    study, file, version = versions
+
     query = update_query
     variables = {
-        "kfId": version_id,
+        "kfId": version.kf_id,
         "description": "New description",
         "state": "PEN",
     }
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
     )
 
     # The operation should be successful
-    if expected:
+    if allowed:
         assert resp.status_code == 200
         assert (
             resp.json()["data"]["updateVersion"]["version"]["description"]
             == "New description"
         )
-        version = Version.objects.get(kf_id=version_id)
+        version = Version.objects.get(kf_id=version.kf_id)
         assert version.description == "New description"
     # Should not be successful
     else:
         assert resp.status_code == 200
         assert resp.json()["data"]["updateVersion"] is None
-        expected_error = "Not authenticated to mutate a version."
+        expected_error = "Not allowed"
         assert resp.json()["errors"][0]["message"] == expected_error
-        version = Version.objects.get(kf_id=version_id)
 
 
 @pytest.mark.parametrize(
@@ -96,7 +95,7 @@ def test_update_version_auth(
         (None, 'required type "VersionState!" was not provided'),
     ],
 )
-def test_update_state(db, admin_client, prep_file, state, expected):
+def test_update_state(db, clients, versions, state, expected):
     """
     Test that only valid states may be set.
 
@@ -104,10 +103,12 @@ def test_update_state(db, admin_client, prep_file, state, expected):
     :expected: True if expected to pass, substring of the error message if
         it's expected to fail
     """
-    study_id, file_id, version_id = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = update_query
-    variables = {"kfId": version_id, "description": "Test", "state": state}
-    resp = admin_client.post(
+    variables = {"kfId": version.kf_id, "description": "Test", "state": state}
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -119,10 +120,10 @@ def test_update_state(db, admin_client, prep_file, state, expected):
         assert (
             resp.json()["data"]["updateVersion"]["version"]["state"] == state
         )
-        version = Version.objects.get(kf_id=version_id)
+        version = Version.objects.get(kf_id=version.kf_id)
         assert version.state == state
     # State is not known
     else:
         assert resp.status_code == 400
         assert expected in resp.json()["errors"][0]["message"]
-        version = Version.objects.get(kf_id=version_id)
+        version = Version.objects.get(kf_id=version.kf_id)

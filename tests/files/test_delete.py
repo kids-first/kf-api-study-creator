@@ -1,42 +1,32 @@
 import pytest
 from creator.files.models import File, Version
+from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory, VersionFactory
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, False),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
     ],
 )
-def test_delete_file_mutation(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_delete_file_mutation(db, clients, user_group, allowed, mocker):
     """
     Test that a file may be deleted through the deleteFile mutation.
-    Only admin users may delete a file
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    study_id, file_id, version_id = prep_file(authed=authorized)
+
+    client = clients.get(user_group)
+    study = StudyFactory()
+    file = FileFactory(study=study, versions=None)
+    version = VersionFactory(root_file=file)
+
+    version_counts = Version.objects.count()
+
     query = """
     mutation ($kfId: String!) {
         deleteFile(kfId: $kfId) {
@@ -44,14 +34,14 @@ def test_delete_file_mutation(
         }
     }
     """
-    variables = {"kfId": file_id}
-    resp = api_client.post(
+    variables = {"kfId": file.kf_id}
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["deleteFile"]
         assert resp.status_code == 200
         assert resp_body["success"] is True
@@ -60,6 +50,6 @@ def test_delete_file_mutation(
     else:
         assert resp.status_code == 200
         assert "errors" in resp.json()
-        assert resp.json()["errors"][0]["message"].startswith("Not auth")
-        assert Version.objects.count() == 1
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
+        assert Version.objects.count() == version_counts
         assert File.objects.count() == 1
