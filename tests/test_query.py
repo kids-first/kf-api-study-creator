@@ -235,10 +235,11 @@ def test_status_query(client):
     assert len(resp.json()["errors"]) == 3
 
 
-def test_admin_status_query(db, admin_client):
+def test_admin_status_query(db, clients):
     """
     Test that an admin may see settings and queues variables
     """
+    client = clients.get("Administrators")
     query = """
     {
         status {
@@ -249,7 +250,7 @@ def test_admin_status_query(db, admin_client):
             jobs { edges { node { id name } } }
         }
     }"""
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200

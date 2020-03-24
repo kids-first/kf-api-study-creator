@@ -126,11 +126,7 @@ class JobNode(DjangoObjectType):
         """
         user = info.context.user
 
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
+        if not user.has_perm("creator.view_job"):
             return Job.objects.none()
 
         return Job.objects.get(name=name)
@@ -174,12 +170,8 @@ class Status(graphene.ObjectType):
         Settings may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view settings")
+        if not user.has_perm("creator.view_settings"):
+            raise GraphQLError("Not allowed")
 
         conf = {
             "dataservice_url": settings.DATASERVICE_URL,
@@ -211,12 +203,8 @@ class Status(graphene.ObjectType):
         Queues may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view queues")
+        if not user.has_perm("creator.view_queue"):
+            raise GraphQLError("Not allowed")
 
         stats = get_statistics().get("queues")
 
@@ -234,12 +222,8 @@ class Status(graphene.ObjectType):
         Jobs may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view jobs")
+        if not user.has_perm("creator.view_job"):
+            raise GraphQLError("Not allowed")
 
         return Job.objects.all()
 

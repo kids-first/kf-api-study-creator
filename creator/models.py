@@ -95,6 +95,12 @@ class Job(models.Model):
     Logs the current state of any scheduled, recurrent jobs.
     """
 
+    class Meta:
+        permissions = [
+            ("view_settings", "Can view settings"),
+            ("view_queue", "Can view queues"),
+        ]
+
     name = models.CharField(
         primary_key=True,
         max_length=400,

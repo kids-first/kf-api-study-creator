@@ -38,12 +38,13 @@ def test_list_users_counts(transactional_db, clients, user_group, expected):
 @pytest.mark.parametrize(
     "field", ["password", "ego_roles", "ego_groups", "isStaff"]
 )
-def test_hidden_fields(db, admin_client, field):
+def test_hidden_fields(db, clients, field):
     """
     Test that fields are not available
     """
+    client = clients.get("Administrators")
     query = "{ allUsers { edges { node { " + field + " } } } }"
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 400

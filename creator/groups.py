@@ -28,6 +28,9 @@ GROUPS = {
         "view_event",
         "add_collaborator",
         "remove_collaborator",
+        "view_settings",
+        "view_job",
+        "view_queue",
     ],
     "Developers": [
         "view_study",
