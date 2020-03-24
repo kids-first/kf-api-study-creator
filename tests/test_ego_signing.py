@@ -4,11 +4,12 @@ import mock
 from creator.studies.models import Study
 
 
-def test_corrupt_jwt(db, client):
+def test_corrupt_jwt(db, clients):
     """
     Test that a poorly formatted token fails validation and don't return any
     studies
     """
+    client = clients.get(None)
     s = Study(name="test", kf_id="SD_ME0WME0W")
     s.save()
     q = "{ allStudies { edges { node { name } } } }"
@@ -18,7 +19,7 @@ def test_corrupt_jwt(db, client):
         content_type="application/json",
         HTTP_AUTHORIZATION="Bearer undefined",
     )
-    assert len(resp.json()["data"]["allStudies"]["edges"]) == 0
+    assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
 def test_invalid_jwt(db, client, token):
@@ -39,4 +40,4 @@ def test_invalid_jwt(db, client, token):
         content_type="application/json",
         HTTP_AUTHORIZATION=f"Bearer {str(encoded)}",
     )
-    assert len(resp.json()["data"]["allStudies"]["edges"]) == 0
+    assert resp.json()["errors"][0]["message"] == "Not allowed"
