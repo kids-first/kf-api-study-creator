@@ -17,20 +17,6 @@ from creator.files.factories import FileFactory
 User = get_user_model()
 
 
-@pytest.fixture
-def versions(db, clients, mocker):
-    client = clients.get("Administrators")
-    study = StudyFactory()
-    file = FileFactory(study=study)
-    version = file.versions.latest("created_at")
-    version.key = open(f"tests/data/manifest.txt")
-
-    mock_resp = mocker.patch("creator.files.views._resolve_version")
-    mock_resp.return_value = (file, version)
-
-    return study, file, version
-
-
 @mock_s3
 def test_upload_query_s3(db, clients, upload_file, tmp_uploads_s3):
     s3 = boto3.client("s3")

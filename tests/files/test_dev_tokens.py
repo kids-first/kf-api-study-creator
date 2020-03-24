@@ -8,20 +8,6 @@ from creator.files.factories import FileFactory
 User = get_user_model()
 
 
-@pytest.fixture
-def versions(db, clients, mocker):
-    client = clients.get("Administrators")
-    study = StudyFactory()
-    file = FileFactory(study=study)
-    version = file.versions.latest("created_at")
-    version.key = open(f"tests/data/manifest.txt")
-
-    mock_resp = mocker.patch("creator.files.views._resolve_version")
-    mock_resp.return_value = (file, version)
-
-    return study, file, version
-
-
 @pytest.mark.parametrize(
     "user_group,allowed",
     [

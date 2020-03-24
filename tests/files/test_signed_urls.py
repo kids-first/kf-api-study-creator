@@ -4,20 +4,6 @@ from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
 
-@pytest.fixture
-def versions(db, clients, mocker):
-    client = clients.get("Administrators")
-    study = StudyFactory()
-    file = FileFactory(study=study)
-    version = file.versions.latest("created_at")
-    version.key = open(f"tests/data/manifest.txt")
-
-    mock_resp = mocker.patch("creator.files.views._resolve_version")
-    mock_resp.return_value = (file, version)
-
-    return study, file, version
-
-
 def test_signed_url_mutation_file_id_only(db, clients, versions):
     """
     Test that a signed url may be obtained using the signedUrl mutation

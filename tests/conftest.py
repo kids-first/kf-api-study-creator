@@ -11,8 +11,9 @@ from django.test.client import Client
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
 
-from creator.files.models import File
 from creator.users.factories import UserFactory
+from creator.files.models import File
+from creator.files.factories import FileFactory
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
 from creator.middleware import EgoJWTAuthenticationMiddleware
@@ -113,6 +114,7 @@ def clients(django_db_setup, django_db_blocker, groups, token):
         # Remove groups and users to maintain state for next module
         Group.objects.all().delete()
         User.objects.all().delete()
+
 
 @pytest.yield_fixture
 def tmp_uploads_local(tmpdir, settings):
@@ -372,3 +374,20 @@ def prep_file(admin_client, upload_file):
         return resp
 
     return file
+
+
+@pytest.fixture
+def versions(db, clients, mocker):
+    """
+    Setup a file in a study with a new version that returns a mocked data file.
+    """
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
+
+    return study, file, version
