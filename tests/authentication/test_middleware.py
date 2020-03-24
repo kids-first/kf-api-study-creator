@@ -28,7 +28,7 @@ def auth0_key_mock():
 
 
 @pytest.mark.no_mocks
-def test_ego_middleware(db, client, token):
+def test_ego_middleware(db, client, token, groups):
     """
     Test that ego middleware will call ego to get a public_key
 
@@ -70,6 +70,7 @@ def test_ego_middleware(db, client, token):
     )
 
     assert User.objects.count() == 1
+    assert User.objects.first().groups.first().name == "Administrators"
 
     req_mock.assert_called_with(
         f"{settings.EGO_API}/oauth/token/public_key", timeout=10
@@ -116,6 +117,7 @@ def test_auth0_middleware(db, client, token):
         HTTP_AUTHORIZATION=f"Bearer {token}",
     )
     assert User.objects.count() == 1
+    assert User.objects.first().groups.first().name == "Administrators"
 
     # There should be requests made for keys on both auth services
     assert req_mock.call_count == 2
