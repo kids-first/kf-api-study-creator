@@ -21,11 +21,6 @@ class UserNode(DjangoObjectType):
     def resolve_roles(self, info):
         return self.ego_roles
 
-    groups = List(String, description="Groups that the user belongs to")
-
-    def resolve_groups(self, info):
-        return self.ego_groups
-
     class Meta:
         model = User
         interfaces = (relay.Node,)
@@ -41,7 +36,8 @@ class UserNode(DjangoObjectType):
             "slack_notify",
             "slack_member_id",
             "email_notify",
-            "studies"
+            "studies",
+            "groups",
         ]
 
     @classmethod

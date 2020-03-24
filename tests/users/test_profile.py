@@ -22,7 +22,6 @@ UPDATE_PROFILE = """
                 slackMemberId
                 emailNotify
                 roles
-                groups
             }
         }
     }
