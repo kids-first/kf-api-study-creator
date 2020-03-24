@@ -14,7 +14,9 @@ class Study(models.Model):
     """
     class Meta:
         permissions = [
-            ("view_my_study", "Can list studies that the user belongs to")
+            ("view_my_study", "Can list studies that the user belongs to"),
+            ("add_collaborator", "Can add a collaborator to the study"),
+            ("remove_collaborator", "Can remove a collaborator to the study"),
         ]
 
     kf_id = models.CharField(max_length=11,

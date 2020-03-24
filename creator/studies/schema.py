@@ -418,12 +418,8 @@ class AddCollaboratorMutation(Mutation):
         """
         user_id = user
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to add a user to a study.")
+        if not user.has_perm("studies.add_collaborator"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, study_id = from_global_id(study)
@@ -472,14 +468,8 @@ class RemoveCollaboratorMutation(Mutation):
         """
         user_id = user
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError(
-                "Not authenticated to remove a user from a study."
-            )
+        if not user.has_perm("studies.remove_collaborator"):
+            raise GraphQLError("Not allowed")
 
         # Translate relay id to kf_id
         try:
