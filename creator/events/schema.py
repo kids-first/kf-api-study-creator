@@ -56,11 +56,10 @@ class Query(object):
         Unauthed users may not retrieve events
         """
         user = info.context.user
-
-        if user is None or not user.is_authenticated:
-            return Event.objects.none()
-
-        if user.is_admin:
+        if user.has_perm("events.view_event"):
             return Event.objects.all()
 
-        return Event.objects.filter(study__kf_id__in=user.ego_groups)
+        if user.has_perm("events.view_my_event"):
+            return Event.objects.filter(study__in=user.studies)
+
+        raise GraphQLError("Not allowed")
