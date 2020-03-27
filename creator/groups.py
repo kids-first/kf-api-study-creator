@@ -23,6 +23,7 @@ GROUPS = {
         "add_downloadtoken",
         "delete_downloadtoken",
         "list_all_user",
+        "change_user",
         "view_group",
         "view_permission",
         "view_event",

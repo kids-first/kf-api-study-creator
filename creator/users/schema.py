@@ -1,6 +1,7 @@
 import graphene
 import django_filters
 from graphene import relay, ObjectType, Field, List, String
+from graphql_relay import from_global_id
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
@@ -173,6 +174,43 @@ class MyProfileMutation(graphene.Mutation):
         user.save()
 
         return MyProfileMutation(user=user)
+
+
+class UpdateUserMutation(graphene.Mutation):
+    """
+    Updates user's groups
+    """
+
+    class Arguments:
+        user = graphene.ID(required=True)
+        groups = graphene.List(graphene.ID, required=False)
+
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, user, groups=None):
+        """
+        Updates a user
+        """
+        current_user = info.context.user
+        if not current_user.has_perm("creator.change_user"):
+            raise GraphQLError("Not allowed")
+
+        _, user_id = from_global_id(user)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise GraphQLError("User does not exist.")
+
+        if isinstance(groups, list):
+            group_ids = [from_global_id(g)[1] for g in groups]
+            group_objs = Group.objects.filter(id__in=group_ids).all()
+            # If fewer groups were returned from the database than
+            # were requested, one or more must not exist
+            if len(group_objs) < len(groups):
+                raise GraphQLError("Group does not exist.")
+            user.groups.set(group_objs, clear=True)
+
+        return UpdateUserMutation(user=user)
 
 
 class SubscribeToMutation(graphene.Mutation):
