@@ -38,6 +38,7 @@ esac
 
 # Make an admin user
 echo "from django.contrib.auth import get_user_model;
+from django.contrib.auth.models import Group;
 from django.db.utils import IntegrityError;
 User = get_user_model(); 
 print('making superuser');
@@ -45,6 +46,12 @@ try:
     User.objects.create_superuser('devadmin', 'admin@myproject.com', 'devadmin')
 except IntegrityError:
     print('superuser already exists')
+try:
+    user = User.objects.get(username='devadmin')
+    user.groups.add(Group.objects.get(name='Administrators'))
+    user.save()
+except Exception as err:
+    print(f'Problem occurred when adding devadmin to Administrators: {err}')
 " | python manage.py shell
 
 exec /app/manage.py runserver 0.0.0.0:8080
