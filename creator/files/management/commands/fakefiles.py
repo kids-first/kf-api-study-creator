@@ -12,6 +12,9 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
+        import factory.random
+        factory.random.reseed_random('Fake data seed')
+
         n = options.get('n')
         if not n:
             n = 5
