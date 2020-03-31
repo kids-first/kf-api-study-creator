@@ -1,0 +1,22 @@
+name: Docker Development Images
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Log in to registry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+    - name: Build image
+      run: docker build --target dev -t docker.pkg.github.com/kids-first/kf-api-study-creator/kf-api-study-creator-dev:latest .
+    - name: Publish image
+      run: docker push docker.pkg.github.com/kids-first/kf-api-study-creator/kf-api-study-creator-dev:latest
