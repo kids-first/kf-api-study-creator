@@ -49,6 +49,7 @@ class File(models.Model):
                 ('SEQ', 'Sequencing Manifest'),
                 ('SHM', 'Shipping Manifest'),
                 ('CLN', 'Clinical Data'),
+                ("DBG", "dbGaP Submission File"),
                 ('FAM', 'Familial Relationships')),
             default='OTH',
             )
