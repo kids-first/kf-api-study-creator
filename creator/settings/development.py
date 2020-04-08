@@ -26,6 +26,8 @@ SECRET_KEY = 'q$ol+cu=#pp=bgni6d7rn$+$07(!q8g_=aep0w_n+rkhy5q060'
 DEBUG = True
 
 STAGE = "dev"
+
+ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
 DEVELOP = True
