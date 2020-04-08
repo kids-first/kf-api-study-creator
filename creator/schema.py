@@ -12,7 +12,7 @@ from creator.models import Job
 
 from creator.files import schema as file_mutations
 from creator.studies import schema as study_mutations
-import creator.users.schema
+from creator.users import schema as user_mutations
 import creator.events.schema
 from creator.projects import schema as project_mutations
 from creator.buckets import schema as bucket_mutations
@@ -126,11 +126,7 @@ class JobNode(DjangoObjectType):
         """
         user = info.context.user
 
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
+        if not user.has_perm("creator.view_job"):
             return Job.objects.none()
 
         return Job.objects.get(name=name)
@@ -174,12 +170,8 @@ class Status(graphene.ObjectType):
         Settings may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view settings")
+        if not user.has_perm("creator.view_settings"):
+            raise GraphQLError("Not allowed")
 
         conf = {
             "dataservice_url": settings.DATASERVICE_URL,
@@ -211,12 +203,8 @@ class Status(graphene.ObjectType):
         Queues may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view queues")
+        if not user.has_perm("creator.view_queue"):
+            raise GraphQLError("Not allowed")
 
         stats = get_statistics().get("queues")
 
@@ -234,12 +222,8 @@ class Status(graphene.ObjectType):
         Jobs may only be resolved by an admin
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Must be an admin to view jobs")
+        if not user.has_perm("creator.view_job"):
+            raise GraphQLError("Not allowed")
 
         return Job.objects.all()
 
@@ -292,14 +276,17 @@ class Mutation(graphene.ObjectType):
         description="Delete a developer token"
     )
 
-    subscribe_to = creator.users.schema.SubscribeToMutation.Field(
+    subscribe_to = user_mutations.SubscribeToMutation.Field(
         description="Subscribe the current user to a study"
     )
-    unsubscribe_from = creator.users.schema.UnsubscribeFromMutation.Field(
+    unsubscribe_from = user_mutations.UnsubscribeFromMutation.Field(
         description="Unsubscribe the current user from a study"
     )
-    update_my_profile = creator.users.schema.MyProfileMutation.Field(
+    update_my_profile = user_mutations.MyProfileMutation.Field(
         description="Update the currently logged in user's profile"
+    )
+    update_user = user_mutations.UpdateUserMutation.Field(
+        description="Update a user"
     )
     create_study = study_mutations.CreateStudyMutation.Field(
         description="""Create a new study including setup in external systems.

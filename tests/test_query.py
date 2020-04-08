@@ -1,6 +1,10 @@
 import pytest
-from creator.studies.factories import StudyFactory
+from django.contrib.auth import get_user_model
 from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
+
+User = get_user_model()
 
 
 def test_schema_query(client, db):
@@ -21,32 +25,35 @@ def test_schema_query(client, db):
     assert "__schema" in resp.json()["data"]
 
 
-def test_unauthed_study_query(client, db):
+def test_unauthed_study_query(db, clients):
     """
     Queries made with no authentication should return no studies
     """
+    client = clients.get(None)
     studies = StudyFactory.create_batch(5)
     query = "{ allStudies { edges { node { name } } } }"
     resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
-    assert "data" in resp.json()
-    assert "allStudies" in resp.json()["data"]
-    assert len(resp.json()["data"]["allStudies"]["edges"]) == 0
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_my_studies_query(user_client, db):
+def test_my_studies_query(db, clients):
     """
     Test that only studies belonging to the user are returned
     """
+    client = clients.get("Investigators")
     studies = StudyFactory.create_batch(5)
-    # Make the user's study
-    study = Study(kf_id="SD_00000000", external_id="Test")
-    study.save()
+    user = (
+        User.objects.filter(groups__name="Investigators")
+        .first()
+        .studies.add(studies[0])
+    )
 
     query = "{ allStudies { edges { node { name } } } }"
-    resp = user_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
@@ -55,14 +62,15 @@ def test_my_studies_query(user_client, db):
     assert len(resp.json()["data"]["allStudies"]["edges"]) == 1
 
 
-def test_admin_studies_query(admin_client, db):
+def test_admin_studies_query(db, clients):
     """
     Test that only studies belonging to the user are returned
     """
+    client = clients.get("Administrators")
     studies = StudyFactory.create_batch(5)
 
     query = "{ allStudies { edges { node { name } } } }"
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
@@ -71,11 +79,35 @@ def test_admin_studies_query(admin_client, db):
     assert len(resp.json()["data"]["allStudies"]["edges"]) == 5
 
 
-def test_unauthed_file_query(client, db, prep_file):
+def test_unauthed_file_query(db, clients):
     """
     Queries made with no authentication should return no files
     """
-    prep_file()
+    client = clients.get(None)
+
+    query = "{ allFiles { edges { node { id } } } }"
+    resp = client.post(
+        "/graphql", data={"query": query}, content_type="application/json"
+    )
+    assert resp.status_code == 200
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_my_files_query(db, clients):
+    """
+    Test that only files under the studies belonging to the user are returned
+    """
+    client = clients.get("Investigators")
+    study1 = StudyFactory()
+    study2 = StudyFactory()
+    file1 = FileFactory(study=study1)
+    file2 = FileFactory(study=study2)
+    user = (
+        User.objects.filter(groups__name="Investigators")
+        .first()
+        .studies.add(study1)
+    )
 
     query = "{ allFiles { edges { node { id } } } }"
     resp = client.post(
@@ -84,34 +116,19 @@ def test_unauthed_file_query(client, db, prep_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "allFiles" in resp.json()["data"]
-    assert len(resp.json()["data"]["allFiles"]["edges"]) == 0
-
-
-def test_my_files_query(user_client, db, prep_file):
-    """
-    Test that only files under the studies belonging to the user are returned
-    """
-    prep_file()
-    prep_file(authed=True)
-
-    query = "{ allFiles { edges { node { id } } } }"
-    resp = user_client.post(
-        "/graphql", data={"query": query}, content_type="application/json"
-    )
-    assert resp.status_code == 200
-    assert "data" in resp.json()
-    assert "allFiles" in resp.json()["data"]
     assert len(resp.json()["data"]["allFiles"]["edges"]) == 1
 
 
-def test_admin_files_query(admin_client, db, prep_file):
+def test_admin_files_query(db, clients):
     """
     Test that all files are returned
     """
-    prep_file()
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
 
     query = "{ allFiles { edges { node { id } } } }"
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
@@ -120,54 +137,69 @@ def test_admin_files_query(admin_client, db, prep_file):
     assert len(resp.json()["data"]["allFiles"]["edges"]) == 1
 
 
-def test_unauthed_version_query(client, db, prep_file):
+def test_unauthed_version_query(db, clients):
     """
     Queries made with no authentication should return no file versions
     """
-    prep_file()
+    client = clients.get(None)
 
     query = "{ allVersions { edges { node { id } } } }"
     resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
-    assert "data" in resp.json()
-    assert "allVersions" in resp.json()["data"]
-    assert len(resp.json()["data"]["allVersions"]["edges"]) == 0
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_my_versions_query(user_client, db, prep_file):
+def test_my_versions_query(db, clients):
     """
     Test that only file versions under the studies belonging to the user
     are returned
     """
-    prep_file()
-    prep_file(authed=True)
+    client = clients.get("Investigators")
+    study1 = StudyFactory()
+    study2 = StudyFactory()
+    file1 = FileFactory(study=study1)
+    file2 = FileFactory(study=study2)
+    user = (
+        User.objects.filter(groups__name="Investigators")
+        .first()
+        .studies.add(study1)
+    )
 
     query = "{ allVersions { edges { node { id } } } }"
-    resp = user_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "allVersions" in resp.json()["data"]
-    assert len(resp.json()["data"]["allVersions"]["edges"]) == 1
+    assert (
+        len(resp.json()["data"]["allVersions"]["edges"])
+        == file1.versions.count()
+    )
 
 
-def test_admin_versions_query(admin_client, db, prep_file):
+def test_admin_versions_query(db, clients):
     """
     Test that all file versions are returned
     """
-    prep_file()
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
 
     query = "{ allVersions { edges { node { id } } } }"
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "allVersions" in resp.json()["data"]
-    assert len(resp.json()["data"]["allVersions"]["edges"]) == 1
+    assert (
+        len(resp.json()["data"]["allVersions"]["edges"])
+        == file.versions.count()
+    )
 
 
 def test_status_query(client):
@@ -203,10 +235,11 @@ def test_status_query(client):
     assert len(resp.json()["errors"]) == 3
 
 
-def test_admin_status_query(db, admin_client):
+def test_admin_status_query(db, clients):
     """
     Test that an admin may see settings and queues variables
     """
+    client = clients.get("Administrators")
     query = """
     {
         status {
@@ -217,7 +250,7 @@ def test_admin_status_query(db, admin_client):
             jobs { edges { node { id name } } }
         }
     }"""
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200

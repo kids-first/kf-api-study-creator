@@ -1,13 +1,17 @@
 import pytest
 from creator.files.models import Version, DownloadToken
+from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
 
 
-def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
+def test_signed_url_mutation_file_id_only(db, clients, versions):
     """
     Test that a signed url may be obtained using the signedUrl mutation
     given only a study_id and file_id
     """
-    study_id, file_id, version_id = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = """
     mutation ($studyId: String!, $fileId: String!) {
         signedUrl(studyId: $studyId, fileId: $fileId) {
@@ -15,8 +19,8 @@ def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
         }
     }
     """
-    variables = {"studyId": study_id, "fileId": file_id}
-    resp = admin_client.post(
+    variables = {"studyId": study.kf_id, "fileId": file.kf_id}
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -24,7 +28,7 @@ def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
     assert resp.status_code == 200
 
     resp_url = resp.json()["data"]["signedUrl"]["url"]
-    obj = Version.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version.kf_id)
     token = DownloadToken.objects.first()
     # Token should not be claimed yet
     assert token.claimed is False
@@ -36,12 +40,14 @@ def test_signed_url_mutation_file_id_only(db, admin_client, client, prep_file):
     assert token.claimed is True
 
 
-def test_signed_url_mutation(db, admin_client, client, prep_file):
+def test_signed_url_mutation(db, clients, versions):
     """
     Test that a signed url may be obtained using the signedUrl mutation
     given a study_id, file_id, and version_id
     """
-    study_id, file_id, version_id = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = """
     mutation ($studyId: String!, $fileId: String!, $versionId: String) {
         signedUrl(studyId: $studyId, fileId: $fileId, versionId: $versionId) {
@@ -50,9 +56,9 @@ def test_signed_url_mutation(db, admin_client, client, prep_file):
     }
     """
     variables = {
-        "studyId": study_id,
-        "fileId": file_id,
-        "versionId": version_id,
+        "studyId": study.kf_id,
+        "fileId": file.kf_id,
+        "versionId": version.kf_id,
     }
     resp = admin_client.post(
         "/graphql",
@@ -62,7 +68,7 @@ def test_signed_url_mutation(db, admin_client, client, prep_file):
     assert resp.status_code == 200
 
     resp_url = resp.json()["data"]["signedUrl"]["url"]
-    obj = Version.objects.get(kf_id=version_id)
+    obj = Version.objects.get(kf_id=version.kf_id)
     token = DownloadToken.objects.first()
     # Token should not be claimed yet
     assert token.claimed is False
@@ -74,11 +80,13 @@ def test_signed_url_mutation(db, admin_client, client, prep_file):
     assert token.claimed is True
 
 
-def test_signed_url_file_not_exists(db, admin_client, prep_file):
+def test_signed_url_file_not_exists(db, clients, versions):
     """
     Test that we may not retrieve a url for a file that does not exist
     """
-    study_id, file_id, version_id = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = """
     mutation ($studyId: String!, $fileId: String!, $versionId: String) {
         signedUrl(studyId: $studyId, fileId: $fileId, versionId: $versionId) {
@@ -87,11 +95,11 @@ def test_signed_url_file_not_exists(db, admin_client, prep_file):
     }
     """
     variables = {
-        "studyId": study_id,
+        "studyId": study.kf_id,
         "fileId": "blah",
-        "versionId": version_id,
+        "versionId": version.kf_id,
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -100,11 +108,13 @@ def test_signed_url_file_not_exists(db, admin_client, prep_file):
     assert resp.json()["errors"][0]["message"].startswith("No file exists")
 
 
-def test_signed_url_version_not_exists(db, admin_client, prep_file):
+def test_signed_url_version_not_exists(db, clients, versions):
     """
     Test that we may not retrieve a url for a version that does not exist
     """
-    study_id, file_id, version_id = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = """
     mutation ($studyId: String!, $fileId: String!, $versionId: String) {
         signedUrl(studyId: $studyId, fileId: $fileId, versionId: $versionId) {
@@ -112,8 +122,12 @@ def test_signed_url_version_not_exists(db, admin_client, prep_file):
         }
     }
     """
-    variables = {"studyId": study_id, "fileId": file_id, "versionId": "blah"}
-    resp = admin_client.post(
+    variables = {
+        "studyId": study.kf_id,
+        "fileId": file.kf_id,
+        "versionId": "blah",
+    }
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -123,42 +137,26 @@ def test_signed_url_version_not_exists(db, admin_client, prep_file):
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, True),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
-def test_signed_url_mutation(
-    db,
-    admin_client,
-    user_client,
-    service_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_signed_url_mutation(db, clients, versions, user_group, allowed):
     """
     Verify that a signed url may only be issued for files which the user is
     allowed to access.
     Admins can access all files, users may only access files in studies which
     they belong to, and unauthed users may not generate download urls.
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    study_id, file_id, version_id = prep_file(authed=authorized)
+    client = clients.get(user_group)
+    study, file, version = versions
+
     query = """
     mutation ($studyId: String!, $fileId: String!, $versionId: String) {
         signedUrl(studyId: $studyId, fileId: $fileId, versionId: $versionId) {
@@ -167,20 +165,20 @@ def test_signed_url_mutation(
     }
     """
     variables = {
-        "studyId": study_id,
-        "fileId": file_id,
-        "versionId": version_id,
+        "studyId": study.kf_id,
+        "fileId": file.kf_id,
+        "versionId": version.kf_id,
     }
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["signedUrl"]
         assert resp.status_code == 200
-        assert resp_body["url"].startswith(f"/download/study/{study_id}/")
+        assert resp_body["url"].startswith(f"/download/study/{study.kf_id}/")
         assert "?token" in resp_body["url"]
         download = client.get(resp_body["url"])
         assert download.status_code == 200

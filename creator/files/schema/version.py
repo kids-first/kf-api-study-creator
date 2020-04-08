@@ -32,20 +32,16 @@ class VersionNode(DjangoObjectType):
         try:
             obj = cls._meta.model.objects.get(kf_id=kf_id)
         except cls._meta.model.DoesNotExist:
-            return None
+            raise GraphQLError("Version was not found")
 
         user = info.context.user
-
-        if not user.is_authenticated:
-            return None
-
-        if user.is_admin:
+        if user.has_perm("files.view_version") or (
+            user.has_perm("files.view_my_version")
+            and user.studies.filter(kf_id=obj.root_file.study.kf_id).exists()
+        ):
             return obj
 
-        if obj.root_file.study.kf_id in user.ego_groups:
-            return obj
-
-        return None
+        raise GraphQLError("Not allowed")
 
 
 class VersionFilter(django_filters.FilterSet):
@@ -80,8 +76,8 @@ class VersionMutation(graphene.Mutation):
         User must be authenticated and belongs to the study, or be ADMIN.
         """
         user = info.context.user
-        if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to mutate a version.")
+        if not user.has_perm("files.change_version"):
+            raise GraphQLError("Not allowed")
 
         try:
             version = Version.objects.get(kf_id=kf_id)
@@ -89,8 +85,14 @@ class VersionMutation(graphene.Mutation):
             raise GraphQLError("Version does not exist.")
 
         study_id = version.root_file.study.kf_id
-        if study_id not in user.ego_groups and "ADMIN" not in user.ego_roles:
-            raise GraphQLError("Not authenticated to mutate a version.")
+        if not (
+            user.has_perm("files.change_version")
+            or (
+                user.has_perm("files.change_my_study_version")
+                and user.studies.filter(kf_id=file.study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         try:
             if kwargs.get("description"):
@@ -130,8 +132,6 @@ class VersionUploadMutation(graphene.Mutation):
         Uploads a new version of a file given a fileId.
         """
         user = info.context.user
-        if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to upload a file.")
 
         # Try to look up the file specified
         try:
@@ -140,11 +140,18 @@ class VersionUploadMutation(graphene.Mutation):
             raise GraphQLError("File does not exist.")
 
         study = root_file.study
+        if not (
+            user.has_perm("files.add_version")
+            or (
+                user.has_perm("files.add_my_study_version")
+                and user.studies.filter(kf_id=study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         # The user should be allowed to access the relevant file's study
-        if (
-            study.kf_id not in user.ego_groups
-            and "ADMIN" not in user.ego_roles
+        if study.kf_id not in user.ego_groups and not user.has_perm(
+            "files.add_version"
         ):
             raise GraphQLError("Not authenticated to upload to the study.")
 
@@ -198,13 +205,13 @@ class VersionQuery(object):
         If user is unauthed, return no file versions
         """
         user = info.context.user
-
-        if not user.is_authenticated or user is None:
-            return Version.objects.none()
-
-        if user.is_admin:
+        if user.has_perm("files.list_all_version"):
             return Version.objects.all()
 
-        return Version.objects.filter(
-            root_file__study__kf_id__in=user.ego_groups
-        )
+        # Only return files that the user is a member of
+        if user.has_perm("files.view_my_version"):
+            return Version.objects.filter(
+                root_file__study__in=user.studies.all()
+            )
+
+        raise GraphQLError("Not allowed")

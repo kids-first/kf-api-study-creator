@@ -44,46 +44,29 @@ query (
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, 2),
-        ("admin", False, 2),
-        ("service", True, 2),
-        ("service", False, 2),
-        ("user", True, 2),
-        ("user", False, 0),
-        (None, True, 0),
-        (None, False, 0),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
-def test_event_query_roles(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    prep_file,
-    user_type,
-    authorized,
-    expected,
-):
+def test_event_query_roles(db, clients, versions, user_group, allowed):
     """
     Test that each role resolves the correct events
-    ADMIN - can query all events
-    SERVICE - can query all events
-    USER - can query events for studies that are in their groups
-    unauthed - can not query events
     """
-    study_id, file_id, version_id = prep_file(authed=authorized)
+    client = clients.get(user_group)
+    study, file, version = versions
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-    resp = api_client.post(
+    resp = client.post(
         "/graphql", content_type="application/json", data={"query": ALL_EVENTS}
     )
     # Test that the correct number of events are returned
-    assert len(resp.json()["data"]["allEvents"]["edges"]) == expected
+    if allowed:
+        assert "data" in resp.json()
+        assert "allEvents" in resp.json()["data"]
+    else:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"

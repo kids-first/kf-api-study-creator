@@ -1,21 +1,39 @@
 import pytest
+from django.contrib.auth import get_user_model
 from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
+
+User = get_user_model()
+
+
+@pytest.fixture
+def versions(db, clients, mocker):
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+    version.key = open(f"tests/data/manifest.txt")
+
+    mock_resp = mocker.patch("creator.files.views._resolve_version")
+    mock_resp.return_value = (file, version)
+
+    return study, file, version
 
 
 @pytest.mark.parametrize("resource", ["study", "file", "version"])
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("user", True), ("other_user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", True),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
 )
 def test_get_resource_by_id(
-    db,
-    admin_client,
-    user_client,
-    client,
-    prep_file,
-    resource,
-    user_type,
-    expected,
+    db, clients, versions, resource, user_group, allowed
 ):
     """
     Test that resource may be retrieved by (relay) id
@@ -25,17 +43,19 @@ def test_get_resource_by_id(
     - Should return None if not an authenticated user
     """
     # Select client based on user type
-    api_client = {
-        "admin": admin_client,
-        "user": user_client,
-        "other_user": user_client,
-        None: client,
-    }[user_type]
+    admin_client = clients.get("Administrators")
+    client = clients.get(user_group)
+    study, file, version = versions
+    user = (
+        User.objects.filter(groups__name=user_group).first().studies.add(study)
+    )
 
-    # Create a file in the user's study if using 'user' type
-    s_id, f_id, v_id = prep_file(authed=(user_type == "user"))
     # Get the id of the resource we're testing for
-    kf_id = {"study": s_id, "file": f_id, "version": v_id}[resource]
+    kf_id = {
+        "study": study.kf_id,
+        "file": file.kf_id,
+        "version": version.kf_id,
+    }[resource]
 
     # Get a node's relay id using admin client
     query = f'{{{resource}ByKfId(kfId: "{kf_id}") {{ id }} }}'
@@ -47,32 +67,31 @@ def test_get_resource_by_id(
 
     # Now try to get node by the relay id
     query = f'{{{resource}(id: "{node_id}") {{ id }} }}'
-    resp = api_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
 
-    assert "errors" not in resp.json()
     # Should get back the node with id if expected, None if not
-    if expected:
+    if allowed:
         assert resp.json()["data"][resource]["id"] == node_id
     else:
-        assert resp.json()["data"][resource] is None
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
 @pytest.mark.parametrize("resource", ["study", "file", "version"])
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("user", True), ("other_user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", True),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
 )
 def test_get_resource_by_kf_id(
-    db,
-    admin_client,
-    user_client,
-    client,
-    prep_file,
-    resource,
-    user_type,
-    expected,
+    db, clients, versions, resource, user_group, allowed
 ):
     """
     Test that resource may be retrieved by kfId
@@ -82,28 +101,28 @@ def test_get_resource_by_kf_id(
     - Should return None if not an authenticated user
     """
     # Select client based on user type
-    api_client = {
-        "admin": admin_client,
-        "user": user_client,
-        "other_user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
+    study, file, version = versions
+    user = (
+        User.objects.filter(groups__name=user_group).first().studies.add(study)
+    )
 
-    # Create a file in the user's study if using 'user' type
-    s_id, f_id, v_id = prep_file(authed=(user_type == "user"))
     # Get the id of the resource we're testing for
-    kf_id = {"study": s_id, "file": f_id, "version": v_id}[resource]
+    kf_id = {
+        "study": study.kf_id,
+        "file": file.kf_id,
+        "version": version.kf_id,
+    }[resource]
 
     # Test that a study may be retreived by kf_id
     query = f'{{{resource}ByKfId(kfId: "{kf_id}") {{ id kfId }} }}'
-    resp = api_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
 
-    assert "errors" not in resp.json()
     assert f"{resource}ByKfId" in resp.json()["data"]
     # Will return size if authenticated, None if not
-    if expected:
+    if allowed:
         assert "kfId" in resp.json()["data"][f"{resource}ByKfId"]
     else:
-        assert resp.json()["data"][f"{resource}ByKfId"] is None
+        assert resp.json()["errors"][0]["message"] == "Not allowed"

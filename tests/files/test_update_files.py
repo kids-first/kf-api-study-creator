@@ -1,5 +1,10 @@
 import pytest
+from django.contrib.auth import get_user_model
 from creator.files.models import File
+from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
+
+User = get_user_model()
 
 update_query = """
 mutation (
@@ -22,14 +27,16 @@ mutation (
 """
 
 
-def test_unauthed_file_mutation_query(client, db, prep_file):
+def test_unauthed_file_mutation_query(db, clients, versions):
     """
     File mutations are not allowed without authentication
     """
-    (_, file_id, _) = prep_file()
+    client = clients.get(None)
+    study, file, version = versions
+
     query = update_query
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
@@ -41,25 +48,30 @@ def test_unauthed_file_mutation_query(client, db, prep_file):
     )
     assert resp.status_code == 200
     assert resp.json()["data"]["updateFile"] is None
-    expected_error = "Not authenticated to mutate a file."
+    expected_error = "Not allowed"
     assert resp.json()["errors"][0]["message"] == expected_error
 
 
-def test_my_file_mutation_query(user_client, db, prep_file):
+def test_my_file_mutation_query(db, clients, versions):
     """
     File mutations are allowed on the files under the studies that
     the user belongs to
     """
-    (_, file_id, _) = prep_file(authed=True)
+    client = clients.get("Investigators")
+    study, file, version = versions
+    User.objects.filter(groups__name="Investigators").first().studies.add(
+        study
+    )
+
     query = update_query
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
         "tags": ["tag1", "tag2"],
     }
-    resp = user_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -71,44 +83,48 @@ def test_my_file_mutation_query(user_client, db, prep_file):
     assert resp_file["tags"] == ["tag1", "tag2"]
 
 
-def test_not_my_file_mutation_query(user_client, db, prep_file):
+def test_not_my_file_mutation_query(db, clients, versions):
     """
     File mutations are not allowed on the files under the studies that
     the user does not belong to
     """
-    (_, file_id, _) = prep_file()
+    client = clients.get("Investigators")
+    study, file, version = versions
+
     query = update_query
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
     }
-    resp = user_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
     )
     assert resp.status_code == 200
     assert resp.json()["data"]["updateFile"] is None
-    expected_error = "Not authenticated to mutate a file."
+    expected_error = "Not allowed"
     assert resp.json()["errors"][0]["message"] == expected_error
 
 
-def test_admin_file_mutation_query(admin_client, db, prep_file):
+def test_admin_file_mutation_query(db, clients, versions):
     """
     File mutations are allowed on any files for admin user
     """
-    (_, file_id, _) = prep_file()
+    client = clients.get("Administrators")
+    study, file, version = versions
+
     query = update_query
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
         "tags": ["tag1", "tag2"],
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -120,20 +136,25 @@ def test_admin_file_mutation_query(admin_client, db, prep_file):
     assert resp_file["tags"] == ["tag1", "tag2"]
 
 
-def test_no_tags(user_client, db, prep_file):
+def test_no_tags(db, clients, versions):
     """
     Files should be able to be updated with empty tagset.
     """
-    (_, file_id, _) = prep_file(authed=True)
+    client = clients.get("Investigators")
+    study, file, version = versions
+    User.objects.filter(groups__name="Investigators").first().studies.add(
+        study
+    )
+
     query = update_query
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
         "tags": ["tag1", "tag2"],
     }
-    resp = user_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},
@@ -144,13 +165,13 @@ def test_no_tags(user_client, db, prep_file):
 
     # Update file with empty tagset
     variables = {
-        "kfId": file_id,
+        "kfId": file.kf_id,
         "name": "New name",
         "description": "New description",
         "fileType": "FAM",
         "tags": [],
     }
-    resp = user_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": query, "variables": variables},

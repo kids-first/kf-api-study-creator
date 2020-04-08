@@ -16,6 +16,14 @@ class Event(models.Model):
     of them.
     """
 
+    class Meta:
+        permissions = [
+            (
+                "view_my_event",
+                "Can view all events in studies user is a member of",
+            )
+        ]
+
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(
         default=timezone.now,

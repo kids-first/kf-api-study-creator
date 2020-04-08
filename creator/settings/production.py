@@ -209,6 +209,10 @@ LOGGING = {
         }
     },
     "loggers": {
+        "graphql.execution.utils": {
+            "handlers": ["command"],
+            "level": "CRITICAL",
+        },
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"]},
         "creator.tasks": {"handlers": ["task"]},

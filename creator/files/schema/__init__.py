@@ -47,11 +47,9 @@ class SignedUrlMutation(graphene.Mutation):
         This url will be immediately usable to download the file one time.
         """
         user = info.context.user
-        if ((user is None
-             or not user.is_authenticated
-             or study_id not in user.ego_groups
-             and 'ADMIN' not in user.ego_roles)):
-            return GraphQLError('Not authenticated to generate a url.')
+        # TODO: Check if user belongs to the study, too
+        if not user.has_perm("files.add_downloadtoken"):
+            return GraphQLError("Not authenticated to generate a url.")
 
         try:
             file = File.objects.get(kf_id=file_id)
@@ -87,13 +85,8 @@ class DevDownloadTokenMutation(graphene.Mutation):
         Generates a developer token with a given name.
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-            or user.email == ""
-        ):
-            return GraphQLError('Not authenticated to generate a token.')
+        if not user.has_perm("files.add_downloadtoken"):
+            raise GraphQLError("Not allowed")
 
         token = DevDownloadToken(name=name, creator=user)
         try:
@@ -116,10 +109,8 @@ class DeleteDevDownloadTokenMutation(graphene.Mutation):
         Deletes a developer download token by name
         """
         user = info.context.user
-        if (user is None or
-                not user.is_authenticated or
-                'ADMIN' not in user.ego_roles):
-            raise GraphQLError('Not authenticated to delete a token.')
+        if not user.has_perm("files.delete_downloadtoken"):
+            raise GraphQLError("Not allowed")
 
         try:
             token = DevDownloadToken.objects.get(name=name)
@@ -141,11 +132,7 @@ class Query(FileQuery, VersionQuery):
         If user is admin, return all tokens, otherwise return none
         """
         user = info.context.user
+        if not user.has_perm("files.view_downloadtoken"):
+            raise GraphQLError("Not allowed")
 
-        if user is None or not user.is_authenticated:
-            return DevDownloadToken.objects.none()
-
-        if user.is_admin:
-            return DevDownloadToken.objects.all()
-
-        return DevDownloadToken.objects.none()
+        return DevDownloadToken.objects.all()

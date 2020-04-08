@@ -22,7 +22,6 @@ UPDATE_PROFILE = """
                 slackMemberId
                 emailNotify
                 roles
-                groups
             }
         }
     }
@@ -121,9 +120,12 @@ def test_my_profile_mutation_add_notification(
             resp.json()["data"]["updateMyProfile"]["user"]["slackMemberId"]
             == "U123TRUE"
         )
-        assert User.objects.first().slack_notify
-        assert User.objects.first().email_notify
-        assert User.objects.first().slack_member_id == "U123TRUE"
+        user = User.objects.get(
+            username=resp.json()["data"]["updateMyProfile"]["user"]["username"]
+        )
+        assert user.slack_notify
+        assert user.email_notify
+        assert user.slack_member_id == "U123TRUE"
     else:
         assert (
             resp.json()["errors"][0]["message"]
@@ -154,6 +156,9 @@ def test_my_profile_mutation_remove_notification(db, admin_client):
         resp.json()["data"]["updateMyProfile"]["user"]["slackMemberId"]
         == "U123FALSE"
     )
-    assert not User.objects.first().slack_notify
-    assert not User.objects.first().email_notify
-    assert User.objects.first().slack_member_id == "U123FALSE"
+    user = User.objects.get(
+        username=resp.json()["data"]["updateMyProfile"]["user"]["username"]
+    )
+    assert not user.slack_notify
+    assert not user.email_notify
+    assert user.slack_member_id == "U123FALSE"

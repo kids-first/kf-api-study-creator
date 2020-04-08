@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.utils.functional import SimpleLazyObject
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.models import update_last_login
 
 
@@ -81,6 +81,7 @@ class EgoJWTAuthenticationMiddleware():
         User = get_user_model()
         try:
             user = User.objects.get(sub=token["sub"])
+
             update_last_login(None, user)
         except User.DoesNotExist:
             user = User(
@@ -97,6 +98,9 @@ class EgoJWTAuthenticationMiddleware():
 
         user.ego_groups = groups
         user.ego_roles = roles
+        if "ADMIN" in roles:
+            admins = Group.objects.filter(name='Administrators').first()
+            user.groups.add(admins)
 
         return user
 
@@ -250,6 +254,9 @@ class Auth0AuthenticationMiddleware():
         # and populated on every request from the token after validation.
         user.ego_groups = groups
         user.ego_roles = roles
+        if "ADMIN" in roles:
+            admins = Group.objects.filter(name='Administrators').first()
+            user.groups.add(admins)
 
         return user
 

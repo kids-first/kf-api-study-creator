@@ -103,17 +103,13 @@ class StudyNode(DjangoObjectType):
             return None
 
         user = info.context.user
-
-        if not user.is_authenticated:
-            return None
-
-        if user.is_admin:
+        if user.has_perm("studies.view_study") or (
+            user.has_perm("studies.view_my_study")
+            and user.studies.filter(kf_id=study.kf_id).exists()
+        ):
             return study
-
-        if study.kf_id in user.ego_groups:
-            return study
-
-        return None
+        else:
+            raise GraphQLError("Not allowed")
 
 
 class StudyInput(InputObjectType):
@@ -422,12 +418,8 @@ class AddCollaboratorMutation(Mutation):
         """
         user_id = user
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to add a user to a study.")
+        if not user.has_perm("studies.add_collaborator"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, study_id = from_global_id(study)
@@ -476,14 +468,8 @@ class RemoveCollaboratorMutation(Mutation):
         """
         user_id = user
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError(
-                "Not authenticated to remove a user from a study."
-            )
+        if not user.has_perm("studies.remove_collaborator"):
+            raise GraphQLError("Not allowed")
 
         # Translate relay id to kf_id
         try:
@@ -536,10 +522,10 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.is_authenticated or user is None:
-            return Study.objects.none()
-
-        if user.is_admin:
+        if user.has_perm("studies.view_study"):
             return Study.objects.filter(deleted=False).all()
 
-        return Study.objects.filter(kf_id__in=user.ego_groups, deleted=False)
+        if user.has_perm("studies.view_my_study"):
+            return user.studies.filter(deleted=False).all()
+
+        raise GraphQLError("Not allowed")

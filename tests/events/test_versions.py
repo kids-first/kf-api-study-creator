@@ -22,17 +22,18 @@ mutation (
 """
 
 
-def test_new_version_event(admin_client, db, upload_file, upload_version):
+def test_new_version_event(db, clients, upload_file, upload_version):
     """
     Test that new versions create events
     """
-    study_id = StudyFactory.create_batch(1)[0].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)
     user = User.objects.first()
 
-    resp = upload_version(file.kf_id, "manifest.txt", admin_client)
+    resp = upload_version(file.kf_id, "manifest.txt", client)
     version = Version.objects.get(
         kf_id=resp.json()["data"]["createVersion"]["version"]["kfId"]
     )
@@ -46,19 +47,20 @@ def test_new_version_event(admin_client, db, upload_file, upload_version):
     assert fv_cre.version == version
 
 
-def test_update_version_event(admin_client, db, upload_file, upload_version):
+def test_update_version_event(db, clients, upload_file, upload_version):
     """
     Test that updating versions create events
     """
-    study_id = StudyFactory.create_batch(1)[0].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)
     version = file.versions.first()
     user = User.objects.first()
 
     variables = {"kfId": version.kf_id, "state": "PRC"}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_VERSION, "variables": variables},

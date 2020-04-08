@@ -33,14 +33,15 @@ mutation ($kfId: String!) {
 """
 
 
-def test_new_file_event(admin_client, db, upload_file):
+def test_new_file_event(clients, db, upload_file):
     """
     Test that new file uploads create new events for both files and versions
     """
+    client = clients.get("Administrators")
     assert Event.objects.count() == 0
     studies = StudyFactory.create_batch(1)
     study_id = studies[-1].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    resp = upload_file(study_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)
     version = file.versions.first()
@@ -48,7 +49,7 @@ def test_new_file_event(admin_client, db, upload_file):
     assert Event.objects.count() == 2
     assert Event.objects.filter(event_type="SF_CRE").count() == 1
     assert Event.objects.filter(event_type="FV_CRE").count() == 1
-    user = User.objects.first()
+    user = User.objects.filter(groups__name="Administrators").first()
 
     sf_cre = Event.objects.filter(event_type="SF_CRE").first()
     assert sf_cre.user == user
@@ -62,12 +63,13 @@ def test_new_file_event(admin_client, db, upload_file):
     assert fv_cre.study == studies[0]
 
 
-def test_file_updated_event(admin_client, db, upload_file):
+def test_file_updated_event(db, clients, upload_file):
     """
     Test that file updates create events
     """
-    study_id = StudyFactory.create_batch(1)[0].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     assert Event.objects.count() == 2
 
@@ -77,7 +79,7 @@ def test_file_updated_event(admin_client, db, upload_file):
         "description": "New description",
         "fileType": "FAM",
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_FILE, "variables": variables},
@@ -88,21 +90,22 @@ def test_file_updated_event(admin_client, db, upload_file):
     assert Event.objects.filter(event_type="SF_UPD").first().user == user
     assert (
         Event.objects.filter(event_type="SF_UPD").first().study.kf_id
-        == study_id
+        == study.kf_id
     )
 
 
-def test_file_deleted_event(admin_client, db, upload_file):
+def test_file_deleted_event(db, clients, upload_file):
     """
     Test that file deletions create events
     """
-    study_id = StudyFactory.create_batch(1)[0].kf_id
-    resp = upload_file(study_id, "manifest.txt", admin_client)
+    client = clients.get("Administrators")
+    study = StudyFactory()
+    resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     assert Event.objects.count() == 2
 
     variables = {"kfId": file_id}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": DELETE_FILE, "variables": variables},
@@ -113,5 +116,5 @@ def test_file_deleted_event(admin_client, db, upload_file):
     assert Event.objects.filter(event_type="SF_DEL").first().user == user
     assert (
         Event.objects.filter(event_type="SF_DEL").first().study.kf_id
-        == study_id
+        == study.kf_id
     )

@@ -1,12 +1,14 @@
 import graphene
 import django_filters
 from graphene import relay, ObjectType, Field, List, String
+from graphql_relay import from_global_id
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
 
 from graphql import GraphQLError
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 
 from creator.studies.models import Study
 from creator.studies.schema import StudyNode
@@ -19,11 +21,6 @@ class UserNode(DjangoObjectType):
 
     def resolve_roles(self, info):
         return self.ego_roles
-
-    groups = List(String, description="Groups that the user belongs to")
-
-    def resolve_groups(self, info):
-        return self.ego_groups
 
     class Meta:
         model = User
@@ -40,7 +37,8 @@ class UserNode(DjangoObjectType):
             "slack_notify",
             "slack_member_id",
             "email_notify",
-            "studies"
+            "studies",
+            "groups",
         ]
 
     @classmethod
@@ -67,6 +65,47 @@ class UserNode(DjangoObjectType):
         return None
 
 
+class GroupNode(DjangoObjectType):
+    class Meta:
+        model = Group
+        interfaces = (relay.Node,)
+
+    @classmethod
+    def get_node(cls, info, id):
+        """
+        Only return node if user is an admin or is self
+        """
+        user = info.context.user
+        if not user.has_perm("auth.view_group"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            obj = cls._meta.model.objects.get(id=id)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Group not found")
+
+        return obj
+
+
+class PermissionNode(DjangoObjectType):
+    class Meta:
+        model = Permission
+        interfaces = (relay.Node,)
+
+    @classmethod
+    def get_node(cls, info, id):
+        user = info.context.user
+        if not user.has_perm("auth.view_permission"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            obj = cls._meta.model.objects.get(id=id)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Permission not found")
+
+        return obj
+
+
 class UserFilter(django_filters.FilterSet):
     class Meta:
         model = User
@@ -80,6 +119,26 @@ class UserFilter(django_filters.FilterSet):
         }
 
     order_by = OrderingFilter(fields=("date_joined",))
+
+
+class GroupFilter(django_filters.FilterSet):
+    name_contains = django_filters.CharFilter(
+        field_name="name", lookup_expr="contains"
+    )
+
+    class Meta:
+        model = Group
+        fields = {"name": ["exact"]}
+
+
+class PermissionFilter(django_filters.FilterSet):
+    name_contains = django_filters.CharFilter(
+        field_name="name", lookup_expr="contains"
+    )
+
+    class Meta:
+        model = Permission
+        fields = {"name": ["exact"], "codename": ["exact"]}
 
 
 class MyProfileMutation(graphene.Mutation):
@@ -115,6 +174,43 @@ class MyProfileMutation(graphene.Mutation):
         user.save()
 
         return MyProfileMutation(user=user)
+
+
+class UpdateUserMutation(graphene.Mutation):
+    """
+    Updates user's groups
+    """
+
+    class Arguments:
+        user = graphene.ID(required=True)
+        groups = graphene.List(graphene.ID, required=False)
+
+    user = graphene.Field(UserNode)
+
+    def mutate(self, info, user, groups=None):
+        """
+        Updates a user
+        """
+        current_user = info.context.user
+        if not current_user.has_perm("creator.change_user"):
+            raise GraphQLError("Not allowed")
+
+        _, user_id = from_global_id(user)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise GraphQLError("User does not exist.")
+
+        if isinstance(groups, list):
+            group_ids = [from_global_id(g)[1] for g in groups]
+            group_objs = Group.objects.filter(id__in=group_ids).all()
+            # If fewer groups were returned from the database than
+            # were requested, one or more must not exist
+            if len(group_objs) < len(groups):
+                raise GraphQLError("Group does not exist.")
+            user.groups.set(group_objs, clear=True)
+
+        return UpdateUserMutation(user=user)
 
 
 class SubscribeToMutation(graphene.Mutation):
@@ -189,6 +285,18 @@ class Query(object):
         UserNode, filterset_class=UserFilter
     )
     my_profile = Field(UserNode)
+    group = relay.Node.Field(GroupNode, description="Get a group")
+    all_groups = DjangoFilterConnectionField(
+        GroupNode, filterset_class=GroupFilter, description="List all groups"
+    )
+    permission = relay.Node.Field(
+        PermissionNode, description="Get a permission"
+    )
+    all_permissions = DjangoFilterConnectionField(
+        PermissionNode,
+        filterset_class=PermissionFilter,
+        description="List all permissions",
+    )
 
     def resolve_all_users(self, info, **kwargs):
         """
@@ -197,14 +305,15 @@ class Query(object):
         If user is unauthed, return no users
         """
         user = info.context.user
-
-        if not user.is_authenticated or user is None:
+        if user is None or not user.is_authenticated:
             return User.objects.none()
 
-        if user.is_admin:
-            return User.objects.all()
+        if user.is_authenticated and not user.has_perm(
+            "creator.list_all_user"
+        ):
+            return [user]
 
-        return [user]
+        return User.objects.all()
 
     def resolve_my_profile(self, info, **kwargs):
         """
@@ -218,3 +327,17 @@ class Query(object):
             raise GraphQLError("not authenticated as a user with a profile")
 
         return user
+
+    def resolve_all_groups(self, info, **kwargs):
+        user = info.context.user
+        if not user.has_perm("auth.view_group"):
+            raise GraphQLError("Not allowed")
+
+        return Group.objects.all()
+
+    def resolve_all_permissions(self, info, **kwargs):
+        user = info.context.user
+        if not user.has_perm("auth.view_permission"):
+            raise GraphQLError("Not allowed")
+
+        return Permission.objects.all()

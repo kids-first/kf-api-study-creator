@@ -1,55 +1,50 @@
 import pytest
-from django.contrib.auth import get_user_model
+from creator.models import User
 from creator.users.factories import UserFactory
 
 
 @pytest.mark.parametrize(
-    "user_type,expected_count",
-    [("admin", 26), ("service", 25), ("user", 1), (None, 0)],
+    "user_group,expected",
+    [
+        ("Administrators", lambda: User.objects.count()),
+        ("Services", 1),
+        ("Developers", 1),
+        ("Investigators", 1),
+        ("Bioinformatics", 1),
+        (None, 0),
+    ],
 )
-def test_list_users_counts(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    user_type,
-    expected_count,
-):
+def test_list_users_counts(transactional_db, clients, user_group, expected):
     """
     Test that the allUsers for the correct number of users returned for the
     right user types.
-    Admin - List all users
-    Service -List all users
-    User - List only self
-    Unauthed - No users
+    Only admins may list all users. Everyone else will only be returned their
+    user.
     """
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
 
     users = UserFactory.create_batch(25)
 
     query = "{ allUsers { edges { node { username } } } }"
-    resp = api_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 200
-    assert len(resp.json()["data"]["allUsers"]["edges"]) == expected_count
+    if callable(expected):
+        expected = expected()
+    assert len(resp.json()["data"]["allUsers"]["edges"]) == expected
 
 
 @pytest.mark.parametrize(
     "field", ["password", "ego_roles", "ego_groups", "isStaff"]
 )
-def test_hidden_fields(db, admin_client, field):
+def test_hidden_fields(db, clients, field):
     """
     Test that fields are not available
     """
+    client = clients.get("Administrators")
     query = "{ allUsers { edges { node { " + field + " } } } }"
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
     assert resp.status_code == 400

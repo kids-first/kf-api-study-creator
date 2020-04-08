@@ -12,6 +12,13 @@ class Study(models.Model):
     """
     A study encompasses a group of participants subjected to similar analysis.
     """
+    class Meta:
+        permissions = [
+            ("view_my_study", "Can list studies that the user belongs to"),
+            ("add_collaborator", "Can add a collaborator to the study"),
+            ("remove_collaborator", "Can remove a collaborator to the study"),
+        ]
+
     kf_id = models.CharField(max_length=11,
                              primary_key=True,
                              help_text='The Kids First Identifier',
