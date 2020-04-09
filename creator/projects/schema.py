@@ -162,12 +162,9 @@ class UpdateProjectMutation(Mutation):
         Update a project
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to update a project.")
+
+        if not user.has_perm("projects.change_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(id)
