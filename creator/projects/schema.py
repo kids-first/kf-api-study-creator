@@ -198,6 +198,11 @@ class SyncProjectsMutation(Mutation):
     deleted = DjangoFilterConnectionField(ProjectNode)
 
     def mutate(self, info):
+        user = info.context.user
+
+        if not user.has_perm("projects.sync_project"):
+            raise GraphQLError("Not allowed")
+
         created, updated, deleted = sync_cavatica_projects()
         return SyncProjectsMutation(
             created=created, updated=updated, deleted=deleted
@@ -287,7 +292,7 @@ class UnlinkProjectMutation(Mutation):
     def mutate(self, info, project, study):
         user = info.context.user
 
-        if not user.has_perm("projects.link_project"):
+        if not user.has_perm("projects.unlink_project"):
             raise GraphQLError("Not allowed")
 
         try:

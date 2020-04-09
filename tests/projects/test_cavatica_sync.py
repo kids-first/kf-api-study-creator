@@ -84,10 +84,24 @@ def test_sync_projects(db, mock_cavatica_api):
         assert getattr(cavatica_project, field) == getattr(project, field)
 
 
-def test_sync_mutation(db, mocker, admin_client, settings):
+@pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
+)
+def test_sync_mutation(db, mocker, clients, user_group, allowed):
     """
-    Test that the sync_projects mutation is called correctly
+    Test that the correct users may sync projects
     """
+
+    client = clients.get(user_group)
+
     sbg = mocker.patch("creator.projects.cavatica.sbg")
 
     # Project subresource of the sbg api
@@ -103,11 +117,15 @@ def test_sync_mutation(db, mocker, admin_client, settings):
 
     sbg.Api = Api
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": SYNC_PROJECTS_MUTATION},
     )
+
+    if not allowed:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
+        return
 
     assert len(resp.json()["data"]["syncProjects"]["created"]["edges"]) == 2
     assert Event.objects.count() == 2
@@ -125,7 +143,7 @@ def test_sync_mutation(db, mocker, admin_client, settings):
 
     sbg.Api().projects.query().all.return_value = project_list
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": SYNC_PROJECTS_MUTATION},
