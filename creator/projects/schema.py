@@ -227,8 +227,8 @@ class LinkProjectMutation(Mutation):
     def mutate(self, info, project, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to link a project.")
+        if not user.has_perm("projects.link_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(project)
@@ -287,8 +287,8 @@ class UnlinkProjectMutation(Mutation):
     def mutate(self, info, project, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to unlink a project.")
+        if not user.has_perm("projects.link_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(project)
