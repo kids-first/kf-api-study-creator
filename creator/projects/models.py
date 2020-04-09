@@ -40,6 +40,16 @@ class Project(models.Model):
     Documentation: http://docs.cavatica.org/docs/projects
     """
 
+    class Meta:
+        permissions = [
+            ("list_all_project", "Can list all projects"),
+            ("link_project", "Can link a project to a study"),
+            ("unlink_project", "Can unlink a project from a study"),
+            ("sync_project", "Can sync projects with Cavatica"),
+            ("import_volume", "Can import a volume to a project"),
+            ("view_my_study_project", "Can view projects in own studies"),
+        ]
+
     project_id = models.CharField(
         primary_key=True,
         max_length=200,
