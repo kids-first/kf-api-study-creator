@@ -107,12 +107,9 @@ class CreateProjectMutation(Mutation):
             )
 
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to create a project.")
+
+        if not user.has_perm("projects.add_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, kf_id = from_global_id(input["study"])

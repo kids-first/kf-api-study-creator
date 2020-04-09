@@ -38,67 +38,58 @@ def enable_projects(settings):
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("service", True, True),
-        ("user", True, False),
-        (None, True, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
 def test_create_project_mutation(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    mock_cavatica_api,
-    user_type,
-    authorized,
-    expected,
+    db, clients, mock_cavatica_api, user_group, allowed
 ):
     """
-    Only Admins should be allowed to create new analysis projects
+    Test that correct users may create Cavatica projects
     """
     study = Study(kf_id="SD_00000000")
     study.save()
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
     kf_id = to_global_id("StudyNode", "SD_00000000")
     variables = {
         "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
     }
-    resp = api_client.post(
+
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["createProject"]["project"]
         assert resp_body["workflowType"] == "rsem"
         assert Project.objects.count() == 1
         assert Project.objects.first().workflow_type == "rsem"
     else:
-        assert "errors" in resp.json()
-        assert resp.json()["errors"][0]["message"].startswith("Not auth")
         assert Project.objects.count() == 0
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_create_project_study_does_not_exist(db, admin_client):
+def test_create_project_study_does_not_exist(db, clients):
     """
     Test that a project may not be created when a study is not valid
     """
+    client = clients.get("Administrators")
+
     kf_id = to_global_id("StudyNode", "SD_00000000")
     variables = {
         "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
@@ -109,13 +100,13 @@ def test_create_project_study_does_not_exist(db, admin_client):
     assert Project.objects.count() == 0
 
 
-def test_create_project_no_duplicate_workflows(
-    db, admin_client, mock_cavatica_api
-):
+def test_create_project_no_duplicate_workflows(db, clients, mock_cavatica_api):
     """
     Test that multiple projects with the same workflow may not be created for
     the same study.
     """
+    client = clients.get("Administrators")
+
     study = Study(kf_id="SD_00000000")
     study.save()
 
@@ -123,13 +114,13 @@ def test_create_project_no_duplicate_workflows(
     variables = {
         "input": {"workflowType": "rsem", "study": kf_id, "projectType": "HAR"}
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
     )
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
@@ -140,10 +131,12 @@ def test_create_project_no_duplicate_workflows(
     assert Project.objects.count() == 1
 
 
-def test_create_project_invalid_workflows(db, admin_client, mock_cavatica_api):
+def test_create_project_invalid_workflows(db, clients, mock_cavatica_api):
     """
     Test that research projects with invalid workflow input may not be created.
     """
+    client = clients.get("Administrators")
+
     study = Study(kf_id="SD_00000000")
     study.save()
 
@@ -155,13 +148,13 @@ def test_create_project_invalid_workflows(db, admin_client, mock_cavatica_api):
             "projectType": "RES",
         }
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
     )
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_PROJECT_MUTATION, "variables": variables},
