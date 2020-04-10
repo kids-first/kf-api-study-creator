@@ -28,34 +28,27 @@ mutation ImportVolumeFiles($project: ID!) {
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", True), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
 )
-def test_import_files(
-    db,
-    user_type,
-    expected,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    mocker,
-):
+def test_import_files(db, mocker, clients, user_group, allowed):
     """
-    Test that only admins may import files
+    Test that the correct users may import files
     """
+    client = clients.get(user_group)
+
     project = ProjectFactory()
 
     import_volume = mocker.patch("creator.tasks.import_volume_files")
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": IMPORT_FILES_MUTATION,
@@ -66,7 +59,7 @@ def test_import_files(
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert import_volume.call_count == 1
         assert (
             resp.json()["data"]["importVolumeFiles"]["project"]["projectId"]
@@ -74,23 +67,22 @@ def test_import_files(
         )
     else:
         assert import_volume.call_count == 0
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to import files to a project."
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_import_files_events(db, admin_client, mocker):
+def test_import_files_events(db, clients, mocker):
     """
     Test that the correct events are emitted
     """
+    client = clients.get("Administrators")
+
     project = ProjectFactory()
 
     import_volume = mocker.patch("creator.tasks.import_volume_files")
 
     assert Event.objects.count() == 0
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": IMPORT_FILES_MUTATION,
@@ -106,14 +98,16 @@ def test_import_files_events(db, admin_client, mocker):
     assert Event.objects.filter(event_type="IM_SUC").count() == 1
 
 
-def test_import_files_no_project(db, admin_client, mocker):
+def test_import_files_no_project(db, clients, mocker):
     """
     Test that error is raised if project does not exist and the import task
     is never scheduled
     """
+    client = clients.get("Administrators")
+
     import_volume = mocker.patch("creator.tasks.import_volume_files")
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": IMPORT_FILES_MUTATION,

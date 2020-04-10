@@ -35,23 +35,31 @@ class ProjectNode(DjangoObjectType):
     @classmethod
     def get_node(cls, info, project_id):
         """
-        Only return node if user is Cavatica data scientist
+        Only return if the user is allowed to view projects
         """
-
         user = info.context.user
 
-        if not user.is_authenticated:
-            return Project.objects.none()
+        if not (
+            user.has_perm("projects.view_project")
+            or user.has_perm("projects.view_my_study_project")
+        ):
+            raise GraphQLError("Not allowed")
 
         try:
-            project = Project.objects.get(project_id=project_id)
-        except Project.DoesNotExist:
-            return Project.objects.none()
+            project = cls._meta.model.objects.get(project_id=project_id)
+        except cls._meta.model.DoesNotExist:
+            return None
 
-        if user.is_admin:
+        # If user only has view_my_study_project, make sure the project belongs
+        # to one of their studies
+        if user.has_perm("projects.view_project") or (
+            user.has_perm("projects.view_my_study_project")
+            and project.study
+            and user.studies.filter(kf_id=project.study.kf_id).exists()
+        ):
             return project
 
-        return Project.objects.none()
+        raise GraphQLError("Not allowed")
 
 
 class ProjectFilter(FilterSet):
@@ -107,12 +115,9 @@ class CreateProjectMutation(Mutation):
             )
 
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to create a project.")
+
+        if not user.has_perm("projects.add_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, kf_id = from_global_id(input["study"])
@@ -165,12 +170,9 @@ class UpdateProjectMutation(Mutation):
         Update a project
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to update a project.")
+
+        if not user.has_perm("projects.change_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(id)
@@ -204,6 +206,11 @@ class SyncProjectsMutation(Mutation):
     deleted = DjangoFilterConnectionField(ProjectNode)
 
     def mutate(self, info):
+        user = info.context.user
+
+        if not user.has_perm("projects.sync_project"):
+            raise GraphQLError("Not allowed")
+
         created, updated, deleted = sync_cavatica_projects()
         return SyncProjectsMutation(
             created=created, updated=updated, deleted=deleted
@@ -233,8 +240,8 @@ class LinkProjectMutation(Mutation):
     def mutate(self, info, project, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to link a project.")
+        if not user.has_perm("projects.link_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(project)
@@ -293,8 +300,8 @@ class UnlinkProjectMutation(Mutation):
     def mutate(self, info, project, study):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError("Not authenticated to unlink a project.")
+        if not user.has_perm("projects.unlink_project"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(project)
@@ -342,10 +349,8 @@ class ImportVolumeFilesMutation(Mutation):
     def mutate(self, info, project):
         user = info.context.user
 
-        if not user.is_authenticated or user is None or not user.is_admin:
-            raise GraphQLError(
-                "Not authenticated to import files to a project."
-            )
+        if not user.has_perm("projects.import_volume"):
+            raise GraphQLError("Not allowed")
 
         try:
             _, project_id = from_global_id(project)
@@ -369,18 +374,22 @@ class Query(object):
 
     def resolve_all_projects(self, info, **kwargs):
         """
-        If user is ADMIN, return all Cavatica projects
-        If user is unauthed, return no Cavatica projects
+        Return all projects if user has view_project
+        Return only projects in user's studies if user has view_my_project
+        Return not allowed otherwise
         """
         user = info.context.user
 
-        if not user.is_authenticated or user is None:
-            return Project.objects.none()
+        if not (
+            user.has_perm("projects.list_all_project")
+            or user.has_perm("projects.view_my_study_project")
+        ):
+            raise GraphQLError("Not allowed")
 
-        if user.is_admin:
-            qs = Project.objects
-            if kwargs.get("study") == "":
-                qs = qs.filter(study=None)
-            return qs.all()
+        if user.has_perm("projects.list_all_project"):
+            return Project.objects.all()
+
+        if user.has_perm("projects.view_my_study_project"):
+            return Project.objects.filter(study__in=user.studies.all()).all()
 
         return Project.objects.none()

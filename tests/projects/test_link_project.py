@@ -39,26 +39,26 @@ mutation ($study: ID!, $project: ID!) {
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", True), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
 )
-def test_link_project(
-    db, user_type, expected, admin_client, service_client, user_client, client
-):
+def test_link_project(db, clients, user_group, allowed):
     """
     Test that only admins may link a project to a study
     """
+    client = clients.get(user_group)
+
     study = StudyFactory()
     project = ProjectFactory()
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": LINK_PROJECT,
@@ -70,7 +70,7 @@ def test_link_project(
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             len(
                 resp.json()["data"]["linkProject"]["study"]["projects"][
@@ -81,17 +81,16 @@ def test_link_project(
         )
         assert Project.objects.first().study == study
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to link a project."
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Project.objects.first().study is None
 
 
-def test_double_link_project(db, admin_client):
+def test_double_link_project(db, clients):
     """
     Test that linking a project again does not remove or change a link
     """
+    client = clients.get("Administrators")
+
     study = StudyFactory()
     project = ProjectFactory()
 
@@ -103,7 +102,7 @@ def test_double_link_project(db, admin_client):
     assert Project.objects.first().study is None
 
     # Link once
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": LINK_PROJECT, "variables": variables},
         content_type="application/json",
@@ -115,7 +114,7 @@ def test_double_link_project(db, admin_client):
     assert Project.objects.first().study == study
 
     # Link again
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": LINK_PROJECT, "variables": variables},
         content_type="application/json",
@@ -128,10 +127,12 @@ def test_double_link_project(db, admin_client):
 
 
 @pytest.mark.parametrize("query", [LINK_PROJECT, UNLINK_PROJECT])
-def test_project_does_not_exist(db, admin_client, query):
+def test_project_does_not_exist(db, clients, query):
     """
     Test that a project cannot be (un)linked if it doesn't exist
     """
+    client = clients.get("Administrators")
+
     study = StudyFactory()
 
     variables = {
@@ -139,7 +140,7 @@ def test_project_does_not_exist(db, admin_client, query):
         "project": "blah",
     }
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": query, "variables": variables},
         content_type="application/json",
@@ -150,10 +151,12 @@ def test_project_does_not_exist(db, admin_client, query):
 
 
 @pytest.mark.parametrize("query", [LINK_PROJECT, UNLINK_PROJECT])
-def test_study_does_not_exist(db, admin_client, query):
+def test_study_does_not_exist(db, clients, query):
     """
     Test that a project cannot be (un)linked if it the study doesn't exist
     """
+    client = clients.get("Administrators")
+
     project = ProjectFactory()
 
     variables = {
@@ -161,7 +164,7 @@ def test_study_does_not_exist(db, admin_client, query):
         "project": to_global_id("ProjectNode", project.project_id),
     }
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": query, "variables": variables},
         content_type="application/json",
@@ -172,15 +175,21 @@ def test_study_does_not_exist(db, admin_client, query):
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", True), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
 )
-def test_unlink_project(
-    db, user_type, expected, admin_client, service_client, user_client, client
-):
+def test_unlink_project(db, clients, user_group, allowed):
     """
     Test that only admins may unlink a project
     """
+    client = clients.get(user_group)
     study = StudyFactory()
     project = ProjectFactory()
     project.study = study
@@ -188,14 +197,7 @@ def test_unlink_project(
 
     assert Project.objects.first().study == study
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
-
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": UNLINK_PROJECT,
@@ -207,7 +209,7 @@ def test_unlink_project(
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             len(
                 resp.json()["data"]["unlinkProject"]["study"]["projects"][
@@ -219,23 +221,22 @@ def test_unlink_project(
         assert resp.json()["data"]["unlinkProject"]["project"]["study"] is None
         assert Project.objects.first().study is None
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to unlink a project."
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Project.objects.first().study == study
 
 
-def test_unlink_project_no_link(db, admin_client):
+def test_unlink_project_no_link(db, clients):
     """
     Test that unlinking a project that isn't linked doesn't change anything
     """
+    client = clients.get("Administrators")
+
     study = StudyFactory()
     project = ProjectFactory()
 
     assert Project.objects.first().study is None
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": UNLINK_PROJECT,

@@ -22,65 +22,55 @@ mutation updateProject($id: ID!, $input: UpdateProjectInput!) {
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("service", True, True),
-        ("user", True, False),
-        (None, True, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", True),
+        (None, False),
     ],
 )
-def test_update_project_mutation(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    user_type,
-    authorized,
-    expected,
-):
+def test_update_project_mutation(db, clients, user_group, allowed):
     """
-    Only Admins should be allowed to update projects
+    Test that correct users are able to update projects
     """
+    client = clients.get(user_group)
+
     project = ProjectFactory(
         project_id="test/my-project", workflow_type="bwa-mem"
     )
 
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
     project_id = to_global_id("ProjectNode", "test/my-project")
     variables = {"id": project_id, "input": {"workflowType": "rsem"}}
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_PROJECT_MUTATION, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["updateProject"]["project"]
         assert resp_body["workflowType"] == "rsem"
         assert Project.objects.first().workflow_type == "rsem"
     else:
-        assert "errors" in resp.json()
-        assert resp.json()["errors"][0]["message"].startswith("Not auth")
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_update_project_event(db, admin_client):
+def test_update_project_event(db, clients):
     """
     Test that events are emitted correctly
     """
+    client = clients.get("Administrators")
+
     project = ProjectFactory(
         project_id="test/my-project", workflow_type="bwa-mem"
     )
 
     project_id = to_global_id("ProjectNode", "test/my-project")
     variables = {"id": project_id, "input": {"workflowType": "rsem"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_PROJECT_MUTATION, "variables": variables},
