@@ -202,9 +202,8 @@ def test_download_auth(db, mocker, clients, user_group, allowed):
 
 def test_file_no_longer_exist(db, clients):
     client = clients.get("Administrators")
-    study = StudyFactory.create_batch(1)
-    file = FileFactory.create_batch(1)
-    file_id = file[0].kf_id
+    study = StudyFactory()
+    file = FileFactory(study=study)
     query = "{allFiles { edges { node { downloadUrl } } } }"
     query_data = {"query": query.strip()}
     resp = client.post(
