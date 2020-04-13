@@ -5,6 +5,7 @@
 GROUPS = {
     "Administrators": [
         "view_study",
+        "add_study",
         "view_bucket",
         "list_all_bucket",
         "link_bucket",
