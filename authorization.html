@@ -94,17 +94,13 @@
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Authorization</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#role-permissions">Role Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#assigning-user-groups">Assigning User Groups</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-types">User Types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unauthenticated-user">Unauthenticated user</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#authenticated-user">Authenticated user</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#admin-user">Admin user</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#resource-permissions">Resource Permissions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#study-permissions">Study Permissions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-role-permissions"><code class="docutils literal notranslate"><span class="pre">USER</span></code> Role Permissions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#admin-role-permissions"><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> Role Permissions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#administators">Administators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#developers">Developers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#investigators">Investigators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bioinformatics">Bioinformatics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#services">Services</a></li>
 </ul>
 </li>
 </ul>
@@ -183,218 +179,320 @@
             
   <div class="section" id="authorization">
 <h1>Authorization<a class="headerlink" href="#authorization" title="Permalink to this headline">¶</a></h1>
-<p>Authorization is granted based on a user’s <code class="docutils literal notranslate"><span class="pre">roles</span></code> and <code class="docutils literal notranslate"><span class="pre">groups</span></code> as provided
-by their token.</p>
-<div class="section" id="role-permissions">
-<h2>Role Permissions<a class="headerlink" href="#role-permissions" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> users will be allowed to perform all operations on all entities
-in the API.</p>
+<p>Under the hood, the Study Creator uses <a class="reference external" href="https://docs.djangoproject.com/en/3.0/topics/auth/default/#permissions-and-authorization">Django’s permission model</a>
+to grant access to different resources.
+Administrative users are automatically promoted on login based on their Auth0
+identities, but all other user groups must be assigned to users by an existing
+admin.</p>
+<div class="section" id="assigning-user-groups">
+<h2>Assigning User Groups<a class="headerlink" href="#assigning-user-groups" title="Permalink to this headline">¶</a></h2>
+<p>Users are assigned one or more groups by an administrator.
+Administrators are automatically assigned when they first login, however,
+other users are not.
+Users must exist in the Study Creator before being assigned groups meaning
+that a user must login first before an administrator may assign them.</p>
 </div>
 <div class="section" id="user-types">
 <span id="id1"></span><h2>User Types<a class="headerlink" href="#user-types" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="unauthenticated-user">
-<h3>Unauthenticated user<a class="headerlink" href="#unauthenticated-user" title="Permalink to this headline">¶</a></h3>
-<p>Any requests that come with invalid or missing JWT header are considered
-unauthenticated, and will not have access to any resources.</p>
-</div>
-<div class="section" id="authenticated-user">
-<h3>Authenticated user<a class="headerlink" href="#authenticated-user" title="Permalink to this headline">¶</a></h3>
-<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">groups</span></code> context containing
-a list of study <code class="docutils literal notranslate"><span class="pre">kf_id</span></code> to which the user belongs. The user will be allowed
-to perform certain requests with these studies alone.</p>
-</div>
-<div class="section" id="admin-user">
-<h3>Admin user<a class="headerlink" href="#admin-user" title="Permalink to this headline">¶</a></h3>
-<p>Any request with a valid JWT header containing a <code class="docutils literal notranslate"><span class="pre">roles</span></code> context that has a
-<code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> value. The user will be allowed to perform all actions and access all
-resources.</p>
-</div>
-</div>
-<div class="section" id="resource-permissions">
-<h2>Resource Permissions<a class="headerlink" href="#resource-permissions" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="study-permissions">
-<h3>Study Permissions<a class="headerlink" href="#study-permissions" title="Permalink to this headline">¶</a></h3>
-<p>Studies must be created through the database directly. By default, studies from
-the <code class="docutils literal notranslate"><span class="pre">DATASERVICE</span></code> will be synchronized on container start in deployment
-environments.</p>
-<p>Users are granted access to studies by adding study kf_ids to their ‘groups’.</p>
-</div>
-<div class="section" id="user-role-permissions">
-<h3><code class="docutils literal notranslate"><span class="pre">USER</span></code> Role Permissions<a class="headerlink" href="#user-role-permissions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="administators">
+<h3>Administators<a class="headerlink" href="#administators" title="Permalink to this headline">¶</a></h3>
+<p>These users have most permissions assigned to them.
+Users may be assigned this group by another administrator or they will
+automatically be promoted when logging in with an <cite>ADMIN</cite> role in their Auth0
+token.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="22%" />
-<col width="64%" />
+<col width="34%" />
+<col width="66%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Resource</th>
-<th class="head">Action</th>
-<th class="head">Permission</th>
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>Study</td>
-<td>list</td>
-<td>Studies in GROUPS</td>
+<tr class="row-even"><td>view_group</td>
+<td>Can view group</td>
 </tr>
-<tr class="row-odd"><td>Study</td>
-<td>create/update</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>view_permission</td>
+<td>Can view permission</td>
 </tr>
-<tr class="row-even"><td>Study</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>link_bucket</td>
+<td>Can link a bucket to a study</td>
 </tr>
-<tr class="row-odd"><td>File</td>
-<td>list</td>
-<td>Files of studies in GROUPS</td>
+<tr class="row-odd"><td>list_all_bucket</td>
+<td>Can list all buckets</td>
 </tr>
-<tr class="row-even"><td>File</td>
-<td>create/update</td>
-<td>Files of studies in GROUPS</td>
+<tr class="row-even"><td>unlink_bucket</td>
+<td>Can unlink a bucket to a study</td>
 </tr>
-<tr class="row-odd"><td>File</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>view_bucket</td>
+<td>Can view bucket</td>
 </tr>
-<tr class="row-even"><td>Version</td>
-<td>list</td>
-<td>Versions of files of studies in GROUPS</td>
+<tr class="row-even"><td>view_job</td>
+<td>Can view job</td>
 </tr>
-<tr class="row-odd"><td>Version</td>
-<td>create/update</td>
-<td>Versions of files of studies in GROUPS</td>
+<tr class="row-odd"><td>view_queue</td>
+<td>Can view queues</td>
 </tr>
-<tr class="row-even"><td>Version</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>view_settings</td>
+<td>Can view settings</td>
 </tr>
-<tr class="row-odd"><td>User</td>
-<td>list</td>
-<td>Only self</td>
+<tr class="row-odd"><td>change_user</td>
+<td>Can change user</td>
 </tr>
-<tr class="row-even"><td>User</td>
-<td>create/update</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>list_all_user</td>
+<td>Can list all users</td>
 </tr>
-<tr class="row-odd"><td>User</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>view_event</td>
+<td>Can view event</td>
 </tr>
-<tr class="row-even"><td>Token</td>
-<td>list</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>list_all_version</td>
+<td>Can list all versions</td>
 </tr>
-<tr class="row-odd"><td>Token</td>
-<td>create/update</td>
-<td>For versions of files of studies in GROUPS</td>
+<tr class="row-odd"><td>add_downloadtoken</td>
+<td>Can add download token</td>
 </tr>
-<tr class="row-even"><td>Token</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>delete_downloadtoken</td>
+<td>Can delete download token</td>
 </tr>
-<tr class="row-odd"><td>DevToken</td>
-<td>list</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>view_downloadtoken</td>
+<td>Can view download token</td>
 </tr>
-<tr class="row-even"><td>DevToken</td>
-<td>create/update</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>add_file</td>
+<td>Can add file</td>
 </tr>
-<tr class="row-odd"><td>DevToken</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>change_file</td>
+<td>Can change file</td>
+</tr>
+<tr class="row-even"><td>delete_file</td>
+<td>Can delete file</td>
+</tr>
+<tr class="row-odd"><td>list_all_file</td>
+<td>Can list all files</td>
+</tr>
+<tr class="row-even"><td>view_file</td>
+<td>Can view file</td>
+</tr>
+<tr class="row-odd"><td>add_version</td>
+<td>Can add version</td>
+</tr>
+<tr class="row-even"><td>change_version</td>
+<td>Can change version</td>
+</tr>
+<tr class="row-odd"><td>delete_version</td>
+<td>Can delete version</td>
+</tr>
+<tr class="row-even"><td>view_version</td>
+<td>Can view version</td>
+</tr>
+<tr class="row-odd"><td>add_project</td>
+<td>Can add project</td>
+</tr>
+<tr class="row-even"><td>change_project</td>
+<td>Can change project</td>
+</tr>
+<tr class="row-odd"><td>import_volume</td>
+<td>Can import a volume to a project</td>
+</tr>
+<tr class="row-even"><td>link_project</td>
+<td>Can link a project to a study</td>
+</tr>
+<tr class="row-odd"><td>list_all_project</td>
+<td>Can list all projects</td>
+</tr>
+<tr class="row-even"><td>sync_project</td>
+<td>Can sync projects with Cavatica</td>
+</tr>
+<tr class="row-odd"><td>unlink_project</td>
+<td>Can unlink a project from a study</td>
+</tr>
+<tr class="row-even"><td>view_project</td>
+<td>Can view project</td>
+</tr>
+<tr class="row-odd"><td>add_collaborator</td>
+<td>Can add a collaborator to the study</td>
+</tr>
+<tr class="row-even"><td>add_study</td>
+<td>Can add study</td>
+</tr>
+<tr class="row-odd"><td>remove_collaborator</td>
+<td>Can remove a collaborator to the study</td>
+</tr>
+<tr class="row-even"><td>view_study</td>
+<td>Can view study</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="section" id="admin-role-permissions">
-<h3><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code> Role Permissions<a class="headerlink" href="#admin-role-permissions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="developers">
+<h3>Developers<a class="headerlink" href="#developers" title="Permalink to this headline">¶</a></h3>
+<p>This user group works mostly with tokens and updating any status on data ETL.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="21%" />
-<col width="31%" />
-<col width="48%" />
+<col width="44%" />
+<col width="56%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Resource</th>
-<th class="head">Action</th>
-<th class="head">Permission</th>
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>Study</td>
-<td>list</td>
-<td>All studies</td>
+<tr class="row-even"><td>view_event</td>
+<td>Can view event</td>
 </tr>
-<tr class="row-odd"><td>Study</td>
-<td>create/update</td>
-<td>Allowed</td>
+<tr class="row-odd"><td>add_downloadtoken</td>
+<td>Can add download token</td>
 </tr>
-<tr class="row-even"><td>Study</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>delete_downloadtoken</td>
+<td>Can delete download token</td>
 </tr>
-<tr class="row-odd"><td>File</td>
-<td>list</td>
-<td>All files</td>
+<tr class="row-odd"><td>view_downloadtoken</td>
+<td>Can view download token</td>
 </tr>
-<tr class="row-even"><td>File</td>
-<td>create/update</td>
-<td>All files</td>
+<tr class="row-even"><td>view_file</td>
+<td>Can view file</td>
 </tr>
-<tr class="row-odd"><td>File</td>
-<td>delete</td>
-<td>All files</td>
+<tr class="row-odd"><td>change_version</td>
+<td>Can change version</td>
 </tr>
-<tr class="row-even"><td>Version</td>
-<td>list</td>
-<td>All versions</td>
+<tr class="row-even"><td>view_version</td>
+<td>Can view version</td>
 </tr>
-<tr class="row-odd"><td>Version</td>
-<td>create/update</td>
-<td>All versions</td>
+<tr class="row-odd"><td>view_study</td>
+<td>Can view study</td>
 </tr>
-<tr class="row-even"><td>Version</td>
-<td>delete</td>
-<td>All versions</td>
+</tbody>
+</table>
+</div>
+<div class="section" id="investigators">
+<h3>Investigators<a class="headerlink" href="#investigators" title="Permalink to this headline">¶</a></h3>
+<p>This group of users is focused on viewing their studies only and viewing and
+uploading documents to them.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Description</th>
 </tr>
-<tr class="row-odd"><td>User</td>
-<td>list</td>
-<td>All users</td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>view_my_event</td>
+<td>Can view all events in studies user is a member of</td>
 </tr>
-<tr class="row-even"><td>User</td>
-<td>create/update</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>add_downloadtoken</td>
+<td>Can add download token</td>
 </tr>
-<tr class="row-odd"><td>User</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-even"><td>add_my_study_file</td>
+<td>Can add files to studies the user is a member of</td>
 </tr>
-<tr class="row-even"><td>Token</td>
-<td>list</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>change_my_study_file</td>
+<td>Can change files in studies the user is a member of</td>
 </tr>
-<tr class="row-odd"><td>Token</td>
-<td>create/update</td>
-<td>All files</td>
+<tr class="row-even"><td>view_my_file</td>
+<td>Can view all files in studies user is a member of</td>
 </tr>
-<tr class="row-even"><td>Token</td>
-<td>delete</td>
-<td>Not allowed</td>
+<tr class="row-odd"><td>add_my_study_version</td>
+<td>Can add versions to studies the user is a member of</td>
 </tr>
-<tr class="row-odd"><td>DevToken</td>
-<td>list</td>
-<td>All tokens, name only</td>
+<tr class="row-even"><td>change_version</td>
+<td>Can change version</td>
 </tr>
-<tr class="row-even"><td>DevToken</td>
-<td>create/update</td>
-<td>Allowed</td>
+<tr class="row-odd"><td>view_my_version</td>
+<td>Can view all versions in studies user is a member of</td>
 </tr>
-<tr class="row-odd"><td>DevToken</td>
-<td>delete</td>
-<td>Allowed</td>
+<tr class="row-even"><td>view_my_study_project</td>
+<td>Can view projects in own studies</td>
+</tr>
+<tr class="row-odd"><td>view_my_study</td>
+<td>Can list studies that the user belongs to</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="bioinformatics">
+<h3>Bioinformatics<a class="headerlink" href="#bioinformatics" title="Permalink to this headline">¶</a></h3>
+<p>These users work most with Cavatica projects within studies.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>view_event</td>
+<td>Can view event</td>
+</tr>
+<tr class="row-odd"><td>add_downloadtoken</td>
+<td>Can add download token</td>
+</tr>
+<tr class="row-even"><td>view_file</td>
+<td>Can view file</td>
+</tr>
+<tr class="row-odd"><td>view_version</td>
+<td>Can view version</td>
+</tr>
+<tr class="row-even"><td>add_project</td>
+<td>Can add project</td>
+</tr>
+<tr class="row-odd"><td>change_project</td>
+<td>Can change project</td>
+</tr>
+<tr class="row-even"><td>import_volume</td>
+<td>Can import a volume to a project</td>
+</tr>
+<tr class="row-odd"><td>link_project</td>
+<td>Can link a project to a study</td>
+</tr>
+<tr class="row-even"><td>list_all_project</td>
+<td>Can list all projects</td>
+</tr>
+<tr class="row-odd"><td>unlink_project</td>
+<td>Can unlink a project from a study</td>
+</tr>
+<tr class="row-even"><td>view_project</td>
+<td>Can view project</td>
+</tr>
+<tr class="row-odd"><td>view_study</td>
+<td>Can view study</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="services">
+<h3>Services<a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h3>
+<p>This group is assigned to service users that access resources programatically.
+They are usually concerned only with downloading files and generating tokens.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="43%" />
+<col width="57%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Permission</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>add_file</td>
+<td>Can add file</td>
+</tr>
+<tr class="row-odd"><td>view_file</td>
+<td>Can view file</td>
+</tr>
+<tr class="row-even"><td>view_version</td>
+<td>Can view version</td>
+</tr>
+<tr class="row-odd"><td>view_study</td>
+<td>Can view study</td>
 </tr>
 </tbody>
 </table>
