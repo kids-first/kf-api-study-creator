@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from graphene_file_upload.django import FileUploadGraphQLView
 import creator.files.views
 
