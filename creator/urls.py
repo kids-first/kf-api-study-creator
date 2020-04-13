@@ -37,3 +37,8 @@ urlpatterns = [
         creator.files.views.signed_url
     )
 ]
+
+if settings.DEVELOPMENT_ENDPOINTS:
+    import creator.dev.views
+
+    urlpatterns.append(path(r"__dev/", include("creator.dev.urls")))
