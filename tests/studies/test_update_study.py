@@ -95,71 +95,54 @@ def mock_study():
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, False),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
     ],
 )
 def test_update_study_mutation(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    mock_patch,
-    mock_study,
-    user_type,
-    authorized,
-    expected,
+    db, clients, mock_patch, mock_study, user_group, allowed
 ):
     """
     Only admins should be allowed to update studies
     """
     user = UserFactory()
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
-        "input": {
-            "externalId": "NEW",
-        },
+        "input": {"externalId": "NEW"},
     }
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["updateStudy"]["study"]
         assert resp_body["externalId"] == "NEW"
         assert Study.objects.first().external_id == "NEW"
     else:
         assert "errors" in resp.json()
-        assert resp.json()["errors"][0]["message"].startswith("Not auth")
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Study.objects.first().external_id == "Test Study"
 
 
-def test_dataservice_call(db, admin_client, mock_patch, settings, mock_study):
+def test_dataservice_call(db, clients, mock_patch, settings, mock_study):
     """
     Test that the dataservice is called correctly
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {"externalId": "NEW"},
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -175,20 +158,19 @@ def test_dataservice_call(db, admin_client, mock_patch, settings, mock_study):
     assert Study.objects.count() == 1
 
 
-def test_dataservice_feat_flag(
-    db, admin_client, mock_patch, settings, mock_study
-):
+def test_dataservice_feat_flag(db, clients, mock_patch, settings, mock_study):
     """
     Test that updating studies does not work when the feature flag is turned
     off.
     """
+    client = clients.get("Administrators")
     settings.FEAT_DATASERVICE_UPDATE_STUDIES = False
 
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {"externalId": "NEW"},
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -200,15 +182,16 @@ def test_dataservice_feat_flag(
     assert resp_message.startswith("Updating studies is not enabled")
 
 
-def test_dataservice_error(db, admin_client, mock_error, mock_study):
+def test_dataservice_error(db, clients, mock_error, mock_study):
     """
     Test behavior when dataservice returns an error.
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {"externalId": "NEW"},
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -235,18 +218,17 @@ def test_dataservice_error(db, admin_client, mock_error, mock_study):
         "description",
     ],
 )
-def test_text_fields(
-    db, admin_client, settings, mock_patch, mock_study, s, field
-):
+def test_text_fields(db, clients, settings, mock_patch, mock_study, s, field):
     """
     Test that text fields may be updated
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {},
     }
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -255,21 +237,22 @@ def test_text_fields(
     assert "errors" not in resp.json()
 
 
-@given(s=integers(min_value=0, max_value=2147483647))
+@given(s=integers(min_value=0, max_value=2_147_483_647))
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["anticipatedSamples"])
 def test_integer_fields(
-    db, admin_client, settings, mock_patch, mock_study, s, field
+    db, clients, settings, mock_patch, mock_study, s, field
 ):
     """
     Test that integer fields may be updated
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {},
     }
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -281,16 +264,17 @@ def test_integer_fields(
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
-def test_internal_fields(db, admin_client, mock_patch, mock_study, s, field):
+def test_internal_fields(db, clients, mock_patch, mock_study, s, field):
     """
     Test that inputs for our internal study fields are updated  correctly.
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {},
     }
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -303,17 +287,18 @@ def test_internal_fields(db, admin_client, mock_patch, mock_study, s, field):
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["releaseDate"])
 def test_internal_datetime_fields(
-    db, admin_client, mock_patch, mock_study, s, field
+    db, clients, mock_patch, mock_study, s, field
 ):
     """
     Test that inputs for study datetime fields are updated correctly.
     """
+    client = clients.get("Administrators")
     variables = {
         "id": to_global_id("StudyNode", mock_study.kf_id),
         "input": {},
     }
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
@@ -323,7 +308,7 @@ def test_internal_datetime_fields(
 
 
 def test_update_study_collaborators_not_mutable(
-    db, settings, mock_study, mock_patch, admin_client
+    db, settings, mock_study, mock_patch, client
 ):
     """
     Collaborators should not be modifiable
@@ -336,7 +321,7 @@ def test_update_study_collaborators_not_mutable(
             "collaborators": [to_global_id("UserNode", user.sub)],
         },
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY_MUTATION, "variables": variables},

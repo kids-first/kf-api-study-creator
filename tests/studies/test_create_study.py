@@ -104,53 +104,37 @@ def mock_error(mocker):
 
 
 @pytest.mark.parametrize(
-    "user_type,authorized,expected",
+    "user_group,allowed",
     [
-        ("admin", True, True),
-        ("admin", False, True),
-        ("service", True, True),
-        ("service", False, True),
-        ("user", True, False),
-        ("user", False, False),
-        (None, True, False),
-        (None, False, False),
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
     ],
 )
 def test_create_study_mutation(
-    db,
-    admin_client,
-    service_client,
-    user_client,
-    client,
-    mock_post,
-    mock_cavatica,
-    user_type,
-    authorized,
-    expected,
+    db, clients, mock_post, mock_cavatica, user_group, allowed
 ):
     """
     Only admins should be allowed to create studies
     """
     user = UserFactory()
-    api_client = {
-        "admin": admin_client,
-        "service": service_client,
-        "user": user_client,
-        None: client,
-    }[user_type]
+    client = clients.get(user_group)
     variables = {
         "input": {
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", user.id)],
         }
     }
-    resp = api_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
 
-    if expected:
+    if allowed:
         resp_body = resp.json()["data"]["createStudy"]["study"]
         assert resp_body["externalId"] == "Test Study"
         assert Study.objects.count() == 1
@@ -159,25 +143,27 @@ def test_create_study_mutation(
         assert Study.objects.first().collaborators.count() == 1
     else:
         assert "errors" in resp.json()
-        assert resp.json()["errors"][0]["message"].startswith("Not auth")
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Study.objects.count() == 0
         assert mock_cavatica.call_count == 0
 
 
 def test_create_study_collaborator_does_not_exist(
-    db, admin_client, mock_post, mock_cavatica
+    db, clients, mock_post, mock_cavatica
 ):
     """
     Study should not be created and an error returned if one of the
     collaborators does not exist
     """
+    client = clients.get("Administrators")
+
     variables = {
         "input": {
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", 123)],
         }
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -189,12 +175,14 @@ def test_create_study_collaborator_does_not_exist(
     assert mock_cavatica.call_count == 0
 
 
-def test_dataservice_call(db, admin_client, mock_post, settings):
+def test_dataservice_call(db, clients, mock_post, settings):
     """
     Test that the dataservice is called correctly
     """
+    client = clients.get("Administrators")
+
     variables = {"input": {"externalId": "Test Study"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -210,15 +198,17 @@ def test_dataservice_call(db, admin_client, mock_post, settings):
     assert Study.objects.count() == 1
 
 
-def test_dataservice_feat_flag(db, admin_client, mock_post, settings):
+def test_dataservice_feat_flag(db, clients, mock_post, settings):
     """
     Test that creating studies does not work when the feature flag is turned
     off.
     """
+    client = clients.get("Administrators")
+
     settings.FEAT_DATASERVICE_CREATE_STUDIES = False
 
     variables = {"input": {"externalId": "Test Study"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -230,12 +220,13 @@ def test_dataservice_feat_flag(db, admin_client, mock_post, settings):
     assert resp_message.startswith("Creating studies is not enabled")
 
 
-def test_dataservice_error(db, admin_client, mock_error):
+def test_dataservice_error(db, clients, mock_error):
     """
     Test behavior when dataservice returns an error.
     """
+    client = clients.get("Administrators")
     variables = {"input": {"externalId": "Test Study"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -247,10 +238,11 @@ def test_dataservice_error(db, admin_client, mock_error):
     assert resp_message.startswith("Problem creating study:")
 
 
-def test_study_buckets_settings(db, admin_client, mock_post, settings, mocker):
+def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
     """
     Test that buckets are only created if the correct settings are configured
     """
+    client = clients.get("Administrators")
     settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS = True
     settings.STUDY_BUCKETS_REGION = "us-east-1"
     settings.STUDY_BUCKETS_LOGGING_BUCKET = "bucket"
@@ -261,7 +253,7 @@ def test_study_buckets_settings(db, admin_client, mock_post, settings, mocker):
     mock_setup = mocker.patch("creator.studies.schema.django_rq.enqueue")
 
     variables = {"input": {"externalId": "Test Study"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -271,7 +263,7 @@ def test_study_buckets_settings(db, admin_client, mock_post, settings, mocker):
 
     settings.STUDY_BUCKETS_REGION = None
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -281,10 +273,11 @@ def test_study_buckets_settings(db, admin_client, mock_post, settings, mocker):
     assert mock_setup.call_count == 1
 
 
-def test_workflows(db, settings, mocker, admin_client, mock_post):
+def test_workflows(db, settings, mocker, clients, mock_post):
     """
     Test that a new study may be created with specific workflows
     """
+    client = clients.get("Administrators")
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
     setup_cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
@@ -293,7 +286,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         "workflows": ["bwa_mem"],
         "input": {"externalId": "Test Study"},
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -314,7 +307,7 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
     setup_cavatica.reset_mock()
     workflows = ["bwa_mem", "mutect2_somatic_mode", "kallisto"]
     variables = {"workflows": workflows, "input": {"externalId": "Test Study"}}
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -346,15 +339,17 @@ def test_workflows(db, settings, mocker, admin_client, mock_post):
         "awardeeOrganization",
     ],
 )
-def test_text_fields(db, admin_client, settings, mock_post, s, field):
+def test_text_fields(db, clients, settings, mock_post, s, field):
     """
     Test text inputs for different fields
     """
+    client = clients.get("Administrators")
+
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -363,18 +358,20 @@ def test_text_fields(db, admin_client, settings, mock_post, s, field):
     assert "errors" not in resp.json()
 
 
-@given(s=integers(min_value=0, max_value=2147483647))
+@given(s=integers(min_value=0, max_value=2_147_483_647))
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["anticipatedSamples"])
-def test_integer_fields(db, admin_client, settings, mock_post, s, field):
+def test_integer_fields(db, clients, settings, mock_post, s, field):
     """
     Test positive integer inputs for different fields
     """
+    client = clients.get("Administrators")
+
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -386,17 +383,19 @@ def test_integer_fields(db, admin_client, settings, mock_post, s, field):
 @given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
-def test_internal_fields(db, admin_client, settings, mock_post, s, field):
+def test_internal_fields(db, clients, settings, mock_post, s, field):
     """
     Test that inputs for our internal study fields are saved correctly.
 
     TODO: Merge with test_text_fields by making dataservice mock more flexible
     """
+    client = clients.get("Administrators")
+
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -408,17 +407,17 @@ def test_internal_fields(db, admin_client, settings, mock_post, s, field):
 @given(s=dates())
 @settings(max_examples=10)
 @pytest.mark.parametrize("field", ["releaseDate"])
-def test_internal_datetime_fields(
-    db, admin_client, settings, mock_post, s, field
-):
+def test_internal_datetime_fields(db, clients, settings, mock_post, s, field):
     """
     Test that inputs datetime study fields are saved correctly.
     """
+    client = clients.get("Administrators")
+
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
     variables["input"][field] = s
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
@@ -427,8 +426,10 @@ def test_internal_datetime_fields(
     assert resp.json()["data"]["createStudy"]["study"][field] == str(s)
 
 
-def test_attach_volumes(db, admin_client, settings, mock_cavatica_api):
+def test_attach_volumes(db, clients, settings, mock_cavatica_api):
     """ Test that volumes are attached for new studies """
+    client = clients.get("Administrators")
+
     settings.FEAT_CAVATICA_MOUNT_VOLUMES = True
     settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
     settings.CAVATICA_READWRITE_ACCESS_KEY = "abc"
