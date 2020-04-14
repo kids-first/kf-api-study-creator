@@ -69,6 +69,7 @@ add_collaborator      Can add a collaborator to the study
 add_study             Can add study
 remove_collaborator   Can remove a collaborator to the study
 view_study            Can view study
+change_study          Can change study
 ====================  ======================================
 
 Developers
