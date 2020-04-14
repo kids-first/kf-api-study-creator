@@ -4,6 +4,7 @@ import pytest
 import mock
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core import management
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from creator.studies.models import Study
@@ -125,3 +126,31 @@ def test_auth0_middleware(db, client, token):
 
     ego_patch.stop()
     req_patch.stop()
+
+
+def test_test_user(db, settings, clients):
+    """
+    Test that requests are authenticated as testuser in develop mode
+    """
+    settings.DEVELOP = True
+    management.call_command("setup_test_user")
+    middleware = "creator.middleware"
+    auth0_middleware = f"{middleware}.Auth0AuthenticationMiddleware"
+
+    query = "{ myProfile { username email } }"
+
+    client = clients.get(None)
+    resp = client.post(
+        "/graphql", data={"query": query}, content_type="application/json"
+    )
+    assert resp.json()["data"]["myProfile"]["username"] == "testuser"
+
+    # Disable Auth0 to try for ego
+    auth0_patch = mock.patch(f"{auth0_middleware}.get_jwt_user")
+    auth0_mock = auth0_patch.start()
+    auth0_mock.return_value = AnonymousUser()
+
+    resp = client.post(
+        "/graphql", data={"query": query}, content_type="application/json"
+    )
+    assert resp.json()["data"]["myProfile"]["username"] == "testuser"
