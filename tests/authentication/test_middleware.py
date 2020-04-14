@@ -1,7 +1,6 @@
 import json
 import jwt
 import pytest
-import mock
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core import management
@@ -29,7 +28,7 @@ def auth0_key_mock():
 
 
 @pytest.mark.no_mocks
-def test_ego_middleware(db, client, token, groups):
+def test_ego_middleware(db, client, mocker, token, groups):
     """
     Test that ego middleware will call ego to get a public_key
 
@@ -42,9 +41,8 @@ def test_ego_middleware(db, client, token, groups):
     ego_middleware = f"{middleware}.EgoJWTAuthenticationMiddleware"
     auth0_middleware = f"{middleware}.Auth0AuthenticationMiddleware"
 
-    req_patch = mock.patch(f"{middleware}.requests.get")
+    req_mock = mocker.patch(f"{middleware}.requests.get")
     # We'll mock out the response of the get request to allow request to pass
-    req_mock = req_patch.start()
     with open("tests/keys/public_key.pem", "rb") as f:
 
         class Resp:
@@ -52,8 +50,7 @@ def test_ego_middleware(db, client, token, groups):
 
         req_mock.return_value = Resp()
 
-    auth0_patch = mock.patch(f"{auth0_middleware}.get_jwt_user")
-    auth0_mock = auth0_patch.start()
+    auth0_mock = mocker.patch(f"{auth0_middleware}.get_jwt_user")
     auth0_mock.return_value = AnonymousUser()
 
     study = Study(kf_id="SD_ME0WME0W")
@@ -76,12 +73,10 @@ def test_ego_middleware(db, client, token, groups):
     req_mock.assert_called_with(
         f"{settings.EGO_API}/oauth/token/public_key", timeout=10
     )
-    req_patch.stop()
-    auth0_patch.stop()
 
 
 @pytest.mark.no_mocks
-def test_auth0_middleware(db, client, token):
+def test_auth0_middleware(db, client, mocker, token):
     """
     Test that auth0 middleware will call ego to get a public_key
 
@@ -95,13 +90,11 @@ def test_auth0_middleware(db, client, token):
     ego_middleware = f"{middleware}.EgoJWTAuthenticationMiddleware"
     auth0_middleware = "{middleware}.Auth0AuthenticationMiddleware"
 
-    req_patch = mock.patch(f"{middleware}.requests.get")
-    req_mock = req_patch.start()
+    req_mock = mocker.patch(f"{middleware}.requests.get")
     with open("tests/keys/jwks.json", "rb") as f:
         req_mock().json.return_value = json.load(f)
     # Ego will responed with un-authed user when it can't validate token
-    ego_patch = mock.patch(f"{ego_middleware}.get_jwt_user")
-    ego_mock = ego_patch.start()
+    ego_mock = mocker.patch(f"{ego_middleware}.get_jwt_user")
     ego_mock.return_value = AnonymousUser()
 
     study = Study(kf_id="SD_ME0WME0W")
@@ -124,11 +117,8 @@ def test_auth0_middleware(db, client, token):
     assert req_mock.call_count == 2
     req_mock.assert_called_with(settings.AUTH0_JWKS, timeout=10)
 
-    ego_patch.stop()
-    req_patch.stop()
 
-
-def test_test_user(db, settings, clients):
+def test_test_user(db, settings, mocker, clients):
     """
     Test that requests are authenticated as testuser in develop mode
     """
@@ -146,8 +136,7 @@ def test_test_user(db, settings, clients):
     assert resp.json()["data"]["myProfile"]["username"] == "testuser"
 
     # Disable Auth0 to try for ego
-    auth0_patch = mock.patch(f"{auth0_middleware}.get_jwt_user")
-    auth0_mock = auth0_patch.start()
+    auth0_mock = mocker.patch(f"{auth0_middleware}.get_jwt_user")
     auth0_mock.return_value = AnonymousUser()
 
     resp = client.post(
