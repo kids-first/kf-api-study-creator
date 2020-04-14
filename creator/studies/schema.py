@@ -199,12 +199,8 @@ class CreateStudyMutation(Mutation):
         create the study, but it will be labeled as a local study.
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to create a study.")
+        if not user.has_perm("studies.add_study"):
+            raise GraphQLError("Not allowed")
 
         # Error if this feature is not enabled
         if not (
@@ -335,12 +331,8 @@ class UpdateStudyMutation(Mutation):
         updated in the creator's database
         """
         user = info.context.user
-        if (
-            user is None
-            or not user.is_authenticated
-            or "ADMIN" not in user.ego_roles
-        ):
-            raise GraphQLError("Not authenticated to update a study.")
+        if not user.has_perm("studies.change_study"):
+            raise GraphQLError("Not allowed")
 
         # Error if this feature is not enabled
         if not (
