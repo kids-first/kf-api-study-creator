@@ -16,9 +16,7 @@ class Command(BaseCommand):
         logger.info("Making test user")
 
         try:
-            User.objects.create_superuser(
-                "testuser", "test@example.com", "test"
-            )
+            User.objects.create_user("testuser", "test@example.com", "test")
         except IntegrityError:
             logger.info("user already exists")
         try:
