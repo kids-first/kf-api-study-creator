@@ -42,6 +42,7 @@ pre-populated database of mock data.
    downloads
    authentication
    authorization
+   development/dev_api
 
 .. toctree::
    :maxdepth: 2
