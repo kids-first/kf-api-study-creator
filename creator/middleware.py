@@ -40,7 +40,7 @@ class EgoJWTAuthenticationMiddleware():
         if settings.DEVELOP:
             User = get_user_model()
             # Pretend the user is admin when running in development
-            user = User.objects.get(username="devadmin")
+            user = User.objects.get(username="testuser")
             # Assign specific auth permissions if they are specified in env
             if settings.USER_ROLES or settings.USER_GROUPS:
                 user.ego_roles = settings.USER_ROLES
@@ -169,7 +169,7 @@ class Auth0AuthenticationMiddleware():
         if settings.DEVELOP:
             User = get_user_model()
             # Pretend the user is admin when running in development
-            user = User.objects.get(username="devadmin")
+            user = User.objects.get(username="testuser")
             # Assign specific auth permissions if they are specified in env
             if settings.USER_ROLES or settings.USER_GROUPS:
                 user.ego_roles = settings.USER_ROLES

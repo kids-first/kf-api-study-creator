@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from graphene_file_upload.django import FileUploadGraphQLView
 import creator.files.views
 
@@ -37,3 +38,8 @@ urlpatterns = [
         creator.files.views.signed_url
     )
 ]
+
+if settings.DEVELOPMENT_ENDPOINTS:
+    import creator.dev.views
+
+    urlpatterns.append(path(r"__dev/", include("creator.dev.urls")))

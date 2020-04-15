@@ -26,12 +26,16 @@ SECRET_KEY = str(uuid.uuid4())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Adds development endpoints to the application.
+# This should never be enabled in actual deployments
+DEVELOPMENT_ENDPOINTS = os.environ.get("DEVELOPMENT_ENDPOINTS", False)
+
 STAGE = "dev"
 
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
-DEVELOP = False
+DEVELOP = os.environ.get("DEVELOP", False)
 
 # Application definition
 
@@ -45,6 +49,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'django_s3_storage',
     'django_rq',
+    'creator.dev',
     'creator.files',
     'creator.studies',
     'creator.users',

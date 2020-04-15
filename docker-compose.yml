@@ -10,6 +10,7 @@ services:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-creator.settings.testing}
       # Options are: DATASERVICE, url of dataservice, or FAKE
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
+      - DEVELOPMENT_ENDPOINTS
     volumes:
       - .:/app
     ports:
