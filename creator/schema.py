@@ -63,6 +63,9 @@ class Features(graphene.ObjectType):
 
 
 class Settings(graphene.ObjectType):
+    development_endpoints = graphene.Boolean(
+        description=("Developer endpoints are active")
+    )
     dataservice_url = graphene.String(description="The URL of the Dataservice")
     cavatica_url = graphene.String(description="The URL of the Cavatica API")
     cavatica_delivery_account = graphene.String(
@@ -174,6 +177,7 @@ class Status(graphene.ObjectType):
             raise GraphQLError("Not allowed")
 
         conf = {
+            "development_endpoints": settings.DEVELOPMENT_ENDPOINTS,
             "dataservice_url": settings.DATASERVICE_URL,
             "cavatica_url": settings.CAVATICA_URL,
             "cavatica_delivery_account": settings.CAVATICA_DELIVERY_ACCOUNT,
