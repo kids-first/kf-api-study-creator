@@ -35,7 +35,7 @@ STAGE = "dev"
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
-DEVELOP = False
+DEVELOP = os.environ.get("DEVELOP", False)
 
 # Application definition
 
