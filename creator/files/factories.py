@@ -22,6 +22,7 @@ factory.Faker.add_provider(FileTypeProvider)
 class VersionFactory(factory.DjangoModelFactory):
     class Meta:
         model = Version
+        django_get_or_create = ('kf_id',)
 
     kf_id = factory.fuzzy.FuzzyText(
                 length=8,
@@ -44,6 +45,7 @@ class VersionFactory(factory.DjangoModelFactory):
 class FileFactory(factory.DjangoModelFactory):
     class Meta:
         model = File
+        django_get_or_create = ('kf_id',)
 
     kf_id = factory.fuzzy.FuzzyText(
                 length=8,

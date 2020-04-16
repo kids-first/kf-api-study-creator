@@ -7,6 +7,7 @@ from .models import Bucket
 class BucketFactory(factory.DjangoModelFactory):
     class Meta:
         model = Bucket
+        django_get_or_create = ('name',)
 
     name = factory.Faker("bs")
     created_on = factory.Faker(
