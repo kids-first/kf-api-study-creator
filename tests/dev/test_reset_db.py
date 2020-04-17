@@ -35,10 +35,10 @@ def test_idempotent(transactional_db, client, dev_endpoints):
     """
 
     resp = client.post("/__dev/reset-db/")
-    assert Study.objects.count() == 3
+    assert Study.objects.count() == 4
     studies_1 = [study.kf_id for study in Study.objects.all()]
 
     resp = client.post("/__dev/reset-db/")
-    assert Study.objects.count() == 3
+    assert Study.objects.count() == 4
     studies_2 = [study.kf_id for study in Study.objects.all()]
     assert studies_1 == studies_2

@@ -7,6 +7,7 @@ User = get_user_model()
 class UserFactory(factory.DjangoModelFactory):
     class Meta:
         model = User
+        django_get_or_create = ('sub',)
 
     sub = factory.Faker("uuid4")
     username = factory.Faker("name")

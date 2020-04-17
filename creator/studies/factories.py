@@ -20,6 +20,7 @@ factory.Faker.add_provider(StateProvider)
 class StudyFactory(factory.DjangoModelFactory):
     class Meta:
         model = Study
+        django_get_or_create = ('kf_id',)
 
     kf_id = factory.fuzzy.FuzzyText(
         length=8, prefix="SD_", chars="ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890"
