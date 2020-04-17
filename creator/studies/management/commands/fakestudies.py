@@ -1,5 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth import get_user_model
 from creator.studies.factories import StudyFactory
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -20,6 +23,9 @@ class Command(BaseCommand):
             name="Mr. Meow's Memorable Meme Emporium",
             short_name="Cat Pics",
         )
+
+        user = User.objects.get(username='testuser')
+        user.studies.add(study)
 
         n = options.get('n')
         if not n:
