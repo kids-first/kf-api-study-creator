@@ -14,6 +14,8 @@ done
 
 /app/manage.py migrate
 
+/app/manage.py setup_permissions
+/app/manage.py setup_test_user
 
 case $PRELOAD_DATA in
     "DATASERVICE")
@@ -33,10 +35,5 @@ case $PRELOAD_DATA in
         echo "Will not pre-populate database"
         ;;
 esac
-
-/app/manage.py setup_permissions
-/app/manage.py setup_test_user
-
-# Make an admin user
 
 exec /app/manage.py runserver 0.0.0.0:8080
