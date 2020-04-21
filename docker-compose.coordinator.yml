@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  coordinator:
+    image: kfdrc/kf-api-release-coordinator:latest
+    environment:
+      - PG_NAME=coordinator
+      - PG_HOST=coordinator-pg
+      - PG_USER=postgres
+      - PG_PASS=postgres
+      - DJANGO_SETTINGS_MODULE=coordinator.settings.development
+      - PRELOAD_DATA=FAKE
+    command: /app/bin/dev_entrypoint.sh
+    depends_on:
+      - coordinator-pg
+    ports:
+      - 5001:5000
+  coordinator-pg:
+    image: postgres:11.1
+    environment:
+      - POSTGRES_DB=coordinator
+      - POSTGRES_PASSWORD=coordinator

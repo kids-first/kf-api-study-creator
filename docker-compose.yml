@@ -11,6 +11,8 @@ services:
       # Options are: DATASERVICE, url of dataservice, or FAKE
       - PRELOAD_DATA=${PRELOAD_DATA:-FAKE}
       - DEVELOPMENT_ENDPOINTS
+      - DEBUG
+      - DEVELOP
     volumes:
       - .:/app
     ports:
