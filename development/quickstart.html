@@ -91,9 +91,16 @@
               <p class="caption"><span class="caption-text">Development:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#enabling-cavatica-integration">Enabling Cavatica Integration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#enabling-dataservice-features">Enabling Dataservice Features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quickstart">Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-settings">Development Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bypassing-authentication">Bypassing Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reseting-database-state">Reseting Database State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-dataservice-features">Enabling Dataservice Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-release-coordinator-features">Enabling Release Coordinator Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-cavatica-integration">Enabling Cavatica Integration</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#developing-outside-docker">Developing Outside Docker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
@@ -180,12 +187,42 @@
             
   <div class="section" id="development">
 <h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="enabling-cavatica-integration">
-<h2>Enabling Cavatica Integration<a class="headerlink" href="#enabling-cavatica-integration" title="Permalink to this headline">¶</a></h2>
-<p>See <a class="reference internal" href="../cavatica.html"><span class="doc">Cavatica Integration</span></a> for enabling Cavatica features in the Study Creator.</p>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>Create a docker network for the compose file to mount to.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker network create kf-data-stack
+</pre></div>
+</div>
+<p>We recommend the following to get running with a complete dev-environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DEVELOP</span><span class="o">=</span>True <span class="se">\</span>
+<span class="nv">DEVELOPMENT_ENDPOINTS</span><span class="o">=</span>True <span class="se">\</span>
+docker-compose <span class="se">\</span>
+    -f docker-compose.yml <span class="se">\</span>
+    -f docker-compose.dataservice.yml <span class="se">\</span>
+    -f docker-compose.coordinator.yml <span class="se">\</span>
+    up -d
+</pre></div>
+</div>
+<p>This should start a full development setup on the local consisting of the Study
+Creator API, the Data Service API, and the Release Coordinator API.</p>
+</div>
+<div class="section" id="development-settings">
+<h2>Development Settings<a class="headerlink" href="#development-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="bypassing-authentication">
+<h3>Bypassing Authentication<a class="headerlink" href="#bypassing-authentication" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">DEVELOP</span></code> flag will tell the Study Creator to authenticate all requests
+as coming from the <code class="docutils literal notranslate"><span class="pre">testuser</span></code>, the default user setup when running locally.
+This allows the Study Creator to operate without depending on any
+authentication services like Auth0 and will let the user change quickly between
+different roles without signing in and out.</p>
+</div>
+<div class="section" id="reseting-database-state">
+<h3>Reseting Database State<a class="headerlink" href="#reseting-database-state" title="Permalink to this headline">¶</a></h3>
+<p>Mock data will be generated automatically using a static seed which will
+guarantee consistency every time the service is restarted.</p>
 </div>
 <div class="section" id="enabling-dataservice-features">
-<h2>Enabling Dataservice Features<a class="headerlink" href="#enabling-dataservice-features" title="Permalink to this headline">¶</a></h2>
+<h3>Enabling Dataservice Features<a class="headerlink" href="#enabling-dataservice-features" title="Permalink to this headline">¶</a></h3>
 <p>Creating new studies requires the study-creator to have access to the
 dataservice.
 This is not always possible or desirable as we often don’t want test studies
@@ -197,11 +234,27 @@ enable additional features.</p>
 </div>
 <p>This will build and run a fresh dataservice container alongside the other
 containers running in docker.
-It will also enabled the dataservice features and configure them as needed
+It will also enable the dataservice features and configure them as needed
 through the environment variables.</p>
 </div>
+<div class="section" id="enabling-release-coordinator-features">
+<h3>Enabling Release Coordinator Features<a class="headerlink" href="#enabling-release-coordinator-features" title="Permalink to this headline">¶</a></h3>
+<p>Many front-end features require both the Study Creator and Release Coordinator
+as data sources.
+Both may be setup with similar data using the included docker-compose file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose -f docker-compose.yml -f docker-compose.coordinator.yml up -d
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The full functionality of the Release Coordinator depends on other
+services running that are not started as part of this process.</p>
+</div>
+<p>This will start a Release Coordinator container alongside the Study Creator
+with mock data populated to match the studies in the Study Creator.</p>
+</div>
 <div class="section" id="bootstrapping-the-database">
-<h2>Bootstrapping the Database<a class="headerlink" href="#bootstrapping-the-database" title="Permalink to this headline">¶</a></h2>
+<h3>Bootstrapping the Database<a class="headerlink" href="#bootstrapping-the-database" title="Permalink to this headline">¶</a></h3>
 <p>It’s often useful to have some data immediately available in the service
 when developing and testing. By default, the container run through
 <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> will automatically populate the database with fake data
@@ -220,16 +273,18 @@ your local dockerized dataservice (e.g. <a class="reference external" href="http
 <li><code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA=false</span></code> to start with an empty database</li>
 </ul>
 </div></blockquote>
-<p>If you haven’t already, create the kf-data-stack network. This is important
-if you’d like to preload data from your dockerized dataservice.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker network create kf-data-stack
-</pre></div>
-</div>
 <p>It may be required to restart the docker services after changing the
 <code class="docutils literal notranslate"><span class="pre">PRELOAD_DATA</span></code> environment variable so that the old data may be flushed.
 Restart by running:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PRELOAD_DATA</span><span class="o">=</span>DATASERVICE docker-compose up
 </pre></div>
+</div>
+</div>
+<div class="section" id="enabling-cavatica-integration">
+<h3>Enabling Cavatica Integration<a class="headerlink" href="#enabling-cavatica-integration" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference internal" href="../cavatica.html"><span class="doc">Cavatica Integration</span></a> for enabling Cavatica features in the Study Creator.
+These features require live Cavatica accounts, so are not recommended for
+configuration during local development.</p>
 </div>
 </div>
 <div class="section" id="testing">

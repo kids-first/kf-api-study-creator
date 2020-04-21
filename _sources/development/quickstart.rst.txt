@@ -1,13 +1,52 @@
 Development
 ===========
 
-Enabling Cavatica Integration
------------------------------
+Quickstart
+----------
 
-See :doc:`../cavatica` for enabling Cavatica features in the Study Creator.
+Create a docker network for the compose file to mount to.
+
+.. code-block:: bash
+
+    docker network create kf-data-stack
+
+We recommend the following to get running with a complete dev-environment:
+
+.. code-block:: bash
+
+    DEVELOP=True \
+    DEVELOPMENT_ENDPOINTS=True \
+    docker-compose \
+        -f docker-compose.yml \
+        -f docker-compose.dataservice.yml \
+        -f docker-compose.coordinator.yml \
+        up -d
+
+This should start a full development setup on the local consisting of the Study
+Creator API, the Data Service API, and the Release Coordinator API.
+
+Development Settings
+--------------------
+
+
+Bypassing Authentication
+++++++++++++++++++++++++
+
+The ``DEVELOP`` flag will tell the Study Creator to authenticate all requests
+as coming from the ``testuser``, the default user setup when running locally.
+This allows the Study Creator to operate without depending on any
+authentication services like Auth0 and will let the user change quickly between
+different roles without signing in and out.
+
+Reseting Database State
++++++++++++++++++++++++
+
+Mock data will be generated automatically using a static seed which will
+guarantee consistency every time the service is restarted.
+
 
 Enabling Dataservice Features
------------------------------
++++++++++++++++++++++++++++++
 
 Creating new studies requires the study-creator to have access to the
 dataservice.
@@ -22,12 +61,30 @@ enable additional features.
 
 This will build and run a fresh dataservice container alongside the other
 containers running in docker.
-It will also enabled the dataservice features and configure them as needed
+It will also enable the dataservice features and configure them as needed
 through the environment variables.
+
+Enabling Release Coordinator Features
++++++++++++++++++++++++++++++++++++++
+
+Many front-end features require both the Study Creator and Release Coordinator
+as data sources.
+Both may be setup with similar data using the included docker-compose file:
+
+.. code-block:: bash
+
+    docker-compose -f docker-compose.yml -f docker-compose.coordinator.yml up -d
+
+.. Note::
+    The full functionality of the Release Coordinator depends on other
+    services running that are not started as part of this process.
+
+This will start a Release Coordinator container alongside the Study Creator
+with mock data populated to match the studies in the Study Creator.
 
 
 Bootstrapping the Database
---------------------------
+++++++++++++++++++++++++++
 
 It's often useful to have some data immediately available in the service
 when developing and testing. By default, the container run through
@@ -46,13 +103,6 @@ altered to a different strategy such as:
       your local dockerized dataservice (e.g. http://kf-api-dataservice_dataservice_1)
     - ``PRELOAD_DATA=false`` to start with an empty database
 
-If you haven't already, create the kf-data-stack network. This is important
-if you'd like to preload data from your dockerized dataservice.
-
-.. code-block:: bash
-
-    docker network create kf-data-stack
-
 It may be required to restart the docker services after changing the
 ``PRELOAD_DATA`` environment variable so that the old data may be flushed.
 Restart by running:
@@ -60,6 +110,13 @@ Restart by running:
 .. code-block:: bash
 
       PRELOAD_DATA=DATASERVICE docker-compose up
+
+Enabling Cavatica Integration
++++++++++++++++++++++++++++++
+
+See :doc:`../cavatica` for enabling Cavatica features in the Study Creator.
+These features require live Cavatica accounts, so are not recommended for
+configuration during local development.
 
 
 Testing
