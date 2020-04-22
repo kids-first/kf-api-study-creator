@@ -149,12 +149,6 @@ class VersionUploadMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
-        # The user should be allowed to access the relevant file's study
-        if study.kf_id not in user.ego_groups and not user.has_perm(
-            "files.add_version"
-        ):
-            raise GraphQLError("Not authenticated to upload to the study.")
-
         if file.size > settings.FILE_MAX_SIZE:
             raise GraphQLError("File is too large.")
 
