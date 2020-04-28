@@ -7,7 +7,7 @@ services:
       - PG_NAME=coordinator
       - PG_HOST=coordinator-pg
       - PG_USER=postgres
-      - PG_PASS=postgres
+      - PG_PASS=coordinator
       - DJANGO_SETTINGS_MODULE=coordinator.settings.development
       - PRELOAD_DATA=FAKE
     command: /app/bin/dev_entrypoint.sh
