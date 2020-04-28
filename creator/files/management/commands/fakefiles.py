@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from creator.files.factories import FileFactory
-from creator.factories import factory
+import factory
 
 
 class Command(BaseCommand):

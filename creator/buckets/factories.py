@@ -1,6 +1,5 @@
 import pytz
 import factory
-import random
 from .models import Bucket
 
 

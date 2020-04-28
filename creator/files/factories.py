@@ -1,7 +1,6 @@
 import pytz
 import factory
 import factory.fuzzy
-import random
 from faker.providers import BaseProvider
 from .models import File, Version
 from creator.studies.models import Study
