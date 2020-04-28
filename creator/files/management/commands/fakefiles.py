@@ -18,5 +18,5 @@ class Command(BaseCommand):
 
         n = options.get('n')
         if not n:
-            n = 5
+            n = 20
         r = FileFactory.create_batch(n)
