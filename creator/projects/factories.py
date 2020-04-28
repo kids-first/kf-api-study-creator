@@ -11,9 +11,11 @@ class ProjectFactory(factory.DjangoModelFactory):
     project_id = factory.Faker("slug")
     name = factory.Faker("bs")
     description = factory.Faker("bs")
-    project_type = factory.LazyFunction(lambda: random.choice(["HAR", "DEL"]))
+    project_type = factory.LazyFunction(
+        lambda: factory.fuzzy.FuzzyChoice(["HAR", "DEL"])
+    )
     workflow_type = factory.LazyFunction(
-        lambda: random.choice([workflow[0] for workflow in WORKFLOW_TYPES])
+        lambda: factory.fuzzy.FuzzyChoice(WORFLOW_TYPES, getter=lambda c: c[0])
     )
     created_on = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC

@@ -10,10 +10,10 @@ from creator.users.factories import UserFactory
 
 class FileTypeProvider(BaseProvider):
     def file_type(self):
-        return random.choice(['SEQ', 'SHM', 'CLN', 'OTH'])
+        return factory.fuzzy.FuzzyChoice(["SEQ", "SHM", "CLN", "OTH"]).fuzz()
 
     def version_state(self):
-        return random.choice(['PEN', 'PRC', 'CHN', 'APP'])
+        return factory.fuzzy.FuzzyChoice(["PEN", "PRC", "CHN", "APP"]).fuzz()
 
 
 factory.Faker.add_provider(FileTypeProvider)
@@ -60,5 +60,5 @@ class FileFactory(factory.DjangoModelFactory):
 
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):
-        n = random.randint(1, 5)
+        n = factory.fuzzy.FuzzyInteger(1, 5).fuzz()
         return VersionFactory.create_batch(n, root_file=self)
