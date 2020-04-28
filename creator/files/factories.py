@@ -1,19 +1,34 @@
 import pytz
 import factory
 import factory.fuzzy
-import random
 from faker.providers import BaseProvider
 from .models import File, Version
 from creator.studies.models import Study
 from creator.users.factories import UserFactory
 
 
+class FuzzyTags(factory.fuzzy.BaseFuzzyAttribute):
+    def __init__(self, tags):
+        self.tags = set(tags)
+
+    def fuzz(self):
+        n = factory.fuzzy.FuzzyInteger(0, 4).fuzz()
+        tags = factory.random.randgen.sample(self.tags, n)
+        return tags
+
+
 class FileTypeProvider(BaseProvider):
     def file_type(self):
-        return random.choice(['SEQ', 'SHM', 'CLN', 'OTH'])
+        return factory.fuzzy.FuzzyChoice(["SEQ", "SHM", "CLN", "OTH"]).fuzz()
 
     def version_state(self):
-        return random.choice(['PEN', 'PRC', 'CHN', 'APP'])
+        n = factory.fuzzy.FuzzyInteger(1, 5).fuzz()
+        return factory.fuzzy.FuzzyChoice(["PEN", "PRC", "CHN", "APP"]).fuzz()
+
+    def tags(self):
+        return FuzzyTags(
+            ["dbGaP", "DCC", "Email", "Data Dictionary", "Batch 1", "Batch 2"]
+        ).fuzz()
 
 
 factory.Faker.add_provider(FileTypeProvider)
@@ -24,11 +39,8 @@ class VersionFactory(factory.DjangoModelFactory):
         model = Version
         django_get_or_create = ('kf_id',)
 
-    kf_id = factory.fuzzy.FuzzyText(
-                length=8,
-                prefix='FV_',
-                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
-            )
+    kf_id = factory.Sequence(lambda n: f"FV_{n:0>8}")
+
     key = factory.Faker('file_name')
     size = factory.Faker('pyint')
     description = factory.Faker('paragraph', nb_sentences=3)
@@ -47,18 +59,15 @@ class FileFactory(factory.DjangoModelFactory):
         model = File
         django_get_or_create = ('kf_id',)
 
-    kf_id = factory.fuzzy.FuzzyText(
-                length=8,
-                prefix='SF_',
-                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
-            )
+    kf_id = factory.Sequence(lambda n: f"SF_{n:0>8}")
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)
     study = factory.Iterator(Study.objects.all())
     file_type = factory.Faker('file_type')
     creator = factory.SubFactory(UserFactory)
+    tags = factory.Faker("tags")
 
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):
-        n = random.randint(1, 5)
+        n = factory.fuzzy.FuzzyInteger(1, 5).fuzz()
         return VersionFactory.create_batch(n, root_file=self)

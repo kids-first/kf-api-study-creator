@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from creator.files.factories import FileFactory
+import factory
 
 
 class Command(BaseCommand):
@@ -12,10 +13,10 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
-        import factory.random
-        factory.random.reseed_random('Fake data seed')
+        factory.random.reseed_random("Fake data seed")
+        FileFactory.study.reset()
 
         n = options.get('n')
         if not n:
-            n = 5
+            n = 20
         r = FileFactory.create_batch(n)
