@@ -7,12 +7,28 @@ from creator.studies.models import Study
 from creator.users.factories import UserFactory
 
 
+class FuzzyTags(factory.fuzzy.BaseFuzzyAttribute):
+    def __init__(self, tags):
+        self.tags = set(tags)
+
+    def fuzz(self):
+        n = factory.fuzzy.FuzzyInteger(0, 4).fuzz()
+        tags = factory.random.randgen.sample(self.tags, n)
+        return tags
+
+
 class FileTypeProvider(BaseProvider):
     def file_type(self):
         return factory.fuzzy.FuzzyChoice(["SEQ", "SHM", "CLN", "OTH"]).fuzz()
 
     def version_state(self):
+        n = factory.fuzzy.FuzzyInteger(1, 5).fuzz()
         return factory.fuzzy.FuzzyChoice(["PEN", "PRC", "CHN", "APP"]).fuzz()
+
+    def tags(self):
+        return FuzzyTags(
+            ["dbGaP", "DCC", "Email", "Data Dictionary", "Batch 1", "Batch 2"]
+        ).fuzz()
 
 
 factory.Faker.add_provider(FileTypeProvider)
@@ -49,6 +65,7 @@ class FileFactory(factory.DjangoModelFactory):
     study = factory.Iterator(Study.objects.all())
     file_type = factory.Faker('file_type')
     creator = factory.SubFactory(UserFactory)
+    tags = factory.Faker("tags")
 
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):
