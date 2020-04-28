@@ -24,11 +24,8 @@ class VersionFactory(factory.DjangoModelFactory):
         model = Version
         django_get_or_create = ('kf_id',)
 
-    kf_id = factory.fuzzy.FuzzyText(
-                length=8,
-                prefix='FV_',
-                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
-            )
+    kf_id = factory.Sequence(lambda n: f"FV_{n:0>8}")
+
     key = factory.Faker('file_name')
     size = factory.Faker('pyint')
     description = factory.Faker('paragraph', nb_sentences=3)
@@ -47,11 +44,7 @@ class FileFactory(factory.DjangoModelFactory):
         model = File
         django_get_or_create = ('kf_id',)
 
-    kf_id = factory.fuzzy.FuzzyText(
-                length=8,
-                prefix='SF_',
-                chars='ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890'
-            )
+    kf_id = factory.Sequence(lambda n: f"SF_{n:0>8}")
     name = factory.Faker('file_name')
     description = factory.Faker('paragraph', nb_sentences=3)
     study = factory.Iterator(Study.objects.all())
