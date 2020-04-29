@@ -9,6 +9,13 @@ BUCKET_RE = (
     r"[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)"
 )
 
+SEQ_STATUS_CHOICES = [
+    ("UNKNOWN", "Unknown"),
+    ("NOTSTART", "Not Started"),
+    ("INPROG", "In Progress"),
+    ("COMPLETE", "Complete"),
+]
+
 
 class Study(models.Model):
     """
@@ -20,6 +27,10 @@ class Study(models.Model):
             ("view_my_study", "Can list studies that the user belongs to"),
             ("add_collaborator", "Can add a collaborator to the study"),
             ("remove_collaborator", "Can remove a collaborator to the study"),
+            (
+                "change_sequencing_status",
+                "Can update the sequencing status of a study",
+            ),
         ]
 
     kf_id = models.CharField(
@@ -80,6 +91,14 @@ class Study(models.Model):
     deleted = models.BooleanField(
         default=False,
         help_text="Whether the study hase been deleted from the dataservice",
+    )
+
+    # Status fields
+    sequencing_status = models.CharField(
+        max_length=16,
+        default="UNKNOWN",
+        choices=SEQ_STATUS_CHOICES,
+        help_text="Current sequencing status of this study",
     )
 
     collaborators = models.ManyToManyField(

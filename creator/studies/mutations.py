@@ -18,6 +18,7 @@ from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
 from creator.studies.models import Study
 from creator.studies.schema import StudyNode
+from creator.studies.nodes import SequencingStatusType
 from creator.events.models import Event
 
 logger = logging.getLogger(__name__)
@@ -463,6 +464,61 @@ class RemoveCollaboratorMutation(graphene.Mutation):
         return RemoveCollaboratorMutation(study=study)
 
 
+class UpdateSequencingStatusInput(graphene.InputObjectType):
+    status = graphene.Field(
+        SequencingStatusType, description="The sequencing status of the study"
+    )
+
+
+class UpdateSequencingStatusMutation(graphene.Mutation):
+    """ Mutation to change the current sequencing status of a study"""
+
+    class Arguments:
+        study = graphene.ID(
+            required=True,
+            description="The ID of the study to remove the collaborator from",
+        )
+        data = UpdateSequencingStatusInput(
+            required=True,
+            description="Input for the study's sequencing status",
+        )
+
+    study = graphene.Field(StudyNode)
+
+    def mutate(self, info, study, data):
+        """
+        Update the sequencing status of a study
+        """
+        user = info.context.user
+        if not user.has_perm("studies.change_sequencing_status"):
+            raise GraphQLError("Not allowed")
+
+        # Translate relay id to kf_id
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist):
+            raise GraphQLError(f"Study {study_id} does not exist.")
+
+        # Update the sequencing status on the study
+        if "status" in data:
+            study.sequencing_status = data["status"]
+        study.save()
+
+        # Log an event
+        message = (
+            f"{user.username} study {study.kf_id}'s sequencing status "
+            f"to {study.sequencing_status}"
+        )
+        event = Event(study=study, description=message, event_type="ST_UPD")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return UpdateSequencingStatusMutation(study=study)
+
+
 class Mutation:
     """ Mutations for studies """
 
@@ -480,4 +536,8 @@ class Mutation:
     )
     remove_collaborator = RemoveCollaboratorMutation.Field(
         description="Add a collaborator to a study"
+    )
+
+    update_sequencing_status = UpdateSequencingStatusMutation.Field(
+        description="Update the sequencing status of a study"
     )

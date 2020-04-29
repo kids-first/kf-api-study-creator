@@ -4,7 +4,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from creator.events.schema import EventNode, EventFilter
 from creator.files.schema.file import FileNode, FileFilter
-from creator.studies.models import Study
+from creator.studies.models import Study, SEQ_STATUS_CHOICES
 
 
 class StudyNode(DjangoObjectType):
@@ -42,3 +42,12 @@ class StudyNode(DjangoObjectType):
             return study
         else:
             raise GraphQLError("Not allowed")
+
+
+SequencingStatusType = graphene.Enum(
+    "SequencingStatusType",
+    [
+        (status[0], status[0].replace("-", "_"))
+        for status in SEQ_STATUS_CHOICES
+    ],
+)

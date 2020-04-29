@@ -7,6 +7,7 @@ GROUPS = {
         "view_study",
         "add_study",
         "change_study",
+        "change_sequencing_status",
         "view_bucket",
         "list_all_bucket",
         "link_bucket",
