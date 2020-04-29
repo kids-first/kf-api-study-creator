@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from creator.files.factories import FileFactory
+from creator.files.factories import FileFactory, VersionFactory
 import factory
 
 
@@ -15,6 +15,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         factory.random.reseed_random("Fake data seed")
         FileFactory.study.reset()
+        FileFactory.reset_sequence()
+        VersionFactory.reset_sequence()
 
         n = options.get('n')
         if not n:
