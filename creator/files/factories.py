@@ -12,9 +12,13 @@ class FuzzyTags(factory.fuzzy.BaseFuzzyAttribute):
         self.tags = set(tags)
 
     def fuzz(self):
+        sorted_tags = sorted(list(self.tags))
         n = factory.fuzzy.FuzzyInteger(0, 4).fuzz()
-        tags = factory.random.randgen.sample(self.tags, n)
-        return tags
+        tags = set()
+        for _ in range(n):
+            i = factory.fuzzy.FuzzyInteger(0, len(self.tags) - 1).fuzz()
+            tags.add(sorted_tags[i])
+        return list(tags)
 
 
 class FileTypeProvider(BaseProvider):
