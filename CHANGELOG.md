@@ -1,3 +1,36 @@
+# Kids First Study Creator Release 1.9.0
+
+## Features
+
+Overhaul of user permissions.
+
+### Summary
+
+Feature Emojis: ✨x5 🔒x5 🐛x3 ♻️x2 🐋x1 📝x1 🐳x1 🔧x1
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x10 [bug](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/bug) x5 [refactor](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/refactor) x5 [devops](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/devops) x2 [documentation](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/documentation) x2
+
+### New features and changes
+
+- (#389) 🐛 Make fake data reproducible - @dankolbman
+- (#382) ✨ Idempotent test files - @dankolbman
+- (#381) ♻️ Refactor the permission checking for uploading version - @XuTheBunny
+- (#379) 🐋 Add coordinator service - @dankolbman
+- (#378) 🐛 Create test user before fake data - @dankolbman
+- (#377) ✨ Idempotent factories - @dankolbman
+- (#376) ✨ Add development endpoint to settings schema - @dankolbman
+- (#373) ✨ Add development endpoints - @dankolbman
+- (#375) 🔒 Add permissions to study mutations - @dankolbman
+- (#374) 🔒 Add change study permission to Admin group - @XuTheBunny
+- (#372) 🔒 Add create study permission - @dankolbman
+- (#371) 📝 Update permission docs - @dankolbman
+- (#370) 🔒 Cavatica permissions - @dankolbman
+- (#359) 🔒 Authorization model - @dankolbman
+- (#364) 🐳 Build and push images to Dockerhub registry - @dankolbman
+- (#365) ✨ Add DBG file type for dbGaP Submission File - @XuTheBunny
+- (#362) 🔧 Use static seed when creating fake data - @dankolbman
+- (#355) 🐛 Use id as primary key for users - @dankolbman
+- (#358) ♻️ Hard-code https scheme for downloads - @dankolbman
+
 # Kids First Study Creator Release 1.8.0
 
 ## Features
