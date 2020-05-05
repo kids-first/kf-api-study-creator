@@ -58,6 +58,7 @@ class Event(models.Model):
             ("IM_SUC", "File Import Success"),
             ("CB_ADD", "Collaborator Added"),
             ("CB_REM", "Collaborator Removed"),
+            ("ST_UPD", "Sequencing Status Updated"),
             ("OTH", "Other"),
         ),
         default="OTH",
