@@ -8,6 +8,7 @@ from creator.studies.models import (
     Study,
     SEQ_STATUS_CHOICES,
     ING_STATUS_CHOICES,
+    PHE_STATUS_CHOICES,
 )
 
 
@@ -61,5 +62,13 @@ IngestionStatusType = graphene.Enum(
     [
         (status[0], status[0].replace("-", "_"))
         for status in ING_STATUS_CHOICES
+    ],
+)
+
+PhenotypeStatusType = graphene.Enum(
+    "PhenotypeStatusType",
+    [
+        (status[0], status[0].replace("-", "_"))
+        for status in PHE_STATUS_CHOICES
     ],
 )
