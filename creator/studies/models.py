@@ -16,6 +16,12 @@ SEQ_STATUS_CHOICES = [
     ("COMPLETE", "Complete"),
 ]
 
+HAR_STATUS_CHOICES = [
+    ("UNKNOWN", "Unknown"),
+    ("NOTSTART", "Not Started"),
+    ("INPROG", "In Progress"),
+    ("COMPLETE", "Complete"),
+]
 
 class Study(models.Model):
     """
@@ -30,6 +36,10 @@ class Study(models.Model):
             (
                 "change_sequencing_status",
                 "Can update the sequencing status of a study",
+            ),
+            (
+                "change_harmonization_status",
+                "Can update the harmonization status of a study",
             ),
         ]
 
@@ -99,6 +109,12 @@ class Study(models.Model):
         default="UNKNOWN",
         choices=SEQ_STATUS_CHOICES,
         help_text="Current sequencing status of this study",
+    )
+    harmonization_status = models.CharField(
+        max_length=16,
+        default="UNKNOWN",
+        choices=HAR_STATUS_CHOICES,
+        help_text="Current harmonization status of this study",
     )
 
     collaborators = models.ManyToManyField(
