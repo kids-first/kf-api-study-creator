@@ -4,7 +4,11 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from creator.events.schema import EventNode, EventFilter
 from creator.files.schema.file import FileNode, FileFilter
-from creator.studies.models import Study, SEQ_STATUS_CHOICES
+from creator.studies.models import (
+    Study,
+    SEQ_STATUS_CHOICES,
+    ING_STATUS_CHOICES,
+)
 
 
 class StudyNode(DjangoObjectType):
@@ -49,5 +53,13 @@ SequencingStatusType = graphene.Enum(
     [
         (status[0], status[0].replace("-", "_"))
         for status in SEQ_STATUS_CHOICES
+    ],
+)
+
+IngestionStatusType = graphene.Enum(
+    "IngestionStatusType",
+    [
+        (status[0], status[0].replace("-", "_"))
+        for status in ING_STATUS_CHOICES
     ],
 )

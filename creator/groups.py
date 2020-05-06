@@ -8,6 +8,7 @@ GROUPS = {
         "add_study",
         "change_study",
         "change_sequencing_status",
+        "change_ingestion_status",
         "view_bucket",
         "list_all_bucket",
         "link_bucket",
