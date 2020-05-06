@@ -59,6 +59,7 @@ class Event(models.Model):
             ("CB_ADD", "Collaborator Added"),
             ("CB_REM", "Collaborator Removed"),
             ("IN_UPD", "Ingestion Status Updated"),
+            ("PH_UPD", "Phenotype Status Updated"),
             ("ST_UPD", "Sequencing Status Updated"),
             ("OTH", "Other"),
         ),
