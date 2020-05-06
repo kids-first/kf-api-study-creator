@@ -19,6 +19,7 @@ from creator.tasks import setup_cavatica_task
 from creator.studies.models import Study
 from creator.studies.schema import StudyNode
 from creator.studies.nodes import SequencingStatusType
+from creator.studies.nodes import IngestionStatusType
 from creator.events.models import Event
 
 logger = logging.getLogger(__name__)
@@ -470,6 +471,12 @@ class UpdateSequencingStatusInput(graphene.InputObjectType):
     )
 
 
+class UpdateIngestionStatusInput(graphene.InputObjectType):
+    status = graphene.Field(
+        IngestionStatusType, description="The ingestion status of the study"
+    )
+
+
 class UpdateSequencingStatusMutation(graphene.Mutation):
     """ Mutation to change the current sequencing status of a study"""
 
@@ -519,6 +526,55 @@ class UpdateSequencingStatusMutation(graphene.Mutation):
         return UpdateSequencingStatusMutation(study=study)
 
 
+class UpdateIngestionStatusMutation(graphene.Mutation):
+    """ Mutation to change the current ingestion status of a study"""
+
+    class Arguments:
+        study = graphene.ID(
+            required=True,
+            description="The ID of the study to remove the collaborator from",
+        )
+        data = UpdateIngestionStatusInput(
+            required=True,
+            description="Input for the study's ingestion status",
+        )
+
+    study = graphene.Field(StudyNode)
+
+    def mutate(self, info, study, data):
+        """
+        Update the ingestion status of a study
+        """
+        user = info.context.user
+        if not user.has_perm("studies.change_ingestion_status"):
+            raise GraphQLError("Not allowed")
+
+        # Translate relay id to kf_id
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist):
+            raise GraphQLError(f"Study {study_id} does not exist.")
+
+        # Update the ingestion status on the study
+        if "status" in data:
+            study.ingestion_status = data["status"]
+        study.save()
+
+        # Log an event
+        message = (
+            f"{user.username} study {study.kf_id}'s ingestion status "
+            f"to {study.ingestion_status}"
+        )
+        event = Event(study=study, description=message, event_type="IN_UPD")
+        # Only add the user if they are in the database (not a service user)
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return UpdateIngestionStatusMutation(study=study)
+
+
 class Mutation:
     """ Mutations for studies """
 
@@ -540,4 +596,8 @@ class Mutation:
 
     update_sequencing_status = UpdateSequencingStatusMutation.Field(
         description="Update the sequencing status of a study"
+    )
+
+    update_ingestion_status = UpdateIngestionStatusMutation.Field(
+        description="Update the ingestion status of a study"
     )
