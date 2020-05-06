@@ -21,6 +21,12 @@ ING_STATUS_CHOICES = [
     ("INPROG", "In Progress"),
     ("COMPLETE", "Complete"),
 ]
+PHE_STATUS_CHOICES = [
+    ("UNKNOWN", "Unknown"),
+    ("NOTRECEIVED", "Not received"),
+    ("INREVIEW", "In review"),
+    ("APPROVED", "Approved"),
+]
 
 
 class Study(models.Model):
@@ -40,6 +46,10 @@ class Study(models.Model):
             (
                 "change_ingestion_status",
                 "Can update the ingestion status of a study",
+            ),
+            (
+                "change_phenotype_status",
+                "Can update the phenotype status of a study",
             ),
         ]
 
@@ -115,6 +125,12 @@ class Study(models.Model):
         default="UNKNOWN",
         choices=ING_STATUS_CHOICES,
         help_text="Current ingestion status of this study",
+    )
+    phenotype_status = models.CharField(
+        max_length=16,
+        default="UNKNOWN",
+        choices=PHE_STATUS_CHOICES,
+        help_text="Current phenotype status of this study",
     )
 
     collaborators = models.ManyToManyField(
