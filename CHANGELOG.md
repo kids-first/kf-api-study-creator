@@ -1,3 +1,20 @@
+# Kids First Study Creator Release 1.10.0
+
+## Features
+
+Add study status columns
+
+### Summary
+
+Feature Emojis: ✨x3
+Feature Labels: [feature](https://api.github.com/repos/kids-first/kf-api-study-creator/labels/feature) x3
+
+### New features and changes
+
+- (#392) ✨ Add phenotype status to study - @XuTheBunny
+- (#391) ✨ Add ingestion status to study - @XuTheBunny
+- (#388) ✨ Sequencing status - @dankolbman
+
 # Kids First Study Creator Release 1.9.0
 
 ## Features
