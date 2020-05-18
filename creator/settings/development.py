@@ -228,6 +228,17 @@ LOGGING = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
+
+## Email
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_TLS = os.environ.get("EMAIL_USE_TLS")
+EMAIL_HOST_SSL = os.environ.get("EMAIL_USE_SSL")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+
+
 # Sets the file storage backend
 # Supports file system storage and s3 storage
 DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
