@@ -22,7 +22,14 @@ with data, install
 
 .. code-block:: bash
 
-    DJANGO_SETTINGS_MODULE=creator.settings.development docker-compose up --build -d
+    DEVELOP=True \
+    DEVELOPMENT_ENDPOINTS=True \
+    docker-compose \
+        -f docker-compose.yml \
+        -f docker-compose.dataservice.yml \
+        -f docker-compose.coordinator.yml \
+        -f docker-compose.email.yml \
+        up -d
 
 
 This will build and download necessary images and run them in development mode
