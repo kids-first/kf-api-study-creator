@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'creator.users',
     'creator.projects',
     'creator.buckets',
+    'creator.email',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'

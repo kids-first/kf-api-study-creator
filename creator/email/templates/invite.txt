@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+You've been invited to join the following studies in the Kids First Data Tracker:
+{% for study in studies %}
+    {{study.name}}
+{% endfor %}
+
+The following link will accept the invitation and add you to these studies after creating an account, if you do not already have one.
+https://kf-ui-data-tracker.kidsfirstdrc.org
+{% endblock %}

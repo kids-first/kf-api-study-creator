@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% block title %} You've been Invited! {% endblock %}
+{% block content %}
+<p>
+  You've been invited to join the following studies in the Kids First Data
+  Tracker:
+</p>
+<ul>
+  {% for study in studies %}
+  <li>
+    {{study.name}}
+  </li>
+  {% endfor %}
+</ul>
+
+<p>
+  The following link will accept the invitation and add you to these studies
+  after creating an account, if you do not already have one.
+</p>
+
+<p>
+  <a
+    href="https://kf-ui-data-tracker.kidsfirstdrc.org/"
+    style="background: #f3f3f3;padding: 10px;border-radius: 7px;"
+    >Take me to my studies</a
+  >
+</p>
+
+<h2>About the Kids First Data Tracker</h2>
+<p>
+  The Kids First Data Tracker allows the Datat Coordinatring Center to inform on
+  the status of studies and collect additional information about them.
+</p>
+{% endblock %}
