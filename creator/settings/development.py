@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'creator.projects',
     'creator.buckets',
     'creator.email',
+    'creator.referral_tokens',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
