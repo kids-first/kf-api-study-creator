@@ -29,48 +29,51 @@ Users may be assigned this group by another administrator or they will
 automatically be promoted when logging in with an `ADMIN` role in their Auth0
 token.
 
-====================  ======================================
-Permission            Description
-====================  ======================================
-view_group            Can view group
-view_permission       Can view permission
-link_bucket           Can link a bucket to a study
-list_all_bucket       Can list all buckets
-unlink_bucket         Can unlink a bucket to a study
-view_bucket           Can view bucket
-view_job              Can view job
-view_queue            Can view queues
-view_settings         Can view settings
-change_user           Can change user
-list_all_user         Can list all users
-view_event            Can view event
-list_all_version      Can list all versions
-add_downloadtoken     Can add download token
-delete_downloadtoken  Can delete download token
-view_downloadtoken    Can view download token
-add_file              Can add file
-change_file           Can change file
-delete_file           Can delete file
-list_all_file         Can list all files
-view_file             Can view file
-add_version           Can add version
-change_version        Can change version
-delete_version        Can delete version
-view_version          Can view version
-add_project           Can add project
-change_project        Can change project
-import_volume         Can import a volume to a project
-link_project          Can link a project to a study
-list_all_project      Can list all projects
-sync_project          Can sync projects with Cavatica
-unlink_project        Can unlink a project from a study
-view_project          Can view project
-add_collaborator      Can add a collaborator to the study
-add_study             Can add study
-remove_collaborator   Can remove a collaborator to the study
-view_study            Can view study
-change_study          Can change study
-====================  ======================================
+======================  ======================================
+Permission              Description
+======================  ======================================
+view_group              Can view group
+view_permission         Can view permission
+link_bucket             Can link a bucket to a study
+list_all_bucket         Can list all buckets
+unlink_bucket           Can unlink a bucket to a study
+view_bucket             Can view bucket
+view_job                Can view job
+view_queue              Can view queues
+view_settings           Can view settings
+change_user             Can change user
+list_all_user           Can list all users
+view_event              Can view event
+list_all_version        Can list all versions
+add_downloadtoken       Can add download token
+delete_downloadtoken    Can delete download token
+view_downloadtoken      Can view download token
+add_file                Can add file
+change_file             Can change file
+delete_file             Can delete file
+list_all_file           Can list all files
+view_file               Can view file
+add_version             Can add version
+change_version          Can change version
+delete_version          Can delete version
+view_version            Can view version
+add_project             Can add project
+change_project          Can change project
+import_volume           Can import a volume to a project
+link_project            Can link a project to a study
+list_all_project        Can list all projects
+sync_project            Can sync projects with Cavatica
+unlink_project          Can unlink a project from a study
+view_project            Can view project
+add_collaborator        Can add a collaborator to the study
+add_study               Can add study
+remove_collaborator     Can remove a collaborator to the study
+view_study              Can view study
+change_study            Can change study
+view_referraltoken      Can view referral token
+list_all_referraltoken  Can view all referral token
+add_referraltoken       Can add referral token
+======================  ======================================
 
 Developers
 ++++++++++
