@@ -16,6 +16,7 @@ from creator.users import schema as user_mutations
 import creator.events.schema
 from creator.projects import schema as project_mutations
 from creator.buckets import schema as bucket_mutations
+from creator.referral_tokens import schema as referral_tokens_mutations
 
 
 def get_version_info():
@@ -239,6 +240,7 @@ class Query(
     creator.events.schema.Query,
     project_mutations.Query,
     bucket_mutations.Query,
+    referral_tokens_mutations.Query,
     graphene.ObjectType,
 ):
     status = graphene.Field(Status)
@@ -318,6 +320,16 @@ class Mutation(StudyMutation, graphene.ObjectType):
     )
     unlink_bucket = bucket_mutations.UnlinkBucketMutation.Field(
         description="Unlink a bucket from a Study"
+    )
+    create_referral_token = (
+        referral_tokens_mutations.CreateReferralTokenMutation.Field(
+            description="Create a referral token"
+        )
+    )
+    exchange_referral_token = (
+        referral_tokens_mutations.ExchangeReferralTokenMutation.Field(
+            description="Exchange a referral token"
+        )
     )
 
 
