@@ -20,6 +20,7 @@ We recommend the following to get running with a complete dev-environment:
         -f docker-compose.yml \
         -f docker-compose.dataservice.yml \
         -f docker-compose.coordinator.yml \
+        -f docker-compose.email.yml \
         up -d
 
 This should start a full development setup on the local consisting of the Study

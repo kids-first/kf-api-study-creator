@@ -96,6 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authorization.html">Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development/dev_api.html">Development API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development/email.html">Email</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Deployment:</span></p>
 <ul>
@@ -183,7 +184,14 @@ inclusion in Kids First.</p>
 with data, install
 <a class="reference external" href="https://www.docker.com">Docker</a> and
 <a class="reference external" href="https://docs.docker.com/compose/install">Docker Compose</a> then run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>creator.settings.development docker-compose up --build -d
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DEVELOP</span><span class="o">=</span>True <span class="se">\</span>
+<span class="nv">DEVELOPMENT_ENDPOINTS</span><span class="o">=</span>True <span class="se">\</span>
+docker-compose <span class="se">\</span>
+    -f docker-compose.yml <span class="se">\</span>
+    -f docker-compose.dataservice.yml <span class="se">\</span>
+    -f docker-compose.coordinator.yml <span class="se">\</span>
+    -f docker-compose.email.yml <span class="se">\</span>
+    up -d
 </pre></div>
 </div>
 <p>This will build and download necessary images and run them in development mode
@@ -234,6 +242,11 @@ pre-populated database of mock data.</p>
 <li class="toctree-l1"><a class="reference internal" href="development/dev_api.html">Development API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="development/dev_api.html#configuration-settings">Configuration Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="development/dev_api.html#endpoints">Endpoints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development/email.html">Email</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development/email.html#development">Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development/email.html#configuration">Configuration</a></li>
 </ul>
 </li>
 </ul>
