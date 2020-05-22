@@ -1,0 +1,8 @@
+{% block body %} {% block header %}
+{% endblock %}
+
+{% block content %} {% endblock %}
+
+This is an automated email from the Kids First Data Tracker.
+For help, please contact support@kidsfirstdrc.org
+{% endblock %}

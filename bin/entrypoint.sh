@@ -54,6 +54,14 @@ if [[ -n $CAVATICA_VOLUMES ]]; then
     rm ./cavatica_volumes.env
 fi
 
+if [[ -n $EMAIL]]; then
+    echo "Loading email credentials from S3"
+    aws s3 cp $EMAIL ./email.env
+    source ./email.env
+    export $(cut -d= -f1 ./email.env)
+    rm ./email.env
+fi
+
 if $WORKER ; then
     supervisord -c  /etc/supervisor/conf.d/worker.conf
 elif [[ $1 = scheduler ]]; then

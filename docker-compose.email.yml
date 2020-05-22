@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  email:
+    image: reachfive/fake-smtp-server
+    env_file: docker.env
+    ports:
+      - '1080:1080'
+  web:
+    environment:
+      - EMAIL_HOST=email
+      - EMAIL_PORT=1025
+
