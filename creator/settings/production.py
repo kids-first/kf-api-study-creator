@@ -378,3 +378,8 @@ FEAT_CAVATICA_MOUNT_VOLUMES = os.environ.get(
 FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
     "FEAT_STUDY_BUCKETS_CREATE_BUCKETS", False
 )
+
+# How many days to expire a referral token
+REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
+    'REFERRAL_TOKEN_EXPIRATION_DAYS', 3
+)
