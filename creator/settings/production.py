@@ -383,3 +383,8 @@ FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
 REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
     'REFERRAL_TOKEN_EXPIRATION_DAYS', 3
 )
+
+# Set default from email
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'data-tracker@kidsfirstdrc.org'
+)
