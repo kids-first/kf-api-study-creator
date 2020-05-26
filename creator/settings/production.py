@@ -388,3 +388,8 @@ REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL', 'data-tracker@kidsfirstdrc.org'
 )
+
+# Default data tracker url
+DATA_TRACKER_URL = os.environ.get(
+    'DATA_TRACKER_URL', 'https://kf-ui-data-tracker.kidsfirstdrc.org'
+)
