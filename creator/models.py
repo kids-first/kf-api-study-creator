@@ -89,6 +89,22 @@ class User(AbstractUser):
     def is_admin(self):
         return 'ADMIN' in self.ego_roles
 
+    @property
+    def display_name(self):
+        """
+        Display user first name last name if exist, and username if not
+        """
+        user_name = self.username if self.username else "Unknown user"
+        user_full_name = (
+            (
+                (self.first_name if self.first_name + " " else "")
+                + (self.last_name if self.last_name else "")
+            )
+            if (self.first_name or self.last_name)
+            else user_name
+        )
+        return user_full_name
+
 
 class Job(models.Model):
     """
