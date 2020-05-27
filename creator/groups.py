@@ -45,6 +45,9 @@ GROUPS = {
         "unlink_project",
         "import_volume",
         "sync_project",
+        "view_referraltoken",
+        "list_all_referraltoken",
+        "add_referraltoken",
     ],
     "Developers": [
         "view_study",

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'creator.projects',
     'creator.buckets',
     'creator.email',
+    'creator.referral_tokens',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
@@ -375,4 +376,19 @@ FEAT_CAVATICA_MOUNT_VOLUMES = os.environ.get(
 # Create buckets for new studies
 FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
     "FEAT_STUDY_BUCKETS_CREATE_BUCKETS", False
+)
+
+# How many days to expire a referral token
+REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
+    'REFERRAL_TOKEN_EXPIRATION_DAYS', 3
+)
+
+# Set default from email
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'data-tracker@kidsfirstdrc.org'
+)
+
+# Default data tracker url
+DATA_TRACKER_URL = os.environ.get(
+    'DATA_TRACKER_URL', 'https://kf-ui-data-tracker.kidsfirstdrc.org'
 )
