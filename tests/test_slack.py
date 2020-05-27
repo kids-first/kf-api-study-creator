@@ -22,9 +22,7 @@ def test_setup_slack(db, mocker):
     assert study.slack_channel == channel_name
 
     # Channel is created
-    mock_client().conversations_create.assert_called_with(
-        name=study.kf_id.lower().replace("_", "-")
-    )
+    mock_client().conversations_create.assert_called_with(name=channel_name)
 
     # Topic is set
     assert mock_client().conversations_setTopic.call_count == 1

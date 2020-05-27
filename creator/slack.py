@@ -89,6 +89,10 @@ def setup_slack(study):
     name = study.kf_id.lower().replace("_", "-")
     response = client.conversations_create(name=name)
     channel_id = response["channel"]["id"]
+    channel_name = response["channel"]["name"]
+    # Update study with the slack channel's name
+    study.slack_channel = channel_name
+    study.save()
 
     # Set channel topic
     topic = f"`{study.kf_id}` - {study.name}"

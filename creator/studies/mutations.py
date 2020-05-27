@@ -121,6 +121,9 @@ class StudyInput(graphene.InputObjectType):
     bucket = graphene.String(
         description="The s3 bucket where data for this study resides"
     )
+    slack_channel = graphene.String(
+        description="The Slack channel name of the study"
+    )
 
 
 class CreateStudyInput(StudyInput):
