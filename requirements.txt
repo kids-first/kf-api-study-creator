@@ -2,7 +2,7 @@ graphene==2.1.3
 graphene-django==2.2.0
 graphql-core==2.1
 graphql-relay==0.4.5
-Django==2.1.11
+Django==2.2.10
 django-filter==2.1.0
 graphene-file-upload==1.2.2
 django-cors-headers==2.4.0
