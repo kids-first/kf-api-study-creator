@@ -144,5 +144,10 @@ class Study(models.Model):
         help_text="Users working on this study",
     )
 
+    slack_notify = models.BooleanField(
+        default=True,
+        help_text="Whether enabled slack notifications for study updates",
+    )
+
     def __str__(self):
         return self.kf_id
