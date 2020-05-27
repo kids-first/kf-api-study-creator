@@ -1,6 +1,7 @@
 import logging
 import pytz
 from datetime import datetime
+from django.conf import settings
 from django_rq import job
 from django.contrib.auth import get_user_model
 
@@ -11,6 +12,7 @@ from creator.projects.cavatica import (
     sync_cavatica_projects,
     import_volume_files,
 )
+from creator.slack import setup_slack
 from creator.buckets.scanner import sync_buckets
 from creator.projects.models import Project
 from creator.studies.models import Study
@@ -240,3 +242,38 @@ def sync_buckets_task():
     job.last_run = datetime.utcnow()
     job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
     job.save()
+
+
+@job
+def setup_slack_task(kf_id):
+    """
+    Setup a Slack channel for the new study
+    """
+    try:
+        study = Study.objects.get(kf_id=kf_id)
+    except Study.DoesNotExist:
+        logger.error(f"Could not find study {kf_id}")
+        raise
+
+    message = f"Creating a Slack channel for study {kf_id}"
+    logger.info(message)
+    event = Event(study=study, description=message, event_type="SL_STR")
+    event.save()
+
+    try:
+        setup_slack(study)
+    except Exception as exc:
+        message = (
+            f"There was a problem creating a Slack channel for study "
+            f"{kf_id}: {exc}"
+        )
+        event = Event(study=study, description=message, event_type="SL_ERR")
+        event.save()
+
+        logger.error(message)
+        return
+
+    message = f"Successfully created Slack channel for study {kf_id}"
+    logger.info(message)
+    event = Event(study=study, description=message, event_type="SL_SUC")
+    event.save()

@@ -73,6 +73,11 @@ class Study(models.Model):
         validators=[RegexValidator(BUCKET_RE)],
         help_text="The s3 bucket name",
     )
+    slack_channel = models.CharField(
+        max_length=80,
+        help_text="The name of the related Slack channel",
+        null=True,
+    )
     modified_at = models.DateTimeField(
         auto_now=True, null=False, help_text="Time of last modification"
     )

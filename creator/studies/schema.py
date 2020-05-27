@@ -24,15 +24,11 @@ from graphene import (
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
-from creator.files.models import File
-
 from creator.studies.nodes import StudyNode
 from creator.studies.mutations import Mutation
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-User = get_user_model()
 
 
 class Query(object):

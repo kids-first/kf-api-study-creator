@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
+from creator.tasks import setup_slack_task
 from creator.studies.models import Study
 from creator.studies.schema import StudyNode
 from creator.studies.nodes import (
@@ -119,6 +120,9 @@ class StudyInput(graphene.InputObjectType):
     )
     bucket = graphene.String(
         description="The s3 bucket where data for this study resides"
+    )
+    slack_channel = graphene.String(
+        description="The Slack channel name of the study"
     )
 
 
@@ -271,6 +275,18 @@ class CreateStudyMutation(graphene.Mutation):
             logger.info(
                 f"Cavatica integration not configured. Skipping setup of "
                 f"new projects for study {study.kf_id}"
+            )
+
+        # Setup Slack
+        if settings.FEAT_SLACK_CREATE_CHANNELS:
+            logger.info(
+                f"Scheduling Slack channel setup for study {study.kf_id}"
+            )
+            slack_job = django_rq.enqueue(setup_slack_task, study.kf_id)
+        else:
+            logger.info(
+                f"Slack integration not configured. Skipping setup of "
+                f"new Slack channel for study {study.kf_id}"
             )
 
         return CreateStudyMutation(study=study)
@@ -545,7 +561,7 @@ class UpdateIngestionStatusMutation(graphene.Mutation):
         )
         data = UpdateIngestionStatusInput(
             required=True,
-            description="Input for the study's ingestion status",
+            description="Input for the study's ingestion status"
         )
 
     study = graphene.Field(StudyNode)
@@ -594,7 +610,7 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
         )
         data = UpdatePhenotypeStatusInput(
             required=True,
-            description="Input for the study's phenotype status",
+            description="Input for the study's phenotype status"
         )
 
     study = graphene.Field(StudyNode)

@@ -347,6 +347,11 @@ STUDY_BUCKETS_LOG_PREFIX = os.environ.get(
     "STUDY_BUCKETS_LOG_PREFIX", "/studies/dev/"
 )
 
+# Slack OAuth access token
+SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+# Users to add to new channels, comma delimited, ids only
+SLACK_USERS = os.environ.get("SLACK_USERS", "").split(",")
+
 ################################################################################
 ### Feature Flags
 
@@ -380,6 +385,11 @@ FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
 # How many days to expire a referral token
 REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
     'REFERRAL_TOKEN_EXPIRATION_DAYS', 3
+)
+
+# Create Slack channels for new studies
+FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
+    "FEAT_SLACK_CREATE_CHANNELS", False
 )
 
 # Set default from email
