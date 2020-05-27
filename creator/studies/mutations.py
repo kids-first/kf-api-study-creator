@@ -124,6 +124,9 @@ class StudyInput(graphene.InputObjectType):
     slack_channel = graphene.String(
         description="The Slack channel name of the study"
     )
+    slack_notify = graphene.Boolean(
+        description="Whether enabled slack notifications for study updates"
+    )
 
 
 class CreateStudyInput(StudyInput):
