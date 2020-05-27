@@ -13,4 +13,4 @@ pytest-codestyle==1.4.0
 pytest-mock==1.10.4
 hypothesis==4.32.3
 pytest-cov==2.8.1
-codecov==2.0.15
+-e git+git@github.com:codecov/codecov-python.git@4ec70db255cc2dc332fbd01aab3069d9b2e699dc#egg=codecov
