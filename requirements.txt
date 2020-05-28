@@ -20,3 +20,4 @@ django-rq==2.1.0
 rq==1.1.0
 rq-scheduler==0.9.1
 slackclient==2.6.1
+django-amazon-ses==3.0.2
