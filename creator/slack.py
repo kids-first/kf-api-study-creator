@@ -103,3 +103,10 @@ def setup_slack(study):
 
     # Invite users to the new channel
     invite_users(client, study, channel_id)
+
+
+def summary_post(study):
+    """
+    This will post recent events to a study's Slack channel
+    """
+    pass
