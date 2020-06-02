@@ -277,3 +277,29 @@ def setup_slack_task(kf_id):
     logger.info(message)
     event = Event(study=study, description=message, event_type="SL_SUC")
     event.save()
+
+
+def slack_notify_task():
+    """
+    Runs the daily Slack study updates job
+    """
+    job = Job.objects.get(name="slack_notify")
+
+    if not job.active:
+        logger.info("The slack_notify job is not active, will not run")
+        return
+    logger.info("Running the slack_notify job")
+
+    try:
+        # Call daily notification function here
+        pass
+    except Exception as err:
+        job.failing = True
+        job.last_error = str(err)
+    else:
+        job.failing = False
+        job.last_error = ""
+
+    job.last_run = datetime.utcnow()
+    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
+    job.save()

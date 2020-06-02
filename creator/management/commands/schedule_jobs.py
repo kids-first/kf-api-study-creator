@@ -24,6 +24,7 @@ class Command(BaseCommand):
         self.cavatica_scheduler = django_rq.get_scheduler("cavatica")
         self.dataservice_scheduler = django_rq.get_scheduler("dataservice")
         self.aws_scheduler = django_rq.get_scheduler("aws")
+        self.slack_scheduler = django_rq.get_scheduler("slack")
 
         jobs = list(self.cavatica_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the Cavatica queue")
@@ -38,6 +39,10 @@ class Command(BaseCommand):
         jobs = list(self.aws_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the AWS queue")
         self.setup_buckets_sync()
+
+        jobs = list(self.slack_scheduler.get_jobs())
+        logger.info(f"Found {len(jobs)} jobs scheduled on the Slack queue")
+        self.setup_slack_notify()
 
     def setup_cavatica_sync(self):
         logger.info("Scheduling Cavatica Sync jobs")
@@ -96,5 +101,24 @@ class Command(BaseCommand):
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="aws"
+        )
+        job.save()
+
+    def setup_slack_notify(self):
+        logger.info("Scheduling Slack notification jobs")
+        name = "slack_notify"
+        description = "Send daily events to Slack channels"
+
+        self.aws_scheduler.cancel(name)
+
+        self.aws_scheduler.cron(
+            "0 8 * * *",
+            id=name,
+            description=description,
+            func=slack_notify_task,
+            repeat=None,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="slack"
         )
         job.save()

@@ -149,6 +149,12 @@ RQ_QUEUES = {
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
     },
+    "slack": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+    },
 }
 if redis_pass:
     RQ_QUEUES["default"]["PASSWORD"] = redis_pass
