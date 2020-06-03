@@ -54,7 +54,7 @@ if [[ -n $CAVATICA_VOLUMES ]]; then
     rm ./cavatica_volumes.env
 fi
 
-if [[ -n $EMAIL]]; then
+if [[ -n $EMAIL ]]; then
     echo "Loading email credentials from S3"
     aws s3 cp $EMAIL ./email.env
     source ./email.env
