@@ -20,3 +20,14 @@ def test_kf_id_prefix_value(db):
 
     kf_id = f.kf_id
     assert File.objects.get(kf_id=kf_id) == f
+
+
+def test_user_display_name(db):
+    user = User(username="user", first_name="Test", last_name=None)
+    assert user.display_name == "Test"
+
+    user = User(username="user", first_name="Test", last_name="User")
+    assert user.display_name == "Test User"
+
+    user = User(username="user")
+    assert user.display_name == "user"
