@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from graphql import GraphQLError
 from datetime import datetime, timedelta
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from .models import ReferralToken
@@ -142,7 +143,7 @@ class CreateReferralTokenMutation(graphene.Mutation):
         existing_token = (
             ReferralToken.objects.filter(email=input["email"])
             .filter(
-                created_at__lte=datetime.now()
+                created_at__lte=timezone.now()
                 + timedelta(days=settings.REFERRAL_TOKEN_EXPIRATION_DAYS)
             )
             .count()
@@ -229,8 +230,8 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         if not referral_token.is_valid:
             raise GraphQLError("Referral token is not valid.")
 
-        user.studies.set(referral_token.studies.all())
-        user.groups.set(referral_token.groups.all())
+        user.studies.add(*referral_token.studies.all())
+        user.groups.add(*referral_token.groups.all())
         referral_token.claimed = True
         referral_token.claimed_by = user
         referral_token.save()
