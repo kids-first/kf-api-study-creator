@@ -242,12 +242,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
 ## Email
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django_amazon_ses.EmailBackend"
+)
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS")
-EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL")
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", False)
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 
 
