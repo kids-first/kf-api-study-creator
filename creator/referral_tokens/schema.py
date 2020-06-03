@@ -229,8 +229,8 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         if not referral_token.is_valid:
             raise GraphQLError("Referral token is not valid.")
 
-        user.studies.set(referral_token.studies.all())
-        user.groups.set(referral_token.groups.all())
+        user.studies.add(*referral_token.studies.all())
+        user.groups.add(*referral_token.groups.all())
         referral_token.claimed = True
         referral_token.claimed_by = user
         referral_token.save()

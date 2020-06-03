@@ -193,9 +193,9 @@ def test_exchange_referral_token_study_group(db, clients):
     """
     client = clients.get("Administrators")
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory()
     study.save()
-    study_id = to_global_id("StudyNode", "SD_00000000")
+    study_id = to_global_id("StudyNode", study.kf_id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
@@ -229,3 +229,84 @@ def test_exchange_referral_token_study_group(db, clients):
     assert resp_body["groups"]["edges"][0]["node"]["id"] == group_id
     assert resp_body["studies"]["edges"][0]["node"]["id"] == study_id
     assert Study.objects.first().collaborators.count() == 1
+
+
+def test_exchange_referral_token_no_overwrite(db, clients):
+    """
+    Test that existing studies and groups are not overwritten by exchange
+    """
+    client = clients.get("Administrators")
+    user = Group.objects.filter(name="Administrators").first().user_set.first()
+    # Add user to one pre-existing study
+    user.studies.add(StudyFactory())
+
+    # Generate new study and group to invite user to
+    study = StudyFactory()
+    study.save()
+    study_id = to_global_id("StudyNode", study.kf_id)
+
+    group = Group.objects.first()
+    group_id = to_global_id("GroupNode", group.id)
+
+    email = "test@email.com"
+    variables = {
+        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+    }
+
+    resp_create = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_REFERRALTOKEN, "variables": variables},
+    )
+
+    referral_token = ReferralToken.objects.first()
+    resp_exchange = client.post(
+        "/graphql",
+        data={
+            "query": EXCHANGE_REFERRALTOKEN,
+            "variables": {
+                "token": to_global_id("ReferralTokenNode", referral_token.uuid)
+            },
+        },
+        content_type="application/json",
+    )
+    resp_body = resp_exchange.json()["data"]["exchangeReferralToken"]["user"]
+    assert len(resp_body["studies"]["edges"]) == 2
+    assert user.studies.count() == 2
+
+
+def test_exchange_referral_token_no_dupes(db, clients):
+    """
+    Test that inviting a user to a study they already belong to does not double
+    count relationships
+    """
+    client = clients.get("Administrators")
+    user = Group.objects.filter(name="Administrators").first().user_set.first()
+
+    study = StudyFactory()
+    study.save()
+    # Add user to new study
+    user.studies.add(study)
+
+    group = Group.objects.first()
+
+    # Make token containing study the user already belongs to
+    referral_token = ReferralToken(email="test@example.com")
+    referral_token.save()
+    referral_token.studies.set([study])
+    referral_token.groups.set([group])
+
+    resp_exchange = client.post(
+        "/graphql",
+        data={
+            "query": EXCHANGE_REFERRALTOKEN,
+            "variables": {
+                "token": to_global_id("ReferralTokenNode", referral_token.uuid)
+            },
+        },
+        content_type="application/json",
+    )
+
+    resp_body = resp_exchange.json()["data"]["exchangeReferralToken"]["user"]
+    assert len(resp_body["studies"]["edges"]) == 1
+    assert user.studies.count() == 1
