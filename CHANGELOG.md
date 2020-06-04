@@ -1,3 +1,29 @@
+# Study Creator Change History
+
+## Kids First Study Creator Release Release 1.11.0
+
+Add email invites for new and existing users.
+
+### Summary
+
+- Emojis: 🖼 x2, ✏️ x1, 📦 x1, 🐛 x4, 🔧 x1, ✨ x3
+- Categories: Other Changes x3, Fixes x5, Ops x1, Additions x3
+
+### New features and changes
+
+- [#412](https://github.com/kids-first/kf-api-study-creator/pull/412) - 🖼 Shrink email header image - [20bd8398](https://github.com/kids-first/kf-api-study-creator/commit/20bd8398e8787a614374081d212666278a2ec49a) by [dankolbman](https://github.com/dankolbman)
+- [#411](https://github.com/kids-first/kf-api-study-creator/pull/411) - ✏️ Correct typo in email - [9b3f6bdb](https://github.com/kids-first/kf-api-study-creator/commit/9b3f6bdb80fdd2d8d7fced16abaec363ef544c30) by [dankolbman](https://github.com/dankolbman)
+- [#409](https://github.com/kids-first/kf-api-study-creator/pull/409) - 📦 Use SES email backend - [28a9370b](https://github.com/kids-first/kf-api-study-creator/commit/28a9370b68b2d093ec3467e216e86f0c268d8a86) by [dankolbman](https://github.com/dankolbman)
+- [#408](https://github.com/kids-first/kf-api-study-creator/pull/408) - 🖼 Update email picture - [734c6d02](https://github.com/kids-first/kf-api-study-creator/commit/734c6d021010f9c6cd58242af2f40eb5de267e92) by [dankolbman](https://github.com/dankolbman)
+- [#407](https://github.com/kids-first/kf-api-study-creator/pull/407) - 🐛 Use proper email settings - [4f6b6600](https://github.com/kids-first/kf-api-study-creator/commit/4f6b6600669d5e6b0f0ec6d659f81d9277d227b7) by [dankolbman](https://github.com/dankolbman)
+- [#406](https://github.com/kids-first/kf-api-study-creator/pull/406) - 🐛 Fix email settings - [df8b6582](https://github.com/kids-first/kf-api-study-creator/commit/df8b6582e86a9211b181d759e6f20dcebba18b0f) by [dankolbman](https://github.com/dankolbman)
+- [#405](https://github.com/kids-first/kf-api-study-creator/pull/405) - 🐛 Don't overwrite studies after invite - [b6e5e350](https://github.com/kids-first/kf-api-study-creator/commit/b6e5e35009585cf7a1f741bebf5f11f201f1f5d2) by [dankolbman](https://github.com/dankolbman)
+- [#404](https://github.com/kids-first/kf-api-study-creator/pull/404) - 🔧 Add slack job - [130c4538](https://github.com/kids-first/kf-api-study-creator/commit/130c4538094644ceddb360a2e9f3b621a509147c) by [dankolbman](https://github.com/dankolbman)
+- [#402](https://github.com/kids-first/kf-api-study-creator/pull/402) - ✨ Add slack_notify field to study model default to true - [d2a9b91d](https://github.com/kids-first/kf-api-study-creator/commit/d2a9b91d92703dc1ef2d676433536f3b52beb7e9) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#401](https://github.com/kids-first/kf-api-study-creator/pull/401) - 🐛 Use https for codecov - [2386af5d](https://github.com/kids-first/kf-api-study-creator/commit/2386af5dccb7fb2b0356c88d1fb78d5a9bbe781c) by [dankolbman](https://github.com/dankolbman)
+- [#398](https://github.com/kids-first/kf-api-study-creator/pull/398) - ✨ Add ReferralToken Model and create referral tokens mutation - [4e47c312](https://github.com/kids-first/kf-api-study-creator/commit/4e47c312b93c933a67672f420dceaaab9c0fb354) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#397](https://github.com/kids-first/kf-api-study-creator/pull/397) - ✨ Add email configuration - [c79685cb](https://github.com/kids-first/kf-api-study-creator/commit/c79685cb4fbd6f9cfd426dc24edb8ee3e3d1e398) by [dankolbman](https://github.com/dankolbman)
+
 # Kids First Study Creator Release 1.10.0
 
 ## Features
