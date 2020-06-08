@@ -12,7 +12,7 @@ from creator.projects.cavatica import (
     sync_cavatica_projects,
     import_volume_files,
 )
-from creator.slack import setup_slack
+from creator.slack import setup_slack, summary_post
 from creator.buckets.scanner import sync_buckets
 from creator.projects.models import Project
 from creator.studies.models import Study
@@ -291,8 +291,7 @@ def slack_notify_task():
     logger.info("Running the slack_notify job")
 
     try:
-        # Call daily notification function here
-        pass
+        summary_post()
     except Exception as err:
         job.failing = True
         job.last_error = str(err)

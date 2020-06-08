@@ -10,6 +10,7 @@ from creator.tasks import (
     sync_cavatica_projects_task,
     sync_dataservice_studies_task,
     sync_buckets_task,
+    slack_notify_task,
 )
 
 logger = logging.getLogger(__name__)
@@ -109,14 +110,13 @@ class Command(BaseCommand):
         name = "slack_notify"
         description = "Send daily events to Slack channels"
 
-        self.aws_scheduler.cancel(name)
+        self.slack_scheduler.cancel(name)
 
-        self.aws_scheduler.cron(
+        self.slack_scheduler.cron(
             "0 8 * * *",
             id=name,
             description=description,
             func=slack_notify_task,
-            repeat=None,
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="slack"
