@@ -1,7 +1,11 @@
 import logging
 import logging
+import datetime
+import re
 from django.conf import settings
+from collections import defaultdict
 from slack import WebClient
+from creator.studies.models import Study
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -105,8 +109,117 @@ def setup_slack(study):
     invite_users(client, study, channel_id)
 
 
-def summary_post(study):
+def summary_post():
     """
     This will post recent events to a study's Slack channel
     """
-    pass
+    studies = Study.objects.all()
+
+    today = datetime.datetime.now()
+    yesterday = today - datetime.timedelta(days=1)
+    since = yesterday.strftime("%Y/%m/%d")
+
+    def study_header(url, study_id, study_name):
+        message = (
+            f":file_cabinet: `{study_id}` *{study_name}*\n"
+            f"Here is a summary of events since {since}"
+        )
+        return {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": message},
+            "accessory": {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": True,
+                    "text": "View Study :file_cabinet:",
+                },
+                "url": url,
+            },
+        }
+
+    def make_study_message(studyObj):
+        """
+        Make an event timeline for a study
+        """
+        blocks = []
+        study_id = studyObj.kf_id
+        study_name = studyObj.name
+
+        # Get all events for a single study within previous 24 hours
+        study_events = studyObj.events.filter(
+            created_at__range=(yesterday, today)
+        )
+
+        # Collect and form all the events to slack messages
+        new_doc = study_events.filter(event_type="SF_CRE").count()
+        del_doc = study_events.filter(event_type="SF_DEL").count()
+        upd_doc = study_events.filter(event_type="SF_UPD").count()
+        add_col = study_events.filter(event_type="CB_ADD").count()
+        rem_col = study_events.filter(event_type="CB_REM").count()
+        new_doc_m = str(new_doc) + " new document(s) " if new_doc > 0 else ""
+        del_doc_m = str(del_doc) + " new version(s) " if del_doc > 0 else ""
+        upd_doc_m = (
+            str(upd_doc) + " document update(s) " if upd_doc > 0 else ""
+        )
+        add_col_m = (
+            str(add_col) + " collaborator(s) joined " if add_col > 0 else ""
+        )
+        rem_col_m = (
+            str(rem_col) + " collaborator(s) removed " if rem_col > 0 else ""
+        )
+        file_block = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f":file_folder: {new_doc_m + upd_doc_m + del_doc_m}",
+            },
+        }
+        collaborator_block = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f":male-technologist: {add_col_m + rem_col_m}",
+            },
+        }
+
+        # Add header for slack message with study name and link
+        if new_doc + del_doc + upd_doc + add_col + rem_col > 0:
+            blocks.append(
+                study_header(
+                    f"{settings.DATA_TRACKER_URL}/study/{study_id}/documents"
+                    "?utm_source=slack_daily_dm",
+                    study_id,
+                    study_name,
+                )
+            )
+
+        # Add slack messages of files and collaborators updates
+        if new_doc + del_doc + upd_doc > 0:
+            blocks.append(file_block)
+        if add_col + rem_col > 0:
+            blocks.append(collaborator_block)
+
+        return blocks
+
+    filtered_studies = (
+        studies.filter(slack_notify=True)
+        .filter(slack_channel__isnull=False)
+        .all()
+    )
+
+    logger.info(
+        f"Posting slack messages to {len(filtered_studies)} studies"
+        f" - updates since {since}"
+    )
+    client = WebClient(token=settings.SLACK_TOKEN)
+
+    for study in filtered_studies:
+        channel_id = study.slack_channel
+        blocks = make_study_message(study)
+        if len(blocks) > 0:
+            response = client.chat_postMessage(
+                channel=channel_id, blocks=blocks
+            )
+
+    return len(filtered_studies)
