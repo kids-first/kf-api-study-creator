@@ -225,6 +225,7 @@ LOGGING = {
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
+        "creator.slack": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
