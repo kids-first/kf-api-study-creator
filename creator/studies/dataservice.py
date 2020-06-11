@@ -33,6 +33,8 @@ def sync_dataservice_studies():
         logger.error(message)
         raise Exception(message)
 
+    new_count = 0
+    updated_count = 0
     for study in studies:
         fields = study
         del fields["_links"]
@@ -49,9 +51,10 @@ def sync_dataservice_studies():
         new_study.deleted = False
         new_study.save()
         if created:
+            new_count += 1
             logger.info(f"Created new Study: {study['kf_id']}")
         else:
-            logger.info(f"Updated study {study['kf_id']}")
+            updated_count += 1
 
     ds_studies = {study["kf_id"] for study in studies}
     creator_studies = {study.kf_id for study in Study.objects.all()}
@@ -61,6 +64,7 @@ def sync_dataservice_studies():
         Study.objects.filter(kf_id=study).update(deleted=True)
 
     logger.info(
-        f"{len(deleted_studies)} studies were marked as deleted: "
-        "{deleted_studies}"
+        f"{new_count} studies created. "
+        f"{updated_count} studies updated. "
+        f"{len(deleted_studies)} studies deleted."
     )
