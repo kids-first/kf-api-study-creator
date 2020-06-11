@@ -1,8 +1,8 @@
 import logging
-import logging
 import datetime
 import re
 from django.conf import settings
+from django.utils import timezone
 from collections import defaultdict
 from slack import WebClient
 from creator.studies.models import Study
@@ -115,7 +115,7 @@ def summary_post():
     """
     studies = Study.objects.all()
 
-    today = datetime.datetime.now()
+    today = timezone.now()
     yesterday = today - datetime.timedelta(days=1)
     since = yesterday.strftime("%Y/%m/%d")
 
