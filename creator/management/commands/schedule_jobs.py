@@ -113,7 +113,7 @@ class Command(BaseCommand):
         self.slack_scheduler.cancel(name)
 
         self.slack_scheduler.cron(
-            "0 8 * * *",
+            "0 13 * * *",
             id=name,
             description=description,
             func=slack_notify_task,
