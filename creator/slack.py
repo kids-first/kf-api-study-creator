@@ -116,7 +116,7 @@ def summary_post():
     studies = Study.objects.all()
 
     today = timezone.now()
-    yesterday = today - datetime.timedelta(days=1)
+    yesterday = today - datetime.timedelta(days=100)
     since = yesterday.strftime("%Y/%m/%d")
 
     def study_header(url, study_id, study_name):
