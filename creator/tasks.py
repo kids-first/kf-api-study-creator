@@ -183,6 +183,7 @@ def sync_cavatica_projects_task():
     try:
         sync_cavatica_projects()
     except Exception as err:
+        logger.error(err)
         job.failing = True
         job.last_error = str(err)
     else:
@@ -208,6 +209,7 @@ def sync_dataservice_studies_task():
     try:
         sync_dataservice_studies()
     except Exception as err:
+        logger.error(err)
         job.failing = True
         job.last_error = str(err)
     else:
@@ -293,6 +295,7 @@ def slack_notify_task():
     try:
         summary_post()
     except Exception as err:
+        logger.error(err)
         job.failing = True
         job.last_error = str(err)
     else:

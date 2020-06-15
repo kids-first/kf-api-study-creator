@@ -218,8 +218,14 @@ def summary_post():
         channel_id = study.slack_channel
         blocks = make_study_message(study)
         if len(blocks) > 0:
+            response = client.channels_join(name=channel_id)
+
             response = client.chat_postMessage(
                 channel=channel_id, blocks=blocks
             )
+
+            # Should be caught by the slack client but we will check anyway
+            if "ok" in response and not response["ok"]:
+                logger.warn(f"Slack responded unexpectedly: {response}")
 
     return len(filtered_studies)
