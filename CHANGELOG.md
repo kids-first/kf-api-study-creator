@@ -1,4 +1,19 @@
-# Study Creator Change History
+# Kids First Study Creator Change History
+
+## Release 1.11.1
+
+### Summary
+
+- Emojis: 📈 x1, ♻️ x1, 🔊 x1, ⬆️ x1
+- Categories: Additions x2, Other Changes x1, Ops x1
+
+### New features and changes
+
+- [#420](https://github.com/kids-first/kf-api-study-creator/pull/420) - 📈 Add utm tracking to slack pins - [ab620d52](https://github.com/kids-first/kf-api-study-creator/commit/ab620d521558e9d1029964664449609b0879702c) by [dankolbman](https://github.com/dankolbman)
+- [#419](https://github.com/kids-first/kf-api-study-creator/pull/419) - ♻️ Auto join Slack channels - [abd9b8a4](https://github.com/kids-first/kf-api-study-creator/commit/abd9b8a4dbec407497f00b0929e25a88ee73ca03) by [dankolbman](https://github.com/dankolbman)
+- [#415](https://github.com/kids-first/kf-api-study-creator/pull/415) - 🔊 Task logging - [9761799d](https://github.com/kids-first/kf-api-study-creator/commit/9761799d4451717d5de31c4e5ef64437c91c9a64) by [dankolbman](https://github.com/dankolbman)
+- [#414](https://github.com/kids-first/kf-api-study-creator/pull/414) - ⬆️ Bump django from 2.2.10 to 2.2.13 - [7e96cd57](https://github.com/kids-first/kf-api-study-creator/commit/7e96cd57e80f782fbb21eee7346f98610bb858c3) by [dependabot[bot]](https://github.com/apps/dependabot)
+
 
 ## Kids First Study Creator Release Release 1.11.0
 
