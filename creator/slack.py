@@ -15,13 +15,14 @@ def post_pin(client, study, channel_id):
     """ Post a descriptive message for the channel and pin it """
     message = f"{study.kf_id} - {study.name}"
     link = f"{settings.DATA_TRACKER_URL}/study/{study.kf_id}"
+    utm = "?utm_source=slack_pin"
     blocks = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f"*<{link}/basic-info/info|{study.kf_id}> "
+                    f"*<{link}/basic-info/info{utm}|{study.kf_id}> "
                     f"- {study.name}*"
                 ),
             },
@@ -36,7 +37,7 @@ def post_pin(client, study, channel_id):
                         "emoji": True,
                         "text": ":file_folder: Upload Files",
                     },
-                    "url": f"{link}/documents",
+                    "url": f"{link}/documents{utm}",
                 },
                 {
                     "type": "button",
@@ -45,7 +46,7 @@ def post_pin(client, study, channel_id):
                         "emoji": True,
                         "text": ":cavatica: Manage Cavatica Projects",
                     },
-                    "url": f"{link}/cavatica",
+                    "url": f"{link}/cavatica{utm}",
                 },
                 {
                     "type": "button",
@@ -54,7 +55,7 @@ def post_pin(client, study, channel_id):
                         "emoji": True,
                         "text": ":busts_in_silhouette: Add Collaborators",
                     },
-                    "url": f"{link}/collaborators",
+                    "url": f"{link}/collaborators{utm}",
                 },
             ],
         },
