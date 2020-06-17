@@ -17,7 +17,7 @@ from django.contrib.auth import get_user_model
 from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
 from creator.tasks import setup_slack_task
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.studies.schema import StudyNode
 from creator.studies.nodes import (
     SequencingStatusType,
@@ -228,8 +228,12 @@ class CreateStudyMutation(graphene.Mutation):
         attributes["deleted"] = False
         study = Study(**attributes)
         study.save()
-        study.collaborators.set(collaborators)
-        study.save()
+
+        # Add any specified users as collaborators
+        for collaborator in collaborators:
+            membership = Membership(
+                study=study, collaborator=collaborator, invited_by=user
+            ).save()
 
         # Log an event
         message = f"{user.username} created study {study.kf_id}"
@@ -392,6 +396,7 @@ class AddCollaboratorMutation(graphene.Mutation):
             required=True,
             description="The ID of the user to add the to the study",
         )
+        role = graphene.String(required=False)
 
     study = graphene.Field(StudyNode)
 
@@ -416,8 +421,10 @@ class AddCollaboratorMutation(graphene.Mutation):
         except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
-        study.collaborators.add(collaborator)
-        study.save()
+        membership = Membership(
+            study=study, collaborator=collaborator, invited_by=user
+        )
+        membership.save()
 
         # Log an event
         message = (
@@ -472,8 +479,12 @@ class RemoveCollaboratorMutation(graphene.Mutation):
         except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
-        study.collaborators.remove(collaborator)
-        study.save()
+        try:
+            Membership.objects.get(
+                study=study, collaborator=collaborator
+            ).delete()
+        except Membership.DoesNotExist:
+            raise GraphQLError(f"User is not a member of the study.")
 
         # Log an event
         message = (

@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from .models import ReferralToken
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from django.contrib.auth.models import Group
 from creator.events.models import Event
 from creator.users.schema import UserNode
@@ -230,7 +230,14 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         if not referral_token.is_valid:
             raise GraphQLError("Referral token is not valid.")
 
-        user.studies.add(*referral_token.studies.all())
+        # Add user as a collaborator to each study
+        for study in referral_token.studies.all():
+            membership, created = Membership.objects.get_or_create(
+                study=study,
+                collaborator=user,
+                invited_by=referral_token.created_by,
+            )
+
         user.groups.add(*referral_token.groups.all())
         referral_token.claimed = True
         referral_token.claimed_by = user

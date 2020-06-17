@@ -1,6 +1,14 @@
 import graphene
 import django_filters
-from graphene import relay, ObjectType, Field, List, String
+from graphene import (
+    relay,
+    Connection,
+    ObjectType,
+    Field,
+    List,
+    String,
+    DateTime,
+)
 from graphql_relay import from_global_id
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -10,10 +18,63 @@ from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.studies.schema import StudyNode
 
 User = get_user_model()
+
+
+class CollaboratorConnection(Connection):
+    class Meta:
+        abstract = True
+
+    class Edge:
+        """
+        Extends relay edges on study-collaborator relationships to include
+        information from the 'Membership' through-table.
+        """
+
+        # Need to referrence the node by module to avoid circular deps
+        invited_by = Field("creator.users.schema.UserNode")
+        joined_on = DateTime()
+        role = String()
+
+        def resolve_invited_by(root, info, **kwargs):
+            """
+            Returns the user that invited this collaborator to the study.
+            """
+            _, study_id = from_global_id(info.variable_values["study"])
+            invited_by = Membership.objects.get(
+                collaborator=root.node.id, study=study_id
+            ).invited_by
+
+            return invited_by
+
+        def resolve_joined_on(root, info, **kwargs):
+            """
+            Returns the date the collaborator joined the study.
+            """
+            _, study_id = from_global_id(info.variable_values["study"])
+            joined_on = Membership.objects.get(
+                collaborator=root.node.id, study=study_id
+            ).joined_on
+
+            return joined_on
+
+        def resolve_role(root, info, **kwargs):
+            """
+            Returns the role of the collaborator in the study.
+            """
+            _, study_id = from_global_id(info.variable_values["study"])
+            role = (
+                Membership.objects.filter(
+                    collaborator=root.node.id, study=study_id
+                )
+                .first()
+                .role
+            )
+
+            return role
 
 
 class UserNode(DjangoObjectType):
@@ -25,6 +86,7 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         interfaces = (relay.Node,)
+        connection_class = CollaboratorConnection
         only_fields = [
             "email",
             "username",
