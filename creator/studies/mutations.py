@@ -421,7 +421,8 @@ class AddCollaboratorMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} added as collaborator to study {study.kf_id}"
+            f"{user.username} added {collaborator.username} "
+            f"as collaborator to study {study.kf_id}"
         )
         event = Event(study=study, description=message, event_type="CB_ADD")
         # Only add the user if they are in the database (not a service user)
@@ -467,16 +468,17 @@ class RemoveCollaboratorMutation(graphene.Mutation):
 
         try:
             _, user_id = from_global_id(user_id)
-            user = User.objects.get(id=int(user_id))
+            collaborator = User.objects.get(id=int(user_id))
         except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
-        study.collaborators.remove(user)
+        study.collaborators.remove(collaborator)
         study.save()
 
         # Log an event
         message = (
-            f"{user.username} removed as collaborator from study {study.kf_id}"
+            f"{user.username} removed {collaborator.username} "
+            f"as collaborator from study {study.kf_id}"
         )
         event = Event(study=study, description=message, event_type="CB_REM")
         # Only add the user if they are in the database (not a service user)
