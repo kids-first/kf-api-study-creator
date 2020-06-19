@@ -163,7 +163,7 @@ def attach_volume(study):
             },
         )
     except sbg.errors.Conflict as err:
-        logger.warn(
+        logger.warning(
             f"Unable to add {settings.CAVATICA_DELIVERY_ACCOUNT} to the "
             f"volume. Perhaps they are already a member? {err}"
         )
