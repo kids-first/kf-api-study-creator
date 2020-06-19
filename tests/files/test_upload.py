@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from creator.studies.factories import StudyFactory
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.files.models import Version, File
 
 from creator.studies.factories import StudyFactory
@@ -209,9 +209,9 @@ def test_upload_unauthed_study(db, clients, upload_file):
     assert resp.json()["errors"][0]["message"] == "Not allowed"
 
     # Add investigator to study
-    User.objects.filter(groups__name="Investigators").first().studies.add(
-        study
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study).save()
+
     resp = upload_file(study.kf_id, "manifest.txt", client)
     assert resp.status_code == 200
     assert "data" in resp.json()

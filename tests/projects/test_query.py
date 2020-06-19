@@ -1,6 +1,7 @@
 import pytest
 from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
+from creator.studies.models import Membership
 from creator.projects.factories import ProjectFactory
 from creator.studies.factories import StudyFactory
 
@@ -75,8 +76,8 @@ def test_query_my_project(db, clients, user_group, allowed):
 
     project.study = study
     project.save()
-    user.studies.add(study)
     user.save()
+    Membership(collaborator=user, study=study).save()
 
     variables = {"id": to_global_id("ProjectNode", project.project_id)}
 
@@ -112,8 +113,8 @@ def test_query_all(db, clients, user_group, allowed, number):
         projects = ProjectFactory.create_batch(4)
         projects[0].study = study
         projects[0].save()
-        user.studies.add(study)
         user.save()
+        Membership(collaborator=user, study=study).save()
 
     resp = client.post(
         "/graphql",

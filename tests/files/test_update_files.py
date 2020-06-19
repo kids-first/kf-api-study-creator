@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from creator.files.models import File
+from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -59,9 +60,8 @@ def test_my_file_mutation_query(db, clients, versions):
     """
     client = clients.get("Investigators")
     study, file, version = versions
-    User.objects.filter(groups__name="Investigators").first().studies.add(
-        study
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study).save()
 
     query = update_query
     variables = {
@@ -142,9 +142,8 @@ def test_no_tags(db, clients, versions):
     """
     client = clients.get("Investigators")
     study, file, version = versions
-    User.objects.filter(groups__name="Investigators").first().studies.add(
-        study
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study).save()
 
     query = update_query
     variables = {

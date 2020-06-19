@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_cavatica_task
 from creator.users.factories import UserFactory
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.studies.factories import StudyFactory
 from creator.projects.models import Project
 from creator.projects.cavatica import attach_volume
@@ -96,7 +96,7 @@ def test_remove_collaborator_mutation(db, clients, user_group, allowed):
     client = clients.get(user_group)
     user = UserFactory()
     study = StudyFactory()
-    study.collaborators.add(user)
+    Membership(collaborator=user, study=study).save()
 
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),

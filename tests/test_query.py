@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -46,11 +46,8 @@ def test_my_studies_query(db, clients):
     """
     client = clients.get("Investigators")
     studies = StudyFactory.create_batch(5)
-    user = (
-        User.objects.filter(groups__name="Investigators")
-        .first()
-        .studies.add(studies[0])
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=studies[0]).save()
 
     query = "{ allStudies { edges { node { name } } } }"
     resp = client.post(
@@ -103,11 +100,8 @@ def test_my_files_query(db, clients):
     study2 = StudyFactory()
     file1 = FileFactory(study=study1)
     file2 = FileFactory(study=study2)
-    user = (
-        User.objects.filter(groups__name="Investigators")
-        .first()
-        .studies.add(study1)
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study1).save()
 
     query = "{ allFiles { edges { node { id } } } }"
     resp = client.post(
@@ -162,11 +156,8 @@ def test_my_versions_query(db, clients):
     study2 = StudyFactory()
     file1 = FileFactory(study=study1)
     file2 = FileFactory(study=study2)
-    user = (
-        User.objects.filter(groups__name="Investigators")
-        .first()
-        .studies.add(study1)
-    )
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study1).save()
 
     query = "{ allVersions { edges { node { id } } } }"
     resp = client.post(

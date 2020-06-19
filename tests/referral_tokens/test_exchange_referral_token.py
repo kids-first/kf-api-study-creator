@@ -1,6 +1,6 @@
 import pytest
 from graphql_relay import to_global_id
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from django.contrib.auth.models import Group
 from creator.referral_tokens.models import ReferralToken
 from creator.studies.factories import StudyFactory
@@ -238,7 +238,7 @@ def test_exchange_referral_token_no_overwrite(db, clients):
     client = clients.get("Administrators")
     user = Group.objects.filter(name="Administrators").first().user_set.first()
     # Add user to one pre-existing study
-    user.studies.add(StudyFactory())
+    Membership(collaborator=user, study=StudyFactory()).save()
 
     # Generate new study and group to invite user to
     study = StudyFactory()
@@ -286,7 +286,7 @@ def test_exchange_referral_token_no_dupes(db, clients):
     study = StudyFactory()
     study.save()
     # Add user to new study
-    user.studies.add(study)
+    Membership(collaborator=user, study=study).save()
 
     group = Group.objects.first()
 
