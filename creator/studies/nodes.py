@@ -26,7 +26,7 @@ class StudyNode(DjangoObjectType):
     class Meta:
         model = Study
         filter_fields = ["name"]
-        exclude_fields = ["user_set"]
+        exclude = ["user_set"]
         interfaces = (graphene.relay.Node,)
 
     @classmethod

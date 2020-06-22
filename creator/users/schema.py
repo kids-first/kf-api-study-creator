@@ -93,7 +93,7 @@ class UserNode(DjangoObjectType):
         model = User
         interfaces = (relay.Node,)
         connection_class = CollaboratorConnection
-        only_fields = [
+        fields = [
             "email",
             "username",
             "first_name",
