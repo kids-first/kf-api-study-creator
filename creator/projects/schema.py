@@ -2,7 +2,7 @@ import re
 import django_rq
 from django.conf import settings
 from graphene import relay, Mutation, Enum, Field, ID, InputObjectType, String
-from graphene_django import DjangoObjectType
+from graphene_django import DjangoObjectType, DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
 from graphql_relay import from_global_id
@@ -201,9 +201,9 @@ class UpdateProjectMutation(Mutation):
 
 
 class SyncProjectsMutation(Mutation):
-    created = DjangoFilterConnectionField(ProjectNode)
-    updated = DjangoFilterConnectionField(ProjectNode)
-    deleted = DjangoFilterConnectionField(ProjectNode)
+    created = DjangoConnectionField(ProjectNode)
+    updated = DjangoConnectionField(ProjectNode)
+    deleted = DjangoConnectionField(ProjectNode)
 
     def mutate(self, info):
         user = info.context.user

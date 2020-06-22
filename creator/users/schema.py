@@ -376,10 +376,11 @@ class Query(object):
         if user is None or not user.is_authenticated:
             return User.objects.none()
 
+        # Only return the current user if there are insufficient permissions
         if user.is_authenticated and not user.has_perm(
             "creator.list_all_user"
         ):
-            return [user]
+            return User.objects.filter(sub=user.sub).all()
 
         return User.objects.all()
 
