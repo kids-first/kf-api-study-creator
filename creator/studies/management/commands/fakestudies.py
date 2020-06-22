@@ -26,7 +26,9 @@ class Command(BaseCommand):
         )
 
         user = User.objects.get(username="testuser")
-        member = Membership(collaborator=user, study=study)
+        member, _ = Membership.objects.get_or_create(
+            collaborator=user, study=study
+        )
         member.save()
 
         n = options.get('n')
