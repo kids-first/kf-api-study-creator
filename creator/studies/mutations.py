@@ -427,13 +427,12 @@ class AddCollaboratorMutation(graphene.Mutation):
         membership, created = Membership.objects.update_or_create(
             study=study,
             collaborator=collaborator,
-            role=role,
-            defaults={"invited_by": user},
+            defaults={"role": role},
         )
-        membership.save()
 
         # Log an event
         if created:
+            membership.invited_by = user
             message = (
                 f"{user.username} added {collaborator.username} "
                 f"as collaborator to study {study.kf_id}"
@@ -449,6 +448,7 @@ class AddCollaboratorMutation(graphene.Mutation):
             event = Event(
                 study=study, description=message, event_type="CB_UPD"
             )
+        membership.save()
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
