@@ -49,7 +49,7 @@ class CollaboratorConnection(Connection):
             """
             Returns the user that invited this collaborator to the study.
             """
-            _, study_id = from_global_id(info.variable_values["study"])
+            study_id = root._get_study_id(info)
             invited_by = Membership.objects.get(
                 collaborator=root.node.id, study=study_id
             ).invited_by
@@ -60,7 +60,7 @@ class CollaboratorConnection(Connection):
             """
             Returns the date the collaborator joined the study.
             """
-            _, study_id = from_global_id(info.variable_values["study"])
+            study_id = root._get_study_id(info)
             joined_on = Membership.objects.get(
                 collaborator=root.node.id, study=study_id
             ).joined_on
@@ -71,7 +71,7 @@ class CollaboratorConnection(Connection):
             """
             Returns the role of the collaborator in the study.
             """
-            _, study_id = from_global_id(info.variable_values["study"])
+            study_id = root._get_study_id(info)
             role = (
                 Membership.objects.filter(
                     collaborator=root.node.id, study=study_id
@@ -81,6 +81,21 @@ class CollaboratorConnection(Connection):
             )
 
             return role
+
+        def _get_study_id(self, info):
+            """
+            The study id for which the user is a collaborator may be passed
+            in as either the 'id' variable or the 'study' variable depending on
+            which query is being executed.
+            This attempts to resolve both and asserts that the id decoded is
+            the expected StudyNode type.
+            """
+            gid = info.variable_values.get(
+                "study"
+            ) or info.variable_values.get("id")
+            node_type, study_id = from_global_id(gid)
+            assert node_type == "StudyNode"
+            return study_id
 
 
 class UserNode(DjangoObjectType):
