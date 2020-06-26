@@ -322,8 +322,8 @@ CAVATICA_HARMONIZATION_TOKEN = os.environ.get(
 CAVATICA_DELIVERY_ACCOUNT = os.environ.get("CAVATICA_DELIVERY_ACCOUNT", None)
 CAVATICA_DELIVERY_TOKEN = os.environ.get("CAVATICA_DELIVERY_TOKEN", None)
 CAVATICA_DEFAULT_WORKFLOWS = os.environ.get(
-    "CAVATICA_DEFAULT_WORKFLOWS", "bwa_mem,gatk_haplotypecaller"
-).split(",")
+    "CAVATICA_DEFAULT_WORKFLOWS", ""
+).split()
 
 # The project_id of the Cavatica project which will be used to clone user
 # access grants

@@ -29,7 +29,18 @@ def mock_create_project(mocker):
     return create_project
 
 
-def test_correct_projects(db, mock_create_project):
+def test_correct_projects_no_default(db, mock_create_project):
+    study = Study(kf_id="SD_00000000", name="test")
+    study.save()
+
+    setup_cavatica(study)
+
+    assert mock_create_project.call_count == 1
+    mock_create_project.assert_any_call(study, "DEL", user=None)
+
+
+def test_correct_projects_with_default(db, settings, mock_create_project):
+    settings.CAVATICA_DEFAULT_WORKFLOWS = ["bwa_mem", "gatk_haplotypecaller"]
     study = Study(kf_id="SD_00000000", name="test")
     study.save()
 
