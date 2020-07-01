@@ -1,5 +1,18 @@
 # Kids First Study Creator Change History
 
+## Release 1.12.0
+
+### Summary
+
+- Emojis: 🔥 x1, ♻️ x1
+- Categories: Removals x1, Other Changes x1
+
+### New features and changes
+
+- [#424](https://github.com/kids-first/kf-api-study-creator/pull/424) - 🔥 Remove default Cavatica projects for new studies - [958a1823](https://github.com/kids-first/kf-api-study-creator/commit/958a18234ca8066a531858a61a5d777c5382ba93) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#422](https://github.com/kids-first/kf-api-study-creator/pull/422) - ♻️ Improve verbosity of collaborator events - [4a387f40](https://github.com/kids-first/kf-api-study-creator/commit/4a387f40e7e2f7f36f1472fe33e1e45d74689972) by [XuTheBunny](https://github.com/XuTheBunny)
+
+
 ## Release 1.11.1
 
 ### Summary
