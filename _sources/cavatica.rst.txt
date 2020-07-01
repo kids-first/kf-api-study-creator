@@ -64,9 +64,11 @@ integration to function correctly.
 
 .. py:data:: CAVATICA_DEFAULT_WORKFLOWS
 
-    **default:** ``bwa-mem,gatk-haplotypecaller``
+    **default:** Empty string
 
-    A comma separated list of the workflow projects to set up for a new study
+    **example:** ``bwa-mem gatk-haplotypecaller``
+
+    A space separated list of the workflow projects to set up for a new study
 
 .. py:data:: CAVATICA_USER_ACCESS_PROJECT
 
