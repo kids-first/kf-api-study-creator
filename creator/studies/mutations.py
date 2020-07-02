@@ -17,6 +17,7 @@ from django.contrib.auth import get_user_model
 from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
 from creator.tasks import setup_slack_task
+from creator.users.schema import CollaboratorConnection
 from creator.studies.models import Study, Membership
 from creator.studies.schema import StudyNode
 from creator.studies.nodes import (
@@ -396,11 +397,13 @@ class AddCollaboratorMutation(graphene.Mutation):
             required=True,
             description="The ID of the user to add the to the study",
         )
-        role = graphene.String(required=False)
+        # The role property on the custom edge has a graphene enum type
+        # associated with it so it will validate and resolve correctly
+        role = CollaboratorConnection.Edge.role
 
     study = graphene.Field(StudyNode)
 
-    def mutate(self, info, study, user):
+    def mutate(self, info, study, user, role):
         """
         Add a user as a collaborator to a study
         """
@@ -421,17 +424,31 @@ class AddCollaboratorMutation(graphene.Mutation):
         except (User.DoesNotExist, TypeError):
             raise GraphQLError(f"User {user_id} does not exist.")
 
-        membership = Membership(
-            study=study, collaborator=collaborator, invited_by=user
+        membership, created = Membership.objects.update_or_create(
+            study=study,
+            collaborator=collaborator,
+            role=role,
+            defaults={"invited_by": user},
         )
         membership.save()
 
         # Log an event
-        message = (
-            f"{user.username} added {collaborator.username} "
-            f"as collaborator to study {study.kf_id}"
-        )
-        event = Event(study=study, description=message, event_type="CB_ADD")
+        if created:
+            message = (
+                f"{user.username} added {collaborator.username} "
+                f"as collaborator to study {study.kf_id}"
+            )
+            event = Event(
+                study=study, description=message, event_type="CB_ADD"
+            )
+        else:
+            message = (
+                f"{user.username} changed {collaborator.username}'s role"
+                f" to {role} in study {study.kf_id}"
+            )
+            event = Event(
+                study=study, description=message, event_type="CB_UPD"
+            )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user

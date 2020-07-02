@@ -11,6 +11,8 @@ from graphene import (
 )
 from graphql_relay import from_global_id
 from graphene_django import DjangoObjectType
+from graphene_django.utils import get_model_fields
+from graphene_django.converter import convert_django_field_with_choices
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
 
@@ -18,7 +20,7 @@ from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 
-from creator.studies.models import Study, Membership
+from creator.studies.models import Study, Membership, MEMBER_ROLE_CHOICES
 from creator.studies.schema import StudyNode
 
 User = get_user_model()
@@ -37,7 +39,11 @@ class CollaboratorConnection(Connection):
         # Need to referrence the node by module to avoid circular deps
         invited_by = Field("creator.users.schema.UserNode")
         joined_on = DateTime()
-        role = String()
+        # We need to manually convert the role field's choices into enums
+        # that graphene understands
+        role = convert_django_field_with_choices(
+            Membership._meta.get_field("role")
+        )
 
         def resolve_invited_by(root, info, **kwargs):
             """

@@ -14,12 +14,12 @@ User = get_user_model()
 
 
 ADD_COLLABORATOR_MUTATION = """
-mutation addCollaborator($study: ID!, $user: ID!) {
-    addCollaborator(study: $study, user: $user) {
+mutation addCollaborator($study: ID!, $user: ID!, $role: MembershipRole!) {
+    addCollaborator(study: $study, user: $user, role: $role) {
         study {
             kfId
             name
-            collaborators { edges { node { id username } } }
+            collaborators { edges { role node { id username } } }
         }
     }
 }
@@ -31,7 +31,7 @@ mutation removeCollaborator($study: ID!, $user: ID!) {
         study {
             kfId
             name
-            collaborators { edges { node { id username } } }
+            collaborators { edges { role node { id username } } }
         }
     }
 }
@@ -60,6 +60,7 @@ def test_add_collaborator_mutation(db, clients, user_group, allowed):
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
         "user": to_global_id("UserNode", user.id),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",
@@ -184,6 +185,7 @@ def test_study_not_found(db, clients, mutation):
     variables = {
         "study": to_global_id("StudyNode", "KF_00000000"),
         "user": to_global_id("UserNode", user.id),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",
@@ -208,6 +210,7 @@ def test_user_not_found(db, clients, mutation):
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
         "user": to_global_id("UserNode", 123),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",
