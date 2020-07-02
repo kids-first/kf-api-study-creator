@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from creator.studies.factories import StudyFactory
+from creator.studies.models import Membership
 
 User = get_user_model()
 
@@ -24,8 +25,11 @@ class Command(BaseCommand):
             short_name="Cat Pics",
         )
 
-        user = User.objects.get(username='testuser')
-        user.studies.add(study)
+        user = User.objects.get(username="testuser")
+        member, _ = Membership.objects.get_or_create(
+            collaborator=user, study=study
+        )
+        member.save()
 
         n = options.get('n')
         if not n:

@@ -27,6 +27,15 @@ PHE_STATUS_CHOICES = [
     ("INREVIEW", "In review"),
     ("APPROVED", "Approved"),
 ]
+MEMBER_ROLE_CHOICES = [
+    ("RESEARCHER", "Researcher"),
+    ("INVESTIGATOR", "Investigator"),
+    ("BIOINFO", "Bioinformatics Staff"),
+    ("ADMIN", "Administrative Staff"),
+    ("ANALYST", "Data Analyst Staff"),
+    ("COORDINATOR", "Coordinating Staff"),
+    ("DEVELOPER", "Developer"),
+]
 
 
 class Study(models.Model):
@@ -142,6 +151,8 @@ class Study(models.Model):
         "creator.User",
         related_name="studies",
         help_text="Users working on this study",
+        through="Membership",
+        through_fields=("study", "collaborator"),
     )
 
     slack_notify = models.BooleanField(
@@ -151,3 +162,33 @@ class Study(models.Model):
 
     def __str__(self):
         return self.kf_id
+
+
+class Membership(models.Model):
+    """
+    Describes the nature of a collaborator's inclusion in a study.
+    """
+
+    class Meta:
+        unique_together = ["collaborator", "study"]
+
+    collaborator = models.ForeignKey("creator.User", on_delete=models.CASCADE)
+    study = models.ForeignKey(Study, on_delete=models.CASCADE)
+    invited_by = models.ForeignKey(
+        "creator.User",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="invited_by",
+        help_text="The user that invited this collaborator to the study",
+    )
+    joined_on = models.DateTimeField(
+        auto_now_add=True,
+        null=False,
+        help_text="Time when user joined the study",
+    )
+    role = models.CharField(
+        max_length=32,
+        default="RESEARCHER",
+        choices=MEMBER_ROLE_CHOICES,
+        help_text="The role of the user in this study",
+    )

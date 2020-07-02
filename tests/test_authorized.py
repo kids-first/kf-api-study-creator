@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
@@ -46,9 +47,8 @@ def test_get_resource_by_id(
     admin_client = clients.get("Administrators")
     client = clients.get(user_group)
     study, file, version = versions
-    user = (
-        User.objects.filter(groups__name=user_group).first().studies.add(study)
-    )
+    user = User.objects.filter(groups__name=user_group).first()
+    Membership(collaborator=user, study=study).save()
 
     # Get the id of the resource we're testing for
     kf_id = {
@@ -103,9 +103,8 @@ def test_get_resource_by_kf_id(
     # Select client based on user type
     client = clients.get(user_group)
     study, file, version = versions
-    user = (
-        User.objects.filter(groups__name=user_group).first().studies.add(study)
-    )
+    user = User.objects.filter(groups__name=user_group).first()
+    Membership(collaborator=user, study=study).save()
 
     # Get the id of the resource we're testing for
     kf_id = {

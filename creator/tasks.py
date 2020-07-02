@@ -87,7 +87,7 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
     try:
         user = User.objects.get(sub=user_sub)
     except User.DoesNotExist:
-        logger.warn(f"Could not find user with sub {user_sub}")
+        logger.warning(f"Could not find user with sub {user_sub}")
         user = None
 
     try:
@@ -137,7 +137,7 @@ def import_delivery_files_task(project_id, user_sub):
     try:
         user = User.objects.get(sub=user_sub)
     except User.DoesNotExist:
-        logger.warn(f"Could not find user with sub {user_sub}")
+        logger.warning(f"Could not find user with sub {user_sub}")
         user = None
 
     try:

@@ -4,21 +4,22 @@ from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_cavatica_task
 from creator.users.factories import UserFactory
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership
 from creator.studies.factories import StudyFactory
 from creator.projects.models import Project
 from creator.projects.cavatica import attach_volume
+from creator.events.models import Event
 
 User = get_user_model()
 
 
 ADD_COLLABORATOR_MUTATION = """
-mutation addCollaborator($study: ID!, $user: ID!) {
-    addCollaborator(study: $study, user: $user) {
+mutation addCollaborator($study: ID!, $user: ID!, $role: MembershipRole!) {
+    addCollaborator(study: $study, user: $user, role: $role) {
         study {
             kfId
             name
-            collaborators { edges { node { id username } } }
+            collaborators { edges { role node { id username } } }
         }
     }
 }
@@ -30,7 +31,7 @@ mutation removeCollaborator($study: ID!, $user: ID!) {
         study {
             kfId
             name
-            collaborators { edges { node { id username } } }
+            collaborators { edges { role node { id username } } }
         }
     }
 }
@@ -59,6 +60,7 @@ def test_add_collaborator_mutation(db, clients, user_group, allowed):
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
         "user": to_global_id("UserNode", user.id),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",
@@ -96,7 +98,8 @@ def test_remove_collaborator_mutation(db, clients, user_group, allowed):
     client = clients.get(user_group)
     user = UserFactory()
     study = StudyFactory()
-    study.collaborators.add(user)
+    member = Membership(collaborator=user, study=study, role="ADMIN")
+    member.save()
 
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
@@ -117,6 +120,58 @@ def test_remove_collaborator_mutation(db, clients, user_group, allowed):
         assert Study.objects.first().collaborators.count() == 1
 
 
+def test_change_role(db, clients):
+    """
+    Test that an existing collaborator's role may be changed with the add
+    collaborator mutation.
+    """
+    client = clients.get("Administrators")
+    user = UserFactory()
+    study = StudyFactory()
+    Membership(study=study, collaborator=user, role="ADMIN").save()
+
+    variables = {
+        "study": to_global_id("StudyNode", study.kf_id),
+        "user": to_global_id("UserNode", user.id),
+        "role": "RESEARCHER",
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": ADD_COLLABORATOR_MUTATION, "variables": variables},
+    )
+
+    edges = resp.json()["data"]["addCollaborator"]["study"]["collaborators"][
+        "edges"
+    ]
+    assert len(edges) == 1
+    assert edges[0]["role"] == "RESEARCHER"
+    assert Event.objects.filter(event_type="CB_UPD").count() == 1
+
+
+def test_not_member(db, clients):
+    """
+    Test an error is thrown when trying to remove a user from a study they are
+    not a member of.
+    """
+    client = clients.get("Administrators")
+    user = UserFactory()
+    study = StudyFactory()
+
+    variables = {
+        "study": to_global_id("StudyNode", study.kf_id),
+        "user": to_global_id("UserNode", user.id),
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": REMOVE_COLLABORATOR_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert "User is not a member" in resp.json()["errors"][0]["message"]
+
+
 @pytest.mark.parametrize(
     "mutation", [ADD_COLLABORATOR_MUTATION, REMOVE_COLLABORATOR_MUTATION]
 )
@@ -130,6 +185,7 @@ def test_study_not_found(db, clients, mutation):
     variables = {
         "study": to_global_id("StudyNode", "KF_00000000"),
         "user": to_global_id("UserNode", user.id),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",
@@ -154,6 +210,7 @@ def test_user_not_found(db, clients, mutation):
     variables = {
         "study": to_global_id("StudyNode", study.kf_id),
         "user": to_global_id("UserNode", 123),
+        "role": "ADMIN",
     }
     resp = client.post(
         "/graphql",

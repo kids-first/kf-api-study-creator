@@ -1,8 +1,18 @@
 import graphene
 import django_filters
-from graphene import relay, ObjectType, Field, List, String
+from graphene import (
+    relay,
+    Connection,
+    ObjectType,
+    Field,
+    List,
+    String,
+    DateTime,
+)
 from graphql_relay import from_global_id
 from graphene_django import DjangoObjectType
+from graphene_django.utils import get_model_fields
+from graphene_django.converter import convert_django_field_with_choices
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import OrderingFilter
 
@@ -10,10 +20,82 @@ from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 
-from creator.studies.models import Study
+from creator.studies.models import Study, Membership, MEMBER_ROLE_CHOICES
 from creator.studies.schema import StudyNode
 
 User = get_user_model()
+
+
+class CollaboratorConnection(Connection):
+    class Meta:
+        abstract = True
+
+    class Edge:
+        """
+        Extends relay edges on study-collaborator relationships to include
+        information from the 'Membership' through-table.
+        """
+
+        # Need to referrence the node by module to avoid circular deps
+        invited_by = Field("creator.users.schema.UserNode")
+        joined_on = DateTime()
+        # We need to manually convert the role field's choices into enums
+        # that graphene understands
+        role = convert_django_field_with_choices(
+            Membership._meta.get_field("role")
+        )
+
+        def resolve_invited_by(root, info, **kwargs):
+            """
+            Returns the user that invited this collaborator to the study.
+            """
+            study_id = root._get_study_id(info)
+            invited_by = Membership.objects.get(
+                collaborator=root.node.id, study=study_id
+            ).invited_by
+
+            return invited_by
+
+        def resolve_joined_on(root, info, **kwargs):
+            """
+            Returns the date the collaborator joined the study.
+            """
+            study_id = root._get_study_id(info)
+            joined_on = Membership.objects.get(
+                collaborator=root.node.id, study=study_id
+            ).joined_on
+
+            return joined_on
+
+        def resolve_role(root, info, **kwargs):
+            """
+            Returns the role of the collaborator in the study.
+            """
+            study_id = root._get_study_id(info)
+            role = (
+                Membership.objects.filter(
+                    collaborator=root.node.id, study=study_id
+                )
+                .first()
+                .role
+            )
+
+            return role
+
+        def _get_study_id(self, info):
+            """
+            The study id for which the user is a collaborator may be passed
+            in as either the 'id' variable or the 'study' variable depending on
+            which query is being executed.
+            This attempts to resolve both and asserts that the id decoded is
+            the expected StudyNode type.
+            """
+            gid = info.variable_values.get(
+                "study"
+            ) or info.variable_values.get("id")
+            node_type, study_id = from_global_id(gid)
+            assert node_type == "StudyNode"
+            return study_id
 
 
 class UserNode(DjangoObjectType):
@@ -25,7 +107,8 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         interfaces = (relay.Node,)
-        only_fields = [
+        connection_class = CollaboratorConnection
+        fields = [
             "email",
             "username",
             "first_name",
@@ -308,10 +391,11 @@ class Query(object):
         if user is None or not user.is_authenticated:
             return User.objects.none()
 
+        # Only return the current user if there are insufficient permissions
         if user.is_authenticated and not user.has_perm(
             "creator.list_all_user"
         ):
-            return [user]
+            return User.objects.filter(sub=user.sub).all()
 
         return User.objects.all()
 

@@ -57,6 +57,7 @@ class Event(models.Model):
             ("IM_ERR", "File Import Error"),
             ("IM_SUC", "File Import Success"),
             ("CB_ADD", "Collaborator Added"),
+            ("CB_UPD", "Collaborator Updated"),
             ("CB_REM", "Collaborator Removed"),
             ("IN_UPD", "Ingestion Status Updated"),
             ("PH_UPD", "Phenotype Status Updated"),
