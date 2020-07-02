@@ -2,43 +2,115 @@
 
 from django.conf import settings
 from django.db import migrations, models
+from django.contrib.auth import get_user_model
 import django.db.models.deletion
+
+from creator.studies.models import Membership
+
+User = get_user_model()
+
+
+def add_members(apps, schema_editor):
+    users = User.objects.all()
+
+    for user in users:
+        for study in user.studies.all():
+            Membership(collaborator=collab, study=study).save()
+
+
+"studies_study_collaborators"
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('studies', '0018_add_slack_notify'),
+        ("studies", "0018_add_slack_notify"),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Membership',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('joined_on', models.DateTimeField(auto_now_add=True, help_text='Time when user joined the study')),
-                ('role', models.CharField(choices=[('RESEARCHER', 'Researcher'), ('INVESTIGATOR', 'Investigator'), ('BIOINFO', 'Bioinformatics Staff'), ('ADMIN', 'Administrative Staff'), ('ANALYST', 'Data Analyst Staff'), ('DEVELOPER', 'Developer')], default='RESEARCHER', help_text='The role of the user in this study', max_length=32)),
-                ('collaborator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('invited_by', models.ForeignKey(help_text='The user that invited this collaborator to the study', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='invited_by', to=settings.AUTH_USER_MODEL)),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                # Old table name from checking with sqlmigrate, new table
+                # name from AuthorBook._meta.db_table.
+                migrations.RunSQL(
+                    sql="ALTER TABLE studies_study_collaborators RENAME TO studies_membership",
+                    reverse_sql="ALTER TABLE studies_membership RENAME TO studies_study_collaborators",
+                ),
+                migrations.RunSQL(
+                    sql="ALTER TABLE studies_membership RENAME COLUMN user_id TO collaborator_id",
+                    reverse_sql="ALTER TABLE studies_membership RENAME COLUMN collaborator_id TO user_id",
+                ),
+            ],
+            state_operations=[
+                migrations.CreateModel(
+                    name="Membership",
+                    fields=[
+                        (
+                            "collaborator",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "study",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                to="studies.Study",
+                            ),
+                        ),
+                    ],
+                ),
+                migrations.AlterField(
+                    model_name="study",
+                    name="collaborators",
+                    field=models.ManyToManyField(
+                        help_text="Users working on this study",
+                        related_name="studies",
+                        through="studies.Membership",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                migrations.AlterUniqueTogether(
+                    name="membership",
+                    unique_together={("collaborator", "study")},
+                ),
             ],
         ),
-        migrations.RemoveField(
-            model_name='study',
-            name='collaborators',
+        migrations.AddField(
+            model_name="membership",
+            name="joined_on",
+            field=models.DateTimeField(
+                auto_now_add=True, help_text="Time when user joined the study"
+            ),
         ),
         migrations.AddField(
-            model_name='study',
-            name='collaborators',
-            field=models.ManyToManyField(help_text='Users working on this study', related_name='studies', through='studies.Membership', to=settings.AUTH_USER_MODEL),
+            model_name="membership",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("RESEARCHER", "Researcher"),
+                    ("INVESTIGATOR", "Investigator"),
+                    ("BIOINFO", "Bioinformatics Staff"),
+                    ("ADMIN", "Administrative Staff"),
+                    ("ANALYST", "Data Analyst Staff"),
+                    ("DEVELOPER", "Developer"),
+                ],
+                default="RESEARCHER",
+                help_text="The role of the user in this study",
+                max_length=32,
+            ),
         ),
         migrations.AddField(
-            model_name='membership',
-            name='study',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='studies.Study'),
-        ),
-        migrations.AlterUniqueTogether(
-            name='membership',
-            unique_together={('collaborator', 'study')},
+            model_name="membership",
+            name="invited_by",
+            field=models.ForeignKey(
+                help_text="The user that invited this collaborator to the study",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="invited_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]
