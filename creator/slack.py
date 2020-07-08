@@ -163,6 +163,19 @@ def summary_post():
             }
         return message
 
+    def event(author, author_picture, time, message):
+        return {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": author_picture,
+                    "alt_text": author,
+                },
+                {"type": "mrkdwn", "text": f"*{author}* {time}: _{message}_"},
+            ],
+        }
+
     def make_study_message(studyObj):
         """
         Make an event timeline for a study
