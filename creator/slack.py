@@ -267,6 +267,7 @@ def summary_post():
             )
             file_timelines[file_id].append(event_message)
 
+        # Add slack message header with study name and link when has updates
         if new_doc + del_doc + upd_doc + add_col + rem_col > 0:
             blocks.append(
                 study_header(
@@ -282,6 +283,51 @@ def summary_post():
             blocks.append(file_block)
         if add_col + rem_col > 0:
             blocks.append(collaborator_block)
+        # Add slack message file updates section when has new events
+        for file_id, timeline in file_timelines.items():
+            file_name = file_names.get(file_id)
+            if file_name is not None:
+                header = document_header(
+                    f"{settings.DATA_TRACKER_URL}/study/{study_id}/"
+                    "documents/{file_id}?utm_source=slack_daily_dm",
+                    file_id,
+                    file_name,
+                )
+                blocks.append(header)
+                blocks.extend(timeline)
+
+        # Add slack message file deletes section when has new events
+        if "DELETED" in file_timelines.keys():
+            header = document_header(
+                settings.DATA_TRACKER_URL,
+                file_id,
+                "File was deleted",
+                deleted=len(file_timelines["DELETED"]),
+            )
+            blocks.append(header)
+            blocks.extend(file_timelines["DELETED"])
+
+        # Add slack message collaborators section when has new events
+        if "COLLABORATOR" in file_timelines.keys():
+            add_col_m = (
+                str(add_col) + " collaborator(s) joined "
+                if add_col > 0
+                else ""
+            )
+            rem_col_m = (
+                str(rem_col) + " collaborator(s) removed "
+                if rem_col > 0
+                else ""
+            )
+            header = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":male-technologist: *{add_col_m + rem_col_m}*",
+                },
+            }
+            blocks.append(header)
+            blocks.extend(file_timelines["COLLABORATOR"])
 
         return blocks
 
