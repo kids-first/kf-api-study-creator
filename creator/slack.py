@@ -139,6 +139,30 @@ def summary_post():
             },
         }
 
+    def document_header(url, kf_id, title, deleted=0):
+        if deleted == 0:
+            message = f":file_folder: `{kf_id}` *{title}*"
+            message += "\nBelow are recent events to this file."
+        else:
+            message = f":wastebasket: *{deleted} File(s) deleted*"
+
+        message = {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": message},
+        }
+        if not deleted:
+            message["accessory"] = {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": True,
+                    "text": "View Document :mag:",
+                },
+                "style": "primary",
+                "url": url,
+            }
+        return message
+
     def make_study_message(studyObj):
         """
         Make an event timeline for a study
