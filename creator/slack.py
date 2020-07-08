@@ -195,16 +195,6 @@ def summary_post():
         upd_doc = study_events.filter(event_type="SF_UPD").count()
         add_col = study_events.filter(event_type="CB_ADD").count()
         rem_col = study_events.filter(event_type="CB_REM").count()
-        new_doc_m = str(new_doc) + " new document(s) " if new_doc > 0 else ""
-        del_doc_m = str(del_doc) + " new version(s) " if del_doc > 0 else ""
-        upd_doc_m = (
-            str(upd_doc) + " document update(s) " if upd_doc > 0 else ""
-        )
-        add_col_m = (
-            str(add_col) + " collaborator(s) joined " if add_col > 0 else ""
-        )
-        rem_col_m = (
-            str(rem_col) + " collaborator(s) removed " if rem_col > 0 else ""
 
         file_timelines = defaultdict(list)
         file_names = {}
@@ -212,22 +202,7 @@ def summary_post():
             "https://www.adherehealth.com/wp-content"
             "/uploads/2018/09/avatar.jpg"
         )
-        file_block = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":file_folder: {new_doc_m + upd_doc_m + del_doc_m}",
-            },
-        }
-        collaborator_block = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":male-technologist: {add_col_m + rem_col_m}",
-            },
-        }
 
-        # Add header for slack message with study name and link
         # Loop through all events to get the ones about file or collaborators
         for i, ev in enumerate(reversed(study_events)):
             if ev.event_type == "SF_DEL":
@@ -278,11 +253,6 @@ def summary_post():
                 )
             )
 
-        # Add slack messages of files and collaborators updates
-        if new_doc + del_doc + upd_doc > 0:
-            blocks.append(file_block)
-        if add_col + rem_col > 0:
-            blocks.append(collaborator_block)
         # Add slack message file updates section when has new events
         for file_id, timeline in file_timelines.items():
             file_name = file_names.get(file_id)
