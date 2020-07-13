@@ -23,6 +23,7 @@ GROUPS = {
         "add_version",
         "list_all_version",
         "change_version_meta",
+        "change_version_status",
         "delete_version",
         "view_downloadtoken",
         "add_downloadtoken",
