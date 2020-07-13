@@ -76,7 +76,13 @@ class VersionMutation(graphene.Mutation):
         User must be authenticated and belongs to the study, or be ADMIN.
         """
         user = info.context.user
-        if not user.has_perm("files.change_version"):
+
+        if not (
+            user.has_perm("files.change_version_meta")
+            or user.has_perm("files.change_my_version_meta")
+            or user.has_perm("files.change_version_status")
+            or user.has_perm("files.change_my_version_status")
+        ):
             raise GraphQLError("Not allowed")
 
         try:
@@ -85,19 +91,31 @@ class VersionMutation(graphene.Mutation):
             raise GraphQLError("Version does not exist.")
 
         study_id = version.root_file.study.kf_id
-        if not (
-            user.has_perm("files.change_version")
-            or (
-                user.has_perm("files.change_my_study_version")
-                and user.studies.filter(kf_id=file.study.kf_id).exists()
-            )
-        ):
-            raise GraphQLError("Not allowed")
 
         try:
             if kwargs.get("description"):
+                if kwargs.get("description") != version.description and (
+                    not (
+                        user.has_perm("files.change_version_meta")
+                        or (
+                            user.has_perm("files.change_my_version_meta")
+                            and user.studies.filter(kf_id=study_id).exists()
+                        )
+                    )
+                ):
+                    raise GraphQLError("Not allowed")
                 version.description = kwargs.get("description")
             if kwargs.get("state"):
+                if kwargs.get("state") != version.state and (
+                    not (
+                        user.has_perm("files.change_version_status")
+                        or (
+                            user.has_perm("files.change_my_version_status")
+                            and user.studies.filter(kf_id=study_id).exists()
+                        )
+                    )
+                ):
+                    raise GraphQLError("Not allowed")
                 version.state = kwargs.get("state")
             version.save()
         except ClientError:
