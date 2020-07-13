@@ -139,6 +139,43 @@ def summary_post():
             },
         }
 
+    def document_header(url, kf_id, title, deleted=0):
+        if deleted == 0:
+            message = f":file_folder: `{kf_id}` *{title}*"
+            message += "\nBelow are recent events to this file."
+        else:
+            message = f":wastebasket: *{deleted} File(s) deleted*"
+
+        message = {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": message},
+        }
+        if not deleted:
+            message["accessory"] = {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": True,
+                    "text": "View Document :mag:",
+                },
+                "style": "primary",
+                "url": url,
+            }
+        return message
+
+    def event(author, author_picture, time, message):
+        return {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": author_picture,
+                    "alt_text": author,
+                },
+                {"type": "mrkdwn", "text": f"*{author}* {time}: _{message}_"},
+            ],
+        }
+
     def make_study_message(studyObj):
         """
         Make an event timeline for a study
@@ -158,33 +195,54 @@ def summary_post():
         upd_doc = study_events.filter(event_type="SF_UPD").count()
         add_col = study_events.filter(event_type="CB_ADD").count()
         rem_col = study_events.filter(event_type="CB_REM").count()
-        new_doc_m = str(new_doc) + " new document(s) " if new_doc > 0 else ""
-        del_doc_m = str(del_doc) + " new version(s) " if del_doc > 0 else ""
-        upd_doc_m = (
-            str(upd_doc) + " document update(s) " if upd_doc > 0 else ""
-        )
-        add_col_m = (
-            str(add_col) + " collaborator(s) joined " if add_col > 0 else ""
-        )
-        rem_col_m = (
-            str(rem_col) + " collaborator(s) removed " if rem_col > 0 else ""
-        )
-        file_block = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":file_folder: {new_doc_m + upd_doc_m + del_doc_m}",
-            },
-        }
-        collaborator_block = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":male-technologist: {add_col_m + rem_col_m}",
-            },
-        }
 
-        # Add header for slack message with study name and link
+        file_timelines = defaultdict(list)
+        file_names = {}
+        anon_pic = (
+            "https://www.adherehealth.com/wp-content"
+            "/uploads/2018/09/avatar.jpg"
+        )
+
+        # Loop through all events to get the ones about file or collaborators
+        for i, ev in enumerate(reversed(study_events)):
+            if ev.event_type == "SF_DEL":
+                file_id = "DELETED"
+            elif ev.event_type == "CB_ADD" or ev.event_type == "CB_REM":
+                file_id = "COLLABORATOR"
+            elif ev.file is None:
+                raw_list = re.match(r".*(SF_[A-Z0-9]{8}).*", ev.description)
+                if raw_list is None:
+                    file_id = None
+                else:
+                    file_id = raw_list.group(1)
+            else:
+                file_id = ev.file.kf_id
+                file_names[file_id] = ev.file.name
+
+            user = ev.user
+            picture = None
+
+            if user:
+                author = (
+                    ev.user.username if ev.user.username else "Anonymous user"
+                )
+                picture = ev.user.picture if ev.user.picture else anon_pic
+
+            else:
+                author = "Anonymous user"
+
+            if picture is None or len(picture) == 0:
+                picture = anon_pic
+
+            dt = ev.created_at
+            message = ev.description
+
+            event_message = event(
+                author, picture, dt.strftime("%I:%M %p"), message
+            )
+            file_timelines[file_id].append(event_message)
+
+        # Add slack message header with study name and link when has updates
         if new_doc + del_doc + upd_doc + add_col + rem_col > 0:
             blocks.append(
                 study_header(
@@ -195,11 +253,51 @@ def summary_post():
                 )
             )
 
-        # Add slack messages of files and collaborators updates
-        if new_doc + del_doc + upd_doc > 0:
-            blocks.append(file_block)
-        if add_col + rem_col > 0:
-            blocks.append(collaborator_block)
+        # Add slack message file updates section when has new events
+        for file_id, timeline in file_timelines.items():
+            file_name = file_names.get(file_id)
+            if file_name is not None:
+                header = document_header(
+                    f"{settings.DATA_TRACKER_URL}/study/{study_id}/"
+                    "documents/{file_id}?utm_source=slack_daily_dm",
+                    file_id,
+                    file_name,
+                )
+                blocks.append(header)
+                blocks.extend(timeline)
+
+        # Add slack message file deletes section when has new events
+        if "DELETED" in file_timelines.keys():
+            header = document_header(
+                settings.DATA_TRACKER_URL,
+                file_id,
+                "File was deleted",
+                deleted=len(file_timelines["DELETED"]),
+            )
+            blocks.append(header)
+            blocks.extend(file_timelines["DELETED"])
+
+        # Add slack message collaborators section when has new events
+        if "COLLABORATOR" in file_timelines.keys():
+            add_col_m = (
+                str(add_col) + " collaborator(s) joined "
+                if add_col > 0
+                else ""
+            )
+            rem_col_m = (
+                str(rem_col) + " collaborator(s) removed "
+                if rem_col > 0
+                else ""
+            )
+            header = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":male-technologist: *{add_col_m + rem_col_m}*",
+                },
+            }
+            blocks.append(header)
+            blocks.extend(file_timelines["COLLABORATOR"])
 
         return blocks
 
