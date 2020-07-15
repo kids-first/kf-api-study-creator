@@ -124,9 +124,15 @@ class Version(models.Model):
                 "add_my_study_version",
                 "Can add versions to studies the user is a member of",
             ),
+            ("change_version_meta", "Can change any version meta",),
+            ("change_version_status", "Can change any version status",),
             (
-                "change_my_study_version",
-                "Can change versions in studies the user is a member of",
+                "change_my_version_meta",
+                "Can change version meta in studies the user is a member of",
+            ),
+            (
+                "change_my_version_status",
+                "Can change version status in studies the user is a member of",
             ),
         ]
 
