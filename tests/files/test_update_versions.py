@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from creator.files.models import Version
 from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
-from creator.files.factories import FileFactory
+from creator.files.factories import FileFactory, VersionFactory
 
 User = get_user_model()
 
@@ -101,6 +101,54 @@ def test_my_version_meta(db, clients, versions):
     )
     version = Version.objects.get(kf_id=version.kf_id)
     assert version.description == "New description"
+
+
+@pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
+)
+def test_update_version_status_auth(db, clients, user_group, allowed):
+    """
+    Test that versions status may be updated only by admin.
+    """
+    client = clients.get(user_group)
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = VersionFactory(state="PEN", root_file=file)
+
+    query = update_query
+    variables = {
+        "kfId": version.kf_id,
+        "description": version.description,
+        "state": "APP",
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    # The operation should be successful
+    if allowed:
+        assert resp.status_code == 200
+        assert (
+            resp.json()["data"]["updateVersion"]["version"]["state"] == "APP"
+        )
+        version = Version.objects.get(kf_id=version.kf_id)
+        assert version.state == "APP"
+    # Should not be successful
+    else:
+        assert resp.status_code == 200
+        assert resp.json()["data"]["updateVersion"] is None
+        expected_error = "Not allowed"
+        assert resp.json()["errors"][0]["message"] == expected_error
 
 
 @pytest.mark.parametrize(
