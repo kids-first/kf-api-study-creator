@@ -1,8 +1,11 @@
 import pytest
+from django.contrib.auth import get_user_model
 from creator.files.models import Version
+from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
 
+User = get_user_model()
 
 update_query = """
 mutation (
@@ -66,6 +69,38 @@ def test_update_version_meta_auth(db, clients, versions, user_group, allowed):
         assert resp.json()["data"]["updateVersion"] is None
         expected_error = "Not allowed"
         assert resp.json()["errors"][0]["message"] == expected_error
+
+
+def test_my_version_meta(db, clients, versions):
+    """
+    Version meta mutations are allowed on the files under the studies that
+    the user belongs to
+    """
+    client = clients.get("Investigators")
+    study, file, version = versions
+    user = User.objects.filter(groups__name="Investigators").first()
+    Membership(collaborator=user, study=study).save()
+
+    query = update_query
+    variables = {
+        "kfId": version.kf_id,
+        "description": "New description",
+        "state": version.state,
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    # The operation should be successful
+    assert resp.status_code == 200
+    assert (
+        resp.json()["data"]["updateVersion"]["version"]["description"]
+        == "New description"
+    )
+    version = Version.objects.get(kf_id=version.kf_id)
+    assert version.description == "New description"
 
 
 @pytest.mark.parametrize(
