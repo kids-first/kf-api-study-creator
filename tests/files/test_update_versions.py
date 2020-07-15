@@ -27,14 +27,14 @@ mutation (
         ("Administrators", True),
         ("Services", False),
         ("Developers", True),
-        ("Investigators", True),
+        ("Investigators", False),
         ("Bioinformatics", False),
         (None, False),
     ],
 )
-def test_update_version_auth(db, clients, versions, user_group, allowed):
+def test_update_version_meta_auth(db, clients, versions, user_group, allowed):
     """
-    Test that versions may bu updated only by admin or owners.
+    Test that versions description may be updated only by admin or owners.
     """
     client = clients.get(user_group)
     study, file, version = versions
@@ -43,7 +43,7 @@ def test_update_version_auth(db, clients, versions, user_group, allowed):
     variables = {
         "kfId": version.kf_id,
         "description": "New description",
-        "state": "PEN",
+        "state": version.state,
     }
     resp = client.post(
         "/graphql",
