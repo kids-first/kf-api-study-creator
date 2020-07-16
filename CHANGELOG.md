@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.13.0
+
+### Summary
+
+- Emojis: ✨ x2, 🗃️ x1
+- Categories: Additions x2, Other Changes x1
+
+### New features and changes
+
+- [#429](https://github.com/kids-first/kf-api-study-creator/pull/429) - ♻️ Separate update version permission to change meta and change status - [de1ed7ff](https://github.com/kids-first/kf-api-study-creator/commit/de1ed7ff89044c0375782f54897e29ba6d53b9f2) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#428](https://github.com/kids-first/kf-api-study-creator/pull/428) - Add file and collaborator details to slack notification - [589ee225](https://github.com/kids-first/kf-api-study-creator/commit/589ee225dca8a21b5b4c0ad961394825ddaf91a1) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#426](https://github.com/kids-first/kf-api-study-creator/pull/426) - 🗃️ Patch collaborator mutation - [87babf80](https://github.com/kids-first/kf-api-study-creator/commit/87babf80c8b4a8443a38a6e5a718f68f30502a58) by [dankolbman](https://github.com/dankolbman)
+- [#423](https://github.com/kids-first/kf-api-study-creator/pull/423) - Collaborator roles - [79895186](https://github.com/kids-first/kf-api-study-creator/commit/7989518635bebd162d797867011552dd578ddd2a) by [dankolbman](https://github.com/dankolbman)
+
 ## Release 1.12.0
 
 ### Summary
@@ -11,7 +25,6 @@
 
 - [#424](https://github.com/kids-first/kf-api-study-creator/pull/424) - 🔥 Remove default Cavatica projects for new studies - [958a1823](https://github.com/kids-first/kf-api-study-creator/commit/958a18234ca8066a531858a61a5d777c5382ba93) by [XuTheBunny](https://github.com/XuTheBunny)
 - [#422](https://github.com/kids-first/kf-api-study-creator/pull/422) - ♻️ Improve verbosity of collaborator events - [4a387f40](https://github.com/kids-first/kf-api-study-creator/commit/4a387f40e7e2f7f36f1472fe33e1e45d74689972) by [XuTheBunny](https://github.com/XuTheBunny)
-
 
 ## Release 1.11.1
 
@@ -26,7 +39,6 @@
 - [#419](https://github.com/kids-first/kf-api-study-creator/pull/419) - ♻️ Auto join Slack channels - [abd9b8a4](https://github.com/kids-first/kf-api-study-creator/commit/abd9b8a4dbec407497f00b0929e25a88ee73ca03) by [dankolbman](https://github.com/dankolbman)
 - [#415](https://github.com/kids-first/kf-api-study-creator/pull/415) - 🔊 Task logging - [9761799d](https://github.com/kids-first/kf-api-study-creator/commit/9761799d4451717d5de31c4e5ef64437c91c9a64) by [dankolbman](https://github.com/dankolbman)
 - [#414](https://github.com/kids-first/kf-api-study-creator/pull/414) - ⬆️ Bump django from 2.2.10 to 2.2.13 - [7e96cd57](https://github.com/kids-first/kf-api-study-creator/commit/7e96cd57e80f782fbb21eee7346f98610bb858c3) by [dependabot[bot]](https://github.com/apps/dependabot)
-
 
 ## Kids First Study Creator Release Release 1.11.0
 
