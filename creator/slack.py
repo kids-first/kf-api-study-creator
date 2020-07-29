@@ -259,7 +259,7 @@ def summary_post():
             if file_name is not None:
                 header = document_header(
                     f"{settings.DATA_TRACKER_URL}/study/{study_id}/"
-                    "documents/{file_id}?utm_source=slack_daily_dm",
+                    f"documents/{file_id}?utm_source=slack_daily_dm",
                     file_id,
                     file_name,
                 )
