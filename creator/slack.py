@@ -1,5 +1,6 @@
 import logging
 import datetime
+import pytz
 import re
 from django.conf import settings
 from django.utils import timezone
@@ -234,7 +235,7 @@ def summary_post():
             if picture is None or len(picture) == 0:
                 picture = anon_pic
 
-            dt = ev.created_at
+            dt = ev.created_at.astimezone(pytz.timezone("US/Eastern"))
             message = ev.description
 
             event_message = event(
