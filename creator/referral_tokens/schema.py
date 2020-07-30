@@ -183,12 +183,12 @@ class CreateReferralTokenMutation(graphene.Mutation):
         if user:
             message = (
                 f"{user.username} invited {referral_token.email} to"
-                " {len(input['studies'])} studies"
+                f" {len(input['studies'])} studies"
             )
         else:
             message = (
                 f"{referral_token.email} was invited to"
-                " {len(input['studies'])} studies"
+                f" {len(input['studies'])} studies"
             )
 
         event = Event(description=message, event_type="RT_CRE")
