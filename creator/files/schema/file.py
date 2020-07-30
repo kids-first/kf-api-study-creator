@@ -181,21 +181,34 @@ class FileMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
+        update_fields = []
+
         try:
             if kwargs.get("name"):
+                if file.name != kwargs.get("name"):
+                    update_fields.append("name")
                 file.name = kwargs.get("name")
             if kwargs.get("description"):
+                if file.description != kwargs.get("description"):
+                    update_fields.append("description")
                 file.description = kwargs.get("description")
             if kwargs.get("file_type"):
+                if file.file_type != kwargs.get("file_type"):
+                    update_fields.append("file type")
                 file.file_type = kwargs.get("file_type")
             if "tags" in kwargs:
+                if file.tags != kwargs.get("tags"):
+                    update_fields.append("tags")
                 file.tags = kwargs.get("tags")
             file.save()
         except ClientError:
             raise GraphQLError("Failed to save file mutation.")
 
         # Make an update event
-        message = f"{user.username} updated file {file.kf_id}"
+        message = (
+            f"{user.username} updated {', '.join(update_fields)} "
+            f"{'of ' if len(update_fields)>0 else ''} file {file.kf_id}"
+        )
         event = Event(
             file=file,
             study=file.study,
