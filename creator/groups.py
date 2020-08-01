@@ -4,6 +4,10 @@
 
 GROUPS = {
     "Administrators": [
+        "view_analysis",
+        "list_all_analysis",
+        "change_analysis",
+        "add_analysis",
         "view_study",
         "add_study",
         "change_study",
@@ -65,6 +69,8 @@ GROUPS = {
         "view_my_file",
         "add_my_study_file",
         "change_my_study_file",
+        "view_analysis",
+        "add_my_study_analysis",
         "add_my_study_version",
         "add_downloadtoken",
         "view_my_version",
