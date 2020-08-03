@@ -159,7 +159,21 @@ def upload_file(client, tmp_uploads_local):
                   tags: $tags
                 ) {
                     success
-                    file { kfId name description fileType tags }
+                    file {
+                        id
+                        kfId
+                        name
+                        description
+                        fileType
+                        tags
+                        versions(orderBy: "-created_at") {
+                            edges {
+                                node {
+                                    id
+                                }
+                            }
+                        }
+                    }
               }
             }
         """

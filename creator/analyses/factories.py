@@ -9,7 +9,7 @@ from creator.users.factories import UserFactory
 class AnalysisFactory(factory.DjangoModelFactory):
     class Meta:
         model = Analysis
-        django_get_or_create = ("id",)
+        django_get_or_create = ("version",)
 
     id = factory.Sequence(lambda n: n)
     known_format = factory.Faker("boolean")
