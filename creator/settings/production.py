@@ -136,7 +136,7 @@ RQ_QUEUES = {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
-        "DEFAULT_TIMEOUT": 30,
+        "DEFAULT_TIMEOUT": 60,
     },
     "dataservice": {
         "HOST": redis_host,
@@ -154,7 +154,7 @@ RQ_QUEUES = {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
-        "DEFAULT_TIMEOUT": 30,
+        "DEFAULT_TIMEOUT": 60,
     },
 }
 if redis_pass:
