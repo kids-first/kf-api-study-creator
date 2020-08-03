@@ -37,13 +37,10 @@ class ReferralTokenNode(DjangoObjectType):
         if not (user.has_perm("referral_tokens.view_referraltoken")):
             raise GraphQLError("Not allowed")
 
-        if user.has_perm("referral_tokens.view_referraltoken"):
-            try:
-                return cls._meta.model.objects.get(uuid=uuid)
-            except cls._meta.model.DoesNotExist:
-                raise GraphQLError("Referral token not found")
-
-        return ReferralToken.objects.none()
+        try:
+            return cls._meta.model.objects.get(uuid=uuid)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Referral token not found")
 
 
 class ReferralTokenFilter(django_filters.FilterSet):

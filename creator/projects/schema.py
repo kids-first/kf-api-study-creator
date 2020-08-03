@@ -48,7 +48,7 @@ class ProjectNode(DjangoObjectType):
         try:
             project = cls._meta.model.objects.get(project_id=project_id)
         except cls._meta.model.DoesNotExist:
-            return None
+            raise GraphQLError("Project was not found")
 
         # If user only has view_my_study_project, make sure the project belongs
         # to one of their studies
