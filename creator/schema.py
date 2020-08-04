@@ -10,6 +10,7 @@ from django_filters import FilterSet, OrderingFilter
 
 from creator.models import Job
 
+from creator.buckets.schema import Mutation as BucketMutation
 from creator.files.schema import (
     FileMutation,
     VersionMutation,
@@ -272,6 +273,7 @@ class Query(
 
 
 class Mutation(
+    BucketMutation,
     StudyMutation,
     FileMutation,
     VersionMutation,
@@ -310,12 +312,6 @@ class Mutation(
     )
     import_volume_files = project_mutations.ImportVolumeFilesMutation.Field(
         description="Unlink a Cavatica project from a Study"
-    )
-    link_bucket = bucket_mutations.LinkBucketMutation.Field(
-        description="Link a bucket to a Study"
-    )
-    unlink_bucket = bucket_mutations.UnlinkBucketMutation.Field(
-        description="Unlink a bucket from a Study"
     )
     create_referral_token = (
         referral_tokens_mutations.CreateReferralTokenMutation.Field(
