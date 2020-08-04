@@ -18,7 +18,7 @@ from creator.files.schema import (
 )
 from creator.projects.schema import Mutation as ProjectMutation
 from creator.studies.schema import Mutation as StudyMutation
-from creator.users import schema as user_mutations
+from creator.users.schema import Mutation as UserMutation
 import creator.events.schema
 from creator.referral_tokens import schema as referral_tokens_mutations
 
@@ -278,20 +278,9 @@ class Mutation(
     FileMutation,
     VersionMutation,
     DownloadMutation,
+    UserMutation,
     graphene.ObjectType,
 ):
-    subscribe_to = user_mutations.SubscribeToMutation.Field(
-        description="Subscribe the current user to a study"
-    )
-    unsubscribe_from = user_mutations.UnsubscribeFromMutation.Field(
-        description="Unsubscribe the current user from a study"
-    )
-    update_my_profile = user_mutations.MyProfileMutation.Field(
-        description="Update the currently logged in user's profile"
-    )
-    update_user = user_mutations.UpdateUserMutation.Field(
-        description="Update a user"
-    )
     create_referral_token = (
         referral_tokens_mutations.CreateReferralTokenMutation.Field(
             description="Create a referral token"
