@@ -19,8 +19,8 @@ from creator.files.schema import (
 from creator.projects.schema import Mutation as ProjectMutation
 from creator.studies.schema import Mutation as StudyMutation
 from creator.users.schema import Mutation as UserMutation
-import creator.events.schema
-from creator.referral_tokens import schema as referral_tokens_mutations
+from creator.referral_tokens.schema import Mutation as ReferralMutation
+import creator
 
 
 def get_version_info():
@@ -255,7 +255,7 @@ class Query(
     creator.events.schema.Query,
     creator.projects.schema.Query,
     creator.buckets.schema.Query,
-    referral_tokens_mutations.Query,
+    creator.referral_tokens.schema.Query,
     graphene.ObjectType,
 ):
     status = graphene.Field(Status)
@@ -279,18 +279,10 @@ class Mutation(
     VersionMutation,
     DownloadMutation,
     UserMutation,
+    ReferralMutation,
     graphene.ObjectType,
 ):
-    create_referral_token = (
-        referral_tokens_mutations.CreateReferralTokenMutation.Field(
-            description="Create a referral token"
-        )
-    )
-    exchange_referral_token = (
-        referral_tokens_mutations.ExchangeReferralTokenMutation.Field(
-            description="Exchange a referral token"
-        )
-    )
+    pass
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
