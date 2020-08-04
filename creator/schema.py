@@ -16,11 +16,10 @@ from creator.files.schema import (
     VersionMutation,
     DownloadMutation,
 )
+from creator.projects.schema import Mutation as ProjectMutation
 from creator.studies.schema import Mutation as StudyMutation
 from creator.users import schema as user_mutations
 import creator.events.schema
-from creator.projects import schema as project_mutations
-from creator.buckets import schema as bucket_mutations
 from creator.referral_tokens import schema as referral_tokens_mutations
 
 
@@ -254,8 +253,8 @@ class Query(
     creator.studies.schema.Query,
     creator.users.schema.Query,
     creator.events.schema.Query,
-    project_mutations.Query,
-    bucket_mutations.Query,
+    creator.projects.schema.Query,
+    creator.buckets.schema.Query,
     referral_tokens_mutations.Query,
     graphene.ObjectType,
 ):
@@ -274,6 +273,7 @@ class Query(
 
 class Mutation(
     BucketMutation,
+    ProjectMutation,
     StudyMutation,
     FileMutation,
     VersionMutation,
@@ -291,27 +291,6 @@ class Mutation(
     )
     update_user = user_mutations.UpdateUserMutation.Field(
         description="Update a user"
-    )
-    create_project = creator.projects.schema.CreateProjectMutation.Field(
-        description="Create a new project for a study"
-    )
-    update_project = creator.projects.schema.UpdateProjectMutation.Field(
-        description="Update an existing project"
-    )
-    sync_projects = creator.projects.schema.SyncProjectsMutation.Field(
-        description=(
-            "Synchronize projects in the study creator api with "
-            "project in Cavatica"
-        )
-    )
-    link_project = project_mutations.LinkProjectMutation.Field(
-        description="Link a Cavatica project to a Study"
-    )
-    unlink_project = project_mutations.UnlinkProjectMutation.Field(
-        description="Unlink a Cavatica project from a Study"
-    )
-    import_volume_files = project_mutations.ImportVolumeFilesMutation.Field(
-        description="Unlink a Cavatica project from a Study"
     )
     create_referral_token = (
         referral_tokens_mutations.CreateReferralTokenMutation.Field(
