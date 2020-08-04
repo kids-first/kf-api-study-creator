@@ -10,17 +10,12 @@ from django_filters import FilterSet, OrderingFilter
 
 from creator.models import Job
 
-from creator.buckets.schema import Mutation as BucketMutation
-from creator.files.schema import (
-    FileMutation,
-    VersionMutation,
-    DownloadMutation,
-)
-from creator.projects.schema import Mutation as ProjectMutation
-from creator.studies.schema import Mutation as StudyMutation
-from creator.users.schema import Mutation as UserMutation
-from creator.referral_tokens.schema import Mutation as ReferralMutation
-import creator
+import creator.buckets.schema
+import creator.files.schema
+import creator.studies.schema
+import creator.projects.schema
+import creator.users.schema
+import creator.referral_tokens.schema
 
 
 def get_version_info():
@@ -247,9 +242,7 @@ class Status(graphene.ObjectType):
 
 
 class Query(
-    creator.files.schema.FileQuery,
-    creator.files.schema.VersionQuery,
-    creator.files.schema.DownloadQuery,
+    creator.files.schema.Query,
     creator.studies.schema.Query,
     creator.users.schema.Query,
     creator.events.schema.Query,
@@ -258,6 +251,8 @@ class Query(
     creator.referral_tokens.schema.Query,
     graphene.ObjectType,
 ):
+    """ Root query schema combining all apps' schemas """
+
     status = graphene.Field(Status)
 
     def resolve_status(parent, info):
@@ -272,16 +267,16 @@ class Query(
 
 
 class Mutation(
-    BucketMutation,
-    ProjectMutation,
-    StudyMutation,
-    FileMutation,
-    VersionMutation,
-    DownloadMutation,
-    UserMutation,
-    ReferralMutation,
+    creator.buckets.schema.Mutation,
+    creator.projects.schema.Mutation,
+    creator.studies.schema.Mutation,
+    creator.files.schema.Mutation,
+    creator.users.schema.Mutation,
+    creator.referral_tokens.schema.Mutation,
     graphene.ObjectType,
 ):
+    """ Root mutation schema combining all apps' schemas """
+
     pass
 
 
