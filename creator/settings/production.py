@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_rq',
     'creator.dev',
     'creator.files',
+    'creator.status',
     'creator.studies',
     'creator.users',
     'creator.projects',
