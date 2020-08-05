@@ -36,7 +36,14 @@ class Analysis(models.Model):
 
     columns = JSONField(default=dict)
 
-    version = models.ForeignKey(
+    nrows = models.PositiveIntegerField(
+        default=0, help_text="The number of rows in the file"
+    )
+    ncols = models.PositiveIntegerField(
+        default=0, help_text="The number of columns in the file"
+    )
+
+    version = models.OneToOneField(
         Version,
         related_name="analysis",
         help_text=("The file that this analsis belongs to"),
