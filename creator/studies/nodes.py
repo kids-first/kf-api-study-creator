@@ -37,7 +37,7 @@ class StudyNode(DjangoObjectType):
         try:
             study = cls._meta.model.objects.get(kf_id=kf_id)
         except cls._meta.model.DoesNotExist:
-            return None
+            raise GraphQLError("Study was not found")
 
         user = info.context.user
         if user.has_perm("studies.view_study") or (
