@@ -127,7 +127,7 @@ class UpdateProjectMutation(graphene.Mutation):
         project.save()
 
         # Log an event
-        message = f"{user.username} updated project {project.project_id}"
+        message = f"{user.display_name} updated project {project.project_id}"
         event = Event(
             study=project.study,
             project=project,
@@ -202,7 +202,7 @@ class LinkProjectMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} linked project {project.project_id} to "
+            f"{user.display_name} linked project {project.project_id} to "
             f"study {study.kf_id}"
         )
         event = Event(
@@ -262,7 +262,7 @@ class UnlinkProjectMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} unlinked project {project.project_id} from "
+            f"{user.display_name} unlinked project {project.project_id} from "
             f"study {study.kf_id}"
         )
         event = Event(

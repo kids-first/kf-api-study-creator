@@ -128,7 +128,7 @@ class CreateReferralTokenMutation(graphene.Mutation):
         # Log an event
         if user:
             message = (
-                f"{user.username} invited {referral_token.email} to"
+                f"{user.display_name} invited {referral_token.email} to"
                 f" {len(input['studies'])} studies"
             )
         else:

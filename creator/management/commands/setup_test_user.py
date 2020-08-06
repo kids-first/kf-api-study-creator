@@ -21,6 +21,8 @@ class Command(BaseCommand):
             logger.info("user already exists")
         try:
             user = User.objects.get(username="testuser")
+            user.first_name = "Bobby"
+            user.last_name = "Tables"
             user.groups.add(Group.objects.get(name="Administrators"))
             user.save()
         except Exception as err:

@@ -237,7 +237,7 @@ class CreateStudyMutation(graphene.Mutation):
             ).save()
 
         # Log an event
-        message = f"{user.username} created study {study.kf_id}"
+        message = f"{user.display_name} created study {study.kf_id}"
         event = Event(study=study, description=message, event_type="SD_CRE")
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
@@ -373,7 +373,7 @@ class UpdateStudyMutation(graphene.Mutation):
         study.save()
 
         # Log an event
-        message = f"{user.username} updated study {study.kf_id}"
+        message = f"{user.display_name} updated study {study.kf_id}"
         event = Event(study=study, description=message, event_type="SD_UPD")
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
@@ -425,16 +425,14 @@ class AddCollaboratorMutation(graphene.Mutation):
             raise GraphQLError(f"User {user_id} does not exist.")
 
         membership, created = Membership.objects.update_or_create(
-            study=study,
-            collaborator=collaborator,
-            defaults={"role": role},
+            study=study, collaborator=collaborator, defaults={"role": role},
         )
 
         # Log an event
         if created:
             membership.invited_by = user
             message = (
-                f"{user.username} added {collaborator.username} "
+                f"{user.display_name} added {collaborator.display_name} "
                 f"as collaborator to study {study.kf_id}"
             )
             event = Event(
@@ -442,8 +440,8 @@ class AddCollaboratorMutation(graphene.Mutation):
             )
         else:
             message = (
-                f"{user.username} changed {collaborator.username}'s role"
-                f" to {role} in study {study.kf_id}"
+                f"{user.display_name} changed {collaborator.display_name}'s "
+                f"role to {role} in study {study.kf_id}"
             )
             event = Event(
                 study=study, description=message, event_type="CB_UPD"
@@ -505,7 +503,7 @@ class RemoveCollaboratorMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} removed {collaborator.username} "
+            f"{user.display_name} removed {collaborator.display_name} "
             f"as collaborator from study {study.kf_id}"
         )
         event = Event(study=study, description=message, event_type="CB_REM")
@@ -572,7 +570,7 @@ class UpdateSequencingStatusMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} study {study.kf_id}'s sequencing status "
+            f"{user.display_name} study {study.kf_id}'s sequencing status "
             f"to {study.sequencing_status}"
         )
         event = Event(study=study, description=message, event_type="ST_UPD")
@@ -593,8 +591,7 @@ class UpdateIngestionStatusMutation(graphene.Mutation):
             description="The ID of the study to remove the collaborator from",
         )
         data = UpdateIngestionStatusInput(
-            required=True,
-            description="Input for the study's ingestion status"
+            required=True, description="Input for the study's ingestion status"
         )
 
     study = graphene.Field(StudyNode)
@@ -621,7 +618,7 @@ class UpdateIngestionStatusMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} study {study.kf_id}'s ingestion status "
+            f"{user.display_name} study {study.kf_id}'s ingestion status "
             f"to {study.ingestion_status}"
         )
         event = Event(study=study, description=message, event_type="IN_UPD")
@@ -642,8 +639,7 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
             description="The ID of the study to remove the collaborator from",
         )
         data = UpdatePhenotypeStatusInput(
-            required=True,
-            description="Input for the study's phenotype status"
+            required=True, description="Input for the study's phenotype status"
         )
 
     study = graphene.Field(StudyNode)
@@ -670,7 +666,7 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} study {study.kf_id}'s phenotype status "
+            f"{user.display_name} study {study.kf_id}'s phenotype status "
             f"to {study.phenotype_status}"
         )
         event = Event(study=study, description=message, event_type="PH_UPD")
