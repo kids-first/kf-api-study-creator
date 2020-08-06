@@ -66,7 +66,7 @@ def create_project(study, project_type, workflow_type=None, user=None):
 
     # Log an event
     if user:
-        message = f"{user.username} created project {cavatica_project.id}"
+        message = f"{user.display_name} created project {cavatica_project.id}"
     else:
         message = f"A new project was created {cavatica_project.id}"
     event = Event(
