@@ -50,7 +50,7 @@ class LinkBucketMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} linked bucket {bucket.name} to "
+            f"{user.display_name} linked bucket {bucket.name} to "
             f"study {study.kf_id}"
         )
         event = Event(
@@ -110,7 +110,7 @@ class UnlinkBucketMutation(graphene.Mutation):
 
         # Log an event
         message = (
-            f"{user.username} unlinked bucket {bucket.name} from "
+            f"{user.display_name} unlinked bucket {bucket.name} from "
             f"study {study.kf_id}"
         )
         event = Event(
