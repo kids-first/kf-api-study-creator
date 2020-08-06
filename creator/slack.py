@@ -224,9 +224,7 @@ def summary_post():
             picture = None
 
             if user:
-                author = (
-                    ev.user.username if ev.user.username else "Anonymous user"
-                )
+                author = ev.user.display_name
                 picture = ev.user.picture if ev.user.picture else anon_pic
 
             else:
