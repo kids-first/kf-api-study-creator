@@ -91,6 +91,7 @@ class CollaboratorConnection(graphene.Connection):
 
 
 class UserNode(DjangoObjectType):
+    display_name = graphene.String(source="display_name")
     roles = graphene.List(
         graphene.String, description="Roles that the user has"
     )
