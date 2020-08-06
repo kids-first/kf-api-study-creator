@@ -158,7 +158,7 @@ class FileMutation(graphene.Mutation):
 
         # Make an update event
         message = (
-            f"{user.username} updated {', '.join(update_fields)} "
+            f"{user.display_name} updated {', '.join(update_fields)} "
             f"{'of ' if len(update_fields)>0 else ''} file {file.kf_id}"
         )
         event = Event(

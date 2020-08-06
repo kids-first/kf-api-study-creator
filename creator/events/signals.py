@@ -12,7 +12,7 @@ def new_file(signal, sender, instance, created, **kwargs):
     # Don't do anything for updates
     if not created:
         return
-    username = getattr(instance.creator, "username", "Anonymous user")
+    username = getattr(instance.creator, "display_name", "Anonymous user")
     message = f"{username} created file {instance.kf_id}"
 
     event = Event(
@@ -30,7 +30,7 @@ def delete_file(signal, sender, instance, **kwargs):
     """
     Handle deleted files
     """
-    username = getattr(instance.creator, "username", "Anonymous user")
+    username = getattr(instance.creator, "display_name", "Anonymous user")
     message = f"{username} deleted file {instance.kf_id}"
     event = Event(
         study=instance.study,
@@ -46,7 +46,7 @@ def new_version(signal, sender, instance, created, **kwargs):
     """
     Handle new versions and updates
     """
-    username = getattr(instance.creator, "username", "Anonymous user")
+    username = getattr(instance.creator, "display_name", "Anonymous user")
     if created:
         message = (
             f"{username} created version {instance.kf_id}"
