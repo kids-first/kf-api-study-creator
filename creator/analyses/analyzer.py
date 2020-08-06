@@ -2,6 +2,7 @@ import os
 import csv
 from collections import defaultdict
 from creator.analyses.models import Analysis
+from creator.files.models import Version
 
 
 KNOWN_FORMATS = {
@@ -19,11 +20,11 @@ def analyze_version(version):
     """
     # If the version already has an analysis, update it or else create a new
     # anaylis in the database.
-    if version.analysis:
+    try:
         analysis = version.analysis
-    else:
-        analysis = Analysis
-        analysis.version = version
+    except Analysis.DoesNotExist:
+        analysis = Analysis()
+        version.analysis = analysis
 
     data = version.key.read().decode()
     reader = csv.DictReader(data, delimiter="\t")
