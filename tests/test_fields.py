@@ -1,7 +1,7 @@
 import pytest
 from django.db import models
 from django.contrib.auth import get_user_model
-from creator.fields import KFIDField
+from creator.fields import KFIDField, kf_id_generator
 from creator.studies.models import Study
 from creator.files.models import File
 
@@ -20,6 +20,14 @@ def test_kf_id_prefix_value(db):
 
     kf_id = f.kf_id
     assert File.objects.get(kf_id=kf_id) == f
+
+
+def test_wrong_len():
+    """ Test that kf_ids must use a two character prefix """
+    with pytest.raises(ValueError) as err:
+        kf_id = kf_id_generator("ABC")
+
+        assert "of length 2" in err
 
 
 def test_user_display_name(db):
