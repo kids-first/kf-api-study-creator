@@ -66,19 +66,29 @@ def download(request, study_id, file_id, version_id=None):
         except DevDownloadToken.DoesNotExist:
             dev_token = None
 
-    if (
-        not user.is_authenticated or not user.has_perm("files.view_file")
-    ) and (
-        download_token is None and dev_token is None
-    ):  # There is no valid dev token
-        return HttpResponse("Not authorized to download the file", status=401)
-
     try:
         file, obj = _resolve_version(file_id, version_id)
     except File.DoesNotExist:
-        return HttpResponseNotFound('No file exists with given ID')
+        return HttpResponseNotFound("No file exists with given ID")
     except Version.DoesNotExist:
-        return HttpResponseNotFound('No version exists with given ID')
+        return HttpResponseNotFound("No version exists with given ID")
+
+    # Check that the user is allowed to download the file
+    if not (
+        user.is_authenticated
+        and (  # User does not have permissions
+            user.has_perm("files.view_version")
+            or (
+                user.has_perm("files.view_my_version")
+                and user.studies.filter(
+                    kf_id=obj.root_file.study.kf_id
+                ).exists()
+            )
+        )
+    ) and (  # There are no valid tokens
+        download_token is None and dev_token is None
+    ):
+        return HttpResponse("Not authorized to download the file", status=401)
 
     # Don't return anything if the file does not belong to the requested study
     if file.study.kf_id != study_id:

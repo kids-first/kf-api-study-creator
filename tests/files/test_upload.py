@@ -6,6 +6,7 @@ from moto import mock_s3
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from graphql_relay import to_global_id
 
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study, Membership
@@ -32,31 +33,29 @@ def test_upload_query_s3(db, clients, upload_file, tmp_uploads_s3):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
 
 
 @mock_s3
-def test_boto_fail(db, clients, upload_file, tmp_uploads_s3):
+def test_boto_fail(db, clients, upload_version, tmp_uploads_s3):
     """
     Test that the error response from a file mutation does not contain any
     boto errors from s3, only a predefined error message.
     """
     client = clients.get("Administrators")
     s3 = boto3.client("s3")
-    studies = StudyFactory.create_batch(1)
-    study_id = studies[0].kf_id
+    study = StudyFactory()
+    study_id = study.kf_id
     bucket = tmp_uploads_s3("not-correct-bucket")
     # Should fail because the study bucket was not created as expected
-    resp = upload_file(study_id, "manifest.txt", client)
+    resp = upload_version("manifest.txt", study_id=study_id, client=client)
     assert "errors" in resp.json()
     assert resp.json()["errors"][0]["message"] == "Failed to save file"
 
@@ -87,14 +86,12 @@ def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert studies[-1].files.count() == 1
 
 
@@ -121,19 +118,17 @@ def test_upload_version(
     assert obj.creator == user
 
     # Upload second version
-    resp = upload_version(sf.kf_id, "manifest.txt", client)
+    resp = upload_version("manifest.txt", file_id=sf.kf_id, client=client)
 
     # assert len(tmp_uploads_local.listdir()) == 2
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createVersion"] == {
-        "success": True,
-        "version": {
-            "kfId": sf.versions.latest("created_at").kf_id,
-            "fileName": "manifest.txt",
-        },
-    }
+    version = resp.json()["data"]["createVersion"]["version"]
+    assert "analysis" in version
+    assert "id" in version
+    assert "kfId" in version
+    assert version["fileName"] == "manifest.txt"
 
     assert Study.objects.count() == 1
     assert File.objects.count() == 1
@@ -153,7 +148,7 @@ def test_upload_version_no_file(
     study_id = studies[-1].kf_id
 
     # Upload a version with a file_id that does not exist
-    resp = upload_version("SF_XXXXXXXX", "manifest.txt", client)
+    resp = upload_version("manifest.txt", file_id="SF_XXXXXXXX", client=client)
 
     assert len(tmp_uploads_local.listdir()) == 0
     assert resp.status_code == 200
@@ -216,14 +211,12 @@ def test_upload_unauthed_study(db, clients, upload_file):
     assert resp.status_code == 200
     assert "data" in resp.json()
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert study.files.count() == 1
 
 
@@ -235,39 +228,30 @@ def test_required_file_fields(
     """
     client = clients.get("Administrators")
     studies = StudyFactory.create_batch(1)
-    study_id = studies[-1].kf_id
+    study_id = to_global_id("StudyNode", studies[-1].kf_id)
     file_name = "manifest.txt"
     query = """
         mutation (
-            $file: Upload!,
-            $studyId: String!
+            $study: ID!
         ) {
             createFile(
-              file: $file,
-              studyId: $studyId
+              study: $study
             ) {
-                success
                 file { name description fileType }
           }
         }
     """
     study = Study.objects.first()
     with open(f"tests/data/{file_name}") as f:
-        data = {
-            "operations": json.dumps(
-                {
-                    "query": query.strip(),
-                    "variables": {"file": None, "studyId": study_id},
-                }
-            ),
-            "file": f,
-            "map": json.dumps({"file": ["variables.file"]}),
-        }
-        resp = client.post("/graphql", data=data)
+        data = {"query": query.strip(), "variables": {"study": study_id}}
+        resp = client.post(
+            "/graphql", content_type="application/json", data=data
+        )
 
     for error in resp.json()["errors"]:
         assert (
             "name" in error["message"]
+            or "version" in error["message"]
             or "description" in error["message"]
             or "fileType" in error["message"]
         ) and "is required" in error["message"]

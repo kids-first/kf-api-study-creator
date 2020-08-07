@@ -1,5 +1,55 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.2
+
+### Summary
+
+- Emojis: 🐛 x1
+- Categories: Fixes x1
+
+### New features and changes
+
+- [#459](https://github.com/kids-first/kf-api-study-creator/pull/459) - 🐛 Check view_my_version permissions for downloads - [6a8cad5d](https://github.com/kids-first/kf-api-study-creator/commit/6a8cad5d42e505a72965157ef7b12782e366bd1b) by [dankolbman](https://github.com/dankolbman)
+
+
+## Release 1.14.1
+
+### Summary
+
+- Emojis: 🐛 x1, ♻️ x1, ✨ x2, 🔧 x2, 🔥 x1
+- Categories: Fixes x1, Other Changes x3, Additions x2, Removals x1
+
+### New features and changes
+
+- [#457](https://github.com/kids-first/kf-api-study-creator/pull/457) - 🐛 Determine study from version or file - [642c1aef](https://github.com/kids-first/kf-api-study-creator/commit/642c1aef4c47d0d37ee6147c8742affc59d31346) by [dankolbman](https://github.com/dankolbman)
+- [#455](https://github.com/kids-first/kf-api-study-creator/pull/455) - ♻️ Refactor document upload flow - [f825f582](https://github.com/kids-first/kf-api-study-creator/commit/f825f582caede302a14493532bd5510a11905772) by [dankolbman](https://github.com/dankolbman)
+- [#456](https://github.com/kids-first/kf-api-study-creator/pull/456) - ✨ Accept .xls file type for file analysis - [c76d4d4c](https://github.com/kids-first/kf-api-study-creator/commit/c76d4d4c360ca84467467ebad9f767558e66a3ec) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#454](https://github.com/kids-first/kf-api-study-creator/pull/454) - 🔧 Dev Ops upgrades - [21e2d4a8](https://github.com/kids-first/kf-api-study-creator/commit/21e2d4a8b277adf23dc058af111c8f9cdb54542e) by [dankolbman](https://github.com/dankolbman)
+- [#452](https://github.com/kids-first/kf-api-study-creator/pull/452) - 🔧 Add SSL setting to RQ config - [03fd0c53](https://github.com/kids-first/kf-api-study-creator/commit/03fd0c53d7e2cb97d1fbf6ffed9f1538ea5c362f) by [dankolbman](https://github.com/dankolbman)
+- [#449](https://github.com/kids-first/kf-api-study-creator/pull/449) - ✨ File analyses - [c2e5a87c](https://github.com/kids-first/kf-api-study-creator/commit/c2e5a87c67a780c1740f5bdbfbd527b47aef1172) by [dankolbman](https://github.com/dankolbman)
+- [#450](https://github.com/kids-first/kf-api-study-creator/pull/450) - 🔥 Remove vault - [4d6dc934](https://github.com/kids-first/kf-api-study-creator/commit/4d6dc93464cfc515a86ec0115380c2f4ecdc8eea) by [dankolbman](https://github.com/dankolbman)
+
+
+## Release 1.14.0
+
+### Summary
+
+- Emojis: 🐛 x2, ♻️ x3, ✅ x2, 🔧 x1, ✨ x1
+- Categories: Fixes x2, Other Changes x6, Additions x1
+
+### New features and changes
+
+- [#433](https://github.com/kids-first/kf-api-study-creator/pull/433) - 🐛 Fix file link in slack updates - [4266f2ff](https://github.com/kids-first/kf-api-study-creator/commit/4266f2ff97c984a944253bb6db24786081016ae6) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#446](https://github.com/kids-first/kf-api-study-creator/pull/446) - ♻️ Replace usernames in events with full names - [c9d459b5](https://github.com/kids-first/kf-api-study-creator/commit/c9d459b563052db4a461eafdf8043cef766de73a) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#444](https://github.com/kids-first/kf-api-study-creator/pull/444) - ✅ Add test for model strings - [2b02f77c](https://github.com/kids-first/kf-api-study-creator/commit/2b02f77caefda6adeb182aca82d1e6f4d87c0714) by [dankolbman](https://github.com/dankolbman)
+- [#445](https://github.com/kids-first/kf-api-study-creator/pull/445) - ♻️ Refactor schemas - [faf2d40e](https://github.com/kids-first/kf-api-study-creator/commit/faf2d40e9e12ad3e2d87473d07b9538b162c9f39) by [dankolbman](https://github.com/dankolbman)
+- [#443](https://github.com/kids-first/kf-api-study-creator/pull/443) - ✅ Add test for unfound nodes - [d47e2a4d](https://github.com/kids-first/kf-api-study-creator/commit/d47e2a4d52fcfa0aeaf1603e4653d2152d586434) by [dankolbman](https://github.com/dankolbman)
+- [#442](https://github.com/kids-first/kf-api-study-creator/pull/442) - 🔧 Increase task queue timeouts - [013dd82e](https://github.com/kids-first/kf-api-study-creator/commit/013dd82e108689f7172e179e8eb0f9598e9d16ac) by [dankolbman](https://github.com/dankolbman)
+- [#437](https://github.com/kids-first/kf-api-study-creator/pull/437) - ♻️ Shift slack messages timestamp to be US/Eastern timezone - [ade30200](https://github.com/kids-first/kf-api-study-creator/commit/ade30200164cf74f716f9f174f1d5719f3fb6fa0) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#438](https://github.com/kids-first/kf-api-study-creator/pull/438) - ✨ Specify what change was made to a document in event message - [64827099](https://github.com/kids-first/kf-api-study-creator/commit/64827099141cbeefb1fabd8ece1055d85a519378) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#439](https://github.com/kids-first/kf-api-study-creator/pull/439) - 🐛 Fix referral token event message with f-string - [06be0109](https://github.com/kids-first/kf-api-study-creator/commit/06be010969f20ebe7195dd40121ea5169587402b) by [XuTheBunny](https://github.com/XuTheBunny)
+
+
 ## Release 1.13.0
 
 ### Summary

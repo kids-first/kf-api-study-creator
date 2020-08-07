@@ -13,9 +13,11 @@ from creator.projects.cavatica import (
     import_volume_files,
 )
 from creator.slack import setup_slack, summary_post
+from creator.analyses.analyzer import analyze_version
 from creator.buckets.scanner import sync_buckets
 from creator.projects.models import Project
 from creator.studies.models import Study
+from creator.files.models import Version
 from creator.events.models import Event
 from creator.models import Job
 
@@ -296,6 +298,51 @@ def slack_notify_task():
         summary_post()
     except Exception as err:
         logger.error(err)
+        job.failing = True
+        job.last_error = str(err)
+    else:
+        job.failing = False
+        job.last_error = ""
+
+    job.last_run = datetime.utcnow()
+    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
+    job.save()
+
+
+@job
+def analyzer_task():
+    """
+    Analyze any un-analyized versions
+    """
+    job = Job.objects.get(name="analyzer")
+
+    if not job.active:
+        logger.info("The analyzer job is not active, will not run")
+        return
+
+    try:
+        versions = (
+            Version.objects.filter(analysis=None)
+            | Version.objects.filter(analysis__known_format=False)
+        ).all()
+        logger.info(f"Found {len(versions)} versions to analyze")
+        errors = 0
+        for version in versions.all():
+            try:
+                analysis = analyze_version(version)
+            except Exception:
+                errors += 1
+                continue
+            analysis.user = version.creator
+            analysis.save()
+        logger.info(
+            f"Successfully analyzed {len(versions) - errors} versions. "
+            f"Failed to analyze {errors} versions."
+        )
+        if errors > 0:
+            raise Exception(f"Failed to analyze {errors} versions.")
+    except Exception as err:
+        logger.error(f"There was a problem analyzing versions: {err}")
         job.failing = True
         job.last_error = str(err)
     else:

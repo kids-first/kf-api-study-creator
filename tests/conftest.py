@@ -10,6 +10,7 @@ from unittest import mock
 from django.test.client import Client
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
+from graphql_relay import to_global_id
 
 from creator.users.factories import UserFactory
 from creator.files.models import File
@@ -139,49 +140,69 @@ def tmp_uploads_s3(tmpdir, settings):
 
 
 @pytest.yield_fixture
-def upload_file(client, tmp_uploads_local):
+def upload_file(client, tmp_uploads_local, upload_version):
     def upload(study_id, file_name, client=client):
+        resp = upload_version(file_name, study_id=study_id, client=client)
+        # If the upload fails, return the resulting errors instead of trying
+        # to create a document
+        if "errors" in resp.json():
+            return resp
+        version_id = resp.json()["data"]["createVersion"]["version"]["id"]
         query = """
             mutation (
-                $file: Upload!,
+                $version: ID!,
                 $name: String!,
                 $description: String!,
-                $fileType: FileFileType!,
-                $studyId: String!
+                $fileType: FileType!,
+                $study: ID!
                 $tags: [String]
             ) {
                 createFile(
-                  file: $file,
+                  version: $version,
                   name: $name,
-                  studyId: $studyId,
+                  study: $study,
                   description: $description,
                   fileType: $fileType
                   tags: $tags
                 ) {
-                    success
-                    file { kfId name description fileType tags }
+                    file {
+                        id
+                        kfId
+                        name
+                        description
+                        fileType
+                        tags
+                        validTypes
+                        versions(orderBy: "-created_at") {
+                            edges {
+                                node {
+                                    id
+                                    kfId
+                                    analysis {
+                                        id
+                                    }
+                                }
+                            }
+                        }
+                    }
               }
             }
         """
-        with open(f"tests/data/{file_name}") as f:
+        with open(f"tests/data/{file_name}", "rb") as f:
             data = {
-                "operations": json.dumps(
-                    {
-                        "query": query.strip(),
-                        "variables": {
-                            "file": None,
-                            "name": "Test file",
-                            "studyId": study_id,
-                            "description": "This is my test file",
-                            "fileType": "OTH",
-                            "tags": ["tag1", "tag2"],
-                        },
-                    }
-                ),
-                "file": f,
-                "map": json.dumps({"file": ["variables.file"]}),
+                "query": query.strip(),
+                "variables": {
+                    "version": version_id,
+                    "name": "Test file",
+                    "study": to_global_id("StudyNode", study_id),
+                    "description": "This is my test file",
+                    "fileType": "OTH",
+                    "tags": ["tag1", "tag2"],
+                },
             }
-            resp = client.post("/graphql", data=data)
+            resp = client.post(
+                "/graphql", content_type="application/json", data=data
+            )
         return resp
 
     return upload
@@ -193,34 +214,45 @@ def upload_version(client, tmp_uploads_local):
     Uploads a new version of an existing file
     """
 
-    def upload(file_id, file_name, client=client):
+    def upload(file_name, study_id=None, file_id=None, client=client):
         query = """
             mutation (
                 $file: Upload!,
                 $description: String!,
-                $fileId: String!
+                $fileId: String
+                $study: ID
             ) {
                 createVersion(
                 file: $file,
                 description: $description,
                 fileId: $fileId
+                study: $study
             ) {
                 success
-                version { kfId fileName }
+                version {
+                    id
+                    kfId
+                    fileName
+                    analysis {
+                        id
+                        knownFormat
+                        nrows
+                        ncols
+                        columns
+                    }
+                }
               }
             }
         """
-        with open(f"tests/data/{file_name}") as f:
+        with open(f"tests/data/{file_name}", "rb") as f:
+            variables = {"file": None, "description": "my new version"}
+            if file_id is not None:
+                variables["fileId"] = file_id
+            if study_id is not None:
+                variables["study"] = to_global_id("StudyNode", study_id)
             data = {
                 "operations": json.dumps(
-                    {
-                        "query": query.strip(),
-                        "variables": {
-                            "file": None,
-                            "description": "my new version",
-                            "fileId": file_id,
-                        },
-                    }
+                    {"query": query.strip(), "variables": variables}
                 ),
                 "file": f,
                 "map": json.dumps({"file": ["variables.file"]}),

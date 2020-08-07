@@ -1,0 +1,19 @@
+@Library(value='kids-first/aws-infra-jenkins-shared-libraries', changelog=false) _
+ecs_service_existing_alb {
+    projectName                = "kf-api-study-creator-worker"
+    alb_name                   = "kf-api-study-creator"
+    host_based_routing         = "0"
+    attach_to_alb              = "false"
+    orgFullName                = "kids-first"
+    environments               = "dev,qa,prd"
+    build_environments         = "dev,qa,prd"
+    docker_image_type          = "alpine"
+    create_default_iam_role    = "1"
+    entrypoint_command         = "/app/bin/entrypoint.sh"
+    quick_deploy               = "true"
+    container_port             = "80"
+    health_check_path          = "/"
+    internal_app               = "false"
+    dependencies               = "ecr"
+    module_version             = "v1.2"
+}

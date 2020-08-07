@@ -12,6 +12,7 @@ class VersionNode(DjangoObjectType):
         interfaces = (relay.Node,)
 
     download_url = graphene.String()
+    valid_types = graphene.List("creator.files.nodes.file.FileType")
 
     def resolve_download_url(self, info):
         return f"https://{info.context.get_host()}{self.path}"

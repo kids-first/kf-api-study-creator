@@ -1,4 +1,5 @@
 import pytest
+from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.files.models import Version
 from creator.studies.models import Membership
@@ -12,13 +13,22 @@ mutation (
     $kfId:String!,
     $state: VersionState!,
     $description: String!,
+    $file: ID,
 ) {
     updateVersion(
         kfId: $kfId,
         description: $description
         state: $state
+        file: $file
     ) {
-        version { id kfId state description size }
+        version {
+            id
+            kfId
+            state
+            description
+            size
+            rootFile { kfId }
+        }
     }
 }
 """
@@ -196,3 +206,61 @@ def test_update_state(db, clients, versions, state, expected):
         assert resp.status_code == 400
         assert expected in resp.json()["errors"][0]["message"]
         version = Version.objects.get(kf_id=version.kf_id)
+
+
+def test_update_version_file(db, clients):
+    """
+    Test that versions may be updated with a new root file
+    """
+    client = clients.get("Administrators")
+    study = StudyFactory(kf_id="SD_ME0WME0W")
+    file = FileFactory(study=study)
+    version = VersionFactory(study=study)
+
+    query = update_query
+    variables = {
+        "kfId": version.kf_id,
+        "description": "New description",
+        "state": version.state,
+        "file": to_global_id("FileNode", file.kf_id),
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    assert resp.status_code == 200
+    assert (
+        resp.json()["data"]["updateVersion"]["version"]["rootFile"]["kfId"]
+        == file.kf_id
+    )
+    version = Version.objects.get(kf_id=version.kf_id)
+    assert version.root_file == file
+
+
+def test_update_version_no_study(db, clients):
+    """
+    Test that a version may not be modified if the study cannot be resolved.
+    """
+    client = clients.get("Administrators")
+    study = StudyFactory(kf_id="SD_ME0WME0W")
+    file = FileFactory(study=study)
+    version = VersionFactory()
+
+    query = update_query
+    variables = {
+        "kfId": version.kf_id,
+        "description": "New description",
+        "state": version.state,
+        "file": to_global_id("FileNode", file.kf_id),
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    assert resp.status_code == 200
+    assert "errors" in resp.json()
+    assert "must be part of a study" in resp.json()["errors"][0]["message"]

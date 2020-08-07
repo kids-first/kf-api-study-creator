@@ -14,8 +14,9 @@ base32-crockford==0.3.0
 requests==2.21.0
 cryptography==2.5
 sevenbridges-python==0.24.0
-django-rq==2.1.0
-rq==1.1.0
-rq-scheduler==0.9.1
+django-rq==2.3.2
+rq==1.5.0
+rq-scheduler==0.10.0
 slackclient==2.6.1
 django-amazon-ses==3.0.2
+xlrd==1.2.0

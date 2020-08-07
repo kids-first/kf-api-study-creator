@@ -53,3 +53,29 @@ def test_delete_file_mutation(db, clients, user_group, allowed, mocker):
         assert resp.json()["errors"][0]["message"] == "Not allowed"
         assert Version.objects.count() == version_counts
         assert File.objects.count() == 1
+
+
+def test_delete_file_does_not_exist(db, clients, mocker):
+    """
+    Test that an error is returned of the file given does not exist.
+    """
+
+    client = clients.get("Administrators")
+    study = StudyFactory()
+
+    query = """
+    mutation ($kfId: String!) {
+        deleteFile(kfId: $kfId) {
+            success
+        }
+    }
+    """
+    variables = {"kfId": "SF_0000000X"}
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert "File does not exist." in resp.json()["errors"][0]["message"]

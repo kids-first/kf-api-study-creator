@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'django_s3_storage',
     'django_rq',
+    'creator.analyses',
     'creator.dev',
     'creator.files',
     'creator.status',
@@ -125,36 +126,42 @@ CACHES = {
 redis_host = os.environ.get("REDIS_HOST", "localhost")
 redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
+redis_ssl = os.environ.get("REDIS_SSL", "False") == "True"
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
     },
     "cavatica": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
     },
     "dataservice": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
     },
     "aws": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
     },
     "slack": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
     },
 }
 if redis_pass:
