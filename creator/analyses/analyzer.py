@@ -1,14 +1,36 @@
 import os
 import csv
+import xlrd
 from collections import defaultdict
+from functools import partial
 from creator.analyses.models import Analysis
 from creator.files.models import Version
 
 
+def XLSXDictReader(data):
+    data = data.read()
+    book = xlrd.open_workbook(file_contents=data)
+    sheet = book.sheet_by_index(0)
+    headers = dict((i, sheet.cell_value(0, i)) for i in range(sheet.ncols))
+
+    return (
+        dict((headers[j], sheet.cell_value(i, j)) for j in headers)
+        for i in range(1, sheet.nrows)
+    )
+
+
+def CSVDictReader(data, delimiter=","):
+    data = [r.decode() for r in data]
+    return csv.DictReader(data, delimiter=delimiter)
+
+
 KNOWN_FORMATS = {
-    ".csv": "Comma Separated",
-    ".tsv": "Tab Separated",
-    ".xlsx": "Excel",
+    ".csv": {"name": "Comma Separated", "reader": CSVDictReader},
+    ".tsv": {
+        "name": "Tab Separated",
+        "reader": partial(CSVDictReader, delimiter="\t"),
+    },
+    ".xlsx": {"name": "Excel", "reader": XLSXDictReader},
 }
 
 NUMBER_OF_COMMON_VALUES = 15
@@ -19,20 +41,18 @@ def analyze_version(version):
     Attempt to open, parse, and summarize a file and create an analysis
     """
     # If the version already has an analysis, update it or else create a new
-    # anaylis in the database.
+    # analyis in the database.
     try:
         analysis = version.analysis
     except Analysis.DoesNotExist:
         analysis = Analysis()
         version.analysis = analysis
 
-    data = version.key.read().decode()
-    reader = csv.DictReader(data, delimiter="\t")
-
-    data_format = determine_format(version)
-
-    if data_format is None:
+    try:
+        content = extract_data(version)
+    except IOError as err:
         analysis.known_format = False
+        analysis.error_message = err
         return analysis
 
     # These are the three metrics we will compute and return
@@ -43,18 +63,15 @@ def analyze_version(version):
     nrows = 0
     ncols = 0
 
-    with version.key.open(mode="rb") as f:
-        rows = [r.decode() for r in f]
-        reader = csv.DictReader(rows, delimiter="\t")
+    for row in content:
+        for k, v in row.items():
+            distincts[k].add(v)
+            counts[k][v] += 1
 
-        for row in reader:
-            for k, v in row.items():
-                distincts[k].add(v)
-                counts[k][v] += 1
-
-        nrows = len(rows)
+        nrows = len(content)
         ncols = len(distincts.keys())
 
+    # Compile statistics on each column
     columns = []
     for k, v in distincts.items():
         common_values = sorted(
@@ -70,15 +87,22 @@ def analyze_version(version):
     analysis.known_format = True
     analysis.columns = columns
     analysis.nrows = nrows
-
     analysis.ncols = ncols
+
     return analysis
 
 
-def determine_format(version):
-    _, extension = os.path.splitext(version.key.name)
+def extract_data(version):
+    """
+    Determine what file type the file is and attempt to extract it into rows
+    of data returned in a DictReader type interface.
+    """
+    _, data_format = os.path.splitext(version.key.name)
 
-    if extension in KNOWN_FORMATS:
-        return [KNOWN_FORMATS[extension]]
+    if data_format not in KNOWN_FORMATS:
+        raise IOError(f"{data_format} is not an understood data format.")
 
-    return None
+    with version.key.open(mode="rb") as f:
+        parsed = list(KNOWN_FORMATS[data_format]["reader"](f))
+
+    return parsed

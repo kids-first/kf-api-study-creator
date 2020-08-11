@@ -170,6 +170,9 @@ def upload_file(client, tmp_uploads_local):
                             edges {
                                 node {
                                     id
+                                    analysis {
+                                        id
+                                    }
                                 }
                             }
                         }
@@ -177,7 +180,7 @@ def upload_file(client, tmp_uploads_local):
               }
             }
         """
-        with open(f"tests/data/{file_name}") as f:
+        with open(f"tests/data/{file_name}", 'rb') as f:
             data = {
                 "operations": json.dumps(
                     {

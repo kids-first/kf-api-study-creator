@@ -33,6 +33,13 @@ class Analysis(models.Model):
     known_format = models.BooleanField(
         help_text="If this file is of a recognized format"
     )
+    error_message = models.TextField(
+        null=True,
+        help_text=(
+            "Error message resulting from a failed attempt to analyze "
+            "a version"
+        ),
+    )
 
     columns = JSONField(default=dict)
 
