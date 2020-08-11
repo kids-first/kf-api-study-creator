@@ -321,7 +321,10 @@ def analyzer_task():
         return
 
     try:
-        versions = Version.objects.filter(analysis=None).all()
+        versions = (
+            Version.objects.filter(analysis=None)
+            | Version.objects.filter(analysis__known_format=False)
+        ).all()
         logger.info(f"Found {len(versions)} versions to analyze")
         errors = 0
         for version in versions.all():
