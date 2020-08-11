@@ -3,6 +3,8 @@ import csv
 import xlrd
 from collections import defaultdict
 from functools import partial
+from django.conf import settings
+from django_s3_storage.storage import S3Storage
 from creator.analyses.models import Analysis
 from creator.files.models import Version
 
@@ -101,6 +103,12 @@ def extract_data(version):
 
     if data_format not in KNOWN_FORMATS:
         raise IOError(f"{data_format} is not an understood data format.")
+
+    # Need to set storage location for study bucket if using S3 backend
+    if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
+        version.key.storage = S3Storage(
+            aws_s3_bucket_name=version.root_file.study.bucket
+        )
 
     with version.key.open(mode="rb") as f:
         parsed = list(KNOWN_FORMATS[data_format]["reader"](f))
