@@ -50,7 +50,7 @@ def analyze_version(version):
 
     try:
         content = extract_data(version)
-    except IOError as err:
+    except Exception as err:
         analysis.known_format = False
         analysis.error_message = err
         return analysis
