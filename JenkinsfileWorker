@@ -1,4 +1,4 @@
-@Library(value='kids-first/aws-infra-jenkins-shared-libraries@feature/attach-to-alb', changelog=false) _
+@Library(value='kids-first/aws-infra-jenkins-shared-libraries', changelog=false) _
 ecs_service_existing_alb {
     projectName                = "kf-api-study-creator-worker"
     host_based_routing         = "0"
