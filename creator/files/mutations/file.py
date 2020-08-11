@@ -6,6 +6,7 @@ from django_s3_storage.storage import S3Storage
 from graphql import GraphQLError
 from botocore.exceptions import ClientError
 
+from creator.analyses.analyzer import analyze_version
 from creator.files.models import File, Version
 from creator.studies.models import Study
 from creator.events.models import Event
@@ -91,6 +92,14 @@ class FileUploadMutation(graphene.Mutation):
                 version.save()
         except ClientError:
             raise GraphQLError("Failed to save file")
+
+        if user.has_perm("analyses.add_analysis") or (
+            user.has_perm("analysis.add_my_study_analysis")
+            and user.studies.filter(kf_id=study.kf_id).exists()
+        ):
+            analysis = analyze_version(version)
+            analysis.creator = user
+            analysis.save()
 
         return FileUploadMutation(success=True, file=root_file)
 
