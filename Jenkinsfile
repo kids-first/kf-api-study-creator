@@ -5,6 +5,7 @@ ecs_service_type_1_standard {
     docker_image_type = "alpine"
     entrypoint_command = "/app/bin/entrypoint.sh" 
     quick_deploy = "true"
+    deploy_scripts_version = "master"
     internal_app = "false"
     container_port = "80"
     vcpu_container             = "2048"
