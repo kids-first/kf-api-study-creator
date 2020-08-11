@@ -336,8 +336,9 @@ def analyzer_task():
             f"Successfully analyzed {len(versions) - errors} versions. "
             f"Failed to analyze {errors} versions."
         )
+        if errors > 0:
+            raise Exception(f"Failed to analyze {errors} versions.")
     except Exception as err:
-        raise
         logger.error(f"There was a problem analyzing versions: {err}")
         job.failing = True
         job.last_error = str(err)
