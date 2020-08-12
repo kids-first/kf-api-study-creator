@@ -12,7 +12,7 @@ ecs_service_type_1_standard {
     memory_container           = "4096"
     vcpu_task                  = "2048"
     memory_task                = "4096"
-    health_check_path = "/"
+    health_check_path = "/health_check"
     dependencies = "ecr"
     friendly_dns_name = "study-creator"
 }
