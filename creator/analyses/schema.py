@@ -36,8 +36,9 @@ class AnalysisNode(DjangoObjectType):
         # belongs to one of their studies
         if user.has_perm("analyses.view_analysis") or (
             user.has_perm("analyses.view_my_study_analysis")
-            and analysis.study
-            and user.studies.filter(kf_id=analysis.study.kf_id).exists()
+            and user.studies.filter(
+                kf_id=analysis.version.root_file.study.kf_id
+            ).exists()
         ):
             return analysis
 
@@ -46,7 +47,7 @@ class AnalysisNode(DjangoObjectType):
 
 class AnalysisFilter(django_filters.FilterSet):
     file_kf_id = django_filters.CharFilter(
-        field_name="root_file__kf_id", lookup_expr="exact"
+        field_name="version__root_file__kf_id", lookup_expr="exact"
     )
 
     class Meta:
@@ -69,7 +70,8 @@ class Query(object):
     def resolve_all_analyses(self, info, **kwargs):
         """
         Return all analyses if user has view_analysis
-        Return only analyses in user's studies if user has view_my_analysis
+        Return only analyses in user's studies if user has the
+            view_my_study_analysis permission
         Return not allowed otherwise
         """
         user = info.context.user
@@ -85,7 +87,7 @@ class Query(object):
 
         if user.has_perm("analyses.view_my_study_analysis"):
             return Analysis.objects.filter(
-                root_file__study__in=user.studies.all()
+                version__root_file__study__in=user.studies.all()
             ).all()
 
         raise GraphQLError("Not allowed")

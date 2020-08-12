@@ -41,10 +41,10 @@ def analysis(db):
     "user_group,allowed",
     [
         ("Administrators", True),
-        ("Services", False),
-        ("Developers", False),
+        ("Services", True),
+        ("Developers", True),
         ("Investigators", False),
-        ("Bioinformatics", False),
+        ("Bioinformatics", True),
         (None, False),
     ],
 )
@@ -71,10 +71,10 @@ def test_query_analysis(db, clients, analysis, user_group, allowed):
     "user_group,allowed",
     [
         ("Administrators", True),
-        ("Services", False),
-        ("Developers", False),
-        ("Investigators", False),
-        ("Bioinformatics", False),
+        ("Services", True),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
     ],
 )
 def test_query_my_analysis(db, clients, analysis, user_group, allowed):
@@ -107,7 +107,7 @@ def test_query_my_analysis(db, clients, analysis, user_group, allowed):
         ("Administrators", True, 1),
         ("Services", False, 0),
         ("Developers", False, 0),
-        ("Investigators", False, 0),
+        ("Investigators", True, 1),
         ("Bioinformatics", False, 0),
         (None, False, 0),
     ],

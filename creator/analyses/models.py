@@ -17,7 +17,7 @@ class Analysis(models.Model):
         permissions = [
             ("list_all_analysis", "Can list all analyses"),
             (
-                "view_my_analysis",
+                "view_my_study_analysis",
                 "Can view all analyses in studies user is a member of",
             ),
             (
