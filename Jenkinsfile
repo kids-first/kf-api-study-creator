@@ -15,4 +15,5 @@ ecs_service_type_1_standard {
     health_check_path = "/health_check"
     dependencies = "ecr"
     friendly_dns_name = "study-creator"
+    override_templates = "true"
 }
