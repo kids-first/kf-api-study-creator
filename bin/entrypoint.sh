@@ -1,5 +1,5 @@
 #!/bin/bash
-if $WORKER ; then
+if [[ -z $WORKER]]; then
     echo "Starting worker"
     supervisord -c  /etc/supervisor/conf.d/worker.conf
 elif [[ $1 = scheduler ]]; then
