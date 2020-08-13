@@ -2,7 +2,7 @@
 if [[ $WORKER == "true" ]]; then
     echo "Starting worker"
     supervisord -c  /etc/supervisor/conf.d/worker.conf
-elif [[ $1 = scheduler ]]; then
+elif [[ "$1" == "scheduler" ]]; then
     echo "Starting scheduler"
     /app/manage.py schedule_jobs
     supervisord -c  /etc/supervisor/conf.d/scheduler.conf
