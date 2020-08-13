@@ -1,13 +1,13 @@
 #!/bin/bash
-if "$WORKER" ; then
+if $WORKER ; then
     echo "Starting worker"
     supervisord -c  /etc/supervisor/conf.d/worker.conf
-elif [[ $1 = "scheduler" ]]; then
+elif [[ $1 = scheduler ]]; then
     echo "Starting scheduler"
     /app/manage.py schedule_jobs
     supervisord -c  /etc/supervisor/conf.d/scheduler.conf
 else
-    echo "Starting scheduler"
+    echo "Starting service"
     python manage.py syncstudies --api $DATASERVICE_URL
     /app/manage.py migrate
     /app/manage.py setup_permissions
