@@ -1,7 +1,7 @@
 #!/bin/ash
-if [[ $WORKER == "true" ]]; then
+if [[ -z "$WORKER"]] ; then; then
     supervisord -c  /etc/supervisor/conf.d/worker.conf
-elif [[ $1 = scheduler ]]; then
+elif [[ $1 = "scheduler" ]]; then
     /app/manage.py schedule_jobs
     supervisord -c  /etc/supervisor/conf.d/scheduler.conf
 else
