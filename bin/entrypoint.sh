@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [[ -z $WORKER ]]; then
     echo "Starting worker"
     supervisord -c  /etc/supervisor/conf.d/worker.conf
