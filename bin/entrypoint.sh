@@ -1,5 +1,5 @@
 #!/bin/ash
-if [[ -z "$WORKER"]] ; then; then
+if [[ -z "$WORKER"]]; then
     supervisord -c  /etc/supervisor/conf.d/worker.conf
 elif [[ $1 = "scheduler" ]]; then
     /app/manage.py schedule_jobs
