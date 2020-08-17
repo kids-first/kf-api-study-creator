@@ -45,12 +45,15 @@ class File(models.Model):
     kf_id = KFIDField(primary_key=True, default=file_id)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100)
-    description = models.TextField(max_length=10000,
-                                   help_text='Description of the file')
-    study = models.ForeignKey(Study,
-                              related_name='files',
-                              help_text='The study this file belongs to',
-                              on_delete=models.CASCADE,)
+    description = models.TextField(
+        max_length=10000, help_text="Description of the file"
+    )
+    study = models.ForeignKey(
+        Study,
+        related_name="files",
+        help_text="The study this file belongs to",
+        on_delete=models.CASCADE,
+    )
     creator = models.ForeignKey(
         User,
         null=True,
@@ -97,11 +100,15 @@ def _get_upload_directory(instance, filename):
     """
     Resolves the directory where a file should be stored
     """
-    if settings.DEFAULT_FILE_STORAGE == 'django_s3_storage.storage.S3Storage':
-        prefix = f'{settings.UPLOAD_DIR}/{filename}'
+    if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
+        prefix = f"{settings.UPLOAD_DIR}/{filename}"
         return prefix
     else:
-        directory = f'{settings.UPLOAD_DIR}/{instance.root_file.study.bucket}/'
+        if instance.study is not None:
+            bucket = instance.study.bucket
+        else:
+            bucket = instance.root_file.study.bucket
+        directory = f"{settings.UPLOAD_DIR}/{bucket}/"
         return os.path.join(settings.BASE_DIR, directory, filename)
 
 
@@ -149,6 +156,7 @@ class Version(models.Model):
         ),
     )
     description = models.TextField(
+        null=True,
         max_length=10000,
         help_text=(
             "Description of changes introduced to the file by this version"
@@ -182,11 +190,20 @@ class Version(models.Model):
             ],
             help_text='Size of the version in bytes')
 
-    root_file = models.ForeignKey(File,
-                                  related_name='versions',
-                                  help_text=('The file that this version '
-                                             'version belongs to'),
-                                  on_delete=models.CASCADE,)
+    root_file = models.ForeignKey(
+        File,
+        null=True,
+        related_name="versions",
+        help_text=("The file that this version belongs to"),
+        on_delete=models.CASCADE,
+    )
+    study = models.ForeignKey(
+        Study,
+        null=True,
+        related_name="versions",
+        help_text=("The study that this version belongs to"),
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return self.kf_id

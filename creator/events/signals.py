@@ -48,20 +48,22 @@ def new_version(signal, sender, instance, created, **kwargs):
     """
     username = getattr(instance.creator, "display_name", "Anonymous user")
     if created:
-        message = (
-            f"{username} created version {instance.kf_id}"
-            f" of file {instance.root_file.kf_id}"
-        )
+        message = f"{username} created version {instance.kf_id}"
+        if instance.root_file is not None:
+            message += f" of file {instance.root_file.kf_id}"
+
         event_type = "FV_CRE"
     else:
-        message = (
-            f"{username} updated version {instance.kf_id}"
-            f" of file {instance.root_file.kf_id}"
-        )
+        message = f"{username} updated version {instance.kf_id}"
+        if instance.root_file is not None:
+            message += f" of file {instance.root_file.kf_id}"
+
         event_type = "FV_UPD"
 
+    study = instance.study if instance.study else instance.root_file.study
+
     ev = Event(
-        study=instance.root_file.study,
+        study=study,
         file=instance.root_file,
         version=instance,
         user=instance.creator,
