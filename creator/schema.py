@@ -9,6 +9,7 @@ import graphene
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
 
+import creator.analyses.schema
 import creator.buckets.schema
 import creator.files.schema
 import creator.studies.schema
@@ -19,6 +20,7 @@ import creator.status.schema
 
 
 class Query(
+    creator.analyses.schema.Query,
     creator.files.schema.Query,
     creator.studies.schema.Query,
     creator.users.schema.Query,
@@ -35,6 +37,7 @@ class Query(
 
 
 class Mutation(
+    creator.analyses.schema.Mutation,
     creator.buckets.schema.Mutation,
     creator.projects.schema.Mutation,
     creator.studies.schema.Mutation,

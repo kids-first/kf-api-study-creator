@@ -7,6 +7,7 @@ from django.conf import settings
 
 from creator.models import Job
 from creator.tasks import (
+    analyzer_task,
     sync_cavatica_projects_task,
     sync_dataservice_studies_task,
     sync_buckets_task,
@@ -22,10 +23,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Setting up scheduled tasks")
 
+        self.default_scheduler = django_rq.get_scheduler("default")
         self.cavatica_scheduler = django_rq.get_scheduler("cavatica")
         self.dataservice_scheduler = django_rq.get_scheduler("dataservice")
         self.aws_scheduler = django_rq.get_scheduler("aws")
         self.slack_scheduler = django_rq.get_scheduler("slack")
+
+        jobs = list(self.default_scheduler.get_jobs())
+        logger.info(f"Found {len(jobs)} jobs scheduled on the default queue")
+        self.setup_analyzer()
 
         jobs = list(self.cavatica_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the Cavatica queue")
@@ -44,6 +50,26 @@ class Command(BaseCommand):
         jobs = list(self.slack_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the Slack queue")
         self.setup_slack_notify()
+
+    def setup_analyzer(self):
+        logger.info("Scheduling Analyzer jobs")
+        name = "analyzer"
+        description = "Analyze version in the Study Creator"
+
+        self.default_scheduler.cancel("analyzer")
+
+        self.default_scheduler.schedule(
+            id=name,
+            description=description,
+            scheduled_time=datetime.utcnow(),
+            func=analyzer_task,
+            repeat=None,
+            interval=3600,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="default"
+        )
+        job.save()
 
     def setup_cavatica_sync(self):
         logger.info("Scheduling Cavatica Sync jobs")
