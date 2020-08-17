@@ -33,13 +33,12 @@ def test_upload_query_s3(db, clients, upload_file, tmp_uploads_s3):
     assert "data" in resp.json()
     assert "errors" not in resp.json()
     assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert studies[0].files.count() == 1
     assert studies[-1].files.count() == 0
 
@@ -88,13 +87,12 @@ def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
     assert "data" in resp.json()
     assert "errors" not in resp.json()
     assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert studies[-1].files.count() == 1
 
 
@@ -217,13 +215,12 @@ def test_upload_unauthed_study(db, clients, upload_file):
     assert "data" in resp.json()
     assert "errors" not in resp.json()
     assert resp.json()["data"]["createFile"]["success"] is True
-    assert resp.json()["data"]["createFile"]["file"] == {
-        "description": "This is my test file",
-        "fileType": "OTH",
-        "name": "Test file",
-        "kfId": resp.json()["data"]["createFile"]["file"]["kfId"],
-        "tags": ["tag1", "tag2"],
-    }
+    f = resp.json()["data"]["createFile"]["file"]
+    assert f["fileType"] == "OTH"
+    assert f["description"] == "This is my test file"
+    assert f["name"] == "Test file"
+    assert f["kfId"] == resp.json()["data"]["createFile"]["file"]["kfId"]
+    assert f["tags"] == ["tag1", "tag2"]
     assert study.files.count() == 1
 
 

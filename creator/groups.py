@@ -4,6 +4,10 @@
 
 GROUPS = {
     "Administrators": [
+        "view_analysis",
+        "list_all_analysis",
+        "change_analysis",
+        "add_analysis",
         "view_study",
         "add_study",
         "change_study",
@@ -54,6 +58,7 @@ GROUPS = {
         "view_study",
         "view_downloadtoken",
         "add_downloadtoken",
+        "view_analysis",
         "delete_downloadtoken",
         "view_file",
         "view_version",
@@ -65,6 +70,8 @@ GROUPS = {
         "view_my_file",
         "add_my_study_file",
         "change_my_study_file",
+        "view_my_study_analysis",
+        "add_my_study_analysis",
         "add_my_study_version",
         "add_downloadtoken",
         "view_my_version",
@@ -76,6 +83,7 @@ GROUPS = {
         "view_study",
         "view_file",
         "view_version",
+        "view_analysis",
         "add_downloadtoken",
         "view_event",
         "view_project",
@@ -86,5 +94,11 @@ GROUPS = {
         "unlink_project",
         "import_volume",
     ],
-    "Services": ["view_study", "add_file", "view_file", "view_version"],
+    "Services": [
+        "view_study",
+        "add_file",
+        "view_file",
+        "view_analysis",
+        "view_version",
+    ],
 }

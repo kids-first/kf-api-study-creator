@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'django_s3_storage',
     'django_rq',
+    'creator.analyses',
     'creator.dev',
     'creator.files',
     'creator.status',
