@@ -1,4 +1,5 @@
 import graphene
+from graphql import GraphQLError
 from django_rq.utils import get_statistics
 from django.conf import settings
 from django.core.cache import cache

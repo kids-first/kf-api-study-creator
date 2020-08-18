@@ -127,7 +127,7 @@ CACHES = {
 redis_host = os.environ.get("REDIS_HOST", "localhost")
 redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
-redis_ssl = os.environ.get("REDIS_SSL", True)
+redis_ssl = os.environ.get("REDIS_SSL", "True") == "True"
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
