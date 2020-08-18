@@ -1,3 +1,4 @@
+set -e
 if [[ "$WORKER" == "true" ]]; then
     echo "Starting worker"
     supervisord -c  /etc/supervisor/conf.d/worker.conf
