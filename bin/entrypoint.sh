@@ -1,4 +1,3 @@
-#!/bin/bash
 set -e
 set +x
 if [[ "$WORKER" == "true" ]]; then
