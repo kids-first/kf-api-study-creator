@@ -4,6 +4,7 @@ from django.conf import settings
 from graphene_file_upload.scalars import Upload
 from django_s3_storage.storage import S3Storage
 from graphql import GraphQLError
+from graphql_relay import from_global_id
 from botocore.exceptions import ClientError
 
 from creator.analyses.analyzer import analyze_version
@@ -102,6 +103,91 @@ class FileUploadMutation(graphene.Mutation):
             analysis.save()
 
         return FileUploadMutation(success=True, file=root_file)
+
+
+class CreateFileMutation(graphene.Mutation):
+    class Arguments:
+        version = graphene.ID(
+            required=True,
+            description="The first version this document will contain",
+        )
+        study = graphene.ID(
+            required=False, description="The study this file will belong to"
+        )
+        name = graphene.String(
+            required=True, description="The name of the file"
+        )
+        description = graphene.String(
+            required=True, description="A description of this file"
+        )
+        # This extracts the FileFileType enum from the auto-created field
+        # made from the django model inside of the FileNode
+        fileType = FileNode._meta.fields["file_type"].type
+        tags = graphene.List(graphene.String)
+
+    file = graphene.Field(FileNode)
+
+    def mutate(
+        self,
+        info,
+        version,
+        name,
+        description,
+        fileType,
+        tags,
+        study=None,
+        **kwargs,
+    ):
+        """
+        Creates a new file housing the specified version.
+        """
+        user = info.context.user
+
+        try:
+            _, version_id = from_global_id(version)
+            version = Version.objects.get(kf_id=version_id)
+        except Version.DoesNotExist:
+            raise GraphQLError("Version does not exist.")
+
+        # If there was a study in the mutation, try to resolve it, else try
+        # to inherit the study on the version, if there is one, otherwise fail
+        # to create a new file
+        if study is not None:
+            try:
+                _, study_id = from_global_id(study)
+                study = Study.objects.get(kf_id=study_id)
+            except Study.DoesNotExist:
+                raise GraphQLError("Study does not exist.")
+        else:
+            study = version.study
+            if study is None:
+                raise GraphQLError(
+                    "Study must be specifed or the version given must have a "
+                    "linked study"
+                )
+
+        if not (
+            user.has_perm("files.add_file")
+            or (
+                user.has_perm("files.add_my_study_file")
+                and user.studies.filter(kf_id=study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
+
+        root_file = File(
+            name=name,
+            study=study,
+            creator=user,
+            description=description,
+            file_type=fileType,
+            tags=tags,
+        )
+        root_file.save()
+        version.root_file = root_file
+        version.save()
+
+        return CreateFileMutation(file=root_file)
 
 
 class FileMutation(graphene.Mutation):
@@ -208,7 +294,7 @@ class DeleteFileMutation(graphene.Mutation):
 
 
 class Mutation(graphene.ObjectType):
-    create_file = FileUploadMutation.Field(
+    create_file = CreateFileMutation.Field(
         description="Upload a new file to a study"
     )
     update_file = FileMutation.Field(description="Update a file")
