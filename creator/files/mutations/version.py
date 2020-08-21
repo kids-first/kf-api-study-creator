@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django.db import transaction
 from django_s3_storage.storage import S3Storage
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
@@ -148,24 +149,25 @@ class VersionUploadMutation(graphene.Mutation):
             raise GraphQLError("File is too large.")
 
         try:
-            version = Version(
-                file_name=file.name,
-                size=file.size,
-                root_file=root_file,
-                study=study,
-                key=file,
-                creator=user,
-                description=description,
-            )
-
-            if (
-                settings.DEFAULT_FILE_STORAGE
-                == "django_s3_storage.storage.S3Storage"
-            ):
-                version.key.storage = S3Storage(
-                    aws_s3_bucket_name=study.bucket
+            with transaction.atomic():
+                version = Version(
+                    file_name=file.name,
+                    size=file.size,
+                    root_file=root_file,
+                    study=study,
+                    key=file,
+                    creator=user,
+                    description=description,
                 )
-            version.save()
+
+                if (
+                    settings.DEFAULT_FILE_STORAGE
+                    == "django_s3_storage.storage.S3Storage"
+                ):
+                    version.key.storage = S3Storage(
+                        aws_s3_bucket_name=study.bucket
+                    )
+                version.save()
         except ClientError:
             raise GraphQLError("Failed to save file")
 
