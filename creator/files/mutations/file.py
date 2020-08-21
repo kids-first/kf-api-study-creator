@@ -2,7 +2,6 @@ import graphene
 from django.db import transaction
 from django.conf import settings
 from graphene_file_upload.scalars import Upload
-from django_s3_storage.storage import S3Storage
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 from botocore.exceptions import ClientError
@@ -12,97 +11,6 @@ from creator.files.models import File, Version
 from creator.studies.models import Study
 from creator.events.models import Event
 from creator.files.nodes.file import FileNode
-
-
-class FileUploadMutation(graphene.Mutation):
-    class Arguments:
-        file = Upload(
-            required=True,
-            description="Empty argument used by the multipart request",
-        )
-        studyId = graphene.String(
-            required=True,
-            description="kf_id of the study this file will belong to",
-        )
-        name = graphene.String(
-            required=True, description="The name of the file"
-        )
-        description = graphene.String(
-            required=True, description="A description of this file"
-        )
-        # This extracts the FileFileType enum from the auto-created field
-        # made from the django model inside of the FileNode
-        fileType = FileNode._meta.fields["file_type"].type
-        tags = graphene.List(graphene.String)
-
-    success = graphene.Boolean()
-    file = graphene.Field(FileNode)
-
-    def mutate(
-        self, info, file, studyId, name, description, fileType, tags, **kwargs
-    ):
-        """
-        Uploads a file given a studyId and creates a new file and file version
-        if the file does not exist.
-        """
-        user = info.context.user
-        study = Study.objects.get(kf_id=studyId)
-
-        if not (
-            user.has_perm("files.add_file")
-            or (
-                user.has_perm("files.add_my_study_file")
-                and user.studies.filter(kf_id=study.kf_id).exists()
-            )
-        ):
-            raise GraphQLError("Not allowed")
-
-        if file.size > settings.FILE_MAX_SIZE:
-            raise GraphQLError("File is too large.")
-
-        try:
-            # We will do this in a transaction so that if something fails, we
-            # can be assured that neither the file nor the version get saved
-            with transaction.atomic():
-                # First create the file
-                root_file = File(
-                    name=name,
-                    study=study,
-                    creator=user,
-                    description=description,
-                    file_type=fileType,
-                    tags=tags,
-                )
-                root_file.save()
-                # Now create the version
-                version = Version(
-                    file_name=file.name,
-                    size=file.size,
-                    root_file=root_file,
-                    key=file,
-                    creator=user,
-                    description=description,
-                )
-                if (
-                    settings.DEFAULT_FILE_STORAGE
-                    == "django_s3_storage.storage.S3Storage"
-                ):
-                    version.key.storage = S3Storage(
-                        aws_s3_bucket_name=study.bucket
-                    )
-                version.save()
-        except ClientError:
-            raise GraphQLError("Failed to save file")
-
-        if user.has_perm("analyses.add_analysis") or (
-            user.has_perm("analysis.add_my_study_analysis")
-            and user.studies.filter(kf_id=study.kf_id).exists()
-        ):
-            analysis = analyze_version(version)
-            analysis.creator = user
-            analysis.save()
-
-        return FileUploadMutation(success=True, file=root_file)
 
 
 class CreateFileMutation(graphene.Mutation):
