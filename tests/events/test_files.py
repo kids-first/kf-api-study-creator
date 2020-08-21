@@ -46,9 +46,10 @@ def test_new_file_event(clients, db, upload_file):
     file = File.objects.get(kf_id=file_id)
     version = file.versions.first()
 
-    assert Event.objects.count() == 2
+    assert Event.objects.count() == 3
     assert Event.objects.filter(event_type="SF_CRE").count() == 1
     assert Event.objects.filter(event_type="FV_CRE").count() == 1
+    assert Event.objects.filter(event_type="FV_UPD").count() == 1
     user = User.objects.filter(groups__name="Administrators").first()
 
     sf_cre = Event.objects.filter(event_type="SF_CRE").first()
@@ -58,9 +59,15 @@ def test_new_file_event(clients, db, upload_file):
 
     fv_cre = Event.objects.filter(event_type="FV_CRE").first()
     assert fv_cre.user == user
-    assert fv_cre.file == file
+    assert fv_cre.file is None
     assert fv_cre.version == version
     assert fv_cre.study == studies[0]
+
+    fv_upd = Event.objects.filter(event_type="FV_UPD").first()
+    assert fv_upd.user == user
+    assert fv_upd.file == file
+    assert fv_upd.version == version
+    assert fv_upd.study == studies[0]
 
 
 def test_file_updated_event(db, clients, upload_file):
@@ -71,7 +78,7 @@ def test_file_updated_event(db, clients, upload_file):
     study = StudyFactory()
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
-    assert Event.objects.count() == 2
+    assert Event.objects.count() == 3
 
     variables = {
         "kfId": file_id,
@@ -85,7 +92,7 @@ def test_file_updated_event(db, clients, upload_file):
         data={"query": UPDATE_FILE, "variables": variables},
     )
     user = User.objects.first()
-    assert Event.objects.count() == 3
+    assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="SF_UPD").count() == 1
     assert Event.objects.filter(event_type="SF_UPD").first().user == user
     assert (
@@ -102,7 +109,7 @@ def test_file_deleted_event(db, clients, upload_file):
     study = StudyFactory()
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
-    assert Event.objects.count() == 2
+    assert Event.objects.count() == 3
 
     variables = {"kfId": file_id}
     resp = client.post(
@@ -111,7 +118,7 @@ def test_file_deleted_event(db, clients, upload_file):
         data={"query": DELETE_FILE, "variables": variables},
     )
     user = User.objects.first()
-    assert Event.objects.count() == 3
+    assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="SF_DEL").count() == 1
     assert Event.objects.filter(event_type="SF_DEL").first().user == user
     assert (
