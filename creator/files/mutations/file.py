@@ -4,7 +4,6 @@ from django.conf import settings
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
 from graphql_relay import from_global_id
-from botocore.exceptions import ClientError
 
 from creator.analyses.analyzer import analyze_version
 from creator.files.models import File, Version
@@ -138,26 +137,23 @@ class FileMutation(graphene.Mutation):
 
         update_fields = []
 
-        try:
-            if kwargs.get("name"):
-                if file.name != kwargs.get("name"):
-                    update_fields.append("name")
-                file.name = kwargs.get("name")
-            if kwargs.get("description"):
-                if file.description != kwargs.get("description"):
-                    update_fields.append("description")
-                file.description = kwargs.get("description")
-            if kwargs.get("file_type"):
-                if file.file_type != kwargs.get("file_type"):
-                    update_fields.append("file type")
-                file.file_type = kwargs.get("file_type")
-            if "tags" in kwargs:
-                if file.tags != kwargs.get("tags"):
-                    update_fields.append("tags")
-                file.tags = kwargs.get("tags")
-            file.save()
-        except ClientError:
-            raise GraphQLError("Failed to save file mutation.")
+        if kwargs.get("name"):
+            if file.name != kwargs.get("name"):
+                update_fields.append("name")
+            file.name = kwargs.get("name")
+        if kwargs.get("description"):
+            if file.description != kwargs.get("description"):
+                update_fields.append("description")
+            file.description = kwargs.get("description")
+        if kwargs.get("file_type"):
+            if file.file_type != kwargs.get("file_type"):
+                update_fields.append("file type")
+            file.file_type = kwargs.get("file_type")
+        if "tags" in kwargs:
+            if file.tags != kwargs.get("tags"):
+                update_fields.append("tags")
+            file.tags = kwargs.get("tags")
+        file.save()
 
         # Make an update event
         message = (
