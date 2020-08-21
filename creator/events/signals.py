@@ -60,7 +60,12 @@ def new_version(signal, sender, instance, created, **kwargs):
 
         event_type = "FV_UPD"
 
-    study = instance.study if instance.study else instance.root_file.study
+    if instance.study:
+        study = instance.study
+    elif instance.root_file:
+        study = instance.root_file.study
+    else:
+        study = None
 
     ev = Event(
         study=study,

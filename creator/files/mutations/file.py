@@ -69,7 +69,7 @@ class CreateFileMutation(graphene.Mutation):
             study = version.study
             if study is None:
                 raise GraphQLError(
-                    "Study must be specifed or the version given must have a "
+                    "Study must be specified or the version given must have a "
                     "linked study"
                 )
 
