@@ -172,7 +172,7 @@ class VersionUploadMutation(graphene.Mutation):
             raise GraphQLError("Failed to save file")
 
         if user.has_perm("analyses.add_analysis") or (
-            user.has_perm("analysis.add_my_study_analysis")
+            user.has_perm("analyses.add_my_study_analysis")
             and user.studies.filter(kf_id=study.kf_id).exists()
         ):
             analysis = analyze_version(version)
