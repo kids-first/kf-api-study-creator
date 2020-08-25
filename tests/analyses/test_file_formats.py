@@ -13,7 +13,12 @@ def test_file_formats(db, clients, upload_file):
     client = clients.get("Administrators")
     study = StudyFactory()
 
-    analyses = {"tsv": None, "csv": None, "xlsx": None}
+    analyses = {
+        "tsv": None,
+        "csv": None,
+        "xlsx": None,
+        "xls": None,
+    }
 
     for fmt in analyses.keys():
         resp = upload_file(
@@ -36,6 +41,7 @@ def test_file_formats(db, clients, upload_file):
             getattr(analyses["csv"], attr)
             == getattr(analyses["tsv"], attr)
             == getattr(analyses["xlsx"], attr)
+            == getattr(analyses["xls"], attr)
         )
 
 
