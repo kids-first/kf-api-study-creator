@@ -107,9 +107,14 @@ def extract_data(version):
 
     # Need to set storage location for study bucket if using S3 backend
     if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
-        version.key.storage = S3Storage(
-            aws_s3_bucket_name=version.root_file.study.bucket
-        )
+        if version.study is not None:
+            study = version.study
+        elif version.root_file is not None:
+            study = version.root_file.study
+        else:
+            raise GraphQLError("Version must be part of a study.")
+
+        version.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
 
     with version.key.open(mode="rb") as f:
         parsed = list(KNOWN_FORMATS[data_format]["reader"](f))
