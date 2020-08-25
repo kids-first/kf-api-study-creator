@@ -33,6 +33,7 @@ KNOWN_FORMATS = {
         "reader": partial(CSVDictReader, delimiter="\t"),
     },
     ".xlsx": {"name": "Excel", "reader": XLSXDictReader},
+    ".xls": {"name": "Excel", "reader": XLSXDictReader},
 }
 
 NUMBER_OF_COMMON_VALUES = 15
