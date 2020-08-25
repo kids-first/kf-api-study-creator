@@ -1,11 +1,14 @@
 import graphene
 from django.conf import settings
+from django.db import transaction
 from django_s3_storage.storage import S3Storage
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
+from graphql_relay import from_global_id
 from botocore.exceptions import ClientError
 
 from creator.analyses.analyzer import analyze_version
+from creator.studies.models import Study
 from creator.files.models import File, Version
 from creator.files.nodes.version import VersionNode
 
@@ -21,6 +24,7 @@ class VersionMutation(graphene.Mutation):
         # This extracts the VersionState enum from the auto-created field
         # made from the django model inside of the VersionNode
         state = VersionNode._meta.fields["state"].type
+        file = graphene.ID(required=False)
 
     version = graphene.Field(VersionNode)
 
@@ -44,7 +48,12 @@ class VersionMutation(graphene.Mutation):
         except Version.DoesNotExist:
             raise GraphQLError("Version does not exist.")
 
-        study_id = version.root_file.study.kf_id
+        if version.study is not None:
+            study_id = version.study.kf_id
+        elif version.root_file is not None:
+            study_id = version.root_file.study.kf_id
+        else:
+            raise GraphQLError("Version must be part of a study.")
 
         try:
             if kwargs.get("description"):
@@ -59,6 +68,27 @@ class VersionMutation(graphene.Mutation):
                 ):
                     raise GraphQLError("Not allowed")
                 version.description = kwargs.get("description")
+
+            if kwargs.get("file"):
+                if version.root_file is None and (
+                    not (
+                        user.has_perm("files.change_version_meta")
+                        or (
+                            user.has_perm("files.change_my_version_meta")
+                            and user.studies.filter(kf_id=study_id).exists()
+                        )
+                    )
+                ):
+                    raise GraphQLError("Not allowed")
+
+                file_id = kwargs.get("file")
+                _, kf_id = from_global_id(file_id)
+                try:
+                    file = File.objects.get(kf_id=kf_id)
+                except File.DoesNotExist:
+                    raise GraphQLError("File does not exist.")
+                version.root_file = file
+
             if kwargs.get("state"):
                 if kwargs.get("state") != version.state and (
                     not (
@@ -85,11 +115,14 @@ class VersionUploadMutation(graphene.Mutation):
             description="Empty argument used by the multipart request",
         )
         fileId = graphene.String(
-            required=True,
+            required=False,
             description="kf_id of the file this version will belong to",
         )
+        study = graphene.ID(
+            required=False, description="The study this version will belong to"
+        )
         description = graphene.String(
-            required=True,
+            required=False,
             description=(
                 "A description of the changes made in this version to"
                 " the file"
@@ -99,19 +132,37 @@ class VersionUploadMutation(graphene.Mutation):
     success = graphene.Boolean()
     version = graphene.Field(VersionNode)
 
-    def mutate(self, info, file, fileId, description, **kwargs):
+    def mutate(
+        self, info, file, fileId=None, study=None, description=None, **kwargs
+    ):
         """
-        Uploads a new version of a file given a fileId.
+        Uploads a new version of a file given a fileId or study.
+        A user may upload a version knowing what existing file it will augment,
+        or they may upload the version before it is known (in the case of an
+        entirely new file) but they must at least specify the study they are
+        uploading to for the purpose of permissions and knowing where the file
+        must reside in S3.
         """
         user = info.context.user
 
-        # Try to look up the file specified
-        try:
-            root_file = File.objects.get(kf_id=fileId)
-        except File.DoesNotExist:
-            raise GraphQLError("File does not exist.")
+        root_file = None
 
-        study = root_file.study
+        if fileId is None and study is None:
+            raise GraphQLError("Either a file or study must be specified")
+
+        if fileId:
+            # Try to look up the file, if specified
+            try:
+                root_file = File.objects.get(kf_id=fileId)
+            except File.DoesNotExist:
+                raise GraphQLError("File does not exist.")
+
+            study = root_file.study
+        else:
+            _, kf_id = from_global_id(study)
+            study = Study.objects.get(kf_id=kf_id)
+
+        # Make sure user is allowed to upload to this study
         if not (
             user.has_perm("files.add_version")
             or (
@@ -125,27 +176,30 @@ class VersionUploadMutation(graphene.Mutation):
             raise GraphQLError("File is too large.")
 
         try:
-            version = Version(
-                file_name=file.name,
-                size=file.size,
-                root_file=root_file,
-                key=file,
-                creator=user,
-                description=description,
-            )
-            if (
-                settings.DEFAULT_FILE_STORAGE
-                == "django_s3_storage.storage.S3Storage"
-            ):
-                version.key.storage = S3Storage(
-                    aws_s3_bucket_name=study.bucket
+            with transaction.atomic():
+                version = Version(
+                    file_name=file.name,
+                    size=file.size,
+                    root_file=root_file,
+                    study=study,
+                    key=file,
+                    creator=user,
+                    description=description,
                 )
-            version.save()
+
+                if (
+                    settings.DEFAULT_FILE_STORAGE
+                    == "django_s3_storage.storage.S3Storage"
+                ):
+                    version.key.storage = S3Storage(
+                        aws_s3_bucket_name=study.bucket
+                    )
+                version.save()
         except ClientError:
             raise GraphQLError("Failed to save file")
 
         if user.has_perm("analyses.add_analysis") or (
-            user.has_perm("analysis.add_my_study_analysis")
+            user.has_perm("analyses.add_my_study_analysis")
             and user.studies.filter(kf_id=study.kf_id).exists()
         ):
             analysis = analyze_version(version)

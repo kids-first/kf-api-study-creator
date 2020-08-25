@@ -2,9 +2,8 @@ import graphene
 from django.db import transaction
 from django.conf import settings
 from graphene_file_upload.scalars import Upload
-from django_s3_storage.storage import S3Storage
 from graphql import GraphQLError
-from botocore.exceptions import ClientError
+from graphql_relay import from_global_id
 
 from creator.analyses.analyzer import analyze_version
 from creator.files.models import File, Version
@@ -13,15 +12,14 @@ from creator.events.models import Event
 from creator.files.nodes.file import FileNode
 
 
-class FileUploadMutation(graphene.Mutation):
+class CreateFileMutation(graphene.Mutation):
     class Arguments:
-        file = Upload(
+        version = graphene.ID(
             required=True,
-            description="Empty argument used by the multipart request",
+            description="The first version this document will contain",
         )
-        studyId = graphene.String(
-            required=True,
-            description="kf_id of the study this file will belong to",
+        study = graphene.ID(
+            required=False, description="The study this file will belong to"
         )
         name = graphene.String(
             required=True, description="The name of the file"
@@ -34,18 +32,46 @@ class FileUploadMutation(graphene.Mutation):
         fileType = FileNode._meta.fields["file_type"].type
         tags = graphene.List(graphene.String)
 
-    success = graphene.Boolean()
     file = graphene.Field(FileNode)
 
     def mutate(
-        self, info, file, studyId, name, description, fileType, tags, **kwargs
+        self,
+        info,
+        version,
+        name,
+        description,
+        fileType,
+        tags,
+        study=None,
+        **kwargs,
     ):
         """
-        Uploads a file given a studyId and creates a new file and file version
-        if the file does not exist.
+        Creates a new file housing the specified version.
         """
         user = info.context.user
-        study = Study.objects.get(kf_id=studyId)
+
+        try:
+            _, version_id = from_global_id(version)
+            version = Version.objects.get(kf_id=version_id)
+        except Version.DoesNotExist:
+            raise GraphQLError("Version does not exist.")
+
+        # If there was a study in the mutation, try to resolve it, else try
+        # to inherit the study on the version, if there is one, otherwise fail
+        # to create a new file
+        if study is not None:
+            try:
+                _, study_id = from_global_id(study)
+                study = Study.objects.get(kf_id=study_id)
+            except Study.DoesNotExist:
+                raise GraphQLError("Study does not exist.")
+        else:
+            study = version.study
+            if study is None:
+                raise GraphQLError(
+                    "Study must be specified or the version given must have a "
+                    "linked study"
+                )
 
         if not (
             user.has_perm("files.add_file")
@@ -56,52 +82,19 @@ class FileUploadMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
-        if file.size > settings.FILE_MAX_SIZE:
-            raise GraphQLError("File is too large.")
+        root_file = File(
+            name=name,
+            study=study,
+            creator=user,
+            description=description,
+            file_type=fileType,
+            tags=tags,
+        )
+        root_file.save()
+        version.root_file = root_file
+        version.save()
 
-        try:
-            # We will do this in a transaction so that if something fails, we
-            # can be assured that neither the file nor the version get saved
-            with transaction.atomic():
-                # First create the file
-                root_file = File(
-                    name=name,
-                    study=study,
-                    creator=user,
-                    description=description,
-                    file_type=fileType,
-                    tags=tags,
-                )
-                root_file.save()
-                # Now create the version
-                version = Version(
-                    file_name=file.name,
-                    size=file.size,
-                    root_file=root_file,
-                    key=file,
-                    creator=user,
-                    description=description,
-                )
-                if (
-                    settings.DEFAULT_FILE_STORAGE
-                    == "django_s3_storage.storage.S3Storage"
-                ):
-                    version.key.storage = S3Storage(
-                        aws_s3_bucket_name=study.bucket
-                    )
-                version.save()
-        except ClientError:
-            raise GraphQLError("Failed to save file")
-
-        if user.has_perm("analyses.add_analysis") or (
-            user.has_perm("analysis.add_my_study_analysis")
-            and user.studies.filter(kf_id=study.kf_id).exists()
-        ):
-            analysis = analyze_version(version)
-            analysis.creator = user
-            analysis.save()
-
-        return FileUploadMutation(success=True, file=root_file)
+        return CreateFileMutation(file=root_file)
 
 
 class FileMutation(graphene.Mutation):
@@ -144,26 +137,23 @@ class FileMutation(graphene.Mutation):
 
         update_fields = []
 
-        try:
-            if kwargs.get("name"):
-                if file.name != kwargs.get("name"):
-                    update_fields.append("name")
-                file.name = kwargs.get("name")
-            if kwargs.get("description"):
-                if file.description != kwargs.get("description"):
-                    update_fields.append("description")
-                file.description = kwargs.get("description")
-            if kwargs.get("file_type"):
-                if file.file_type != kwargs.get("file_type"):
-                    update_fields.append("file type")
-                file.file_type = kwargs.get("file_type")
-            if "tags" in kwargs:
-                if file.tags != kwargs.get("tags"):
-                    update_fields.append("tags")
-                file.tags = kwargs.get("tags")
-            file.save()
-        except ClientError:
-            raise GraphQLError("Failed to save file mutation.")
+        if kwargs.get("name"):
+            if file.name != kwargs.get("name"):
+                update_fields.append("name")
+            file.name = kwargs.get("name")
+        if kwargs.get("description"):
+            if file.description != kwargs.get("description"):
+                update_fields.append("description")
+            file.description = kwargs.get("description")
+        if kwargs.get("file_type"):
+            if file.file_type != kwargs.get("file_type"):
+                update_fields.append("file type")
+            file.file_type = kwargs.get("file_type")
+        if "tags" in kwargs:
+            if file.tags != kwargs.get("tags"):
+                update_fields.append("tags")
+            file.tags = kwargs.get("tags")
+        file.save()
 
         # Make an update event
         message = (
@@ -208,7 +198,7 @@ class DeleteFileMutation(graphene.Mutation):
 
 
 class Mutation(graphene.ObjectType):
-    create_file = FileUploadMutation.Field(
+    create_file = CreateFileMutation.Field(
         description="Upload a new file to a study"
     )
     update_file = FileMutation.Field(description="Update a file")

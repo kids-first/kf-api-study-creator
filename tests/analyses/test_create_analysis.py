@@ -12,6 +12,7 @@ from creator.projects.cavatica import (
     copy_users,
 )
 from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
 from creator.analyses.models import Analysis
 
 
@@ -33,23 +34,6 @@ mutation runAnalysis($version: ID!) {
 """
 
 
-@pytest.fixture
-def clinical_file(upload_file, clients):
-    client = clients.get("Services")
-
-    study = StudyFactory()
-    resp = upload_file(
-        study.kf_id, "SD_ME0WME0W/FV_4DP2P2Y2_clinical.tsv", client=client
-    )
-
-    file_id = resp.json()["data"]["createFile"]["file"]["id"]
-    version_id = resp.json()["data"]["createFile"]["file"]["versions"][
-        "edges"
-    ][0]["node"]["id"]
-
-    return file_id, version_id
-
-
 @pytest.mark.parametrize(
     "user_group,allowed",
     [
@@ -61,16 +45,13 @@ def clinical_file(upload_file, clients):
         (None, False),
     ],
 )
-def test_create_analysis_mutation(
-    db, clients, clinical_file, user_group, allowed
-):
+def test_create_analysis_mutation(db, clients, user_group, allowed):
     """
-    Test that analyses are properly controlled be permissions
+    Test that analyses are properly controlled by permissions
     """
     study = StudyFactory(kf_id="SD_00000000")
-    study.save()
-
-    _, version_id = clinical_file
+    file = FileFactory(study=study)
+    version_id = to_global_id("VersionNode", file.versions.first().kf_id)
 
     client = clients.get(user_group)
     kf_id = to_global_id("StudyNode", "SD_00000000")

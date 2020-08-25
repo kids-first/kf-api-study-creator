@@ -33,12 +33,12 @@ def test_new_version_event(db, clients, upload_file, upload_version):
     file = File.objects.get(kf_id=file_id)
     user = User.objects.first()
 
-    resp = upload_version(file.kf_id, "manifest.txt", client)
+    resp = upload_version("manifest.txt", file_id=file.kf_id, client=client)
     version = Version.objects.get(
         kf_id=resp.json()["data"]["createVersion"]["version"]["kfId"]
     )
 
-    assert Event.objects.count() == 3
+    assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="FV_CRE").count() == 2
 
     fv_cre = Event.objects.filter(event_type="FV_CRE").latest("created_at")
@@ -66,8 +66,8 @@ def test_update_version_event(db, clients, upload_file, upload_version):
         data={"query": UPDATE_VERSION, "variables": variables},
     )
 
-    assert Event.objects.count() == 3
-    assert Event.objects.filter(event_type="FV_UPD").count() == 1
+    assert Event.objects.count() == 4
+    assert Event.objects.filter(event_type="FV_UPD").count() == 2
 
     fv_upd = Event.objects.filter(event_type="FV_UPD").first()
     assert fv_upd.user == user
