@@ -176,6 +176,7 @@ def upload_file(client, tmp_uploads_local, upload_version):
                             edges {
                                 node {
                                     id
+                                    kfId
                                     analysis {
                                         id
                                     }

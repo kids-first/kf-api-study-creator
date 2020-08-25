@@ -27,7 +27,13 @@ class CreateAnalysisMutation(graphene.Mutation):
         except Version.DoesNotExist:
             raise GraphQLError("Version does not exist")
 
-        study = version.root_file.study
+        if version.study is not None:
+            study = version.study
+        elif version.root_file is not None:
+            study = version.root_file.study
+        else:
+            raise GraphQLError("Version must be part of a study.")
+
         if not (
             user.has_perm("analyses.add_analysis")
             or (
