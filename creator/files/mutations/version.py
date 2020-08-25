@@ -24,6 +24,7 @@ class VersionMutation(graphene.Mutation):
         # This extracts the VersionState enum from the auto-created field
         # made from the django model inside of the VersionNode
         state = VersionNode._meta.fields["state"].type
+        file = graphene.ID(required=False)
 
     version = graphene.Field(VersionNode)
 
@@ -47,7 +48,12 @@ class VersionMutation(graphene.Mutation):
         except Version.DoesNotExist:
             raise GraphQLError("Version does not exist.")
 
-        study_id = version.root_file.study.kf_id
+        if version.study is not None:
+            study_id = version.study.kf_id
+        elif version.root_file is not None:
+            study_id = version.root_file.study.kf_id
+        else:
+            raise GraphQLError("Version must be part of a study.")
 
         try:
             if kwargs.get("description"):
@@ -62,6 +68,27 @@ class VersionMutation(graphene.Mutation):
                 ):
                     raise GraphQLError("Not allowed")
                 version.description = kwargs.get("description")
+
+            if kwargs.get("file"):
+                if version.root_file is None and (
+                    not (
+                        user.has_perm("files.change_version_meta")
+                        or (
+                            user.has_perm("files.change_my_version_meta")
+                            and user.studies.filter(kf_id=study_id).exists()
+                        )
+                    )
+                ):
+                    raise GraphQLError("Not allowed")
+
+                file_id = kwargs.get("file")
+                _, kf_id = from_global_id(file_id)
+                try:
+                    file = File.objects.get(kf_id=kf_id)
+                except File.DoesNotExist:
+                    raise GraphQLError("File does not exist.")
+                version.root_file = file
+
             if kwargs.get("state"):
                 if kwargs.get("state") != version.state and (
                     not (
