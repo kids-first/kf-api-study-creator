@@ -1,5 +1,23 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.1
+
+### Summary
+
+- Emojis: 🐛 x1, ♻️ x1, ✨ x2, 🔧 x2, 🔥 x1
+- Categories: Fixes x1, Other Changes x3, Additions x2, Removals x1
+
+### New features and changes
+
+- [#457](https://github.com/kids-first/kf-api-study-creator/pull/457) - 🐛 Determine study from version or file - [642c1aef](https://github.com/kids-first/kf-api-study-creator/commit/642c1aef4c47d0d37ee6147c8742affc59d31346) by [dankolbman](https://github.com/dankolbman)
+- [#455](https://github.com/kids-first/kf-api-study-creator/pull/455) - ♻️ Refactor document upload flow - [f825f582](https://github.com/kids-first/kf-api-study-creator/commit/f825f582caede302a14493532bd5510a11905772) by [dankolbman](https://github.com/dankolbman)
+- [#456](https://github.com/kids-first/kf-api-study-creator/pull/456) - ✨ Accept .xls file type for file analysis - [c76d4d4c](https://github.com/kids-first/kf-api-study-creator/commit/c76d4d4c360ca84467467ebad9f767558e66a3ec) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#454](https://github.com/kids-first/kf-api-study-creator/pull/454) - 🔧 Dev Ops upgrades - [21e2d4a8](https://github.com/kids-first/kf-api-study-creator/commit/21e2d4a8b277adf23dc058af111c8f9cdb54542e) by [dankolbman](https://github.com/dankolbman)
+- [#452](https://github.com/kids-first/kf-api-study-creator/pull/452) - 🔧 Add SSL setting to RQ config - [03fd0c53](https://github.com/kids-first/kf-api-study-creator/commit/03fd0c53d7e2cb97d1fbf6ffed9f1538ea5c362f) by [dankolbman](https://github.com/dankolbman)
+- [#449](https://github.com/kids-first/kf-api-study-creator/pull/449) - ✨ File analyses - [c2e5a87c](https://github.com/kids-first/kf-api-study-creator/commit/c2e5a87c67a780c1740f5bdbfbd527b47aef1172) by [dankolbman](https://github.com/dankolbman)
+- [#450](https://github.com/kids-first/kf-api-study-creator/pull/450) - 🔥 Remove vault - [4d6dc934](https://github.com/kids-first/kf-api-study-creator/commit/4d6dc93464cfc515a86ec0115380c2f4ecdc8eea) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.14.0
 
 ### Summary
