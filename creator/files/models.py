@@ -6,11 +6,13 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
+from creator.analyses.file_types import FILE_TYPES
 
 User = get_user_model()
 
@@ -64,16 +66,18 @@ class File(models.Model):
     )
 
     file_type = models.CharField(
-            max_length=3,
-            choices=(
-                ('OTH', 'Other'),
-                ('SEQ', 'Sequencing Manifest'),
-                ('SHM', 'Shipping Manifest'),
-                ('CLN', 'Clinical Data'),
-                ("DBG", "dbGaP Submission File"),
-                ('FAM', 'Familial Relationships')),
-            default='OTH',
-            )
+        max_length=3,
+        choices=(
+            ("OTH", "Other"),
+            ("SEQ", "Sequencing Manifest"),
+            ("SHM", "Shipping Manifest"),
+            ("CLN", "Clinical Data"),
+            ("DBG", "dbGaP Submission File"),
+            ("FAM", "Familial Relationships"),
+            ("S3S", "S3 Scrape"),
+        ),
+        default="OTH",
+    )
 
     tags = ArrayField(
         models.CharField(max_length=50, blank=True),
@@ -81,6 +85,34 @@ class File(models.Model):
         default=list,
         help_text="Tags to group the files by",
     )
+
+    def clean(self):
+        if (
+            self.study is None
+            and self.versions.latest("created_at").study is None
+        ):
+            raise ValidationError(
+                "Study must be specified or the version given must have a "
+                "linked study"
+            )
+
+        # Validate file type if it has required columns
+        if (
+            self.file_type in FILE_TYPES
+            and len(FILE_TYPES[self.file_type].get("required_columns", [])) > 0
+        ):
+            file_type = FILE_TYPES[self.file_type]
+            required_columns = set(file_type["required_columns"])
+            version_columns = set(
+                c["name"]
+                for c in self.versions.latest("created_at").analysis.columns
+            )
+            if not (required_columns <= version_columns):
+                raise ValidationError(
+                    f"The version is missing columns required for the "
+                    f"{file_type['name']} type: "
+                    f"{required_columns - version_columns}"
+                )
 
     def __str__(self):
         return f'{self.kf_id}'
