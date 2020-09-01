@@ -9,7 +9,7 @@ from creator.analyses.analyzer import analyze_version
 from creator.files.models import File, Version
 from creator.studies.models import Study
 from creator.events.models import Event
-from creator.files.nodes.file import FileNode
+from creator.files.nodes.file import FileNode, FileType
 
 
 class CreateFileMutation(graphene.Mutation):
@@ -27,9 +27,7 @@ class CreateFileMutation(graphene.Mutation):
         description = graphene.String(
             required=True, description="A description of this file"
         )
-        # This extracts the FileFileType enum from the auto-created field
-        # made from the django model inside of the FileNode
-        fileType = FileNode._meta.fields["file_type"].type
+        fileType = FileType(required=True, description="The type of file")
         tags = graphene.List(graphene.String)
 
     file = graphene.Field(FileNode)
@@ -104,9 +102,7 @@ class FileMutation(graphene.Mutation):
         kf_id = graphene.String(required=True)
         name = graphene.String()
         description = graphene.String()
-        # This extracts the FileFileType enum from the auto-created field
-        # made from the django model inside of the FileNode
-        file_type = FileNode._meta.fields["file_type"].type
+        file_type = FileType()
         tags = graphene.List(graphene.String)
 
     file = graphene.Field(FileNode)

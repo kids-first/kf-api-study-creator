@@ -153,7 +153,7 @@ def upload_file(client, tmp_uploads_local, upload_version):
                 $version: ID!,
                 $name: String!,
                 $description: String!,
-                $fileType: FileFileType!,
+                $fileType: FileType!,
                 $study: ID!
                 $tags: [String]
             ) {
@@ -172,6 +172,7 @@ def upload_file(client, tmp_uploads_local, upload_version):
                         description
                         fileType
                         tags
+                        validTypes
                         versions(orderBy: "-created_at") {
                             edges {
                                 node {

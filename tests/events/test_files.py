@@ -11,7 +11,7 @@ mutation (
     $kfId:String!,
     $description: String!,
     $name: String!,
-    $fileType: FileFileType!
+    $fileType: FileType!
 ) {
     updateFile(
         kfId: $kfId,

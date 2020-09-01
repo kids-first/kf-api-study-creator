@@ -1,6 +1,7 @@
 import os
 import uuid
 import secrets
+from enum import Enum
 from functools import partial
 from datetime import datetime
 from django.conf import settings
@@ -18,7 +19,17 @@ User = get_user_model()
 
 
 def file_id():
-    return kf_id_generator('SF')
+    return kf_id_generator("SF")
+
+
+class FileType(Enum):
+    OTH = "OTH"
+    SEQ = "SEQ"
+    SHM = "SHM"
+    CLN = "CLN"
+    DBG = "DBG"
+    FAM = "FAM"
+    S3S = "S3S"
 
 
 class File(models.Model):
@@ -67,15 +78,7 @@ class File(models.Model):
 
     file_type = models.CharField(
         max_length=3,
-        choices=(
-            ("OTH", "Other"),
-            ("SEQ", "Sequencing Manifest"),
-            ("SHM", "Shipping Manifest"),
-            ("CLN", "Clinical Data"),
-            ("DBG", "dbGaP Submission File"),
-            ("FAM", "Familial Relationships"),
-            ("S3S", "S3 Scrape"),
-        ),
+        choices=[(t.name, t.value) for t in FileType],
         default="OTH",
     )
 

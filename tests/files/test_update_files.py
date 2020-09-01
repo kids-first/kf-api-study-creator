@@ -12,7 +12,7 @@ mutation (
     $kfId:String!,
     $description: String!,
     $name: String!,
-    $fileType: FileFileType!
+    $fileType: FileType!
     $tags: [String]
 ) {
     updateFile(
