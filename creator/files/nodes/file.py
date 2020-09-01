@@ -32,6 +32,7 @@ class FileNode(DjangoObjectType):
 
     download_url = graphene.String()
     file_type = FileType()
+    valid_types = graphene.List(FileType)
 
     def resolve_download_url(self, info):
         return f"https://{info.context.get_host()}{self.path}"

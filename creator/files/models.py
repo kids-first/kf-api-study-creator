@@ -117,6 +117,26 @@ class File(models.Model):
                     f"{required_columns - version_columns}"
                 )
 
+    @property
+    def valid_types(self):
+        """
+        Returns an array of file_types for which this file may be classified.
+        Currently only considers the contents of the latest version.
+        """
+
+        valid_types = []
+        # The columns contained in the latest version
+        version_columns = set(
+            c["name"]
+            for c in self.versions.latest("created_at").analysis.columns
+        )
+        for enum, file_type in FILE_TYPES.items():
+            required_columns = set(file_type["required_columns"])
+            if required_columns <= version_columns:
+                valid_types.append(enum)
+
+        return valid_types
+
     def __str__(self):
         return f'{self.kf_id}'
 
