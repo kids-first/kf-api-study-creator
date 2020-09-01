@@ -82,17 +82,19 @@ class CreateFileMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
-        root_file = File(
-            name=name,
-            study=study,
-            creator=user,
-            description=description,
-            file_type=fileType,
-            tags=tags,
-        )
-        root_file.save()
-        version.root_file = root_file
-        version.save()
+        with transaction.atomic():
+            root_file = File(
+                name=name,
+                study=study,
+                creator=user,
+                description=description,
+                file_type=fileType,
+                tags=tags,
+            )
+            root_file.save()
+            version.root_file = root_file
+            version.save()
+            root_file.full_clean()
 
         return CreateFileMutation(file=root_file)
 
