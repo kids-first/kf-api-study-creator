@@ -20,10 +20,12 @@ def test_default_types(db, clients, upload_file):
 
     kf_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=kf_id)
+    version = file.versions.latest("created_at")
 
     assert set(file.valid_types) == set(
         ["OTH", "SEQ", "SHM", "CLN", "DBG", "FAM"]
     )
+    assert file.valid_types == version.valid_types
 
 
 def test_s3_scrape(db, clients, upload_file):
@@ -36,5 +38,7 @@ def test_s3_scrape(db, clients, upload_file):
 
     kf_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=kf_id)
+    version = file.versions.latest("created_at")
 
     assert "S3S" in file.valid_types
+    assert file.valid_types == version.valid_types
