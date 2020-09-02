@@ -1,8 +1,10 @@
 import graphene
+import uuid
 from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
+from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils import timezone
 from graphql import GraphQLError
@@ -172,7 +174,7 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         try:
             _, uuid = from_global_id(token)
             referral_token = ReferralToken.objects.get(uuid=uuid)
-        except ReferralToken.DoesNotExist:
+        except (ReferralToken.DoesNotExist, ValidationError):
             raise GraphQLError("Referral token does not exist.")
 
         if not referral_token.is_valid:
