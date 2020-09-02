@@ -17,7 +17,7 @@ CREATE_FILE = """
         $version: ID!,
         $name: String!,
         $description: String!,
-        $fileType: FileFileType!,
+        $fileType: FileType!,
         $study: ID
         $tags: [String]
     ) {

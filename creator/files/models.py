@@ -1,6 +1,7 @@
 import os
 import uuid
 import secrets
+from enum import Enum
 from functools import partial
 from datetime import datetime
 from django.conf import settings
@@ -18,7 +19,17 @@ User = get_user_model()
 
 
 def file_id():
-    return kf_id_generator('SF')
+    return kf_id_generator("SF")
+
+
+class FileType(Enum):
+    OTH = "OTH"
+    SEQ = "SEQ"
+    SHM = "SHM"
+    CLN = "CLN"
+    DBG = "DBG"
+    FAM = "FAM"
+    S3S = "S3S"
 
 
 class File(models.Model):
@@ -67,15 +78,7 @@ class File(models.Model):
 
     file_type = models.CharField(
         max_length=3,
-        choices=(
-            ("OTH", "Other"),
-            ("SEQ", "Sequencing Manifest"),
-            ("SHM", "Shipping Manifest"),
-            ("CLN", "Clinical Data"),
-            ("DBG", "dbGaP Submission File"),
-            ("FAM", "Familial Relationships"),
-            ("S3S", "S3 Scrape"),
-        ),
+        choices=[(t.name, t.value) for t in FileType],
         default="OTH",
     )
 
@@ -113,6 +116,26 @@ class File(models.Model):
                     f"{file_type['name']} type: "
                     f"{required_columns - version_columns}"
                 )
+
+    @property
+    def valid_types(self):
+        """
+        Returns an array of file_types for which this file may be classified.
+        Currently only considers the contents of the latest version.
+        """
+
+        valid_types = []
+        # The columns contained in the latest version
+        version_columns = set(
+            c["name"]
+            for c in self.versions.latest("created_at").analysis.columns
+        )
+        for enum, file_type in FILE_TYPES.items():
+            required_columns = set(file_type["required_columns"])
+            if required_columns <= version_columns:
+                valid_types.append(enum)
+
+        return valid_types
 
     def __str__(self):
         return f'{self.kf_id}'
@@ -236,6 +259,22 @@ class Version(models.Model):
         help_text=("The study that this version belongs to"),
         on_delete=models.CASCADE,
     )
+
+    @property
+    def valid_types(self):
+        """
+        Returns an array of file_types for which this version may be classified
+        """
+
+        valid_types = []
+        # The columns contained in the version
+        version_columns = set(c["name"] for c in self.analysis.columns)
+        for enum, file_type in FILE_TYPES.items():
+            required_columns = set(file_type["required_columns"])
+            if required_columns <= version_columns:
+                valid_types.append(enum)
+
+        return valid_types
 
     def __str__(self):
         return self.kf_id
