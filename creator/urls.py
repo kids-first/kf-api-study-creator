@@ -23,8 +23,10 @@ class GraphQLView(FileUploadGraphQLView):
             FileUploadGraphQLView, FileUploadGraphQLView
         ).format_error(error)
 
-        if hasattr(error, "original_error") and isinstance(
-            error.original_error, ValidationError
+        if (
+            hasattr(error, "original_error")
+            and isinstance(error.original_error, ValidationError)
+            and hasattr(error.original_error, "error_dict")
         ):
             error_dict = error.original_error.error_dict
             if "__all__" in error_dict:
