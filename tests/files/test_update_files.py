@@ -12,7 +12,7 @@ mutation (
     $kfId:String!,
     $description: String!,
     $name: String!,
-    $fileType: FileFileType!
+    $fileType: FileType!
     $tags: [String]
 ) {
     updateFile(
@@ -178,3 +178,25 @@ def test_no_tags(db, clients, versions):
     resp_file = resp.json()["data"]["updateFile"]["file"]
     assert resp_file["tags"] == []
     assert len(File.objects.first().tags) == 0
+
+
+def test_file_does_not_exist(db, clients):
+    """
+    Check that error is returned if the file given does not exist.
+    """
+    client = clients.get("Administrators")
+
+    query = update_query
+    variables = {
+        "kfId": "SF_0000000X",
+        "name": "New name",
+        "description": "New description",
+        "fileType": "FAM",
+        "tags": ["tag1", "tag2"],
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+    assert "errors" in resp.json()

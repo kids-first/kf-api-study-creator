@@ -47,7 +47,7 @@ class Query(object):
         """
         user = info.context.user
         if user.has_perm("files.list_all_version"):
-            return Version.objects.all()
+            return Version.objects.filter(root_file__isnull=False).all()
 
         # Only return files that the user is a member of
         if user.has_perm("files.view_my_version"):

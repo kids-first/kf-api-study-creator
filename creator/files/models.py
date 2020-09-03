@@ -1,22 +1,35 @@
 import os
 import uuid
 import secrets
+from enum import Enum
 from functools import partial
 from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
+from creator.analyses.file_types import FILE_TYPES
 
 User = get_user_model()
 
 
 def file_id():
-    return kf_id_generator('SF')
+    return kf_id_generator("SF")
+
+
+class FileType(Enum):
+    OTH = "OTH"
+    SEQ = "SEQ"
+    SHM = "SHM"
+    CLN = "CLN"
+    DBG = "DBG"
+    FAM = "FAM"
+    S3S = "S3S"
 
 
 class File(models.Model):
@@ -45,12 +58,15 @@ class File(models.Model):
     kf_id = KFIDField(primary_key=True, default=file_id)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100)
-    description = models.TextField(max_length=10000,
-                                   help_text='Description of the file')
-    study = models.ForeignKey(Study,
-                              related_name='files',
-                              help_text='The study this file belongs to',
-                              on_delete=models.CASCADE,)
+    description = models.TextField(
+        max_length=10000, help_text="Description of the file"
+    )
+    study = models.ForeignKey(
+        Study,
+        related_name="files",
+        help_text="The study this file belongs to",
+        on_delete=models.CASCADE,
+    )
     creator = models.ForeignKey(
         User,
         null=True,
@@ -61,16 +77,10 @@ class File(models.Model):
     )
 
     file_type = models.CharField(
-            max_length=3,
-            choices=(
-                ('OTH', 'Other'),
-                ('SEQ', 'Sequencing Manifest'),
-                ('SHM', 'Shipping Manifest'),
-                ('CLN', 'Clinical Data'),
-                ("DBG", "dbGaP Submission File"),
-                ('FAM', 'Familial Relationships')),
-            default='OTH',
-            )
+        max_length=3,
+        choices=[(t.name, t.value) for t in FileType],
+        default="OTH",
+    )
 
     tags = ArrayField(
         models.CharField(max_length=50, blank=True),
@@ -78,6 +88,54 @@ class File(models.Model):
         default=list,
         help_text="Tags to group the files by",
     )
+
+    def clean(self):
+        if (
+            self.study is None
+            and self.versions.latest("created_at").study is None
+        ):
+            raise ValidationError(
+                "Study must be specified or the version given must have a "
+                "linked study"
+            )
+
+        # Validate file type if it has required columns
+        if (
+            self.file_type in FILE_TYPES
+            and len(FILE_TYPES[self.file_type].get("required_columns", [])) > 0
+        ):
+            file_type = FILE_TYPES[self.file_type]
+            required_columns = set(file_type["required_columns"])
+            version_columns = set(
+                c["name"]
+                for c in self.versions.latest("created_at").analysis.columns
+            )
+            if not (required_columns <= version_columns):
+                raise ValidationError(
+                    f"The version is missing columns required for the "
+                    f"{file_type['name']} type: "
+                    f"{required_columns - version_columns}"
+                )
+
+    @property
+    def valid_types(self):
+        """
+        Returns an array of file_types for which this file may be classified.
+        Currently only considers the contents of the latest version.
+        """
+
+        valid_types = []
+        # The columns contained in the latest version
+        version_columns = set(
+            c["name"]
+            for c in self.versions.latest("created_at").analysis.columns
+        )
+        for enum, file_type in FILE_TYPES.items():
+            required_columns = set(file_type["required_columns"])
+            if required_columns <= version_columns:
+                valid_types.append(enum)
+
+        return valid_types
 
     def __str__(self):
         return f'{self.kf_id}'
@@ -97,11 +155,15 @@ def _get_upload_directory(instance, filename):
     """
     Resolves the directory where a file should be stored
     """
-    if settings.DEFAULT_FILE_STORAGE == 'django_s3_storage.storage.S3Storage':
-        prefix = f'{settings.UPLOAD_DIR}/{filename}'
+    if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
+        prefix = f"{settings.UPLOAD_DIR}/{filename}"
         return prefix
     else:
-        directory = f'{settings.UPLOAD_DIR}/{instance.root_file.study.bucket}/'
+        if instance.study is not None:
+            bucket = instance.study.bucket
+        else:
+            bucket = instance.root_file.study.bucket
+        directory = f"{settings.UPLOAD_DIR}/{bucket}/"
         return os.path.join(settings.BASE_DIR, directory, filename)
 
 
@@ -149,6 +211,7 @@ class Version(models.Model):
         ),
     )
     description = models.TextField(
+        null=True,
         max_length=10000,
         help_text=(
             "Description of changes introduced to the file by this version"
@@ -182,11 +245,36 @@ class Version(models.Model):
             ],
             help_text='Size of the version in bytes')
 
-    root_file = models.ForeignKey(File,
-                                  related_name='versions',
-                                  help_text=('The file that this version '
-                                             'version belongs to'),
-                                  on_delete=models.CASCADE,)
+    root_file = models.ForeignKey(
+        File,
+        null=True,
+        related_name="versions",
+        help_text=("The file that this version belongs to"),
+        on_delete=models.CASCADE,
+    )
+    study = models.ForeignKey(
+        Study,
+        null=True,
+        related_name="versions",
+        help_text=("The study that this version belongs to"),
+        on_delete=models.CASCADE,
+    )
+
+    @property
+    def valid_types(self):
+        """
+        Returns an array of file_types for which this version may be classified
+        """
+
+        valid_types = []
+        # The columns contained in the version
+        version_columns = set(c["name"] for c in self.analysis.columns)
+        for enum, file_type in FILE_TYPES.items():
+            required_columns = set(file_type["required_columns"])
+            if required_columns <= version_columns:
+                valid_types.append(enum)
+
+        return valid_types
 
     def __str__(self):
         return self.kf_id
