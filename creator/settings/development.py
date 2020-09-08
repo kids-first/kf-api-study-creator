@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'creator.buckets',
     'creator.email',
     'creator.referral_tokens',
+    'creator.extract_configs',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
