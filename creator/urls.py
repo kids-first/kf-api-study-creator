@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from graphene_file_upload.django import FileUploadGraphQLView
 import creator.files.views
+import creator.extract_configs.views
 
 
 def health_check(request):
@@ -57,7 +58,15 @@ urlpatterns = [
     path(
         r'signed-url/study/<study_id>/file/<file_id>',
         creator.files.views.signed_url
-    )
+    ),
+    path(
+        r'extract_config/study/<study_id>/file/<file_id>/version/<version_id>',
+        creator.extract_configs.views.download_config,
+    ),
+    path(
+        r'extract_config/study/<study_id>/file/<file_id>',
+        creator.extract_configs.views.download_config,
+    ),
 ]
 
 if settings.DEVELOPMENT_ENDPOINTS:
