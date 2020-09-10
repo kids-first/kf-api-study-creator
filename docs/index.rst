@@ -44,7 +44,7 @@ pre-populated database of mock data.
    :caption: Development:
 
    development/quickstart
-   model
+   concepts
    uploads
    downloads
    authentication
