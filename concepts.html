@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Model &mdash; Kids First Study Creator  documentation</title>
+  <title>Concepts &mdash; Kids First Study Creator  documentation</title>
   
 
   
@@ -91,9 +91,9 @@
               <p class="caption"><span class="caption-text">Development:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="development/quickstart.html">Development</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Model</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Concepts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#study">Study</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#file">File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#document">Document</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#version">Version</a></li>
 </ul>
 </li>
@@ -156,13 +156,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Model</li>
+      <li>Concepts</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/model.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/concepts.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -175,26 +175,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="model">
-<h1>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="concepts">
+<h1>Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h1>
+<p>The Study Creator and Data Tracker have a number of important conceptual terms
+that are used to convey certain ideas.
+Here is a list and definition of the most commonly encountered concepts.</p>
 <div class="section" id="study">
-<h2>Study<a class="headerlink" href="#study" title="Permalink to this headline">¶</a></h2>
-<p>A study mimics a study within the Data Service. It encompasses a group of
-similarly collected data.</p>
+<span id="id1"></span><h2>Study<a class="headerlink" href="#study" title="Permalink to this headline">¶</a></h2>
+<p>The Study is the top most collection of data in the Kids First Data Resource
+Center.
+Studies are funded individually and each have a lead Investigator responsible
+for the data.
+The primary interaction with a Study in the Data Tracker is through uploading
+and organizing <a class="reference internal" href="#document"><span class="std std-ref">Documents</span></a> that are necessary for a Study’s
+ingest into the
+Kids First Portal.</p>
 </div>
-<div class="section" id="file">
-<h2>File<a class="headerlink" href="#file" title="Permalink to this headline">¶</a></h2>
-<p>A file symbolizes the ideal and complete formulation of a specific
-subset of a study’s data. The essence of a file may need to be iterated on,
-improving the underlying representation to better match the true form of the
-file.</p>
+<div class="section" id="document">
+<span id="id2"></span><h2>Document<a class="headerlink" href="#document" title="Permalink to this headline">¶</a></h2>
+<p>A Document symbolizes the ideal and complete formulation of a specific
+subset of a <a class="reference internal" href="#study"><span class="std std-ref">Study’s</span></a> data. The essence of a Document may need to
+be iterated on, improving the underlying representation to better match the
+true form of the Document.</p>
 </div>
 <div class="section" id="version">
-<h2>Version<a class="headerlink" href="#version" title="Permalink to this headline">¶</a></h2>
-<p>An version is a materialization of a file in the form of an on-disk
-representation.
-It tracks the exact file contents at a given point and its <code class="docutils literal notranslate"><span class="pre">state</span></code> in the
-process of being consumed into the Kids First database.</p>
+<span id="id3"></span><h2>Version<a class="headerlink" href="#version" title="Permalink to this headline">¶</a></h2>
+<p>An version is a materialization of a <a class="reference internal" href="#document"><span class="std std-ref">Document</span></a> in the form of
+an on-disk representation.
+It tracks the exact file contents at a given point.</p>
 </div>
 </div>
 

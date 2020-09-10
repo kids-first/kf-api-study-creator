@@ -39,7 +39,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Downloads" href="downloads.html" />
-    <link rel="prev" title="Model" href="model.html" />
+    <link rel="prev" title="Concepts" href="concepts.html" />
     <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
  
 </head>
@@ -91,15 +91,16 @@
               <p class="caption"><span class="caption-text">Development:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="development/quickstart.html">Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Uploads</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#new-document-uploads">New Document Uploads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#organization">Organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#uploading-with-graphql">Uploading with GraphQL</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#curl-example">Curl example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#python-example">Python example</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#uploading-a-new-version">Uploading a New Version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#new-version-uploads">New Version Uploads</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="downloads.html">Downloads</a></li>
@@ -183,6 +184,23 @@
 <h1>Uploads<a class="headerlink" href="#uploads" title="Permalink to this headline">¶</a></h1>
 <p>An integral part of the Study Creator API is to accept and manage data
 uploading.</p>
+<div class="section" id="new-document-uploads">
+<h2>New Document Uploads<a class="headerlink" href="#new-document-uploads" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="concepts.html#document"><span class="std std-ref">Documents</span></a> are the central collections used to house one or
+more <a class="reference internal" href="concepts.html#version"><span class="std std-ref">Versions</span></a> of file contents.
+However, in order to create a Document, a first Version must already exist
+as a prerequisite.
+This is necessary so that the new Document’s valid file types may be determined
+by the contents of the Version.
+The mutation flow for creating a new document is then:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">createVersion(file:</span> <span class="pre">Upload!,</span> <span class="pre">study:</span> <span class="pre">ID!)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">createFile(version:</span> <span class="pre">ID!,</span> <span class="pre">description:</span> <span class="pre">String!,</span> <span class="pre">fileType:</span> <span class="pre">FileType!,</span> <span class="pre">name:</span>
+<span class="pre">String!)</span></code></li>
+</ul>
+<p>Upon creating a new Version, the contents will be analyzed which will inform
+the valid possibilities to use for <code class="docutils literal notranslate"><span class="pre">fileType</span></code> when creating the Document.</p>
+</div>
 <div class="section" id="organization">
 <h2>Organization<a class="headerlink" href="#organization" title="Permalink to this headline">¶</a></h2>
 <p>Files are uploaded into <cite>S3</cite> with a prefix of the form:</p>
@@ -193,13 +211,11 @@ uploading.</p>
 <div class="section" id="uploading-with-graphql">
 <h2>Uploading with GraphQL<a class="headerlink" href="#uploading-with-graphql" title="Permalink to this headline">¶</a></h2>
 <p>The upload request is expected to conform to the
-<a class="reference external" href="https://github.com/jaydenseric/graphql-multipart-request-spec">GraphQL multipart request spec</a></p>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">createFile</span></code> mutation to upload a file to a study.</p>
-<p>Example mutation:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mutation <span class="o">(</span><span class="nv">$file</span>: Upload!, <span class="nv">$studyId</span>: String!<span class="o">)</span> <span class="o">{</span>
-  createFile<span class="o">(</span>file: <span class="nv">$file</span>, studyId: <span class="nv">$studyId</span><span class="o">)</span> <span class="o">{</span>
-    success
-    file <span class="o">{</span>
+<a class="reference external" href="https://github.com/jaydenseric/graphql-multipart-request-spec">GraphQL multipart request spec</a>.</p>
+<p>The contents of the mutation query would be:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mutation <span class="o">(</span><span class="nv">$file</span>: Upload!, <span class="nv">$studyId</span>: ID!<span class="o">)</span> <span class="o">{</span>
+  createVersion<span class="o">(</span>file: <span class="nv">$file</span>, studyId: <span class="nv">$studyId</span><span class="o">)</span> <span class="o">{</span>
+    version <span class="o">{</span>
         id
         kfId
         name
@@ -209,13 +225,13 @@ uploading.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">createFile</span></code> mutation is sent as a single operation in a multipart
+<p>But the <code class="docutils literal notranslate"><span class="pre">createVersion</span></code> mutation is sent as a single operation in a multipart
 request and will need to be followed with a file.
 See the examples below for how this works.</p>
 <div class="section" id="curl-example">
 <h3>Curl example<a class="headerlink" href="#curl-example" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl localhost:5002/graphql <span class="se">\</span>
-  -F <span class="nv">operations</span><span class="o">=</span><span class="s1">&#39;{ &quot;query&quot;: &quot;mutation ($file: Upload!, $studyId: String!) { createFile(file: $file, studyId: $studyId) { success } }&quot;, &quot;variables&quot;: { &quot;file&quot;: null, &quot;studyId&quot;: &lt;study kf id&gt; } }&#39;</span> <span class="se">\</span>
+  -F <span class="nv">operations</span><span class="o">=</span><span class="s1">&#39;{ &quot;query&quot;: &quot;mutation ($file: Upload!, $studyId: String!) { createVersion(file: $file, studyId: $studyId) { success } }&quot;, &quot;variables&quot;: { &quot;file&quot;: null, &quot;studyId&quot;: &lt;study kf id&gt; } }&#39;</span> <span class="se">\</span>
   -F <span class="nv">map</span><span class="o">=</span><span class="s1">&#39;{ &quot;0&quot;: [&quot;variables.file&quot;] }&#39;</span> <span class="se">\</span>
   -F <span class="nv">0</span><span class="o">=</span>@&lt;your filepath&gt;
 </pre></div>
@@ -228,8 +244,8 @@ See the examples below for how this works.</p>
 <span class="kn">from</span> <span class="nn">requests_toolbelt.multipart.encoder</span> <span class="kn">import</span> <span class="n">MultipartEncoder</span>
 
 <span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        mutation ($file: Upload!, $studyId: String!) {</span>
-<span class="s1">          createFile(file: $file, studyId: $studyId) {</span>
+<span class="s1">        mutation ($file: Upload!, $studyId: ID!) {</span>
+<span class="s1">          createVersion(file: $file, studyId: $studyId) {</span>
 <span class="s1">            success</span>
 <span class="s1">            file {</span>
 <span class="s1">                id</span>
@@ -261,19 +277,15 @@ See the examples below for how this works.</p>
 </div>
 </div>
 </div>
-<div class="section" id="uploading-a-new-version">
-<h2>Uploading a New Version<a class="headerlink" href="#uploading-a-new-version" title="Permalink to this headline">¶</a></h2>
-<p>To upload a new version of a file, use the <cite>createFile</cite> mutation as would be
-done for creating the initial file and pass along the existing file’s <code class="docutils literal notranslate"><span class="pre">kfId</span></code>.
-This will create a new version of the file under that root file, granted the
-<code class="docutils literal notranslate"><span class="pre">kfId</span></code> for the root file is correct.</p>
-<p>Example mutation:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mutation <span class="o">(</span><span class="nv">$file</span>: Upload!, <span class="nv">$studyId</span>: String!, <span class="nv">$fileId</span>: String<span class="o">)</span> <span class="o">{</span>
-  createFile<span class="o">(</span>file: <span class="nv">$file</span>, studyId: <span class="nv">$studyId</span>, fileId: <span class="nv">$fileId</span><span class="o">)</span> <span class="o">{</span>
+<div class="section" id="new-version-uploads">
+<h2>New Version Uploads<a class="headerlink" href="#new-version-uploads" title="Permalink to this headline">¶</a></h2>
+<p>New Versions of a Document are uploaded in the same way while specifying the
+document to which they belong:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mutation <span class="o">(</span><span class="nv">$file</span>: Upload!, <span class="nv">$fileId</span>: String<span class="o">)</span> <span class="o">{</span>
+  createVersion<span class="o">(</span>file: <span class="nv">$file</span>, fileId: <span class="nv">$fileId</span><span class="o">)</span> <span class="o">{</span>
     success
-    file <span class="o">{</span>
+    version <span class="o">{</span>
         kfId
-        versions <span class="o">{</span> edges <span class="o">{</span> node <span class="o">{</span> kfId <span class="o">}</span> <span class="o">}</span> <span class="o">}</span>
     <span class="o">}</span>
   <span class="o">}</span>
 <span class="o">}</span>
@@ -293,7 +305,7 @@ This will create a new version of the file under that root file, granted the
         <a href="downloads.html" class="btn btn-neutral float-right" title="Downloads" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="model.html" class="btn btn-neutral float-left" title="Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="concepts.html" class="btn btn-neutral float-left" title="Concepts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
