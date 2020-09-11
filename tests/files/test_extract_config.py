@@ -45,3 +45,9 @@ def test_valid_file_type(clients, db, mocker, file_type, has_config):
         assert resp.status_code == 404
 
 
+def test_file_not_exist(clients, db):
+    client = clients.get("Administrators")
+    resp = client.get(f"/extract_config/study/study_id/file/123")
+    assert resp.status_code == 404
+
+
