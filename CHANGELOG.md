@@ -1,5 +1,21 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.3
+
+### Summary
+
+- Emojis: 📝 x1, 🔧 x1, 🐛 x1, ✨ x2
+- Categories: Documentation x1, Other Changes x1, Fixes x1, Additions x2
+
+### New features and changes
+
+- [#473](https://github.com/kids-first/kf-api-study-creator/pull/473) - 📝 Expand upload documentation - [f9927c5d](https://github.com/kids-first/kf-api-study-creator/commit/f9927c5db9ed352e70df14469f6e688225f467ee) by [dankolbman](https://github.com/dankolbman)
+- [#471](https://github.com/kids-first/kf-api-study-creator/pull/471) - 🔧 Migrated to standard deployment - [cc742eae](https://github.com/kids-first/kf-api-study-creator/commit/cc742eaed19bb2d7b21f658affc9b8af58934ca2) by [alubneuski](https://github.com/alubneuski)
+- [#470](https://github.com/kids-first/kf-api-study-creator/pull/470) - 🐛 Fix referral token exceptions - [e8ad9d50](https://github.com/kids-first/kf-api-study-creator/commit/e8ad9d50afb8e9bd75a117ad3c92dd2fbbabaa92) by [dankolbman](https://github.com/dankolbman)
+- [#468](https://github.com/kids-first/kf-api-study-creator/pull/468) - ✨ Valid types field - [354a8a66](https://github.com/kids-first/kf-api-study-creator/commit/354a8a6634b93d3f5a3a8a4fa73031ebbe465bdc) by [dankolbman](https://github.com/dankolbman)
+- [#467](https://github.com/kids-first/kf-api-study-creator/pull/467) - ✨ Document file_type validation - [dfdbbece](https://github.com/kids-first/kf-api-study-creator/commit/dfdbbeceabf91accdabd6fdec0e29d18cbb8373d) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.14.2
 
 ### Summary
