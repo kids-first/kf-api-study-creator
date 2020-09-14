@@ -53,6 +53,7 @@ GROUPS = {
         "view_referraltoken",
         "list_all_referraltoken",
         "add_referraltoken",
+        "extract_version_config",
     ],
     "Developers": [
         "view_study",
@@ -64,6 +65,7 @@ GROUPS = {
         "view_version",
         "change_version_meta",
         "view_event",
+        "extract_version_config",
     ],
     "Investigators": [
         "view_my_study",

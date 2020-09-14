@@ -196,6 +196,14 @@ class Version(models.Model):
                 "change_my_version_status",
                 "Can change version status in studies the user is a member of",
             ),
+            ("extract_version_config", "Can extract any version config",),
+            (
+                "extract_my_version_config",
+                (
+                    "Can extract version config in studies "
+                    "the user is a member of"
+                ),
+            ),
         ]
 
     kf_id = KFIDField(primary_key=True, default=version_id)
