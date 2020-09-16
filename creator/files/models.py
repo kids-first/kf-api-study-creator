@@ -109,7 +109,7 @@ class File(models.Model):
             file_type = FILE_TYPES[self.file_type]
             required_columns = set(file_type["required_columns"])
             version_columns = set(
-                c["name"]
+                "".join([s for s in c["name"] if s.isprintable()])
                 for c in self.versions.latest("created_at").analysis.columns
             )
             if not (required_columns <= version_columns):
@@ -129,7 +129,7 @@ class File(models.Model):
         valid_types = []
         # The columns contained in the latest version
         version_columns = set(
-            c["name"]
+            "".join([s for s in c["name"] if s.isprintable()])
             for c in self.versions.latest("created_at").analysis.columns
         )
         for enum, file_type in FILE_TYPES.items():
@@ -278,7 +278,10 @@ class Version(models.Model):
 
         valid_types = []
         # The columns contained in the version
-        version_columns = set(c["name"] for c in self.analysis.columns)
+        version_columns = set(
+            "".join([s for s in c["name"] if s.isprintable()])
+            for c in self.analysis.columns
+        )
         for enum, file_type in FILE_TYPES.items():
             required_columns = set(file_type["required_columns"])
             if required_columns <= version_columns:
