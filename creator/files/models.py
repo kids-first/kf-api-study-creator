@@ -30,6 +30,8 @@ class FileType(Enum):
     DBG = "DBG"
     FAM = "FAM"
     S3S = "S3S"
+    PDA = "PDA"
+    FTR = "FTR"
 
 
 class File(models.Model):
