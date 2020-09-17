@@ -4,6 +4,9 @@
 
 GROUPS = {
     "Administrators": [
+        "add_validation",
+        "view_validation",
+        "list_all_validation",
         "view_analysis",
         "list_all_analysis",
         "change_analysis",
