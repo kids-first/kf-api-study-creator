@@ -39,7 +39,7 @@ FILE_TYPES = {
             "Age at Last Contact",
             "Age at Last Contact Units",
         ],
-        "template": "s3_scrape_config.py",
+        "template": "participant_config.py",
     },
     "FTR": {
         "name": "Family Trio",
@@ -48,6 +48,6 @@ FILE_TYPES = {
             "Mother Participant ID",
             "Father Participant ID",
         ],
-        "template": "s3_scrape_config.py",
+        "template": "family_trio_config.py",
     },
 }
