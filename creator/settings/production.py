@@ -30,7 +30,7 @@ DEBUG = False
 # This should never be enabled in actual deployments
 DEVELOPMENT_ENDPOINTS = os.environ.get("DEVELOPMENT_ENDPOINTS", False)
 
-STAGE = "prd"
+STAGE = os.environ.get("STAGE", "prd")
 
 DEVELOP = False
 
