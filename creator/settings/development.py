@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'creator.email',
     'creator.referral_tokens',
     'creator.extract_configs',
+    'creator.jobs',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
@@ -231,6 +232,7 @@ LOGGING = {
         },
     },
     "loggers": {
+        "TaskLogger": {},
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
@@ -272,6 +274,9 @@ DOWNLOAD_TOKEN_TTL = 30
 # The relative path directory to upload files to when using file system storage
 # The object prefix to upload under when using S3 storage
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
+
+# The relative path to the directory where job logs will be stored
+LOG_DIR = os.environ.get('LOG_DIR', 'logs/')
 
 AWS_S3_BUCKET_NAME = 'kf-study-us-east-1-dev-sd-me0owme0w'
 

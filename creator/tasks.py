@@ -5,6 +5,7 @@ from django.conf import settings
 from django_rq import job
 from django.contrib.auth import get_user_model
 
+from creator.decorators import task
 from creator.buckets.buckets import new_bucket
 from creator.studies.dataservice import sync_dataservice_studies
 from creator.projects.cavatica import (

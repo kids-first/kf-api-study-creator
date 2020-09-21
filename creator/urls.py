@@ -6,6 +6,7 @@ from django.conf import settings
 from graphene_file_upload.django import FileUploadGraphQLView
 import creator.files.views
 import creator.extract_configs.views
+import creator.jobs.views
 
 
 def health_check(request):
@@ -67,6 +68,7 @@ urlpatterns = [
         r'extract_config/study/<study_id>/file/<file_id>',
         creator.extract_configs.views.download_config,
     ),
+    path(r"logs/<log_id>", creator.jobs.views.download_log),
 ]
 
 if settings.DEVELOPMENT_ENDPOINTS:

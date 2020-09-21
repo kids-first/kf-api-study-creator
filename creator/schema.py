@@ -17,6 +17,7 @@ import creator.projects.schema
 import creator.users.schema
 import creator.referral_tokens.schema
 import creator.status.schema
+import creator.jobs.schema
 
 
 class Query(
@@ -29,6 +30,7 @@ class Query(
     creator.buckets.schema.Query,
     creator.referral_tokens.schema.Query,
     creator.status.schema.Query,
+    creator.jobs.schema.Query,
     graphene.ObjectType,
 ):
     """ Root query schema combining all apps' schemas """
