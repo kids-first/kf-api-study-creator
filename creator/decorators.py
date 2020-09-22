@@ -47,10 +47,16 @@ class task:
             try:
                 self._job = Job.objects.get(name=self.job)
             except Job.DoesNotExist:
-                return
+                logger.info(
+                    f"The {self.job} job does not exist. "
+                    "Registering a new unsceduled-job for it."
+                )
+                self._job = Job(name=self.job, active=True, scheduled=False)
 
             if not self._job.active:
-                logger.info(f"The {job} job is not active, will not run")
+                logger.info(
+                    f"The {self._job.name} job is not active, will not run"
+                )
                 return
 
             self.log_preamble()
