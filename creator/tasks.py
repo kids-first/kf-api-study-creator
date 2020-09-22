@@ -20,7 +20,6 @@ from creator.projects.models import Project
 from creator.studies.models import Study
 from creator.files.models import Version
 from creator.events.models import Event
-from creator.models import Job
 
 User = get_user_model()
 
@@ -28,7 +27,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-@job
+@task("setup_bucket")
 def setup_bucket_task(kf_id):
     """
     Setup new s3 resources for a study
@@ -70,7 +69,7 @@ def setup_bucket_task(kf_id):
         raise
 
 
-@job
+@task("setup_cavatica")
 def setup_cavatica_task(kf_id, workflows, user_sub):
     """
     Setup new Cavatica projects for a new study
@@ -117,7 +116,7 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
         return
 
 
-@job
+@task("import_delivery_files")
 def import_delivery_files_task(project_id, user_sub):
     """
     Import all files from a volume for a given study into a project.
@@ -172,84 +171,31 @@ def import_delivery_files_task(project_id, user_sub):
         return
 
 
+@task(job="cavatica_sync")
 def sync_cavatica_projects_task():
     """
     Synchronize Cavatica projects with the Study Creator
     """
-    job = Job.objects.get(name="cavatica_sync")
-
-    if not job.active:
-        logger.info("The cavatica_sync job is not active, will not run")
-        return
-    logger.info("Running the cavatica_sync job")
-
-    try:
-        sync_cavatica_projects()
-    except Exception as err:
-        logger.error(err)
-        job.failing = True
-        job.last_error = str(err)
-    else:
-        job.failing = False
-        job.last_error = ""
-
-    job.last_run = datetime.utcnow()
-    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
-    job.save()
+    sync_cavatica_projects()
 
 
+@task(job="dataservice_sync")
 def sync_dataservice_studies_task():
     """
     Synchronize Dataservice studies with the Study Creator
     """
-    job = Job.objects.get(name="dataservice_sync")
-
-    if not job.active:
-        logger.info("The dataserivce_sync job is not active, will not run")
-        return
-    logger.info("Running the dataservice_sync job")
-
-    try:
-        sync_dataservice_studies()
-    except Exception as err:
-        logger.error(err)
-        job.failing = True
-        job.last_error = str(err)
-    else:
-        job.failing = False
-        job.last_error = ""
-
-    job.last_run = datetime.utcnow()
-    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
-    job.save()
+    sync_dataservice_studies()
 
 
+@task(job="buckets_sync")
 def sync_buckets_task():
     """
     Synchronize buckets in S3
     """
-    job = Job.objects.get(name="buckets_sync")
-
-    if not job.active:
-        logger.info("The buckets_sync job is not active, will not run")
-        return
-    logger.info("Running the buckets_sync job")
-
-    try:
-        sync_buckets()
-    except Exception as err:
-        job.failing = True
-        job.last_error = str(err)
-    else:
-        job.failing = False
-        job.last_error = ""
-
-    job.last_run = datetime.utcnow()
-    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
-    job.save()
+    sync_buckets()
 
 
-@job
+@task(job="setup_slack")
 def setup_slack_task(kf_id):
     """
     Setup a Slack channel for the new study
@@ -284,72 +230,36 @@ def setup_slack_task(kf_id):
     event.save()
 
 
+@task(job="slack_notify")
 def slack_notify_task():
     """
     Runs the daily Slack study updates job
     """
-    job = Job.objects.get(name="slack_notify")
-
-    if not job.active:
-        logger.info("The slack_notify job is not active, will not run")
-        return
-    logger.info("Running the slack_notify job")
-
-    try:
-        summary_post()
-    except Exception as err:
-        logger.error(err)
-        job.failing = True
-        job.last_error = str(err)
-    else:
-        job.failing = False
-        job.last_error = ""
-
-    job.last_run = datetime.utcnow()
-    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
-    job.save()
+    summary_post()
 
 
-@job
+@task(job="analyzer")
 def analyzer_task():
     """
-    Analyze any un-analyized versions
+    Analyze any un-analyzed versions
     """
-    job = Job.objects.get(name="analyzer")
-
-    if not job.active:
-        logger.info("The analyzer job is not active, will not run")
-        return
-
-    try:
-        versions = (
-            Version.objects.filter(analysis=None)
-            | Version.objects.filter(analysis__known_format=False)
-        ).all()
-        logger.info(f"Found {len(versions)} versions to analyze")
-        errors = 0
-        for version in versions.all():
-            try:
-                analysis = analyze_version(version)
-            except Exception:
-                errors += 1
-                continue
-            analysis.user = version.creator
-            analysis.save()
-        logger.info(
-            f"Successfully analyzed {len(versions) - errors} versions. "
-            f"Failed to analyze {errors} versions."
-        )
-        if errors > 0:
-            raise Exception(f"Failed to analyze {errors} versions.")
-    except Exception as err:
-        logger.error(f"There was a problem analyzing versions: {err}")
-        job.failing = True
-        job.last_error = str(err)
-    else:
-        job.failing = False
-        job.last_error = ""
-
-    job.last_run = datetime.utcnow()
-    job.last_run = job.last_run.replace(tzinfo=pytz.UTC)
-    job.save()
+    versions = (
+        Version.objects.filter(analysis=None)
+        | Version.objects.filter(analysis__known_format=False)
+    ).all()
+    logger.info(f"Found {len(versions)} versions to analyze")
+    errors = 0
+    for version in versions.all():
+        try:
+            analysis = analyze_version(version)
+        except Exception:
+            errors += 1
+            continue
+        analysis.user = version.creator
+        analysis.save()
+    logger.info(
+        f"Successfully analyzed {len(versions) - errors} versions. "
+        f"Failed to analyze {errors} versions."
+    )
+    if errors > 0:
+        raise Exception(f"Failed to analyze {errors} versions.")
