@@ -87,7 +87,7 @@ class task:
     def close(self):
         logger.info("Job complete. Saving log file")
 
-        log = JobLog(job=self._job)
+        log = JobLog(job=self._job, error=self._job.failing)
 
         self.logger.info(f"Saving as Job Log {yellow(str(log.id))}")
 

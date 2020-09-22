@@ -34,6 +34,10 @@ class JobLog(models.Model):
         on_delete=models.CASCADE,
     )
 
+    error = models.BooleanField(
+        default=False, help_text="If there was an error running the Job"
+    )
+
     log_file = models.FileField(
         upload_to=_get_upload_directory,
         max_length=1024,
