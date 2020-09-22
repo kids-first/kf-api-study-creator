@@ -1,7 +1,7 @@
+import uuid
 import pytz
 import django_rq
 from datetime import datetime
-from rq.job import Job as RQJob
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -126,6 +126,7 @@ class Job(models.Model):
     scheduler = models.CharField(
         max_length=400,
         null=False,
+        default="default",
         help_text="The scheduler the Job will run on",
     )
     description = models.TextField(
@@ -136,6 +137,9 @@ class Job(models.Model):
     )
     failing = models.BooleanField(
         default=False, help_text="If the Job is failing"
+    )
+    scheduled = models.BooleanField(
+        default=False, help_text="If the Job is a recurring scheduled task"
     )
     created_on = models.DateTimeField(
         auto_now_add=True, null=False, help_text="Time the Job was created"
