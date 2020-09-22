@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.4
+
+### Summary
+
+- Emojis: 🔧 x1, ✨ x2
+- Categories: Other Changes x1, Additions x2
+
+### New features and changes
+
+- [#480](https://github.com/kids-first/kf-api-study-creator/pull/480) - 🔧 Get stage from environment - [1bc3dfd7](https://github.com/kids-first/kf-api-study-creator/commit/1bc3dfd7f23a840234c7a8e673981e145f86507d) by [dankolbman](https://github.com/dankolbman)
+- [#475](https://github.com/kids-first/kf-api-study-creator/pull/475) - ✨ New expedited types - [e89a4ae5](https://github.com/kids-first/kf-api-study-creator/commit/e89a4ae525d1406144359a6236af668c22adc85f) by [dankolbman](https://github.com/dankolbman)
+- [#472](https://github.com/kids-first/kf-api-study-creator/pull/472) - ✨ Add download extract config endpoint - [d845e21c](https://github.com/kids-first/kf-api-study-creator/commit/d845e21cb0d3226191ba88cadbff58b401af4214) by [XuTheBunny](https://github.com/XuTheBunny)
+
+
 ## Release 1.14.3
 
 ### Summary
