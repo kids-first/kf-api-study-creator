@@ -151,7 +151,13 @@ class Job(models.Model):
 
     @property
     def enqueued_at(self):
-        """ Returns the next scheduled run time for the job """
+        """
+        Returns the next scheduled run time for the job or None if it is
+        not a repeating job.
+        """
+        if not self.scheduled:
+            return None
+
         scheduler = django_rq.get_scheduler(self.scheduler)
         ts = scheduler.connection.zscore(
             "rq:scheduler:scheduled_jobs", self.name
