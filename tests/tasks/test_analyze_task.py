@@ -42,7 +42,8 @@ def test_analyzer_task_error(db, mocker, versions):
     mock = mocker.patch("creator.tasks.analyze_version")
     mock.side_effect = Exception("error occurred")
 
-    analyzer_task()
+    with pytest.raises(Exception):
+        analyzer_task()
 
     job.refresh_from_db()
     assert job.failing

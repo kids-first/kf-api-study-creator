@@ -64,7 +64,8 @@ def test_setup_cavatica_fail(db, mocker, settings):
 
     assert Event.objects.count() == 0
 
-    setup_cavatica_task(study.kf_id, [], "abc")
+    with pytest.raises(Exception):
+        setup_cavatica_task(study.kf_id, [], "abc")
 
     assert mock_setup.call_count == 1
 

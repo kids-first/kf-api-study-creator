@@ -31,7 +31,8 @@ def test_sync_buckets_error(db, mocker):
     mock = mocker.patch("creator.tasks.sync_buckets")
     mock.side_effect = Exception("error")
 
-    sync_buckets_task()
+    with pytest.raises(Exception):
+        sync_buckets_task()
 
     job.refresh_from_db()
     assert job.failing
