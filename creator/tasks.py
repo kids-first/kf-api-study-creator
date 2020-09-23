@@ -113,7 +113,7 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
         event.save()
 
         logger.error(message)
-        return
+        raise
 
 
 @task("import_delivery_files")
@@ -168,7 +168,7 @@ def import_delivery_files_task(project_id, user_sub):
         event.save()
 
         logger.error(message)
-        return
+        raise
 
 
 @task(job="cavatica_sync")

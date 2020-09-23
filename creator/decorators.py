@@ -64,9 +64,13 @@ class task:
             self.logger.info(blue("Dropping into the Job process"))
             self.logger.info("")
 
+            # Used to store any exception that gets raised during execution
+            exception = None
+
             try:
                 f(*args, **kwargs)
             except Exception as err:
+                exception = err
                 self.logger.error("")
                 logger.error(
                     red(f"There was a problem running the job: {err}")
@@ -87,6 +91,11 @@ class task:
             self._job.save()
 
             self.close()
+
+            # If there was some exception, throw it now after the Job status
+            # has been updated
+            if exception:
+                raise exception
 
         return task_wrapper
 
