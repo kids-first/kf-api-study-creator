@@ -7,8 +7,7 @@ from rq.utils import make_colorizer
 
 from django.core.files.base import ContentFile
 
-from creator.models import Job
-from creator.jobs.models import JobLog
+from creator.jobs.models import Job, JobLog
 from creator.version_info import VERSION, COMMIT
 
 logger = logging.getLogger(__name__)

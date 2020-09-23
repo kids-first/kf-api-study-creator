@@ -1,10 +1,71 @@
 import os
 import pytz
 import uuid
+from datetime import datetime
+import django_rq
 from django.conf import settings
 from django.db import models
 
-from creator.models import Job
+
+class Job(models.Model):
+    """
+    Logs the current state of any scheduled, recurrent jobs.
+    """
+
+    class Meta:
+        permissions = [
+            ("list_all_job", "Can list all jobs"),
+            ("view_settings", "Can view settings"),
+            ("view_queue", "Can view queues"),
+        ]
+
+    name = models.CharField(
+        primary_key=True,
+        max_length=400,
+        null=False,
+        help_text="The name of the scheduled job",
+    )
+    scheduler = models.CharField(
+        max_length=400,
+        null=False,
+        default="default",
+        help_text="The scheduler the Job will run on",
+    )
+    description = models.TextField(
+        null=True, help_text="Description of the Job's role"
+    )
+    active = models.BooleanField(
+        default=True, help_text="If the Job is active"
+    )
+    failing = models.BooleanField(
+        default=False, help_text="If the Job is failing"
+    )
+    scheduled = models.BooleanField(
+        default=False, help_text="If the Job is a recurring scheduled task"
+    )
+    created_on = models.DateTimeField(
+        auto_now_add=True, null=False, help_text="Time the Job was created"
+    )
+    last_run = models.DateTimeField(null=True, help_text="Time of last run")
+    last_error = models.TextField(
+        null=True, help_text="Error message from last failure"
+    )
+
+    @property
+    def enqueued_at(self):
+        """
+        Returns the next scheduled run time for the job or None if it is
+        not a repeating job.
+        """
+        if not self.scheduled:
+            return None
+
+        scheduler = django_rq.get_scheduler(self.scheduler)
+        ts = scheduler.connection.zscore(
+            "rq:scheduler:scheduled_jobs", self.name
+        )
+        dt = datetime.fromtimestamp(ts)
+        return dt.replace(tzinfo=pytz.UTC)
 
 
 def _get_upload_directory(instance, filename):

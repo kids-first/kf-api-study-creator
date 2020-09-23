@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.tasks import sync_buckets_task
 
 

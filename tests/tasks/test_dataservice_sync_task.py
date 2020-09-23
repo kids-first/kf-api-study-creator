@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.events.models import Event
 from creator.tasks import sync_dataservice_studies_task
 

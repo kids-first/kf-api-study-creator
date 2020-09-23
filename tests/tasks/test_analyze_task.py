@@ -1,5 +1,5 @@
 import pytest
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.studies.factories import StudyFactory
 from creator.files.factories import VersionFactory, FileFactory
 from creator.studies.models import Study

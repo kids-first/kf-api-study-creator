@@ -204,7 +204,6 @@ def test_status_query(client):
             features { studyCreation }
             settings { dataserviceUrl }
             queues
-            jobs { edges { node { id name } } }
         }
     }"""
     resp = client.post(
@@ -223,7 +222,7 @@ def test_status_query(client):
     assert status["settings"] is None
     assert status["queues"] is None
     assert "errors" in resp.json()
-    assert len(resp.json()["errors"]) == 3
+    assert len(resp.json()["errors"]) == 2
 
 
 def test_admin_status_query(db, clients):
@@ -238,7 +237,6 @@ def test_admin_status_query(db, clients):
             features { studyCreation }
             settings { dataserviceUrl }
             queues
-            jobs { edges { node { id name } } }
         }
     }"""
     resp = client.post(
@@ -255,6 +253,5 @@ def test_admin_status_query(db, clients):
     assert len(status["commit"]) == 7
     assert "features" in status
     assert "queues" in status
-    assert "jobs" in status
     assert status["settings"]["dataserviceUrl"] == "http://dataservice"
     assert "errors" not in resp.json()

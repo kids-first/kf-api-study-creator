@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from django.conf import settings
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.tasks import (
     analyzer_task,
     sync_cavatica_projects_task,

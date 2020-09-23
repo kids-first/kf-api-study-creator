@@ -7,8 +7,6 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import FilterSet, OrderingFilter
 
-from creator.models import Job
-
 
 def get_version_info():
     from creator.version_info import COMMIT, VERSION
@@ -113,35 +111,6 @@ class Settings(graphene.ObjectType):
     )
 
 
-class JobNode(DjangoObjectType):
-    enqueued_at = graphene.DateTime()
-
-    class Meta:
-        model = Job
-        interfaces = (graphene.relay.Node,)
-        filter_fields = ()
-
-    @classmethod
-    def get_node(cls, info, name):
-        """
-        Only return node if user is admin
-        """
-        user = info.context.user
-
-        if not user.has_perm("creator.view_job"):
-            return Job.objects.none()
-
-        return Job.objects.get(name=name)
-
-
-class JobFilter(FilterSet):
-    order_by = OrderingFilter(fields=("created_on", "last_run"))
-
-    class Meta:
-        model = Job
-        fields = ["name", "active", "failing"]
-
-
 class Status(graphene.ObjectType):
     name = graphene.String()
     version = graphene.String()
@@ -149,9 +118,6 @@ class Status(graphene.ObjectType):
     features = graphene.Field(Features)
     settings = graphene.Field(Settings)
     queues = graphene.JSONString()
-    jobs = DjangoFilterConnectionField(
-        JobNode, filterset_class=JobFilter, description="Get job statuses"
-    )
 
     def resolve_features(self, info):
         features = {
@@ -173,7 +139,7 @@ class Status(graphene.ObjectType):
         Settings may only be resolved by an admin
         """
         user = info.context.user
-        if not user.has_perm("creator.view_settings"):
+        if not user.has_perm("jobs.view_settings"):
             raise GraphQLError("Not allowed")
 
         conf = {
@@ -208,7 +174,7 @@ class Status(graphene.ObjectType):
         Queues may only be resolved by an admin
         """
         user = info.context.user
-        if not user.has_perm("creator.view_queue"):
+        if not user.has_perm("jobs.view_queue"):
             raise GraphQLError("Not allowed")
 
         stats = get_statistics().get("queues")
@@ -221,16 +187,6 @@ class Status(graphene.ObjectType):
             cleaned.append(stat)
 
         return cleaned
-
-    def resolve_jobs(self, info):
-        """
-        Jobs may only be resolved by an admin
-        """
-        user = info.context.user
-        if not user.has_perm("creator.view_job"):
-            raise GraphQLError("Not allowed")
-
-        return Job.objects.all()
 
 
 class Query(graphene.ObjectType):
