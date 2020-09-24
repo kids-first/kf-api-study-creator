@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.5
+
+### Summary
+
+- Emojis: 🐛 x1
+- Categories: Fixes x1
+
+### New features and changes
+
+- [#483](https://github.com/kids-first/kf-api-study-creator/pull/483) - 🐛 Stringify before checking for printable chars - [eb43ec7c](https://github.com/kids-first/kf-api-study-creator/commit/eb43ec7c9fe9cc2e664c9077c5ca9b1243611090) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.14.4
 
 ### Summary
