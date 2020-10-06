@@ -20,3 +20,5 @@ rq-scheduler==0.10.0
 slackclient==2.6.1
 django-amazon-ses==3.0.2
 xlrd==1.2.0
+django-fsm==2.7.0
+semantic-version==2.8.5
