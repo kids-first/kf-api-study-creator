@@ -4,6 +4,10 @@
 
 GROUPS = {
     "Administrators": [
+        "view_release",
+        "list_all_release",
+        "add_release",
+        "change_release",
         "view_analysis",
         "list_all_analysis",
         "change_analysis",
