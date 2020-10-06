@@ -60,6 +60,15 @@ class Command(TemplateCommand):
             **kwargs,
         )
 
+        # Rename test files so that pytest doesn't have name collisions
+        for f in os.listdir(tests_target):
+            os.rename(
+                os.path.join(tests_target, f),
+                os.path.join(
+                    tests_target, f.replace("test_", f"test_{kwargs['name']}_")
+                ),
+            )
+
         self.stdout.write(
             f"🎉 Created new app '{kwargs['name']}'.\n"
             "The application is not quite ready yet. Finalize it by doing the "
