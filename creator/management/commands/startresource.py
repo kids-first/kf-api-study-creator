@@ -1,4 +1,5 @@
 import os
+from subprocess import call
 from django.core.management.templates import TemplateCommand
 
 
@@ -60,7 +61,7 @@ class Command(TemplateCommand):
         )
 
         self.stdout.write(
-            f"🎉 Created new app {kwargs['name']}.\n"
+            f"🎉 Created new app '{kwargs['name']}'.\n"
             "The application is not quite ready yet. Finalize it by doing the "
             "following:"
             "\n  1) Add app to INSTALLED_APPS in settings files"
@@ -68,4 +69,58 @@ class Command(TemplateCommand):
             "\n  3) Modify models.py and run `manage.py makemigrations`"
             "\n  4) Add permissions for new resource in `groups.py`"
             "\n  5) Modify tests for appropriate permissions"
+            "\n\nWe will guide you through these steps now.",
+            self.style.SUCCESS,
         )
+
+        self._edit_settings()
+        self._edit_schema()
+
+    def _edit_settings(self):
+        EDITOR = os.environ.get("EDITOR", "vim")
+
+        self.stdout.write(
+            "\nThe new application needs to be added to the INSTALLED_APPS in "
+            "the settings files."
+        )
+
+        response = input(
+            f"Enter editor to use or 'n' to skip this step ({EDITOR})"
+        )
+
+        if response == "n":
+            return
+        if response != "":
+            EDITOR = response
+
+        command = [EDITOR]
+        if EDITOR == "vim":
+            command.append("+42")
+
+        call(
+            command
+            + [
+                os.path.join("creator", "settings", s)
+                for s in ["development.py", "testing.py", "production.py"]
+            ]
+        )
+
+    def _edit_schema(self):
+        EDITOR = os.environ.get("EDITOR", "vim")
+
+        self.stdout.write(
+            "\nThe application needs to be included in the root Query and"
+            " Mutation for the application schema."
+        )
+
+        response = input(
+            f"Enter editor name or 'n' to skip this step ({EDITOR})"
+        )
+
+        if response == "n":
+            return
+        if response != "":
+            EDITOR = response
+
+        command = [EDITOR, "creator/schema.py"]
+        call(command)
