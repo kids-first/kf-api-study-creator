@@ -1,6 +1,6 @@
 import pytest
 from graphql_relay import to_global_id
-from creator.{{ plural }}.factories import {{ model_name }}Factory
+from creator.{{ app_name }}.factories import {{ model_name }}Factory
 
 {{ uppercase }} = """
 query ($id: ID!) {
