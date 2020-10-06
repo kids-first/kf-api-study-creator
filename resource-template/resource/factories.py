@@ -1,4 +1,5 @@
 import pytz
+import factory
 from creator.{{ app_name}}.models import {{ model_name }}
 
 
