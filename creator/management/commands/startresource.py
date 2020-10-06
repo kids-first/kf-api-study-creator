@@ -15,7 +15,15 @@ class Command(TemplateCommand):
         )
 
     def handle(self, *args, **kwargs):
-        os.makedirs(kwargs["directory"])
+        resource_template = os.path.join(kwargs["template"], "resource")
+        tests_template = os.path.join(kwargs["template"], "tests")
+
+        if kwargs["directory"] is None:
+            resource_target = os.path.join("creator", kwargs["name"])
+            tests_target = os.path.join("tests", kwargs["name"])
+        else:
+            resource_target = os.path.join(kwargs["directory"], kwargs["name"])
+            tests_target = os.path.join(kwargs["directory"], "tests")
 
         if kwargs["plural"] is None:
             kwargs["plural"] = kwargs["name"]
@@ -25,10 +33,39 @@ class Command(TemplateCommand):
             if kwargs["name"].endswith("s"):
                 kwargs["singular"] = kwargs["name"][:-1]
 
-        super().handle("app", *args, target=kwargs["directory"], **kwargs)
+        # Inject some handy naming styles for use by the templates
+        kwargs["uppercase"] = kwargs["singular"].upper()
+        kwargs["uppercase_plural"] = kwargs["plural"].upper()
+
+        os.makedirs(resource_target)
+        os.makedirs(tests_target)
+
+        del kwargs["directory"]
+        del kwargs["template"]
+        super().handle(
+            "app",
+            *args,
+            target=resource_target,
+            directory=resource_target,
+            template=resource_template,
+            **kwargs,
+        )
+        super().handle(
+            "app",
+            *args,
+            target=tests_target,
+            directory=tests_target,
+            template=tests_template,
+            **kwargs,
+        )
 
         self.stdout.write(
-            "Created new app. \n Make sure to install it in the settings "
-            "files, add it to the root schema, run migrations, and add "
-            "permission groups."
+            f"🎉 Created new app {kwargs['name']}.\n"
+            "The application is not quite ready yet. Finalize it by doing the "
+            "following:"
+            "\n  1) Add app to INSTALLED_APPS in settings files"
+            "\n  2) Add schema to top level `schema.py`"
+            "\n  3) Modify models.py and run `manage.py makemigrations`"
+            "\n  4) Add permissions for new resource in `groups.py`"
+            "\n  5) Modify tests for appropriate permissions"
         )
