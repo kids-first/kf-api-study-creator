@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from creator.jobs.models import Job
+from creator.releases.tasks import sync_releases_task
 from creator.tasks import (
     analyzer_task,
     sync_cavatica_projects_task,
@@ -26,6 +27,7 @@ class Command(BaseCommand):
         self.default_scheduler = django_rq.get_scheduler("default")
         self.cavatica_scheduler = django_rq.get_scheduler("cavatica")
         self.dataservice_scheduler = django_rq.get_scheduler("dataservice")
+        self.releases_scheduler = django_rq.get_scheduler("releases")
         self.aws_scheduler = django_rq.get_scheduler("aws")
         self.slack_scheduler = django_rq.get_scheduler("slack")
 
@@ -42,6 +44,12 @@ class Command(BaseCommand):
             f"Found {len(jobs)} jobs scheduled on the Dataservice queue"
         )
         self.setup_dataservice_sync()
+
+        jobs = list(self.releases_scheduler.get_jobs())
+        logger.info(
+            f"Found {len(jobs)} jobs scheduled on the Coordinator queue"
+        )
+        self.setup_coordinator_sync()
 
         jobs = list(self.aws_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the AWS queue")
@@ -110,6 +118,27 @@ class Command(BaseCommand):
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="dataservice"
+        )
+        job.scheduled = True
+        job.save()
+
+    def setup_coordinator_sync(self):
+        logger.info("Scheduling Release Coordinator Sync jobs")
+        name = "releases_sync"
+        description = "Syncronize Release Coordinator releases"
+
+        self.releases_scheduler.cancel("releases_sync")
+
+        self.releases_scheduler.schedule(
+            id=name,
+            description=description,
+            scheduled_time=datetime.utcnow(),
+            func=sync_releases_task,
+            repeat=None,
+            interval=600,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="releases"
         )
         job.scheduled = True
         job.save()
