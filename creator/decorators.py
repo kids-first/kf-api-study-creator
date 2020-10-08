@@ -1,6 +1,7 @@
 import sys
 import logging
 import pytz
+import traceback
 from io import StringIO
 from datetime import datetime
 from functools import wraps
@@ -73,11 +74,12 @@ class task:
                 f(*args, **kwargs)
             except Exception as err:
                 exception = err
-                self.logger.error("")
                 logger.error(
-                    red(f"There was a problem running the job: {err}")
+                    red(
+                        f"There was a problem running the job:\n"
+                        f"{traceback.format_exc()}"
+                    )
                 )
-                self.logger.error("")
                 self._job.failing = True
                 self._job.last_error = str(err)
             else:
