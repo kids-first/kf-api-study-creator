@@ -153,6 +153,13 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 30,
         "SSL": redis_ssl,
     },
+    "releases": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
     "aws": {
         "HOST": redis_host,
         "PORT": redis_port,
@@ -324,6 +331,8 @@ REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/production (python-requests)"}
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
+
+COORDINATOR_URL = os.environ.get("COORDINATOR_URL", "https://kf-release-coord.kidsfirstdrc.org/graphql")
 
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
