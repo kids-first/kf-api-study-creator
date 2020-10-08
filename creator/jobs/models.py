@@ -60,7 +60,12 @@ class Job(models.Model):
         if not self.scheduled:
             return None
 
-        scheduler = django_rq.get_scheduler(self.scheduler)
+        try:
+            scheduler = django_rq.get_scheduler(self.scheduler)
+        except KeyError:
+            # The scheduler may no longer exist,
+            # so assume this is not a scheduled job
+            return None
         ts = scheduler.connection.zscore(
             "rq:scheduler:scheduled_jobs", self.name
         )
