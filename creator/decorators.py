@@ -5,7 +5,9 @@ from datetime import datetime
 from functools import wraps
 from rq.utils import make_colorizer
 
+from django.conf import settings
 from django.core.files.base import ContentFile
+from django_s3_storage.storage import S3Storage
 
 from creator.jobs.models import Job, JobLog
 from creator.version_info import VERSION, COMMIT
@@ -111,9 +113,17 @@ class task:
         self.logger.info(f"Uploading log contents, goodbye! 👋")
 
         log.log_file.save(
+            f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
             f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log",
             ContentFile(self.stream.getvalue()),
         )
+        if (
+            settings.DEFAULT_FILE_STORAGE
+            == "django_s3_storage.storage.S3Storage"
+        ):
+            log.log_file.key.storage = S3Storage(
+                aws_s3_bucket_name=settings.LOG_BUCKET
+            )
 
     def log_preamble(self):
         """

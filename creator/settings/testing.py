@@ -276,6 +276,8 @@ DOWNLOAD_TOKEN_TTL = 30
 # The object prefix to upload under when using S3 storage
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR', 'uploads/')
 
+# Bucket in s3 to keep logs at
+LOG_BUCKET = os.environ.get('LOG_BUCKET', 'kf-study-creator-logging')
 # The relative path to the directory where job logs will be stored
 LOG_DIR = os.environ.get('LOG_DIR', 'logs/')
 
