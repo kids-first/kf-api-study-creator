@@ -53,6 +53,13 @@ pre-populated database of mock data.
    development/email
 
 .. toctree::
+  :maxdepth: 2
+  :caption: Releases
+
+  releases/introduction
+  releases/process
+
+.. toctree::
    :maxdepth: 2
    :caption: Deployment:
 
