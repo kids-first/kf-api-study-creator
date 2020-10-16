@@ -109,6 +109,10 @@ class Settings(graphene.ObjectType):
         graphene.String,
         description=("Slack IDs of users to add to new study channels"),
     )
+    log_bucket = graphene.String(description="S3 bucket to store job logs in")
+    log_dir = graphene.String(
+        description="Prefix to store files under in the log bucket"
+    )
 
 
 class Status(graphene.ObjectType):
@@ -165,7 +169,9 @@ class Status(graphene.ObjectType):
                 settings.STUDY_BUCKETS_INVENTORY_LOCATION
             ),
             "study_buckets_log_prefix": settings.STUDY_BUCKETS_LOG_PREFIX,
-            "slack_users": (settings.SLACK_USERS),
+            "slack_users": settings.SLACK_USERS,
+            "log_dir": settings.LOG_DIR,
+            "log_bucket": settings.LOG_BUCKET,
         }
         return Settings(**conf)
 
