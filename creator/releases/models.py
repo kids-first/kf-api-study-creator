@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
-from django_fsm import FSMField
+from django_fsm import FSMField, transition
 from semantic_version import Version
 from semantic_version.django_fields import VersionField
 
@@ -60,7 +60,11 @@ class Release(models.Model):
     """
 
     class Meta:
-        permissions = [("list_all_release", "Show all releases")]
+        permissions = [
+            ("list_all_release", "Show all releases"),
+            ("publish_release", "Publish a release"),
+            ("cancel_release", "Cancel a release"),
+        ]
         get_latest_by = "created_at"
 
     kf_id = models.CharField(
