@@ -11,6 +11,15 @@ from creator.jobs.models import JobLog
 
 User = get_user_model()
 
+FAIL_SOURCES = [
+    "waiting",
+    "initializing",
+    "running",
+    "staged",
+    "publishing",
+    "canceling",
+]
+
 
 def release_id():
     return kf_id_generator("RE")
@@ -96,6 +105,51 @@ class Release(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="Date created"
     )
+
+    @transition(field=state, source="waiting", target="initializing")
+    def initialize(self):
+        """ Begin initializing tasks """
+        return
+
+    @transition(field=state, source="initializing", target="running")
+    def start(self):
+        """ Start the release """
+        return
+
+    @transition(field=state, source="running", target="staged")
+    def staged(self):
+        """ The release has been staged """
+        return
+
+    @transition(field=state, source="staged", target="publishing")
+    def publish(self):
+        """ Start publishing the release """
+        return
+
+    @transition(field=state, source="publishing", target="published")
+    def complete(self):
+        """ Complete publishing """
+        if self.is_major:
+            self.version = self.version.next_major()
+        else:
+            self.version = self.version.next_minor()
+        self.save()
+        return
+
+    @transition(field=state, source=FAIL_SOURCES, target="canceling")
+    def cancel(self):
+        """ Cancel the release """
+        return
+
+    @transition(field=state, source="canceling", target="canceled")
+    def canceled(self):
+        """ The release has finished canceling """
+        return
+
+    @transition(field=state, source=FAIL_SOURCES, target="failed")
+    def failed(self):
+        """ The release failed """
+        return
 
 
 class ReleaseTask(models.Model):
