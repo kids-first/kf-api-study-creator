@@ -112,18 +112,23 @@ class task:
 
         self.logger.info(f"Uploading log contents, goodbye! 👋")
 
+        self.logger.info("set storage backend")
+        if (
+            settings.DEFAULT_FILE_STORAGE
+            == "django_s3_storage.storage.S3Storage"
+        ):
+            log.log_file.storage = S3Storage(
+                aws_s3_bucket_name=settings.LOG_BUCKET
+            )
+
+        self.logger.info("Save file now")
         log.log_file.save(
             f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
             f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log",
             ContentFile(self.stream.getvalue()),
         )
-        if (
-            settings.DEFAULT_FILE_STORAGE
-            == "django_s3_storage.storage.S3Storage"
-        ):
-            log.log_file.key.storage = S3Storage(
-                aws_s3_bucket_name=settings.LOG_BUCKET
-            )
+
+        print(log.log_file.storage)
 
     def log_preamble(self):
         """
