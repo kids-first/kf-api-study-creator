@@ -1,4 +1,5 @@
 import graphene
+import django_fsm
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 
@@ -72,6 +73,37 @@ class UpdateReleaseMutation(graphene.Mutation):
         return UpdateReleaseMutation(release=release)
 
 
+class CancelReleaseMutation(graphene.Mutation):
+    """ Cancel a release """
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="The ID of the release to cancel"
+        )
+
+    release = graphene.Field(ReleaseNode)
+
+    def mutate(self, info, id):
+        """
+        Cancels a release
+        """
+        user = info.context.user
+        if not user.has_perm("releases.cancel_release"):
+            raise GraphQLError("Not allowed")
+
+        model, node_id = from_global_id(id)
+
+        try:
+            release = Release.objects.get(pk=node_id)
+        except Release.DoesNotExist:
+            raise GraphQLError("Release was not found")
+
+        release.cancel()
+        release.save()
+
+        return CancelReleaseMutation(release=release)
+
+
 class Mutation:
     """ Mutations for releases """
 
@@ -80,4 +112,7 @@ class Mutation:
     )
     update_release = UpdateReleaseMutation.Field(
         description="Update a given release"
+    )
+    cancel_release = CancelReleaseMutation.Field(
+        description="Cancel a given release"
     )

@@ -8,6 +8,8 @@ GROUPS = {
         "list_all_release",
         "add_release",
         "change_release",
+        "cancel_release",
+        "publish_release",
         "view_releasetask",
         "list_all_releasetask",
         "add_releasetask",
