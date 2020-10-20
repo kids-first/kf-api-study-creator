@@ -239,6 +239,7 @@ LOGGING = {
         },
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"]},
+        "creator.decorators": {"handlers": ["task"]},
         "creator.tasks": {"handlers": ["task"]},
         "creator.slack": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},

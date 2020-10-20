@@ -1,3 +1,4 @@
+import sys
 import logging
 import pytz
 from io import StringIO
@@ -101,7 +102,7 @@ class task:
         return task_wrapper
 
     def close(self):
-        logger.info("Job complete. Saving log file")
+        self.logger.info("Job complete. Saving log file")
 
         log = JobLog(job=self._job, error=self._job.failing)
 
@@ -112,7 +113,6 @@ class task:
 
         self.logger.info(f"Uploading log contents, goodbye! 👋")
 
-        self.logger.info("set storage backend")
         if (
             settings.DEFAULT_FILE_STORAGE
             == "django_s3_storage.storage.S3Storage"
@@ -121,14 +121,13 @@ class task:
                 aws_s3_bucket_name=settings.LOG_BUCKET
             )
 
-        self.logger.info("Save file now")
-        log.log_file.save(
+        name = (
             f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
-            f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log",
-            ContentFile(self.stream.getvalue()),
+            f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
         )
+        log.log_file.save(name, ContentFile(self.stream.getvalue()))
 
-        print(log.log_file.storage)
+        log.save()
 
     def log_preamble(self):
         """
