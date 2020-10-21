@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from django.conf import settings
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.tasks import (
     analyzer_task,
     sync_cavatica_projects_task,
@@ -69,6 +69,7 @@ class Command(BaseCommand):
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="default"
         )
+        job.scheduled = True
         job.save()
 
     def setup_cavatica_sync(self):
@@ -89,6 +90,7 @@ class Command(BaseCommand):
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="cavatica"
         )
+        job.scheduled = True
         job.save()
 
     def setup_dataservice_sync(self):
@@ -109,6 +111,7 @@ class Command(BaseCommand):
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="dataservice"
         )
+        job.scheduled = True
         job.save()
 
     def setup_buckets_sync(self):
@@ -129,6 +132,7 @@ class Command(BaseCommand):
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="aws"
         )
+        job.scheduled = True
         job.save()
 
     def setup_slack_notify(self):
@@ -147,4 +151,5 @@ class Command(BaseCommand):
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="slack"
         )
+        job.scheduled = True
         job.save()

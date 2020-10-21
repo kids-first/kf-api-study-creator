@@ -2,7 +2,7 @@ import pytest
 from requests.exceptions import RequestException
 from django.contrib.auth import get_user_model
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.studies.models import Study
 from creator.studies.dataservice import sync_dataservice_studies
 

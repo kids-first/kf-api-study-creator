@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.events.models import Event
 from creator.tasks import sync_dataservice_studies_task
 
@@ -34,7 +34,8 @@ def test_dataservice_study_sync_task_error(db, mocker):
     mock = mocker.patch("creator.tasks.sync_dataservice_studies")
     mock.side_effect = Exception("error occurred")
 
-    sync_dataservice_studies_task()
+    with pytest.raises(Exception):
+        sync_dataservice_studies_task()
 
     job.refresh_from_db()
     assert mock.call_count == 1

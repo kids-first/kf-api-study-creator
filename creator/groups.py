@@ -54,6 +54,10 @@ GROUPS = {
         "list_all_referraltoken",
         "add_referraltoken",
         "extract_version_config",
+        "view_job",
+        "list_all_job",
+        "view_joblog",
+        "list_all_joblog",
     ],
     "Developers": [
         "view_study",

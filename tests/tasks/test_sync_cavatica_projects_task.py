@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.tasks import sync_cavatica_projects_task
 
 
@@ -31,7 +31,8 @@ def test_sync_cavatica_projects_error(db, mocker):
     mock = mocker.patch("creator.tasks.sync_cavatica_projects")
     mock.side_effect = Exception("error")
 
-    sync_cavatica_projects_task()
+    with pytest.raises(Exception):
+        sync_cavatica_projects_task()
 
     job.refresh_from_db()
     assert job.failing

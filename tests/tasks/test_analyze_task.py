@@ -1,5 +1,5 @@
 import pytest
-from creator.models import Job
+from creator.jobs.models import Job
 from creator.studies.factories import StudyFactory
 from creator.files.factories import VersionFactory, FileFactory
 from creator.studies.models import Study
@@ -42,7 +42,8 @@ def test_analyzer_task_error(db, mocker, versions):
     mock = mocker.patch("creator.tasks.analyze_version")
     mock.side_effect = Exception("error occurred")
 
-    analyzer_task()
+    with pytest.raises(Exception):
+        analyzer_task()
 
     job.refresh_from_db()
     assert job.failing

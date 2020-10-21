@@ -67,7 +67,8 @@ def test_import_delivery_files_task_error(db, mocker):
     user = User(sub="abc", ego_roles=["USER"], ego_groups=[])
     user.save()
 
-    import_delivery_files_task(project.project_id, user.sub)
+    with pytest.raises(Exception):
+        import_delivery_files_task(project.project_id, user.sub)
 
     assert mock.call_count == 1
     assert Event.objects.filter(event_type="IM_ERR").count() == 1
