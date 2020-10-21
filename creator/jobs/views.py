@@ -22,6 +22,12 @@ def download_log(request, log_id):
     except JobLog.DoesNotExist:
         return HttpResponseNotFound("No log exists with given ID")
 
+    # Need to set storage location for study bucket if using S3 backend
+    if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
+        log.log_file.storage = S3Storage(
+            aws_s3_bucket_name=settings.LOG_BUCKET
+        )
+
     response = HttpResponse(log.log_file)
     filename = log.log_file.name.split("/")[-1]
     response[
