@@ -243,6 +243,51 @@ class ReleaseTask(models.Model):
 
         return resp.json()
 
+    @transition(field=state, source="waiting", target="initialized")
+    def initialize(self):
+        return
+
+    @transition(field=state, source="initialized", target="running")
+    def start(self):
+        return
+
+    @transition(field=state, source="running", target="staged")
+    def stage(self):
+        return
+
+    @transition(field=state, source="staged", target="publishing")
+    def publish(self):
+        """
+        Sends the publish command to the task's service.
+        """
+        state = self._send_action("publish")
+        assert state["task_id"] == self.kf_id
+        task_state = state["state"]
+
+        if task_state != "publishing":
+            error = (
+                f"Recieved invalid state '{state}' for task '{self.kf_id}'."
+                "Expected to recieve 'publishing' state."
+            )
+            logger.error(error)
+            raise ValueError(error)
+
+    @transition(field=state, source="publishing", target="published")
+    def complete(self):
+        return
+
+    @transition(field=state, source="waiting", target="rejected")
+    def reject(self):
+        return
+
+    @transition(field=state, source="*", target="failed")
+    def failed(self):
+        return
+
+    @transition(field=state, source="*", target="canceled")
+    def cancel(self):
+        return
+
 
 class ReleaseService(models.Model):
     """

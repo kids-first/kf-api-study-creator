@@ -162,3 +162,36 @@ def sync_new_release(release, query):
         f"Synced new release '{release.kf_id}' with "
         f"{len(studies)} studies and {len(tasks)} tasks."
     )
+
+
+def publish(release_id):
+    """
+    Publish a release by sending the release action to each service in the
+    release.
+    """
+    logger.info(f"Publishing release {release_id}")
+
+    release = Release.objects.select_related().get(kf_id=release_id)
+    tasks = release.tasks.all()
+
+    # If there are no tasks in our release, just push it to the completed state
+    # automatically.
+    if not tasks:
+        release.complete()
+
+    release.save()
+
+    # Iterate through each task sequentially and tell it to publish
+    for task in tasks:
+        try:
+            task.publish()
+            task.save()
+        except Exception as err:
+            # Catch any exception that may occur trying to publish the release
+            # and immediatly cancel the release and mark the task as failed.
+            # We can also stop iterating through the tasks because the
+            # cancelled release will cancel them for us.
+            logger.info(
+                f"Something failed when trying to publish a task: {err}"
+            )
+            raise
