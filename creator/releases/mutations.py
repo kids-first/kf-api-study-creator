@@ -10,7 +10,7 @@ from creator.releases.models import Release
 from creator.releases.tasks import publish
 
 
-class CreateReleaseInput(graphene.InputObjectType):
+class StartReleaseInput(graphene.InputObjectType):
     """ Parameters used when creating a new release """
 
     name = graphene.String(description="The name of the release")
@@ -22,11 +22,11 @@ class UpdateReleaseInput(graphene.InputObjectType):
     name = graphene.String(description="The name of the release")
 
 
-class CreateReleaseMutation(graphene.Mutation):
-    """ Creates a new release """
+class StartReleaseMutation(graphene.Mutation):
+    """ Starts a new release """
 
     class Arguments:
-        input = CreateReleaseInput(
+        input = StartReleaseInput(
             required=True, description="Attributes for the new release"
         )
 
@@ -34,14 +34,14 @@ class CreateReleaseMutation(graphene.Mutation):
 
     def mutate(self, info, input):
         """
-        Creates a new release.
+        Starts a new release.
         """
         user = info.context.user
         if not user.has_perm("releases.add_release"):
             raise GraphQLError("Not allowed")
 
         release = Release()
-        return CreateReleaseMutation(release=release)
+        return StartReleaseMutation(release=release)
 
 
 class UpdateReleaseMutation(graphene.Mutation):
@@ -141,8 +141,8 @@ class CancelReleaseMutation(graphene.Mutation):
 class Mutation:
     """ Mutations for releases """
 
-    create_release = CreateReleaseMutation.Field(
-        description="Create a new release."
+    start_release = StartReleaseMutation.Field(
+        description="Start a new release."
     )
     update_release = UpdateReleaseMutation.Field(
         description="Update a given release"
