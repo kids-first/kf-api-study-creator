@@ -1,11 +1,13 @@
 import graphene
 import django_fsm
+import django_rq
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 
 from django.conf import settings
 from creator.releases.nodes import ReleaseNode
 from creator.releases.models import Release
+from creator.releases.tasks import publish
 
 
 class CreateReleaseInput(graphene.InputObjectType):
@@ -100,6 +102,7 @@ class PublishReleaseMutation(graphene.Mutation):
 
         release.publish()
         release.save()
+        django_rq.enqueue(publish, release.pk)
 
         return PublishReleaseMutation(release=release)
 
