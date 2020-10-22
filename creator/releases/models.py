@@ -1,13 +1,19 @@
 import uuid
+import requests
+import logging
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from django_fsm import FSMField, transition
 from semantic_version import Version
 from semantic_version.django_fields import VersionField
 
+from creator.authentication import service_headers
 from creator.fields import kf_id_generator
 from creator.studies.models import Study
 from creator.jobs.models import JobLog
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -203,6 +209,39 @@ class ReleaseTask(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="Time the task was created"
     )
+
+    def _send_action(self, action):
+        """
+        Send a request to the task's service with a specified command and
+        return the json content of the response.
+        """
+
+        headers = service_headers()
+
+        body = {
+            "action": action,
+            "task_id": self.kf_id,
+            "release_id": self.release.kf_id,
+        }
+
+        logger.info(f"Sending action to {self.release_service.url}: {body}")
+        try:
+            resp = requests.post(
+                self.release_service.url + "/tasks",
+                headers=headers,
+                json=body,
+                timeout=settings.REQUESTS_TIMEOUT,
+            )
+            logger.info(
+                f"Recieved response from {self.release_service.url}: "
+                f"{resp.json()}"
+            )
+            resp.raise_for_status()
+        except requests.exceptions.RequestException as err:
+            logger.error(f"problem requesting task for publish: {err}")
+            raise err
+
+        return resp.json()
 
 
 class ReleaseService(models.Model):
