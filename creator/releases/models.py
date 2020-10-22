@@ -240,7 +240,18 @@ class ReleaseTask(models.Model):
             logger.error(f"problem requesting task for publish: {err}")
             raise err
 
-        return resp.json()
+        state = resp.json()
+        # Check that we recieved the state for correct task
+        # Otherwise, we should ignore this response and raise an error
+        if (
+            state["task_id"] != self.kf_id
+            or state["release_id"] != self.release.kf_id
+        ):
+            error = "Recieved a response that did not match the expected task"
+            logger.error(error)
+            raise ValueError(error)
+
+        return state
 
     @transition(field=state, source="waiting", target="initialized")
     def initialize(self):
@@ -260,7 +271,7 @@ class ReleaseTask(models.Model):
         Sends the publish command to the task's service.
         """
         state = self._send_action("publish")
-        assert state["task_id"] == self.kf_id
+
         task_state = state["state"]
 
         if task_state != "publishing":
