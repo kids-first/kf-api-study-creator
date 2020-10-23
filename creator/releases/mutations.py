@@ -5,8 +5,9 @@ from graphql import GraphQLError
 from graphql_relay import from_global_id
 
 from django.conf import settings
+from creator.studies.models import Study
 from creator.releases.nodes import ReleaseNode
-from creator.releases.models import Release
+from creator.releases.models import Release, ReleaseTask, ReleaseService
 from creator.releases.tasks import publish
 
 
@@ -14,12 +15,20 @@ class StartReleaseInput(graphene.InputObjectType):
     """ Parameters used when creating a new release """
 
     name = graphene.String(description="The name of the release")
-
-
-class UpdateReleaseInput(graphene.InputObjectType):
-    """ Parameters used when updating an existing release """
-
-    name = graphene.String(description="The name of the release")
+    description = graphene.String(description="The description of the release")
+    is_major = graphene.Boolean(
+        required=False, description="If this is a major release"
+    )
+    studies = graphene.List(
+        graphene.ID,
+        required=True,
+        description="Studies to include in this release",
+    )
+    services = graphene.List(
+        graphene.ID,
+        required=True,
+        description="Services to run in this release",
+    )
 
 
 class StartReleaseMutation(graphene.Mutation):
@@ -40,8 +49,51 @@ class StartReleaseMutation(graphene.Mutation):
         if not user.has_perm("releases.add_release"):
             raise GraphQLError("Not allowed")
 
-        release = Release()
+        studies = []
+        # Make sure all the studies resolve
+        for study in input["studies"]:
+
+            _, study_id = from_global_id(study)
+            try:
+                study = Study.objects.get(pk=study_id)
+            except Study.DoesNotExist:
+                raise GraphQLError(f"Study {study_id} does not exist")
+            studies.append(study)
+
+        services = []
+        # Make sure all the services resolve
+        for service in input["services"]:
+            _, service_id = from_global_id(service)
+            try:
+                service = ReleaseService.objects.get(pk=service_id)
+            except ReleaseService.DoesNotExist:
+                raise GraphQLError(f"Service {service_id} does not exist")
+            services.append(service)
+
+        # Create the release first before creating the tasks
+        release = Release(
+            name=input["name"],
+            description=input["description"],
+            is_major=input["is_major"],
+            creator=user,
+        )
+        # Need to save the release before we can add study relations
+        release.save()
+        release.studies.set(studies)
+
+        # Now make tasks for each service since we know they all exist
+        # and the release has been created to tie them to
+        for service in services:
+            task = ReleaseTask(release=release, release_service=service)
+            task.save()
+
         return StartReleaseMutation(release=release)
+
+
+class UpdateReleaseInput(graphene.InputObjectType):
+    """ Parameters used when updating an existing release """
+
+    name = graphene.String(description="The name of the release")
 
 
 class UpdateReleaseMutation(graphene.Mutation):
