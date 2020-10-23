@@ -177,11 +177,13 @@ def initialize_release(release_id):
 
     if release.tasks.count() == 0:
         logger.info(
-            f"No serivces were requested to run for release '{release.pk}'. "
-            f"The release will be automatically moved to the running state."
+            f"No services were requested to run for release '{release.pk}'. "
+            f"The release will be automatically moved to the 'running' state."
         )
         release.start()
         release.save()
+
+        django_rq.enqueue(start_release, release.pk)
         return
 
     logger.info(
@@ -210,10 +212,71 @@ def initialize_task(task_id):
             f"There was a problem trying to initialize the service: {err}"
         )
         logger.info(
-            "The release will be canceled as the service was not ready to start "
-            "a new release"
+            "The release will be canceled as the service was not ready to "
+            "start a new release"
         )
         task.reject()
+        task.save()
+
+        # task.release.cancel()
+        # task.release.save()
+
+        # django_rq.enqueue(cancel_release, task.release.pk)
+
+    # Check if all tasks are initialized now and queue up the release start
+    if all([t.state == "initialized" for t in task.release.tasks.all()]):
+        logger.info(
+            "It looks like all tasks in this release are initialized now. "
+            "Queueing start_release"
+        )
+        task.release.start()
+        task.release.save()
+        django_rq.enqueue(start_release, task.release.pk)
+
+
+def start_release(release_id):
+    """
+    Begin a release by invoking start on all services in the release.
+    """
+    release = Release.objects.get(pk=release_id)
+
+    if release.tasks.count() == 0:
+        logger.info(
+            f"No services were requested to run for release '{release.pk}'. "
+            f"The release will be automatically moved to the 'staged' state."
+        )
+        release.staged()
+        release.save()
+        return
+
+    logger.info(
+        f"Queuing jobs to start {release.tasks.count()} tasks for the "
+        f"release '{release.pk}'"
+    )
+
+    for task in release.tasks.all():
+        logger.info(
+            f"Queuing start_task for task '{task.pk}' "
+            f"of service '{task.release_service.name}'"
+        )
+        django_rq.enqueue(start_task, task.pk)
+
+
+def start_task(task_id):
+    """
+    Starts a task by sending it the start command.
+    """
+    task = ReleaseTask.objects.get(pk=task_id)
+    try:
+        task.start()
+        task.save()
+    except Exception as err:
+        logger.error(f"There was a problem trying to start the task: {err}")
+        logger.info(
+            "The release will be canceled as the service failed to start a new"
+            " task"
+        )
+        task.failed()
         task.save()
 
         # task.release.cancel()

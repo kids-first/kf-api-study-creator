@@ -81,7 +81,7 @@ def test_start_release(db, clients, mocker, user_group, allowed):
     if allowed:
         assert resp.json()["data"]["startRelease"]["release"] is not None
         release = resp.json()["data"]["startRelease"]["release"]
-        assert release["state"] == "waiting"
+        assert release["state"] == "initializing"
         assert release["name"] == "Test Release"
         assert release["description"] == "Test Release"
         assert release["isMajor"] is False

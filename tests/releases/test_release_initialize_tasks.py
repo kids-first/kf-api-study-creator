@@ -9,7 +9,11 @@ from creator.releases.factories import (
 )
 
 from creator.releases.models import Release, ReleaseTask
-from creator.releases.tasks import initialize_release, initialize_task
+from creator.releases.tasks import (
+    initialize_release,
+    initialize_task,
+    start_release,
+)
 
 
 def test_initialize_release_no_tasks(db, mocker):
@@ -26,7 +30,8 @@ def test_initialize_release_no_tasks(db, mocker):
     release.refresh_from_db()
 
     assert release.state == "running"
-    assert mock_rq.call_count == 0
+    assert mock_rq.call_count == 1
+    mock_rq.assert_called_with(start_release, release.pk)
 
 
 def test_initialize_release_with_tasks(db, mocker):
@@ -56,6 +61,7 @@ def test_initialize_task_successful(db, mocker):
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(release=release, release_service=service)
 
+    mock_rq = mocker.patch("creator.releases.tasks.django_rq.enqueue")
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
     mock.return_value = {
         "state": "initialized",
@@ -70,6 +76,8 @@ def test_initialize_task_successful(db, mocker):
     assert task.state == "initialized"
     assert mock.call_count == 1
     mock.assert_called_with("initialize")
+    assert mock_rq.call_count == 1
+    mock_rq.assert_called_with(start_release, release.pk)
 
 
 def test_initialize_task_rejected(db, mocker):
