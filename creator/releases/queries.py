@@ -1,5 +1,5 @@
 from graphene import relay
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.filter import DjangoFilterConnectionField, GlobalIDFilter
 from graphql import GraphQLError
 from django_filters import FilterSet, OrderingFilter
 
@@ -16,11 +16,13 @@ class ReleaseFilter(FilterSet):
 
     class Meta:
         model = Release
-        fields = []
+        fields = {"state": ["exact"]}
 
 
 class ReleaseTaskFilter(FilterSet):
     order_by = OrderingFilter(fields=("created_at",))
+
+    release = GlobalIDFilter()
 
     class Meta:
         model = Release
