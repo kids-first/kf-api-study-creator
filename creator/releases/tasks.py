@@ -1,5 +1,6 @@
 import logging
 import requests
+import django_rq
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
@@ -162,6 +163,60 @@ def sync_new_release(release, query):
         f"Synced new release '{release.kf_id}' with "
         f"{len(studies)} studies and {len(tasks)} tasks."
     )
+
+
+def initialize_release(release_id):
+    """
+    Initializes a release by queueing up jobs to initialize each task in the
+    release.
+    """
+    release = Release.objects.get(pk=release_id)
+
+    if release.tasks.count() == 0:
+        logger.info(
+            f"No serivces were requested to run for release '{release.pk}'. "
+            f"The release will be automatically moved to the running state."
+        )
+        release.start()
+        release.save()
+        return
+
+    logger.info(
+        f"Queuing jobs to check that {release.tasks.count()} tasks are "
+        f"prepared to start processing release '{release.pk}'"
+    )
+
+    for task in release.tasks.all():
+        logger.info(
+            f"Queuing initialize_task for task '{task.pk}' "
+            f"of service '{task.release_service.name}'"
+        )
+        django_rq.enqueue(initialize_task, task.pk)
+
+
+def initialize_task(task_id):
+    """
+    Initializes a task by sending it the initialize command.
+    """
+    task = ReleaseTask.objects.get(pk=task_id)
+    try:
+        task.initialize()
+        task.save()
+    except Exception as err:
+        logger.error(
+            f"There was a problem trying to initialize the service: {err}"
+        )
+        logger.info(
+            "The release will be canceled as the service was not ready to start "
+            "a new release"
+        )
+        task.reject()
+        task.save()
+
+        # task.release.cancel()
+        # task.release.save()
+
+        # django_rq.enqueue(cancel_release, task.release.pk)
 
 
 def publish(release_id):

@@ -256,7 +256,20 @@ class ReleaseTask(models.Model):
 
     @transition(field=state, source="waiting", target="initialized")
     def initialize(self):
-        return
+        """
+        Sends the initialize command to the task's service.
+        """
+        state = self._send_action("initialize")
+
+        task_state = state["state"]
+
+        if task_state not in ["initialized"]:
+            error = (
+                f"Recieved invalid state '{task_state}' for task "
+                f"'{self.kf_id}'. Expected to recieve 'initialized' state."
+            )
+            logger.error(error)
+            raise ValueError(error)
 
     @transition(field=state, source="initialized", target="running")
     def start(self):

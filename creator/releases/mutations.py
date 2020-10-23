@@ -3,12 +3,12 @@ import django_fsm
 import django_rq
 from graphql import GraphQLError
 from graphql_relay import from_global_id
-
 from django.conf import settings
+
 from creator.studies.models import Study
 from creator.releases.nodes import ReleaseNode
 from creator.releases.models import Release, ReleaseTask, ReleaseService
-from creator.releases.tasks import publish
+from creator.releases.tasks import initialize_release, publish
 
 
 class StartReleaseInput(graphene.InputObjectType):
@@ -86,6 +86,11 @@ class StartReleaseMutation(graphene.Mutation):
         for service in services:
             task = ReleaseTask(release=release, release_service=service)
             task.save()
+
+        django_rq.enqueue(initialize_release, release.pk)
+
+        release.initialize()
+        release.save()
 
         return StartReleaseMutation(release=release)
 

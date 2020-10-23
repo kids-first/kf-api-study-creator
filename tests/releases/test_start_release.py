@@ -52,10 +52,12 @@ mutation ($input: StartReleaseInput!) {
         (None, False),
     ],
 )
-def test_start_release(db, clients, user_group, allowed):
+def test_start_release(db, clients, mocker, user_group, allowed):
     """
     Test the start release mutation.
     """
+    mock_rq = mocker.patch("creator.releases.mutations.django_rq.enqueue")
+
     client = clients.get(user_group)
     study = StudyFactory()
     service = ReleaseServiceFactory()
@@ -91,6 +93,7 @@ def test_start_release(db, clients, user_group, allowed):
             release["tasks"]["edges"][0]["node"]["releaseService"]["kfId"]
             == service.pk
         )
+        assert mock_rq.call_count == 1
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 
