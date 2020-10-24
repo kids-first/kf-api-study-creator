@@ -8,7 +8,7 @@ from django.conf import settings
 from creator.studies.models import Study
 from creator.releases.nodes import ReleaseNode
 from creator.releases.models import Release, ReleaseTask, ReleaseService
-from creator.releases.tasks import initialize_release, publish
+from creator.releases.tasks import initialize_release, publish_release
 
 
 class StartReleaseInput(graphene.InputObjectType):
@@ -127,7 +127,7 @@ class UpdateReleaseMutation(graphene.Mutation):
         try:
             release = Release.objects.get(pk=node_id)
         except Release.DoesNotExist:
-            raise GraphQLError("Release was not found")
+            raise GraphQLError(f"Release {node_id} does not exist")
 
         return UpdateReleaseMutation(release=release)
 
@@ -136,13 +136,13 @@ class PublishReleaseMutation(graphene.Mutation):
     """ Publish a release """
 
     class Arguments:
-        id = graphene.ID(
+        release = graphene.ID(
             required=True, description="The ID of the release to publish"
         )
 
     release = graphene.Field(ReleaseNode)
 
-    def mutate(self, info, id):
+    def mutate(self, info, release):
         """
         Publishes a release
         """
@@ -150,16 +150,16 @@ class PublishReleaseMutation(graphene.Mutation):
         if not user.has_perm("releases.publish_release"):
             raise GraphQLError("Not allowed")
 
-        model, node_id = from_global_id(id)
+        model, node_id = from_global_id(release)
 
         try:
             release = Release.objects.get(pk=node_id)
         except Release.DoesNotExist:
-            raise GraphQLError("Release was not found")
+            raise GraphQLError(f"Release {node_id} does not exist")
 
         release.publish()
         release.save()
-        django_rq.enqueue(publish, release.pk)
+        django_rq.enqueue(publish_release, release.pk)
 
         return PublishReleaseMutation(release=release)
 
@@ -168,13 +168,13 @@ class CancelReleaseMutation(graphene.Mutation):
     """ Cancel a release """
 
     class Arguments:
-        id = graphene.ID(
+        release = graphene.ID(
             required=True, description="The ID of the release to cancel"
         )
 
     release = graphene.Field(ReleaseNode)
 
-    def mutate(self, info, id):
+    def mutate(self, info, release):
         """
         Cancels a release
         """
@@ -182,12 +182,12 @@ class CancelReleaseMutation(graphene.Mutation):
         if not user.has_perm("releases.cancel_release"):
             raise GraphQLError("Not allowed")
 
-        model, node_id = from_global_id(id)
+        model, node_id = from_global_id(release)
 
         try:
             release = Release.objects.get(pk=node_id)
         except Release.DoesNotExist:
-            raise GraphQLError("Release was not found")
+            raise GraphQLError(f"Release {node_id} does not exist")
 
         release.cancel()
         release.save()

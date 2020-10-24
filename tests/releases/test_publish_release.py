@@ -1,14 +1,18 @@
 import pytest
 from graphql_relay import to_global_id
 
-from creator.releases.tasks import publish
+from creator.releases.tasks import publish_release, publish_task
 from creator.releases.models import Release
-from creator.releases.factories import ReleaseFactory, ReleaseTaskFactory
+from creator.releases.factories import (
+    ReleaseFactory,
+    ReleaseTaskFactory,
+    ReleaseServiceFactory,
+)
 
 
 PUBLISH_RELEASE = """
-mutation ($id: ID!) {
-    publishRelease(id: $id) {
+mutation ($release: ID!) {
+    publishRelease(release: $release) {
         release {
             id
             state
@@ -41,7 +45,7 @@ def test_publish_release(db, clients, user_group, allowed):
         "/graphql",
         data={
             "query": PUBLISH_RELEASE,
-            "variables": {"id": to_global_id("ReleaseNode", release.pk)},
+            "variables": {"release": to_global_id("ReleaseNode", release.pk)},
         },
         content_type="application/json",
     )
@@ -77,14 +81,14 @@ def test_publish_allowed_states(db, clients, mocker, state, allowed):
     client = clients.get("Administrators")
 
     release = ReleaseFactory(state=state)
-    release.tasks.add(ReleaseTaskFactory(state="staged"))
+    release.tasks.set(ReleaseTaskFactory.create_batch(3, state="staged"))
     release.save()
 
     resp = client.post(
         "/graphql",
         data={
             "query": PUBLISH_RELEASE,
-            "variables": {"id": to_global_id("ReleaseNode", release.pk)},
+            "variables": {"release": to_global_id("ReleaseNode", release.pk)},
         },
         content_type="application/json",
     )
@@ -104,7 +108,27 @@ def test_publish_allowed_states(db, clients, mocker, state, allowed):
         )
 
 
-def test_publish_no_tasks(db):
+def test_start_release_unknown_release(db, clients):
+    """
+    Test that publishing of an unknown release cannot occur
+    """
+    client = clients.get("Administrators")
+
+    variables = {"release": to_global_id("ReleaseNode", "RE_00000000")}
+
+    resp = client.post(
+        "/graphql",
+        data={"query": PUBLISH_RELEASE, "variables": variables},
+        content_type="application/json",
+    )
+
+    assert (
+        resp.json()["errors"][0]["message"]
+        == "Release RE_00000000 does not exist"
+    )
+
+
+def test_publish_release_no_tasks(db):
     """
     Test that a release is immediately published if it has no tasks.
     """
@@ -112,13 +136,13 @@ def test_publish_no_tasks(db):
     release.tasks.set([])
     release.save()
 
-    publish(release.pk)
+    publish_release(release.pk)
 
     release.refresh_from_db()
     assert release.state == "published"
 
 
-def test_publish_with_tasks(db, mocker):
+def test_publish_release_with_tasks(db, mocker):
     """
     Test that a release sends commands to all tasks to publish
     """
@@ -130,7 +154,59 @@ def test_publish_with_tasks(db, mocker):
     release.tasks.set(tasks)
     release.save()
 
-    publish(release.pk)
+    publish_release(release.pk)
 
     assert mock.call_count == 3
     assert release.state == "publishing"
+
+
+def test_publish_task_successful(db, mocker):
+    """
+    Test that the publish_task task properly moves the task's state foreward
+    """
+    release = ReleaseFactory(state="publishing")
+    service = ReleaseServiceFactory()
+    task = ReleaseTaskFactory(
+        state="staged", release=release, release_service=service
+    )
+
+    mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
+    mock.return_value = {
+        "state": "publishing",
+        "task_id": task.pk,
+        "release_id": release.pk,
+    }
+
+    publish_task(task.pk)
+
+    task.refresh_from_db()
+
+    assert task.state == "publishing"
+    assert mock.call_count == 1
+
+
+def test_publish_task_fail(db, mocker):
+    """
+    Test that tasks that respond with anything other than 'publishing' cancel
+    the release.
+    """
+    release = ReleaseFactory(state="publishing")
+    service = ReleaseServiceFactory()
+    task = ReleaseTaskFactory(
+        state="staged", release=release, release_service=service
+    )
+
+    mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
+    mock.return_value = {
+        "state": "invalid state",
+        "task_id": task.pk,
+        "release_id": release.pk,
+    }
+
+    publish_task(task.pk)
+
+    task.refresh_from_db()
+
+    assert task.state == "failed"
+    assert mock.call_count == 1
+    mock.assert_called_with("publish")

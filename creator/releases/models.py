@@ -303,8 +303,8 @@ class ReleaseTask(models.Model):
 
         if task_state != "publishing":
             error = (
-                f"Recieved invalid state '{state}' for task '{self.kf_id}'."
-                "Expected to recieve 'publishing' state."
+                f"Recieved invalid state '{task_state}' for task "
+                "'{self.kf_id}'. Expected to recieve 'publishing' state."
             )
             logger.error(error)
             raise ValueError(error)
