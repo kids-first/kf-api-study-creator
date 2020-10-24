@@ -6,8 +6,8 @@ from creator.releases.factories import ReleaseFactory
 
 
 CANCEL_RELEASE = """
-mutation ($id: ID!) {
-    cancelRelease(id: $id) {
+mutation ($release: ID!) {
+    cancelRelease(release: $release) {
         release {
             id
             state
@@ -40,7 +40,9 @@ def test_cancel_release(db, clients, user_group, allowed):
         "/graphql",
         data={
             "query": CANCEL_RELEASE,
-            "variables": {"id": to_global_id("ReleaseNode}}", release.pk)},
+            "variables": {
+                "release": to_global_id("ReleaseNode", release.pk)
+            },
         },
         content_type="application/json",
     )
@@ -80,7 +82,9 @@ def test_cancel_allowed_states(db, clients, state, allowed):
         "/graphql",
         data={
             "query": CANCEL_RELEASE,
-            "variables": {"id": to_global_id("ReleaseNode}}", release.pk)},
+            "variables": {
+                "release": to_global_id("ReleaseNode}}", release.pk)
+            },
         },
         content_type="application/json",
     )

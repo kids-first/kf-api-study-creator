@@ -285,7 +285,7 @@ def start_task(task_id):
         # django_rq.enqueue(cancel_release, task.release.pk)
 
 
-def publish(release_id):
+def publish_release(release_id):
     """
     Publish a release by sending the release action to each service in the
     release.
@@ -298,21 +298,42 @@ def publish(release_id):
     # If there are no tasks in our release, just push it to the completed state
     # automatically.
     if not tasks:
+        logger.info(
+            f"No services were requested to run for release '{release.pk}'. "
+            f"The release will be automatically moved to the 'staged' state."
+        )
         release.complete()
-
-    release.save()
+        release.save()
+        return
 
     # Iterate through each task sequentially and tell it to publish
     for task in tasks:
-        try:
-            task.publish()
-            task.save()
-        except Exception as err:
-            # Catch any exception that may occur trying to publish the release
-            # and immediatly cancel the release and mark the task as failed.
-            # We can also stop iterating through the tasks because the
-            # cancelled release will cancel them for us.
-            logger.info(
-                f"Something failed when trying to publish a task: {err}"
-            )
-            raise
+        logger.info(
+            f"Queuing publish_task for task '{task.pk}' "
+            f"of service '{task.release_service.name}'"
+        )
+        django_rq.enqueue(publish_task, task.pk)
+
+
+def publish_task(task_id):
+    """
+    Publish a task by sending it the publish command.
+    """
+    task = ReleaseTask.objects.get(pk=task_id)
+    try:
+        task.publish()
+        task.save()
+    except Exception as err:
+        logger.error(f"There was a problem trying to publish the task: {err}")
+        logger.warn(
+            "The release will be canceled as the service failed to publish "
+            "the task. Be cautious of undesired end states as some other "
+            "tasks may have published their data!"
+        )
+        task.failed()
+        task.save()
+
+        # task.release.cancel()
+        # task.release.save()
+
+        # django_rq.enqueue(cancel_release, task.release.pk)
