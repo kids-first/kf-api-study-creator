@@ -323,7 +323,20 @@ class ReleaseTask(models.Model):
 
     @transition(field=state, source="*", target="canceled")
     def cancel(self):
-        return
+        """
+        Sends the cancel command to the task's service.
+        """
+        state = self._send_action("cancel")
+
+        task_state = state["state"]
+
+        if task_state not in ["canceling"]:
+            error = (
+                f"Recieved invalid state '{task_state}' for task "
+                f"'{self.kf_id}'. Expected to recieve 'canceling' state."
+            )
+            logger.error(error)
+            raise ValueError(error)
 
 
 class ReleaseService(models.Model):

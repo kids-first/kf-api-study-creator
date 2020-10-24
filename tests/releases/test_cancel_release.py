@@ -40,9 +40,7 @@ def test_cancel_release(db, clients, user_group, allowed):
         "/graphql",
         data={
             "query": CANCEL_RELEASE,
-            "variables": {
-                "release": to_global_id("ReleaseNode", release.pk)
-            },
+            "variables": {"release": to_global_id("ReleaseNode", release.pk)},
         },
         content_type="application/json",
     )
@@ -97,7 +95,7 @@ def test_cancel_allowed_states(db, clients, state, allowed):
             resp.json()["data"]["cancelRelease"]["release"]["state"]
             == "canceling"
         )
-        assert release.state == "canceling"
+        assert release.state == "canceled"
     else:
         assert f"Can't switch from state '{state}'" in (
             resp.json()["errors"][0]["message"]
