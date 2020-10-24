@@ -101,5 +101,6 @@ def test_initialize_task_rejected(db, mocker):
     task.refresh_from_db()
 
     assert task.state == "rejected"
-    assert mock.call_count == 1
-    mock.assert_called_with("initialize")
+    assert mock.call_count == 2
+    mock.assert_any_call("initialize")
+    mock.assert_called_with("cancel")

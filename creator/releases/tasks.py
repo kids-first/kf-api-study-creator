@@ -218,10 +218,10 @@ def initialize_task(task_id):
         task.reject()
         task.save()
 
-        # task.release.cancel()
-        # task.release.save()
+        task.release.cancel()
+        task.release.save()
 
-        # django_rq.enqueue(cancel_release, task.release.pk)
+        django_rq.enqueue(cancel_release, task.release.pk, failed=True)
 
     # Check if all tasks are initialized now and queue up the release start
     if all([t.state == "initialized" for t in task.release.tasks.all()]):
@@ -279,10 +279,10 @@ def start_task(task_id):
         task.failed()
         task.save()
 
-        # task.release.cancel()
-        # task.release.save()
+        task.release.cancel()
+        task.release.save()
 
-        # django_rq.enqueue(cancel_release, task.release.pk)
+        django_rq.enqueue(cancel_release, task.release.pk, failed=True)
 
 
 def publish_release(release_id):
@@ -333,7 +333,54 @@ def publish_task(task_id):
         task.failed()
         task.save()
 
-        # task.release.cancel()
-        # task.release.save()
+        task.release.cancel()
+        task.release.save()
 
-        # django_rq.enqueue(cancel_release, task.release.pk)
+        django_rq.enqueue(cancel_release, task.release.pk, failed=True)
+
+
+def cancel_release(release_id, failed=False):
+    """
+    Cancel a release by sending the cancel action to each service in the
+    release.
+    """
+    logger.info(f"Canceling release {release_id}")
+
+    release = Release.objects.select_related().get(kf_id=release_id)
+    tasks = release.tasks.exclude(state="failed").all()
+
+    target = "failed" if failed else "canceled"
+    # If there are no tasks in our release, just push it to the canceled or
+    # failed state automatically.
+    if not tasks:
+        logger.info(
+            f"No services were requested to run for release '{release.pk}'. "
+            f"The release will be automatically moved to the '{target}' state."
+        )
+        if failed:
+            release.failed()
+        else:
+            release.canceled()
+        release.save()
+        return
+
+    # Iterate through each task sequentially and tell it to cancel
+    for task in tasks:
+        logger.info(
+            f"Queuing cancel_task for task '{task.pk}' "
+            f"of service '{task.release_service.name}'"
+        )
+        django_rq.enqueue(cancel_task, task.pk)
+
+
+def cancel_task(task_id):
+    """
+    Cancel a task by sending it the cancel command.
+    """
+    task = ReleaseTask.objects.get(pk=task_id)
+
+    try:
+        task.cancel()
+        task.save()
+    except Exception as err:
+        logger.error(f"There was a problem trying to cancel the task: {err}")

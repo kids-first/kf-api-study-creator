@@ -8,7 +8,11 @@ from django.conf import settings
 from creator.studies.models import Study
 from creator.releases.nodes import ReleaseNode
 from creator.releases.models import Release, ReleaseTask, ReleaseService
-from creator.releases.tasks import initialize_release, publish_release
+from creator.releases.tasks import (
+    initialize_release,
+    publish_release,
+    cancel_release,
+)
 
 
 class StartReleaseInput(graphene.InputObjectType):
@@ -191,6 +195,7 @@ class CancelReleaseMutation(graphene.Mutation):
 
         release.cancel()
         release.save()
+        django_rq.enqueue(cancel_release, release.pk)
 
         return CancelReleaseMutation(release=release)
 
