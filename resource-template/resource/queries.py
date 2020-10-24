@@ -29,7 +29,7 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.has_perm("{{ app_name }}.list_all_{{ singular }}"):
+        if not user.has_perm("{{ app_name }}.list_all_{{ permission_singular }}"):
             raise GraphQLError("Not allowed")
 
         return {{ model_name }}.objects.all()
