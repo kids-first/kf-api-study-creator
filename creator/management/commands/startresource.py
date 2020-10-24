@@ -3,6 +3,18 @@ from subprocess import call
 from django.core.management.templates import TemplateCommand
 
 
+def snake_case_to_camel(snake_str, lower=True):
+    """
+    Convert snake case to camel case.
+
+    If lower = True, do lowerCamelCase
+    else do UpperCamelCase
+    """
+    snake_str = ''.join(c.title() for c in snake_str.split('_'))
+    if lower:
+        snake_str = snake_str[0].lower() + snake_str[1:] 
+    return snake_str
+
 class Command(TemplateCommand):
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -37,6 +49,19 @@ class Command(TemplateCommand):
         # Inject some handy naming styles for use by the templates
         kwargs["uppercase"] = kwargs["singular"].upper()
         kwargs["uppercase_plural"] = kwargs["plural"].upper()
+        kwargs["lower_camel_case"] = snake_case_to_camel(
+            kwargs["singular"]
+        )
+        kwargs["upper_camel_case"] = snake_case_to_camel(
+            kwargs["singular"], lower=False
+        )
+        kwargs["lower_camel_case_plural"] = snake_case_to_camel(
+            kwargs["plural"]
+        )
+        kwargs["upper_camel_case_plural"] = snake_case_to_camel(
+            kwargs["plural"], lower=False
+        )
+        kwargs["permission_singular"] = kwargs['singular'].replace('_', '')
 
         os.makedirs(resource_target)
         os.makedirs(tests_target)
