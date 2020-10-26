@@ -386,6 +386,32 @@ def cancel_task(task_id):
         logger.error(f"There was a problem trying to cancel the task: {err}")
 
 
+def scan_tasks():
+    """
+    Queue tasks to update all active task's state
+    """
+    tasks = (
+        ReleaseTask.objects.exclude(state="canceled")
+        & ReleaseTask.objects.exclude(state="rejected")
+        & ReleaseTask.objects.exclude(state="failed")
+        & ReleaseTask.objects.exclude(state="published")
+    ).all()
+
+    for task in tasks:
+        logger.info(
+            f"Queuing check_task for task '{task.pk}' in state '{task.state}'"
+        )
+        django_rq.enqueue(check_task, task.pk)
+
+
+def check_task(task_id):
+    """
+    Check the task and update its state if needed
+    """
+    task = ReleaseTask.objects.get(pk=task_id)
+    task.check_state()
+
+
 def scan_releases():
     """
     Queue tasks to check any release in an active state.
