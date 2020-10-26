@@ -91,10 +91,10 @@ class StartReleaseMutation(graphene.Mutation):
             task = ReleaseTask(release=release, release_service=service)
             task.save()
 
-        django_rq.enqueue(initialize_release, release.pk)
-
         release.initialize()
         release.save()
+
+        django_rq.enqueue(initialize_release, release.pk)
 
         return StartReleaseMutation(release=release)
 
