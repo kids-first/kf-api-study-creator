@@ -38,6 +38,7 @@ class FileType(Enum):
     S3S = "S3S"
     PDA = "PDA"
     FTR = "FTR"
+    GWO = "GWO"
 
 
 class File(models.Model):
@@ -256,10 +257,10 @@ class Version(models.Model):
                                       null=False,
                                       help_text='Time the version was created')
     size = models.BigIntegerField(
-            validators=[
-                MinValueValidator(0, 'File size must be a positive number')
-            ],
-            help_text='Size of the version in bytes')
+        validators=[
+            MinValueValidator(0, 'File size must be a positive number')
+        ],
+        help_text='Size of the version in bytes')
 
     root_file = models.ForeignKey(
         File,
