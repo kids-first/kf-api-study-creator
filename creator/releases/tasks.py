@@ -381,3 +381,94 @@ def cancel_task(task_id):
         task.save()
     except Exception as err:
         logger.error(f"There was a problem trying to cancel the task: {err}")
+
+
+def scan_releases():
+    """
+    Queue tasks to check any release in an active state.
+    """
+    releases = (
+        Release.objects.filter(state="waiting")
+        | Release.objects.filter(state="initializing")
+        | Release.objects.filter(state="running")
+        | Release.objects.filter(state="publishing")
+        | Release.objects.filter(state="canceling")
+    ).all()
+
+    logger.info(f"Found {len(releases)} in states requiring action")
+    for release in releases:
+
+        logger.info(
+            f"Queuing check_release for release '{release.pk}' in state "
+            f"'{release.state}'"
+        )
+        django_rq.enqueue(check_release, release.pk)
+
+
+def check_release(release_id):
+    """
+    Check a release's state and schedule any jobs needed to move it foreward.
+    """
+    release = Release.objects.get(pk=release_id)
+    logger.info(f"Checking if release '{release.pk} needs to update its state")
+    logger.info(f"Current state of release '{release.pk}': {release.state}")
+    states = {t.pk: t.state for t in release.tasks.all()}
+    logger.info(f"Current state of tasks: {states}")
+
+    # If all tasks are in canceled state, the release should assume the
+    # canceled state.
+    if release.state == "canceling" and all(
+        [t.state == "canceled" for t in release.tasks.all()]
+    ):
+        release.canceled()
+        release.save()
+    # If all tasks are in either canceled or failed state, the release
+    # will be marked as failed as at least one task must be marked as failed
+    # due to us handling the all canceled condition above
+    elif release.state == "canceling" and all(
+        [
+            t.state == "canceled" or t.state == "failed"
+            for t in release.tasks.all()
+        ]
+    ):
+        release.failed()
+        release.save()
+
+    # Check to see if we can start the releases
+    elif release.state == "initializing" and all(
+        [t.state == "initialized" for t in release.tasks.all()]
+    ):
+        release.start()
+        release.save()
+        django_rq.enqueue(start_release, release.pk)
+
+    # Check to see if we can mark the release as staged
+    elif release.state == "running" and all(
+        [t.state == "staged" for t in release.tasks.all()]
+    ):
+        release.staged()
+        release.save()
+    # Check to see if we can mark the release as published
+    elif release.state == "publishing" and all(
+        [t.state == "published" for t in release.tasks.all()]
+    ):
+        release.complete()
+        release.save()
+
+    # Finally, we need to check if one of the tasks did end up in a cancel
+    # or fail transition so we can start the fail or cancel process
+    elif release.state not in ["canceling", "canceled", "failed"] and any(
+        task.state
+        in ["canceling", "failing", "failed", "canceled", "rejected"]
+        for task in release.tasks.all()
+    ):
+        # Check if one of the tasks failed so we can mark the release as a
+        # failure
+        failed = False
+        if any(task.state == "failed" for task in release.tasks.all()):
+            failed = True
+
+        release.cancel()
+        release.save()
+
+        django_rq.enqueue(cancel_release, release.pk, failed=failed)
