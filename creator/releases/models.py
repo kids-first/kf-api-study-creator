@@ -330,10 +330,48 @@ class ReleaseTask(models.Model):
 
         task_state = state["state"]
 
-        if task_state not in ["canceling"]:
+        if task_state not in ["canceled"]:
             error = (
                 f"Recieved invalid state '{task_state}' for task "
-                f"'{self.kf_id}'. Expected to recieve 'canceling' state."
+                f"'{self.kf_id}'. Expected to recieve 'canceled' state."
+            )
+            logger.error(error)
+            raise ValueError(error)
+
+    def check_state(self):
+        """
+        Check the task's state in the service and update if necessary.
+        We only care about terminal states and the staged state as all other
+        states should immediately be returned in response to an action
+        initiated by us:
+         - initialized should be returned in response to initialize
+         - running should be returned in response to start
+         - publishing should be returned in response to publish
+         - canceling should be returned in response to cancel
+        """
+        state = self._send_action("get_status")
+        task_state = state["state"]
+
+        # There's nothing to be done if the service's state matches ours
+        if task_state == self.state:
+            return
+
+        if task_state == "staged":
+            self.stage()
+            self.save()
+        elif task_state == "published":
+            self.complete()
+            self.save()
+        elif task_state == "failed":
+            self.failed()
+            self.save()
+        elif task_state == "canceled":
+            self.cancel()
+            self.save()
+        else:
+            error = (
+                f"The task '{self.pk}' has a state discrepency that cannot "
+                f"be resolved: Ours: {self.state}, Service's: {task_state}"
             )
             logger.error(error)
             raise ValueError(error)

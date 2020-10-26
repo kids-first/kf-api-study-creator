@@ -6,7 +6,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from creator.jobs.models import Job
-from creator.releases.tasks import sync_releases_task, scan_releases
+from creator.releases.tasks import (
+    sync_releases_task,
+    scan_releases,
+    scan_tasks,
+)
 from creator.tasks import (
     analyzer_task,
     sync_cavatica_projects_task,
@@ -51,6 +55,7 @@ class Command(BaseCommand):
         )
         self.setup_coordinator_sync()
         self.setup_scan_releases()
+        self.setup_scan_tasks()
 
         jobs = list(self.aws_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the AWS queue")
@@ -158,6 +163,27 @@ class Command(BaseCommand):
             func=scan_releases,
             repeat=None,
             interval=60,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="releases"
+        )
+        job.scheduled = True
+        job.save()
+
+    def setup_scan_tasks(self):
+        logger.info("Scheduling Scan Tasks job")
+        name = "scan_tasks"
+        description = "Scan active tasks"
+
+        self.releases_scheduler.cancel(name)
+
+        self.releases_scheduler.schedule(
+            id=name,
+            description=description,
+            scheduled_time=datetime.utcnow(),
+            func=scan_tasks,
+            repeat=None,
+            interval=30,
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="releases"
