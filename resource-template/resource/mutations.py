@@ -34,7 +34,7 @@ class Create{{ model_name }}Mutation(graphene.Mutation):
         Creates a new {{ singular }}.
         """
         user = info.context.user
-        if not user.has_perm("{{ app_name }}.add_{{ singular }}"):
+        if not user.has_perm("{{ app_name }}.add_{{ permission_singular }}"):
             raise GraphQLError("Not allowed")
 
         {{ singular }} = {{ model_name}}()
@@ -59,7 +59,7 @@ class Update{{ model_name }}Mutation(graphene.Mutation):
         Updates an existing {{ singular }}
         """
         user = info.context.user
-        if not user.has_perm("{{ app_name }}.change_{{ singular }}"):
+        if not user.has_perm("{{ app_name }}.change_{{ permission_singular }}"):
             raise GraphQLError("Not allowed")
 
         model, node_id = from_global_id(id)

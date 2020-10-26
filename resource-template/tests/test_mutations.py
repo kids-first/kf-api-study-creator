@@ -7,8 +7,8 @@ from creator.{{ app_name }}.factories import {{ model_name }}Factory
 
 CREATE_{{ uppercase }} = """
 mutation ($input: Create{{ model_name }}Input!) {
-    create{{ singular.title }}(input: $input) {
-        {{ singular }} {
+    create{{ upper_camel_case }}(input: $input) {
+        {{ lower_camel_case }} {
             id
         }
     }
@@ -16,9 +16,9 @@ mutation ($input: Create{{ model_name }}Input!) {
 """
 
 UPDATE_{{ uppercase }} = """
-mutation ($id: ID!, $input: Update{{ model_name }}Input!) {
-    update{{ singular.title }}(id: $id, input: $input) {
-        {{ singular }} {
+mutation ($id: ID!, $input: Update{{ upper_camel_case }}Input!) {
+    update{{ upper_camel_case }}(id: $id, input: $input) {
+        {{ lower_camel_case }} {
             id
         }
     }
@@ -51,7 +51,8 @@ def test_create_{{ singular }}(db, clients, user_group, allowed):
 
     if allowed:
         assert (
-            resp.json()["data"]["create{{ singular.title }}"]["{{ singular }}"]
+            resp.json()["data"]["create{{ upper_camel_case }}"][
+                "{{ lower_camel_case }}"]
             is not None
         )
     else:
@@ -91,7 +92,8 @@ def test_update_{{ singular }}(db, clients, user_group, allowed):
 
     if allowed:
         assert (
-            resp.json()["data"]["update{{ singular.title }}"]["{{ singular }}"]
+            resp.json()["data"]["update{{ upper_camel_case }}"][
+                "{{ lower_camel_case }}"]
             is not None
         )
     else:

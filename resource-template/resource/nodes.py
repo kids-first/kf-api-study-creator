@@ -18,7 +18,7 @@ class {{ model_name }}Node(DjangoObjectType):
         """
         user = info.context.user
 
-        if not (user.has_perm("{{ app_name }}.view_{{ singular }}")):
+        if not (user.has_perm("{{ app_name }}.view_{{ permission_singular }}")):
             raise GraphQLError("Not allowed")
 
         try:

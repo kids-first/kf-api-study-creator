@@ -4,7 +4,7 @@ from creator.{{ app_name }}.factories import {{ model_name }}Factory
 
 {{ uppercase }} = """
 query ($id: ID!) {
-    {{ singular }}(id: $id) {
+    {{ lower_camel_case }}(id: $id) {
         id
     }
 }
@@ -12,7 +12,7 @@ query ($id: ID!) {
 
 ALL_{{ uppercase_plural }} = """
 query {
-    all{{ plural.title }} {
+    all{{ upper_camel_case_plural }} {
         edges { node { id } }
     }
 }
@@ -44,7 +44,7 @@ def test_query_{{ singular }}(db, clients, user_group, allowed):
     )
 
     if allowed:
-        assert resp.json()["data"]["{{ singular }}"]["id"] == to_global_id("{{ model_name }}Node", {{ singular }}.id)
+        assert resp.json()["data"]["{{ lower_camel_case }}"]["id"] == to_global_id("{{ model_name }}Node", {{ singular }}.id)
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 
@@ -70,6 +70,6 @@ def test_query_all_{{ plural }}(db, clients, user_group, allowed):
     )
 
     if allowed:
-        assert len(resp.json()["data"]["all{{ plural.title }}"]["edges"]) == 5
+        assert len(resp.json()["data"]["all{{ upper_camel_case_plural }}"]["edges"]) == 5
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
