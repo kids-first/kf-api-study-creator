@@ -53,15 +53,15 @@ FILE_TYPES = {
     "GWO": {
         "name": "Genomic Workflow Output Manifest",
         "required_columns": [
-            'cavatica_id',
-            'cavatica_task',
-            'kf_biospecimen_id',
-            'kf_participant_id',
-            'kf_family_id',
-            'filepath',
-            'data_type',
-            'workflow_type',
-            'source_read'
+            'Cavatica ID',
+            'Cavatica Task ID',
+            'KF Biospecimen ID',
+            'KF Participant ID',
+            'KF Family ID',
+            'Filepath',
+            'Data Type',
+            'Workflow Type',
+            'Source Read'
         ],
         "template": "genomic_workflow_output_manifest_config.py",
     },

@@ -20,15 +20,15 @@ source_data_url = "{{ download_url }}"
 
 operations = [
     keep_map(
-        in_col="data_type",
+        in_col="Data Type",
         out_col=CONCEPT.GENOMIC_FILE.DATA_TYPE,
     ),
     keep_map(
-        in_col="filepath",
+        in_col="Filepath",
         out_col=CONCEPT.GENOMIC_FILE.ID,
     ),
     value_map(
-        in_col="kf_biospecimen_id",
+        in_col="KF Biospecimen ID",
         m=lambda x: Split(x.split(",")),
         out_col=CONCEPT.BIOSPECIMEN.ID,
     ),
