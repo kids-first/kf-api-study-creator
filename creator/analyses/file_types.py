@@ -50,4 +50,19 @@ FILE_TYPES = {
         ],
         "template": "family_trio_config.py",
     },
+    "GWO": {
+        "name": "Genomic Workflow Output Manifest",
+        "required_columns": [
+            'Cavatica ID',
+            'Cavatica Task ID',
+            'KF Biospecimen ID',
+            'KF Participant ID',
+            'KF Family ID',
+            'Filepath',
+            'Data Type',
+            'Workflow Type',
+            'Source Read'
+        ],
+        "template": "genomic_workflow_output_manifest_config.py",
+    },
 }

@@ -1,32 +1,46 @@
-import os
 import pytest
-import json
-import boto3
-from moto import mock_s3
 from django.http.response import HttpResponse
 
-from creator.files.models import Version, File
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
+from creator.analyses.file_types import FILE_TYPES
 
 
 @pytest.mark.parametrize(
-    "file_type,has_config",
+    "file_type",
     [
-        ("OTH", False),
-        ("SEQ", False),
-        ("SHM", False),
-        ("CLN", False),
-        ("DBG", False),
-        ("FAM", False),
-        ("S3S", True),
+        file_type
+        for file_type, params in FILE_TYPES.items()
+        if not params["required_columns"]
     ],
 )
-def test_valid_file_type(clients, db, mocker, file_type, has_config):
+def test_no_extract_configs(clients, db, mocker, file_type):
+    """
+    Test that user cannot download extract config for non-expedited file types
+    """
     client = clients.get("Administrators")
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    file.file_type = file_type
+    file.save()
+    resp = client.get(f"/extract_config/study/{study.kf_id}/file/{file.kf_id}")
+    assert resp.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "file_type,content",
+    [
+        ("S3S", "S3 object manifests"),
+        ("GWO", "Genomic Workflow Output Manifest"),
+    ],
+)
+def test_has_extract_config(clients, db, mocker, file_type, content):
+    """
+    Test that user can download extract config for expedited file types
+    """
     mock_resp = mocker.patch("creator.files.views.HttpResponse")
     mock_resp.return_value = HttpResponse(
-        open("tests/data/s3_scrape_config_file.py")
+        open(f"tests/data/{FILE_TYPES[file_type]['template']}")
     )
     client = clients.get("Administrators")
     study = StudyFactory()
@@ -35,19 +49,17 @@ def test_valid_file_type(clients, db, mocker, file_type, has_config):
     file.save()
     version = file.versions.latest("created_at")
     resp = client.get(f"/extract_config/study/{study.kf_id}/file/{file.kf_id}")
-    if has_config:
-        assert resp.status_code == 200
-        assert resp.get("Content-Disposition") == (
-            f"attachment; filename*=UTF-8''" f"{version.kf_id}_config.py"
-        )
-        assert b"/download/study/" in resp.content
-    else:
-        assert resp.status_code == 404
+    assert resp.status_code == 200
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''" f"{version.kf_id}_config.py"
+    )
+    assert b"/download/study/" in resp.content
+    assert bytes(content, "utf-8") in resp.content
 
 
 def test_file_not_exist(clients, db):
     client = clients.get("Administrators")
-    resp = client.get(f"/extract_config/study/study_id/file/123")
+    resp = client.get("/extract_config/study/study_id/file/123")
     assert resp.status_code == 404
 
 
@@ -71,10 +83,10 @@ def test_config_auth(db, mocker, clients, user_group, allowed):
     client = clients.get(user_group)
     study = StudyFactory()
     file = FileFactory(study=study)
-    file.file_type = 'S3S'
+    file.file_type = "S3S"
     file.save()
     version = file.versions.latest("created_at")
-    version.key = open(f"tests/data/manifest.txt")
+    version.key = open("tests/data/manifest.txt")
     mock_resp = mocker.patch("creator.files.views._resolve_version")
     mock_resp.return_value = (file, version)
 
