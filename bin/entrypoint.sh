@@ -9,9 +9,6 @@ elif [[ "$1" == "scheduler" ]]; then
     supervisord -c  /etc/supervisor/conf.d/scheduler.conf
 else
     echo "Starting service"
-    echo "Sync Studies"
-    echo "Dataservice: $DATASERVICE_URL"
-    python manage.py syncstudies --api $DATASERVICE_URL
     echo "Migrate"
     /app/manage.py migrate
     echo "Setup Permissions"
