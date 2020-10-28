@@ -156,7 +156,7 @@ RQ_QUEUES = {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
-        "DEFAULT_TIMEOUT": 30,
+        "DEFAULT_TIMEOUT": 300,
         "SSL": redis_ssl,
     },
     "aws": {
