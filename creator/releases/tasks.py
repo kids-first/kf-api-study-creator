@@ -4,6 +4,7 @@ import django_rq
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
+from creator.authentication import service_headers
 from creator.decorators import task
 from creator.studies.models import Study
 from creator.releases.models import Release, ReleaseTask, ReleaseService
@@ -72,8 +73,9 @@ def sync_releases_task():
     """
     api = settings.COORDINATOR_URL
     logger.info(f"Syncing releases with the Release Coordinator at {api}")
+    headers = service_headers()
 
-    resp = requests.post(api, json={"query": ALL_RELEASES})
+    resp = requests.post(api, json={"query": ALL_RELEASES}, headers=headers)
 
     releases = [n["node"] for n in resp.json()["data"]["allReleases"]["edges"]]
     logger.info(
