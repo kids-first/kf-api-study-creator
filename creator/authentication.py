@@ -30,7 +30,7 @@ def get_service_token():
     logger.info(
         f"Try to get token from auth0 with "
         f"clientId={settings.AUTH0_CLIENT}, "
-        f"audience={settings.AUTH0_AUD}, "
+        f"audience={settings.AUTH0_SERVICE_AUD}, "
         f"domain ={settings.AUTH0_DOMAIN}"
     )
     url = f"{settings.AUTH0_DOMAIN}/oauth/token"
@@ -39,7 +39,7 @@ def get_service_token():
         "grant_type": "client_credentials",
         "client_id": settings.AUTH0_CLIENT,
         "client_secret": settings.AUTH0_SECRET,
-        "audience": settings.AUTH0_AUD,
+        "audience": settings.AUTH0_SERVICE_AUD,
     }
 
     try:
@@ -50,7 +50,7 @@ def get_service_token():
         logger.info(f"Retrieved a new client_credentials token from Auth0")
     except requests.exceptions.RequestException as err:
         logger.error(f"Problem retrieving access token from Auth0: {err}")
-        return
+        raise
 
     content = resp.json()
 
