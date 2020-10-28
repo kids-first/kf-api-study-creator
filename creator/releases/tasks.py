@@ -99,6 +99,8 @@ def sync_releases_task():
 
         if created or True:
             sync_new_release(release, r)
+            release.created_at = r["createdAt"]
+            release.save()
             new_releases += 1
 
     logger.info(
