@@ -378,6 +378,10 @@ STUDY_BUCKETS_LOG_PREFIX = os.environ.get(
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 # Users to add to new channels, comma delimited, ids only
 SLACK_USERS = os.environ.get("SLACK_USERS", "").split(",")
+# Channel to post release notifications to
+SLACK_RELEASE_CHANNEL = os.environ.get(
+    "SLACK_RELEASE_CHANNEL", "#release-notifications"
+)
 
 ################################################################################
 ### Feature Flags
