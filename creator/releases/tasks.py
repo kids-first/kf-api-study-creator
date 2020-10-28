@@ -26,6 +26,7 @@ ALL_RELEASES = """{
         isMajor
         state
         createdAt
+        version
         studies {
           edges {
             node {
@@ -91,6 +92,7 @@ def sync_releases_task():
         defaults = {
             "uuid": r["uuid"],
             "name": r["name"],
+            "version": r["version"],
             "description": r["description"],
             "is_major": r["isMajor"],
             "created_at": r["createdAt"],
@@ -100,7 +102,7 @@ def sync_releases_task():
             kf_id=r["kfId"], defaults=defaults
         )
 
-        if created or True:
+        if created:
             sync_new_release(release, r)
             release.created_at = r["createdAt"]
             release.save()
