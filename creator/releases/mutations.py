@@ -6,13 +6,14 @@ from graphql_relay import from_global_id
 from django.conf import settings
 
 from creator.studies.models import Study
-from creator.releases.nodes import ReleaseNode
+from creator.releases.nodes import ReleaseNode, ReleaseServiceNode
 from creator.releases.models import Release, ReleaseTask, ReleaseService
 from creator.releases.tasks import (
     initialize_release,
     publish_release,
     cancel_release,
 )
+from creator.releases.validators import validate_endpoint
 
 
 class StartReleaseInput(graphene.InputObjectType):
@@ -136,6 +137,104 @@ class UpdateReleaseMutation(graphene.Mutation):
         return UpdateReleaseMutation(release=release)
 
 
+class CreateReleaseServiceInput(graphene.InputObjectType):
+    """ Parameters used when creating release service"""
+
+    name = graphene.String(
+        description="The name of the release service", required=True
+    )
+    description = graphene.String(
+        description="A description of the release service"
+    )
+    url = graphene.String(
+        description="The url of the release service", required=True
+    )
+    enabled = graphene.Boolean(description="If the release service is enabled")
+
+
+class CreateReleaseServiceMutation(graphene.Mutation):
+    """ Create a new release service """
+
+    class Arguments:
+        input = CreateReleaseServiceInput(
+            required=True, description="Attributes for the release service"
+        )
+
+    release_service = graphene.Field(ReleaseServiceNode)
+
+    def mutate(self, info, input):
+        """
+        Creates a new release service
+        """
+        user = info.context.user
+        if not user.has_perm("releases.add_releaseservice"):
+            raise GraphQLError("Not allowed")
+
+        release_service = ReleaseService()
+        if "url" in input:
+            try:
+                validate_endpoint(input["url"])
+            except Exception as err:
+                raise GraphQLError(
+                    f"There is a problem with the provided URL: {err}"
+                )
+
+        for attr in ["name", "description", "url", "enabled"]:
+            if attr in input:
+                setattr(release_service, attr, input[attr])
+
+        return CreateReleaseServiceMutation(release_service=release_service)
+
+
+class UpdateReleaseServiceInput(graphene.InputObjectType):
+    """ Parameters used when updating a release service"""
+
+    name = graphene.String(description="The name of the release service")
+    description = graphene.String(
+        description="A description of the release service"
+    )
+    url = graphene.String(description="The url of the release service")
+    enabled = graphene.Boolean(description="If the release service is enabled")
+
+
+class UpdateReleaseServiceMutation(graphene.Mutation):
+    """ Update an existing release service """
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description="The ID of the release service to update",
+        )
+        input = UpdateReleaseServiceInput(
+            required=True, description="Attributes for the release service"
+        )
+
+    release_service = graphene.Field(ReleaseServiceNode)
+
+    def mutate(self, info, id, input):
+        """
+        Updates an existing release service
+        """
+        user = info.context.user
+        if not user.has_perm("releases.change_releaseservice"):
+            raise GraphQLError("Not allowed")
+
+        model, node_id = from_global_id(id)
+
+        try:
+            release_service = ReleaseService.objects.get(pk=node_id)
+        except ReleaseService.DoesNotExist:
+            raise GraphQLError(f"Release Service {node_id} does not exist")
+
+        for attr in ["name", "description", "url", "enabled"]:
+            if attr in input:
+                setattr(release_service, attr, input[attr])
+
+        release_service.save()
+
+        return UpdateReleaseServiceMutation(release_service=release_service)
+
+
 class PublishReleaseMutation(graphene.Mutation):
     """ Publish a release """
 
@@ -214,4 +313,10 @@ class Mutation:
     )
     cancel_release = CancelReleaseMutation.Field(
         description="Cancel a given release"
+    )
+    create_release_service = CreateReleaseServiceMutation.Field(
+        description="Create a new release"
+    )
+    update_release_service = UpdateReleaseServiceMutation.Field(
+        description="Update a given release"
     )
