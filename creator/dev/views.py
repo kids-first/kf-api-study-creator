@@ -25,6 +25,7 @@ def reset_db(request):
     management.call_command("setup_test_user")
     management.call_command("fakestudies", n=3, verbosity=0)
     management.call_command("fakefiles", verbosity=0)
+    management.call_command("fakereleases", verbosity=0)
 
     return JsonResponse({"status": "done", "took": time.time() - t0})
 

@@ -1,5 +1,6 @@
 import pytest
 from graphql_relay import to_global_id
+from creator.releases.models import ReleaseTask
 from creator.releases.factories import ReleaseTaskFactory
 
 RELEASE_TASK = """
@@ -74,6 +75,9 @@ def test_query_all_release_tasks(db, clients, user_group, allowed):
     )
 
     if allowed:
-        assert len(resp.json()["data"]["allReleaseTasks"]["edges"]) == 5
+        assert (
+            len(resp.json()["data"]["allReleaseTasks"]["edges"])
+            == ReleaseTask.objects.count()
+        )
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
