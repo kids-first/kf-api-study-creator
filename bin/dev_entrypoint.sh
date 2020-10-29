@@ -30,6 +30,7 @@ case $PRELOAD_DATA in
         echo "Will create fake data"
         /app/manage.py fakestudies -n 3
         /app/manage.py fakefiles
+        /app/manage.py fakereleases
         ;;
     *)
         echo "Will not pre-populate database"
