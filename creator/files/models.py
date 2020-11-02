@@ -1,16 +1,20 @@
+import csv
 import os
 import uuid
 import secrets
+import xlrd
 from enum import Enum
 from functools import partial
 from datetime import datetime
 from django.conf import settings
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
+from django_s3_storage.storage import S3Storage
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
@@ -184,6 +188,34 @@ def object_id():
     return version_id()
 
 
+def CSVDictReader(data, delimiter=","):
+    data = [r.decode() for r in data]
+    return csv.DictReader(data, delimiter=delimiter)
+
+
+def XLSXDictReader(data):
+    data = data.read()
+    book = xlrd.open_workbook(file_contents=data)
+    sheet = book.sheet_by_index(0)
+    headers = dict((i, sheet.cell_value(0, i)) for i in range(sheet.ncols))
+
+    return (
+        dict((headers[j], sheet.cell_value(i, j)) for j in headers)
+        for i in range(1, sheet.nrows)
+    )
+
+
+KNOWN_FORMATS = {
+    ".csv": {"name": "Comma Separated", "reader": CSVDictReader},
+    ".tsv": {
+        "name": "Tab Separated",
+        "reader": partial(CSVDictReader, delimiter="\t"),
+    },
+    ".xlsx": {"name": "Excel", "reader": XLSXDictReader},
+    ".xls": {"name": "Excel", "reader": XLSXDictReader},
+}
+
+
 class Version(models.Model):
     class Meta:
         permissions = [
@@ -318,6 +350,33 @@ class Version(models.Model):
             f"/version/{version_id}"
         )
         return download_url
+
+    def extract_data(self):
+        """
+        Determine what file type the file is and attempt to extract it into
+        rows of data returned in a DictReader type interface.
+        """
+        _, data_format = os.path.splitext(self.key.name)
+
+        if data_format not in KNOWN_FORMATS:
+            raise IOError(f"{data_format} is not an understood data format.")
+
+        # Need to set storage location for study bucket if using S3 backend
+        S3string = "django_s3_storage.storage.S3Storage"
+        if settings.DEFAULT_FILE_STORAGE == S3string:
+            if self.study is not None:
+                study = self.study
+            elif self.root_file is not None:
+                study = self.root_file.study
+            else:
+                raise GraphQLError("Version must be part of a study.")
+
+            self.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
+
+        with self.key.open(mode="rb") as f:
+            parsed = list(KNOWN_FORMATS[data_format]["reader"](f))
+
+        return parsed
 
 
 class DownloadToken(models.Model):

@@ -52,7 +52,7 @@ def analyze_version(version):
         version.analysis = analysis
 
     try:
-        content = extract_data(version)
+        content = version.extract_data()
     except Exception as err:
         analysis.known_format = False
         analysis.error_message = err
