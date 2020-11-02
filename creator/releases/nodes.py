@@ -3,7 +3,12 @@ from graphql_relay import from_global_id
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
 
-from creator.releases.models import Release, ReleaseTask, ReleaseService
+from creator.releases.models import (
+    Release,
+    ReleaseTask,
+    ReleaseService,
+    ReleaseEvent,
+)
 
 
 class ReleaseNode(DjangoObjectType):
@@ -76,3 +81,27 @@ class ReleaseServiceNode(DjangoObjectType):
             raise GraphQLError("Release Service was not found")
 
         return release_service
+
+
+class ReleaseEventNode(DjangoObjectType):
+    class Meta:
+        model = ReleaseEvent
+        interfaces = (relay.Node,)
+        filter_fields = ()
+
+    @classmethod
+    def get_node(cls, info, id):
+        """
+        Check permissions and return
+        """
+        user = info.context.user
+
+        if not (user.has_perm("releases.view_releaseevent")):
+            raise GraphQLError("Not allowed")
+
+        try:
+            event = cls._meta.model.objects.get(pk=id)
+        except cls._meta.model.DoesNotExist:
+            raise GraphQLError("Release Event was not found")
+
+        return event

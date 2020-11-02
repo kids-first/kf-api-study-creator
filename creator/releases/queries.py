@@ -7,8 +7,14 @@ from creator.releases.nodes import (
     ReleaseNode,
     ReleaseTaskNode,
     ReleaseServiceNode,
+    ReleaseEventNode,
 )
-from creator.releases.models import Release, ReleaseTask, ReleaseService
+from creator.releases.models import (
+    Release,
+    ReleaseTask,
+    ReleaseService,
+    ReleaseEvent,
+)
 
 
 class ReleaseFilter(FilterSet):
@@ -35,6 +41,18 @@ class ReleaseServiceFilter(FilterSet):
     class Meta:
         model = ReleaseService
         fields = {"enabled": ["exact"]}
+
+
+class ReleaseEventFilter(FilterSet):
+    order_by = OrderingFilter(fields=("created_at",))
+
+    release = GlobalIDFilter()
+    release_service = GlobalIDFilter()
+    task = GlobalIDFilter()
+
+    class Meta:
+        model = ReleaseEvent
+        fields = {"event_type": ["exact"]}
 
 
 class Query(object):
@@ -95,3 +113,23 @@ class Query(object):
             raise GraphQLError("Not allowed")
 
         return ReleaseService.objects.all()
+
+    release_event = relay.Node.Field(
+        ReleaseEventNode, description="Get a single release event"
+    )
+    all_release_events = DjangoFilterConnectionField(
+        ReleaseEventNode,
+        filterset_class=ReleaseEventFilter,
+        description="Get all release events",
+    )
+
+    def resolve_all_release_events(self, info, **kwargs):
+        """
+        Return all release events
+        """
+        user = info.context.user
+
+        if not user.has_perm("releases.list_all_releaseevent"):
+            raise GraphQLError("Not allowed")
+
+        return ReleaseEvent.objects.all()
