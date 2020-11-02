@@ -2,7 +2,12 @@ import pytz
 import factory
 import factory.fuzzy
 from django.contrib.auth import get_user_model
-from creator.releases.models import Release, ReleaseTask, ReleaseService
+from creator.releases.models import (
+    Release,
+    ReleaseTask,
+    ReleaseService,
+    ReleaseEvent,
+)
 from creator.studies.models import Study
 from creator.users.factories import UserFactory
 
@@ -90,3 +95,18 @@ class ReleaseServiceFactory(factory.DjangoModelFactory):
     created_at = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
+
+
+class ReleaseEventFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ReleaseEvent
+
+    uuid = factory.Faker("uuid4")
+    message = factory.Faker("paragraph", nb_sentences=3)
+    created_at = factory.Faker(
+        "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
+    )
+    event_type = factory.fuzzy.FuzzyChoice(["info", "warning", "error"])
+    release = factory.SubFactory(ReleaseFactory)
+    release_service = factory.SubFactory(ReleaseServiceFactory)
+    task = factory.SubFactory(ReleaseTaskFactory)

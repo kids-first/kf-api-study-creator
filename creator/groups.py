@@ -18,6 +18,8 @@ GROUPS = {
         "list_all_releaseservice",
         "add_releaseservice",
         "change_releaseservice",
+        "view_releaseevent",
+        "list_all_releaseevent",
         "view_analysis",
         "list_all_analysis",
         "change_analysis",

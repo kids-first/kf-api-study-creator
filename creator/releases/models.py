@@ -26,6 +26,8 @@ FAIL_SOURCES = [
     "canceling",
 ]
 
+EVENTS = [("info", "info"), ("warning", "warning"), ("error", "error")]
+
 
 def release_id():
     return kf_id_generator("RE")
@@ -100,7 +102,7 @@ class Release(models.Model):
     studies = models.ManyToManyField(
         Study,
         related_name="releases",
-        help_text="kf_ids of the studies " "in this release",
+        help_text="kf_ids of the studies in this release",
     )
     version = VersionField(
         partial=False,
@@ -426,4 +428,50 @@ class ReleaseService(models.Model):
     )
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="Time the task was created"
+    )
+
+
+class ReleaseEvent(models.Model):
+    """
+    An event holds a simple message and type that references an action that
+    occurred on a release, task, or service
+    """
+
+    class Meta:
+        permissions = [("list_all_releaseevent", "Show all release events")]
+        get_latest_by = "created_at"
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    event_type = models.CharField(
+        max_length=20,
+        choices=EVENTS,
+        default="info",
+        help_text="The type of event",
+    )
+    message = models.CharField(
+        max_length=1000, help_text="The message describing the event"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="Time the event was created"
+    )
+    release = models.ForeignKey(
+        Release,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+    )
+    release_service = models.ForeignKey(
+        ReleaseService,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+    )
+    task = models.ForeignKey(
+        ReleaseTask,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
     )
