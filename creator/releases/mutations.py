@@ -104,6 +104,7 @@ class UpdateReleaseInput(graphene.InputObjectType):
     """ Parameters used when updating an existing release """
 
     name = graphene.String(description="The name of the release")
+    description = graphene.String(description="The description of the release")
 
 
 class UpdateReleaseMutation(graphene.Mutation):
@@ -133,6 +134,12 @@ class UpdateReleaseMutation(graphene.Mutation):
             release = Release.objects.get(pk=node_id)
         except Release.DoesNotExist:
             raise GraphQLError(f"Release {node_id} does not exist")
+
+        if "name" in input:
+            release.name = input["name"]
+        if "description" in input:
+            release.description = input["description"]
+        release.save()
 
         return UpdateReleaseMutation(release=release)
 
