@@ -462,10 +462,13 @@ def check_release(release_id):
     # due to us handling the all canceled condition above
     elif release.state == "canceling" and all(
         [
-            t.state == "canceled" or t.state == "failed"
+            t.state in ["rejected", "canceled", "failed"]
             for t in release.tasks.all()
         ]
     ):
+        logger.info(
+            "All tasks were found to be in terminal states. Failing release"
+        )
         release.failed()
         release.save()
 
@@ -473,6 +476,7 @@ def check_release(release_id):
     elif release.state == "initializing" and all(
         [t.state == "initialized" for t in release.tasks.all()]
     ):
+        logger.info("All tasks are initialized. Starting release")
         release.start()
         release.save()
         django_rq.enqueue(start_release, release.pk)
@@ -481,6 +485,7 @@ def check_release(release_id):
     elif release.state == "running" and all(
         [t.state == "staged" for t in release.tasks.all()]
     ):
+        logger.info("All tasks are staged. Setting release to 'staged'")
         release.staged()
         release.save()
     # Check to see if we can mark the release as published
@@ -501,8 +506,10 @@ def check_release(release_id):
         # failure
         failed = False
         if any(task.state == "failed" for task in release.tasks.all()):
+            logger.info("A task failed. Failing the release")
             failed = True
 
+        logger.info("A task stopped unexpectedly. Canceling the release")
         release.cancel()
         release.save()
 
