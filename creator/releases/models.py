@@ -234,16 +234,22 @@ class ReleaseTask(models.Model):
                 json=body,
                 timeout=settings.REQUESTS_TIMEOUT,
             )
-            logger.info(
-                f"Recieved response from {self.release_service.url}: "
-                f"{resp.json()}"
-            )
             resp.raise_for_status()
         except requests.exceptions.RequestException as err:
-            logger.error(f"problem requesting task for publish: {err}")
+            logger.error(f"problem requesting task for {action}: {err}")
             raise err
 
-        state = resp.json()
+        try:
+            state = resp.json()
+            logger.info(
+                f"Recieved response from {self.release_service.url}: {state}"
+            )
+        except ValueError as err:
+            logger.error(
+                f"The response could not be parsed as JSON: "
+                f"{resp.content[:100]}{resp.content[100:] and '...'}"
+            )
+            raise
         # Check that we recieved the state for correct task
         # Otherwise, we should ignore this response and raise an error
         if (
