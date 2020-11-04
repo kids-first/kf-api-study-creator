@@ -425,7 +425,12 @@ FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
 
 # Create Slack channel for new studies
 FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
-    "FEAT_SLACK_CREATE_CHANNELS ", False
+    "FEAT_SLACK_CREATE_CHANNELS", False
+)
+
+# Whether slack notifications about releases should be sent
+FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS = (
+    os.environ.get("FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS", "True") == "True"
 )
 
 # How many days to expire a referral token
