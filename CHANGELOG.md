@@ -1,5 +1,18 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.6
+
+### Summary
+
+- Emojis: ✨ x2
+- Categories: Additions x2
+
+### New features and changes
+
+- [#494](https://github.com/kids-first/kf-api-study-creator/pull/494) - ✨ Add Genomic Workflow Output Manifest - [a9101a98](https://github.com/kids-first/kf-api-study-creator/commit/a9101a981ee0548eda6fcad4fba6906fcd070b67) by [znatty22](https://github.com/znatty22)
+- [#482](https://github.com/kids-first/kf-api-study-creator/pull/482) - ✨ Job logs - [2bc60fd3](https://github.com/kids-first/kf-api-study-creator/commit/2bc60fd386d8c780f431e0b89b5e709920262d0d) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.14.5
 
 ### Summary
