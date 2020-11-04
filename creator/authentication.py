@@ -15,12 +15,10 @@ def service_headers():
         settings.CACHE_AUTH0_TIMEOUT,
     )
 
+    headers = settings.REQUESTS_HEADERS
     if token:
-        headers = {"Authorization": "Bearer " + token}
-        headers.update(settings.REQUESTS_HEADERS)
-        return headers
-    else:
-        return {}
+        headers.update({"Authorization": "Bearer " + token})
+    return headers
 
 
 def get_service_token():
@@ -50,7 +48,11 @@ def get_service_token():
         logger.info(f"Retrieved a new client_credentials token from Auth0")
     except requests.exceptions.RequestException as err:
         logger.error(f"Problem retrieving access token from Auth0: {err}")
-        raise
+        logger.warning(
+            "An authentication token could not be retrieved. "
+            "Requests may be sent without an Authentication header"
+        )
+        return
 
     content = resp.json()
 
