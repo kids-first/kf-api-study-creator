@@ -424,6 +424,11 @@ FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
     "FEAT_SLACK_CREATE_CHANNELS", False
 )
 
+# Whether slack notifications about releases should be sent
+FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS = (
+    os.environ.get("FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS", "True") == "True"
+)
+
 # Set default from email
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL', 'data-tracker@kidsfirstdrc.org'
