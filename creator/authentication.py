@@ -26,10 +26,8 @@ def get_service_token():
     Get a new token from Auth0 so we can authenticate with our release services
     """
     logger.info(
-        f"Try to get token from auth0 with "
-        f"clientId={settings.AUTH0_CLIENT}, "
-        f"audience={settings.AUTH0_SERVICE_AUD}, "
-        f"domain ={settings.AUTH0_DOMAIN}"
+        f"There is no Auth0 token or it has expired. Will request a new one "
+        f"for clientId={settings.AUTH0_CLIENT}"
     )
     url = f"{settings.AUTH0_DOMAIN}/oauth/token"
     headers = {"Content-Type": "application/json"}
@@ -47,17 +45,17 @@ def get_service_token():
         resp.raise_for_status()
         logger.info(f"Retrieved a new client_credentials token from Auth0")
     except requests.exceptions.RequestException as err:
-        logger.error(f"Problem retrieving access token from Auth0: {err}")
+        logger.warning(f"Problem retrieving access token from Auth0: {err}")
         logger.warning(
             "An authentication token could not be retrieved. "
-            "Requests may be sent without an Authentication header"
+            "Requests may be sent without an Authorization header"
         )
         return
 
     content = resp.json()
 
     if "access_token" not in content:
-        logger.error(
+        logger.warning(
             f"Recieved a malformed response for an access token from Auth0: "
             f"{resp.content}"
         )

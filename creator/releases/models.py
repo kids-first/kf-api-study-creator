@@ -252,11 +252,11 @@ class ReleaseTask(models.Model):
                 f"Recieved response from {self.release_service.url}: {state}"
             )
         except json.decoder.JSONDecodeError as err:
-            logger.error(
+            # Raise a more specific error with  some of the response body
+            raise json.decoder.JSONDecodeError(
                 f"The response could not be parsed as JSON: "
                 f"{resp.content[:100]}{resp.content[100:] and '...'}"
             )
-            raise
         # Check that we recieved the state for correct task
         # Otherwise, we should ignore this response and raise an error
         if (
