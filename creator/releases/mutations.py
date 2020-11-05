@@ -95,7 +95,7 @@ class StartReleaseMutation(graphene.Mutation):
         release.initialize()
         release.save()
 
-        django_rq.enqueue(initialize_release, release.pk)
+        django_rq.enqueue(initialize_release, release_id=release.pk)
 
         return StartReleaseMutation(release=release)
 
@@ -269,7 +269,7 @@ class PublishReleaseMutation(graphene.Mutation):
 
         release.publish()
         release.save()
-        django_rq.enqueue(publish_release, release.pk)
+        django_rq.enqueue(publish_release, release_id=release.pk)
 
         return PublishReleaseMutation(release=release)
 
@@ -301,7 +301,7 @@ class CancelReleaseMutation(graphene.Mutation):
 
         release.cancel()
         release.save()
-        django_rq.enqueue(cancel_release, release.pk)
+        django_rq.enqueue(cancel_release, release_id=release.pk)
 
         return CancelReleaseMutation(release=release)
 

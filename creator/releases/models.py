@@ -110,6 +110,13 @@ class Release(models.Model):
         default=next_version,
         help_text="Semantic version of the release",
     )
+    job_log = models.ForeignKey(
+        JobLog,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="releases",
+    )
     is_major = models.BooleanField(
         default=False,
         help_text="Whether the release is a major version change or not",
@@ -206,7 +213,7 @@ class ReleaseTask(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name="job_log",
+        related_name="tasks",
     )
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="Time the task was created"
