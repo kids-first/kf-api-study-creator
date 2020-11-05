@@ -252,7 +252,8 @@ class ReleaseTask(models.Model):
                 f"Recieved response from {self.release_service.url}: {state}"
             )
         except ValueError as err:
-            logger.error(
+            # Raise a more specific ValueError with  some of the response body
+            raise ValueError(
                 f"The response could not be parsed as JSON: "
                 f"{resp.content[:100]}{resp.content[100:] and '...'}"
             )

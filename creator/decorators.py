@@ -105,7 +105,6 @@ class task:
                 self._job.failing = False
                 self._job.last_error = ""
 
-            self.logger.info("Updating job status")
             self._job.last_run = datetime.utcnow()
             self._job.last_run = self._job.last_run.replace(tzinfo=pytz.UTC)
             self._job.save()
@@ -120,16 +119,14 @@ class task:
         return task_wrapper
 
     def close(self):
-        self.logger.info("Job complete. Saving log file")
+        duration = (datetime.utcnow() - self.start_time).total_seconds()
 
         log = JobLog(job=self._job, error=self._job.failing)
-
-        self.logger.info(f"Saving as Job Log {yellow(str(log.id))}")
-
-        duration = (datetime.utcnow() - self.start_time).total_seconds()
-        self.logger.info(grey(f"Finished in {duration:.2f}s"))
-
-        self.logger.info(f"Uploading log contents, goodbye! 👋")
+        self.logger.info(
+            f"Job complete after {duration:.2f}s. "
+            f"Saving as Job Log {yellow(str(log.id))}, "
+            f"goodbye! 👋"
+        )
 
         if (
             settings.DEFAULT_FILE_STORAGE
