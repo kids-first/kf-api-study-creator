@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django_s3_storage.storage import S3Storage
 
+from creator.releases.models import Release, ReleaseTask
 from creator.jobs.models import Job, JobLog
 from creator.version_info import VERSION, COMMIT
 
@@ -26,9 +27,14 @@ class task:
     """
     A decorator to uniformly setup tasks that get enqueued for workers to
     execute.
+
+    If the wrapped task contains a release_id or task_id, save the log to the
+    appropriate model so that it may be retrieved relationally.
     """
 
     def __init__(self, job=None):
+        self._release = None
+        self._task = None
         self.job = job
         self.logger = logging.getLogger("TaskLogger")
         self.start_time = datetime.utcnow()
@@ -60,6 +66,16 @@ class task:
                     f"The {self._job.name} job is not active, will not run"
                 )
                 return
+
+            # If the function recieves a release id, store it so we can link
+            # the log back to it later
+            if "release_id" in kwargs:
+                self._release = Release.objects.get(
+                    pk=kwargs.get("release_id")
+                )
+            # Do the same if the function recieves a task id
+            if "task_id" in kwargs:
+                self._task = ReleaseTask.objects.get(pk=kwargs.get("task_id"))
 
             self.log_preamble()
 
@@ -126,8 +142,15 @@ class task:
             f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
         )
         log.log_file.save(name, ContentFile(self.stream.getvalue()))
-
         log.save()
+
+        # Save the log to the release and/or task, if there is one
+        if self._release:
+            self._release.job_log = log
+            self._release.save(update_fields=["job_log"])
+        if self._task:
+            self._task.job_log = log
+            self._task.save(update_fields=["job_log"])
 
     def log_preamble(self):
         """
