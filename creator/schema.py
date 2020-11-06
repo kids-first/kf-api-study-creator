@@ -19,6 +19,7 @@ import creator.referral_tokens.schema
 import creator.status.schema
 import creator.jobs.schema
 import creator.releases.schema
+import creator.ingest_runs.schema
 
 
 class Query(
@@ -33,6 +34,7 @@ class Query(
     creator.status.schema.Query,
     creator.jobs.schema.Query,
     creator.releases.schema.Query,
+    creator.ingest_runs.schema.Query,
     graphene.ObjectType,
 ):
     """ Root query schema combining all apps' schemas """
@@ -49,6 +51,7 @@ class Mutation(
     creator.users.schema.Mutation,
     creator.referral_tokens.schema.Mutation,
     creator.releases.schema.Mutation,
+    creator.ingest_runs.schema.Mutation,
     graphene.ObjectType,
 ):
     """ Root mutation schema combining all apps' schemas """
