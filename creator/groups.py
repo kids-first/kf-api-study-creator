@@ -58,6 +58,11 @@ GROUPS = {
         "list_all_job",
         "view_joblog",
         "list_all_joblog",
+        "add_ingestrun",
+        "delete_ingestrun",
+        "change_ingestrun",
+        "view_ingestrun",
+        "list_all_ingestrun",
     ],
     "Developers": [
         "view_study",
