@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'creator.jobs',
     'creator.events.apps.EventsConfig',
     'creator',
-    'corsheaders'
+    'corsheaders',
+    'creator.ingest_runs',
 ]
 
 MIDDLEWARE = [

@@ -63,7 +63,8 @@ INSTALLED_APPS = [
     'creator.jobs',
     'creator.events.apps.EventsConfig',
     'creator',
-    'corsheaders'
+    'corsheaders',
+    'creator.ingest_runs',
 ]
 
 MIDDLEWARE = [
@@ -250,7 +251,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
-## Email
+# Email
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
@@ -266,7 +267,7 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 # Sets the file storage backend
 # Supports file system storage and s3 storage
 DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE',
-                          'django.core.files.storage.FileSystemStorage')
+                                      'django.core.files.storage.FileSystemStorage')
 FILE_MAX_SIZE = 2**29
 
 # Maximum time in s allowed before a token may no longer be used to download
@@ -316,8 +317,8 @@ CLIENT_ADMIN_SCOPE = 'role:admin'
 # User roles and groups overrides applied during auth
 USER_ROLES = os.environ.get("USER_ROLES", "")
 USER_ROLES = None if USER_ROLES == "" else USER_ROLES.split(",")
-USER_GROUPS  = os.environ.get("USER_GROUPS", "")
-USER_GROUPS = None if USER_GROUPS == "" else  USER_GROUPS.split(",")
+USER_GROUPS = os.environ.get("USER_GROUPS", "")
+USER_GROUPS = None if USER_GROUPS == "" else USER_GROUPS.split(",")
 
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
@@ -379,7 +380,7 @@ SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 SLACK_USERS = os.environ.get("SLACK_USERS", "").split(",")
 
 ################################################################################
-### Feature Flags
+# Feature Flags
 
 # Synchronize updates to studies with dataservice
 FEAT_DATASERVICE_CREATE_STUDIES = os.environ.get(
