@@ -11,6 +11,7 @@ from django.core.files.base import ContentFile
 from django_s3_storage.storage import S3Storage
 
 from creator.releases.models import Release, ReleaseTask
+from creator.ingests.models import IngestRun
 from creator.jobs.models import Job, JobLog
 from creator.version_info import VERSION, COMMIT
 
@@ -35,6 +36,7 @@ class task:
     def __init__(self, job=None):
         self._release = None
         self._task = None
+        self._ingest_run = None
         self.job = job
         self.logger = logging.getLogger("TaskLogger")
         self.start_time = datetime.utcnow()
@@ -76,6 +78,10 @@ class task:
             # Do the same if the function recieves a task id
             if "task_id" in kwargs:
                 self._task = ReleaseTask.objects.get(pk=kwargs.get("task_id"))
+            if "ingest_run_id" in kwargs:
+                self._ingest_run = IngestRun.objects.get(
+                    pk=kwargs.get("ingest_run_id")
+                )
 
             self.log_preamble()
 
@@ -151,6 +157,9 @@ class task:
         if self._task:
             self._task.job_log = log
             self._task.save(update_fields=["job_log"])
+        if self._ingest_run:
+            self._ingest_run.job_log = log
+            self._ingest_run.save(update_fields=["job_log"])
 
     def log_preamble(self):
         """
