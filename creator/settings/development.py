@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'creator.referral_tokens',
     'creator.extract_configs',
     'creator.jobs',
+    'creator.ingests',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
