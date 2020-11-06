@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator",
     "corsheaders",
+    "creator.ingest_runs",
 ]
 
 MIDDLEWARE = [
@@ -322,3 +323,4 @@ USER_GROUPS = None if USER_GROUPS == "" else USER_GROUPS.split(",")
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
+

@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator",
     "corsheaders",
+    "creator.ingest_runs",
 ]
 
 MIDDLEWARE = [
@@ -255,7 +256,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
-## Email
+# Email
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
