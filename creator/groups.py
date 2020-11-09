@@ -89,6 +89,7 @@ GROUPS = {
         "change_ingestrun",
         "view_ingestrun",
         "list_all_ingestrun",
+        "cancel_ingestrun",
     ],
     "Developers": [
         "view_study",
