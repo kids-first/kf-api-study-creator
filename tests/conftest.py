@@ -17,7 +17,7 @@ from creator.files.models import File
 from creator.files.factories import FileFactory
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Study
-from creator.middleware import EgoJWTAuthenticationMiddleware
+from creator.ingest_runs.factories import IngestRunFactory
 from creator.groups import GROUPS
 
 
@@ -413,13 +413,33 @@ def versions(db, clients, mocker):
     """
     Setup a file in a study with a new version that returns a mocked data file.
     """
-    client = clients.get("Administrators")
+    clients.get("Administrators")
     study = StudyFactory()
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
-    version.key = open(f"tests/data/manifest.txt")
+    version.key = open("tests/data/manifest.txt")
 
     mock_resp = mocker.patch("creator.files.views._resolve_version")
     mock_resp.return_value = (file, version)
 
     return study, file, version
+
+
+@pytest.fixture
+def ingest_runs(prep_file):
+    """
+    Return a function which creates ingest runs
+    """
+    def create_ingest_runs(n=2):
+        """
+        Create a study with n files using prep_file fixture. Then create an
+        ingest run for each file
+        """
+        for i in range(n):
+            prep_file(authed=True)
+
+        return [
+            IngestRunFactory(versions=[f.versions.first()])
+            for f in File.objects.all()
+        ]
+    return create_ingest_runs
