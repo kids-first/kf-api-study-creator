@@ -9,7 +9,7 @@ class IngestRunNode(DjangoObjectType):
     class Meta:
         model = IngestRun
         interfaces = (relay.Node,)
-        filter_fields = ()
+        filter_fields = ["name"]
 
     @classmethod
     def get_node(cls, info, id):
