@@ -241,7 +241,8 @@ def initialize_task(task_id=None):
         django_rq.enqueue(start_release, release_id=task.release.pk)
 
 
-def start_release(release_id):
+@task("release")
+def start_release(release_id=None):
     """
     Begin a release by invoking start on all services in the release.
     """
@@ -269,7 +270,8 @@ def start_release(release_id):
         django_rq.enqueue(start_task, task_id=task.pk)
 
 
-def start_task(task_id):
+@task("release_task")
+def start_task(task_id=None):
     """
     Starts a task by sending it the start command.
     """
@@ -294,7 +296,8 @@ def start_task(task_id):
         )
 
 
-def publish_release(release_id):
+@task("release")
+def publish_release(release_id=None):
     """
     Publish a release by sending the release action to each service in the
     release.
@@ -324,7 +327,8 @@ def publish_release(release_id):
         django_rq.enqueue(publish_task, task_id=task.pk)
 
 
-def publish_task(task_id):
+@task("release_task")
+def publish_task(task_id=None):
     """
     Publish a task by sending it the publish command.
     """
@@ -350,7 +354,8 @@ def publish_task(task_id):
         )
 
 
-def cancel_release(release_id, failed=False):
+@task("release")
+def cancel_release(release_id=None, failed=False):
     """
     Cancel a release by sending the cancel action to each service in the
     release.
@@ -384,7 +389,8 @@ def cancel_release(release_id, failed=False):
         django_rq.enqueue(cancel_task, task_id=task.pk)
 
 
-def cancel_task(task_id):
+@task("release_task")
+def cancel_task(task_id=None):
     """
     Cancel a task by sending it the cancel command.
     """
@@ -397,6 +403,7 @@ def cancel_task(task_id):
         logger.error(f"There was a problem trying to cancel the task: {err}")
 
 
+@task("scan_tasks")
 def scan_tasks():
     """
     Queue tasks to update all active task's state
@@ -415,7 +422,8 @@ def scan_tasks():
         django_rq.enqueue(check_task, task_id=task.pk)
 
 
-def check_task(task_id):
+@task("release_task")
+def check_task(task_id=None):
     """
     Check the task and update its state if needed
     """
@@ -423,6 +431,7 @@ def check_task(task_id):
     task.check_state()
 
 
+@task("scan_releases")
 def scan_releases():
     """
     Queue tasks to check any release in an active state.
@@ -445,7 +454,8 @@ def scan_releases():
         django_rq.enqueue(check_release, release_id=release.pk)
 
 
-def check_release(release_id):
+@task("release")
+def check_release(release_id=None):
     """
     Check a release's state and schedule any jobs needed to move it foreward.
     """

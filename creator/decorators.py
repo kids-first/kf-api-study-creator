@@ -119,15 +119,23 @@ class task:
         return task_wrapper
 
     def close(self):
+        """
+        Close out the log stream for the task by appending it with a couple
+        final details.
+        A new log will be created or an existing log will be appended if the
+        there is already a log existing for the Job invocation.
+        """
         duration = (datetime.utcnow() - self.start_time).total_seconds()
 
-        log = JobLog(job=self._job, error=self._job.failing)
-        self.logger.info(
-            f"Job complete after {duration:.2f}s. "
-            f"Saving as Job Log {yellow(str(log.id))}, "
-            f"goodbye! 👋"
-        )
+        # Try to get an existing log if one exists for this job or else create
+        # a new one
+        log = self._get_existing_job_log()
+        existing_log_contents = ""
 
+        if log is None:
+            log = JobLog(job=self._job, error=self._job.failing)
+
+        # Need to manually configure the log's bucket if we're using S3 storage
         if (
             settings.DEFAULT_FILE_STORAGE
             == "django_s3_storage.storage.S3Storage"
@@ -136,11 +144,27 @@ class task:
                 aws_s3_bucket_name=settings.LOG_BUCKET
             )
 
+        if log is not None:
+            # This may be a new log with no log file saved yet so don't panic
+            # if there is no contents to read
+            try:
+                existing_log_contents = log.log_file.open().read().decode()
+            except ValueError:
+                pass
+
+        self.logger.info(
+            f"Job complete after {duration:.2f}s. "
+            f"Saving as Job Log {yellow(str(log.id))}, "
+            f"goodbye! 👋"
+        )
+
         name = (
             f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
             f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
         )
-        log.log_file.save(name, ContentFile(self.stream.getvalue()))
+
+        content = existing_log_contents + self.stream.getvalue()
+        log.log_file.save(name, ContentFile(content))
         log.save()
 
         # Save the log to the release and/or task, if there is one
@@ -151,10 +175,36 @@ class task:
             self._task.job_log = log
             self._task.save(update_fields=["job_log"])
 
+    def _get_existing_job_log(self):
+        """
+        If this task executed for a job that has an ongoing log, such as for
+        releases or release tasks, try to resolve that job log and return it.
+        Otherwise, return None if we cannot resolve an existing job log.
+        """
+
+        if self._release and self._release.job_log is not None:
+            return self._release.job_log
+
+        if self._task and self._task.job_log is not None:
+            return self._task.job_log
+
+        return None
+
     def log_preamble(self):
         """
         Post some info about the codebase to the start of the log.
+        If the job invocation already has a log, don't log the header as it's
+        already been included in an earlier log.
         """
+        log = self._get_existing_job_log()
+        if log:
+            self.logger.info("")
+            self.logger.info(
+                blue(f"Re-attaching to Job Log ") + yellow(str(log.id))
+            )
+            self.logger.info("")
+            return
+
         self.logger.info(blue(f"╔{'═'*48}╗"))
         self.logger.info(blue(f"║ {'Study Creator API Worker':<46} ║"))
         self.logger.info(blue(f"╠{'═'*48}╣"))
