@@ -84,22 +84,29 @@ class IngestRun(models.Model):
         """
         Compute the name from the IngestRun's file version ids
         """
-        version_id_str = DELIMITER.join(sorted(v.kf_id for v in self.versions.all()))
+        version_id_str = DELIMITER.join(
+            sorted(v.kf_id for v in self.versions.all())
+        )
         return DELIMITER.join([NAME_PREFIX, version_id_str])
 
-    def start_job(self, task, *args, **kwargs):
+    def start(self):
         """
-        Enqueue an ingest task to start an ingest job
+        Start an ingest job
+
+        TODO
         """
         pass
 
-    def cancel_job(self):
+    def cancel(self):
         """
         Cancel or stop the associated job if it is running
-        This method should be called when:
-            - A new IngestRun is saved
-            - A file version is deleted and that version is involved in an
-              IngestRun with an active job
+
+        This method should be called:
+        - After a new IngestRun is started
+        - Before a file version is deleted and that version is involved in
+          an IngestRun with an active job
+
+        TODO
         """
         pass
 
