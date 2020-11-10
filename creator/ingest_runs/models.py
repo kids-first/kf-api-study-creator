@@ -39,8 +39,8 @@ class IngestRun(models.Model):
         blank=True,
         null=True,
         help_text=(
-            "The name of the ingest run. An field that is auto populated "
-            "by concatenating the IDs of the IngestRun's file versions"
+            "The name of the ingest run. Autopopulated on save with the "
+            "concatenation of the IngestRun's file version IDs"
         ),
     )
     versions = models.ManyToManyField(
@@ -55,7 +55,8 @@ class IngestRun(models.Model):
         related_name="job_log",
         on_delete=models.CASCADE,
         help_text=(
-            "The associated job log detailing the execution " "for this ingest run"
+            "The associated job log detailing the execution "
+            "for this ingest run"
         ),
     )
     created_at = models.DateTimeField(
