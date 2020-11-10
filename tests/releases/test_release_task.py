@@ -36,6 +36,7 @@ def test_send_action(db, mocker, action):
             "action": "publish",
             "task_id": release_task.kf_id,
             "release_id": release_task.release.kf_id,
+            "studies": [],
         },
         timeout=30,
     )
