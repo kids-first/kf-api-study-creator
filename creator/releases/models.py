@@ -231,6 +231,7 @@ class ReleaseTask(models.Model):
             "action": action,
             "task_id": self.kf_id,
             "release_id": self.release.kf_id,
+            "studies": [study.kf_id for study in self.release.studies.all()],
         }
 
         logger.info(f"Sending action to {self.release_service.url}: {body}")
