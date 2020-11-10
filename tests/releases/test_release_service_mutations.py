@@ -105,7 +105,7 @@ def test_update_release_service(db, clients, user_group, allowed):
         data={
             "query": UPDATE_RELEASE_SERVICE,
             "variables": {
-                "id": to_global_id("ReleaseServiceNode}}", release_service.pk),
+                "id": to_global_id("ReleaseServiceNode", release_service.pk),
                 "input": {"name": "test", "enabled": True},
             },
         },
@@ -119,6 +119,30 @@ def test_update_release_service(db, clients, user_group, allowed):
         assert service["name"] == "test"
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_update_release_service_does_not_exist(db, clients):
+    """
+    Test that a service that does not exist can't be updated
+    """
+    client = clients.get("Administrators")
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_RELEASE_SERVICE,
+            "variables": {
+                "id": to_global_id("ReleaseServiceNode", "ABC"),
+                "input": {"name": "test", "enabled": True},
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert (
+        resp.json()["errors"][0]["message"]
+        == "Release Service ABC does not exist"
+    )
 
 
 def test_create_release_service_bad_url(db, clients, mocker):

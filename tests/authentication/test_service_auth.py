@@ -71,3 +71,19 @@ def test_new_service_token_malformed_resp(db, mocker):
     mock.return_value = Resp()
 
     assert get_service_token() is None
+    assert mock.call_count == 1
+
+
+def test_new_service_token_exception(db, mocker):
+    """
+    Test that no token is returned if there is a problem with the request
+    """
+    settings.AUTH0_CLIENT = "123"
+    settings.AUTH0_SECRET = "abc"
+    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
+
+    mock = mocker.patch("creator.authentication.requests.post")
+    mock.side_effect = requests.exceptions.RequestException("error")
+
+    assert get_service_token() is None
+    assert mock.call_count == 1

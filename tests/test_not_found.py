@@ -14,6 +14,10 @@ from graphql_relay import to_global_id
         ["version", int],
         ["project", int],
         ["referralToken", uuid.uuid4],
+        ["release", int],
+        ["releaseTask", int],
+        ["releaseService", int],
+        ["releaseEvent", uuid.uuid4],
     ],
 )
 def test_get_resource_by_id(db, clients, resource, type):

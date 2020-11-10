@@ -58,6 +58,35 @@ def test_http_error(db, mocker):
     assert mock.call_count == 1
 
 
+def test_send_action_invalid_json(db, mocker):
+    """
+    Test that a more specific error is thrown when content can't be decoded
+    """
+    release_task = ReleaseTaskFactory()
+
+    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header.return_value = {}
+
+    class Resp:
+        def json(self):
+            raise ValueError("Invalid byte at position....")
+
+        def raise_for_status(self):
+            pass
+
+        @property
+        def content(self):
+            return "<html>Not json</html>"
+
+    mock = mocker.patch("creator.releases.models.requests.post")
+    mock.return_value = Resp()
+
+    with pytest.raises(ValueError) as exc:
+        release_task._send_action("start")
+        assert "Invalid byte at" not in exc
+        assert "<html>Not json</html>" in exc
+
+
 def test_incorrect_task_id(db, mocker):
     """
     Test that state is not accepted if the returned task id does not

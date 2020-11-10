@@ -81,7 +81,7 @@ def test_cancel_allowed_states(db, clients, state, allowed):
         data={
             "query": CANCEL_RELEASE,
             "variables": {
-                "release": to_global_id("ReleaseNode}}", release.pk)
+                "release": to_global_id("ReleaseNode", release.pk)
             },
         },
         content_type="application/json",
@@ -100,3 +100,23 @@ def test_cancel_allowed_states(db, clients, state, allowed):
         assert f"Can't switch from state '{state}'" in (
             resp.json()["errors"][0]["message"]
         )
+
+
+def test_cancel_release_does_not_exist(db, clients):
+    """
+    Test that a release that does not exist cannot be canceled
+    """
+    client = clients.get("Administrators")
+
+    release = ReleaseFactory(state="running")
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": CANCEL_RELEASE,
+            "variables": {"release": to_global_id("ReleaseNode", "ABC")},
+        },
+        content_type="application/json",
+    )
+
+    assert resp.json()["errors"][0]["message"] == "Release ABC does not exist"
