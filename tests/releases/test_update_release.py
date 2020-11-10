@@ -9,6 +9,8 @@ mutation ($id: ID!, $input: UpdateReleaseInput!) {
     updateRelease(id: $id, input: $input) {
         release {
             id
+            name
+            description
         }
     }
 }
@@ -39,14 +41,43 @@ def test_update_release(db, clients, user_group, allowed):
         data={
             "query": UPDATE_RELEASE,
             "variables": {
-                "id": to_global_id("ReleaseNode}}", release.pk),
-                "input": {"name": "test"},
+                "id": to_global_id("ReleaseNode", release.pk),
+                "input": {"name": "test", "description": "Lorem Ipsum"},
             },
         },
         content_type="application/json",
     )
 
     if allowed:
-        assert resp.json()["data"]["updateRelease"]["release"] is not None
+        body = resp.json()
+        assert body["data"]["updateRelease"]["release"] is not None
+        assert (
+            body["data"]["updateRelease"]["release"]["description"]
+            == "Lorem Ipsum"
+        )
+        assert body["data"]["updateRelease"]["release"]["name"] == "test"
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_update_release_does_not_exist(db, clients):
+    """
+    Test the update mutation.
+    """
+    client = clients.get("Administrators")
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_RELEASE,
+            "variables": {
+                "id": to_global_id("ReleaseNode", "ABC"),
+                "input": {"name": "test", "description": "Lorem Ipsum"},
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert (
+        resp.json()["errors"][0]["message"] == "Release ABC does not exist"
+    )
