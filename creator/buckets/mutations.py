@@ -15,7 +15,7 @@ class LinkBucketMutation(graphene.Mutation):
     May only be performed by an administrator
     """
 
-    bucket = graphene.Field("creator.buckets.schema.BucketNode")
+    bucket = graphene.Field("creator.buckets.nodes.BucketNode")
     study = graphene.Field("creator.studies.schema.StudyNode")
 
     class Arguments:
@@ -75,7 +75,7 @@ class UnlinkBucketMutation(graphene.Mutation):
     May only be performed by an administrator.
     """
 
-    bucket = graphene.Field("creator.buckets.schema.BucketNode")
+    bucket = graphene.Field("creator.buckets.nodes.BucketNode")
     study = graphene.Field("creator.studies.schema.StudyNode")
 
     class Arguments:
