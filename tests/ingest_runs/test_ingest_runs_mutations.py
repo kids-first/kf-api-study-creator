@@ -77,7 +77,7 @@ def test_start_ingest_run(
         for f in File.objects.all()
     ]
 
-    # Start a valid ingest runs for a batch of file versions
+    # Start valid ingest runs for a batch of file versions
     resp = send_query(client, START_INGEST_RUN, {"versions": version_ids})
 
     if allowed:
@@ -85,7 +85,7 @@ def test_start_ingest_run(
         assert ir["name"]
         assert ir["inputHash"]
         for version in ir["versions"]["edges"]:
-            version["node"]["kfId"] in ir["name"]
+            assert version["node"]["kfId"] in ir["name"]
 
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"

@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                     "name",
                     models.TextField(
                         blank=True,
-                        help_text="The name of the ingest run. An field that is auto populated by concatenating the IDs of the IngestRun's file versions",
+                        help_text="The name of the ingest run. Autopopulated on save with the concatenation of the IngestRun's file version IDs",
                         null=True,
                     ),
                 ),

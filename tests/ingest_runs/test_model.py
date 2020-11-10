@@ -24,7 +24,7 @@ def test_ingest_run(db, prep_file):
         for v in file_versions:
             assert v.kf_id in ir.name
     ingest_runs = [(ir.input_hash, ir.name) for ir in IngestRun.objects.all()]
-    ingest_runs[0] == ingest_runs[1]
+    assert ingest_runs[0] == ingest_runs[1]
 
     # Create third ingest run with diff set of file versions
     ir3 = IngestRun()
