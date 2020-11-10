@@ -131,6 +131,7 @@ redis_host = os.environ.get("REDIS_HOST", "localhost")
 redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
 redis_ssl = os.environ.get("REDIS_SSL", "True") == "True"
+RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,

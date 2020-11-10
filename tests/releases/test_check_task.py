@@ -9,7 +9,7 @@ def test_scan_tasks(db, mocker):
     Check that only tasks that are in a non-terminal state get state checks
     queued on them.
     """
-    mock_rq = mocker.patch("creator.releases.mutations.django_rq.enqueue")
+    mock_rq = mocker.patch("rq.Queue.enqueue")
 
     release = ReleaseFactory()
     states = [

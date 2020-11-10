@@ -136,7 +136,7 @@ def test_publish_release_no_tasks(db):
     release.tasks.set([])
     release.save()
 
-    publish_release(release.pk)
+    publish_release(release_id=release.pk)
 
     release.refresh_from_db()
     assert release.state == "published"
@@ -147,14 +147,14 @@ def test_publish_release_with_tasks(db, mocker):
     Test that a release sends commands to all tasks to publish
     """
 
-    mock = mocker.patch("creator.releases.models.ReleaseTask.publish")
+    mock = mocker.patch("rq.Queue.enqueue")
 
     release = ReleaseFactory(state="publishing")
     tasks = ReleaseTaskFactory.create_batch(3, state="staged")
     release.tasks.set(tasks)
     release.save()
 
-    publish_release(release.pk)
+    publish_release(release_id=release.pk)
 
     assert mock.call_count == 3
     assert release.state == "publishing"

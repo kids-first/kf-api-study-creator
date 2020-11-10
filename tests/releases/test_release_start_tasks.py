@@ -30,7 +30,7 @@ def test_start_release_with_tasks(db, mocker):
     """
     Test that start_release queues start_task jobs for each task
     """
-    mock_rq = mocker.patch("creator.releases.tasks.django_rq.enqueue")
+    mock_rq = mocker.patch("rq.Queue.enqueue")
 
     release = ReleaseFactory(state="running")
     service = ReleaseServiceFactory()
@@ -44,7 +44,7 @@ def test_start_release_with_tasks(db, mocker):
 
     assert release.state == "running"
     assert mock_rq.call_count == 1
-    mock_rq.assert_called_with(start_task, task.pk)
+    mock_rq.assert_called_with(start_task, task_id=task.pk, ttl=60)
 
 
 def test_start_task_successful(db, mocker):

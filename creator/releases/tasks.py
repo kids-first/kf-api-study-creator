@@ -187,7 +187,10 @@ def initialize_release(release_id=None):
         release.start()
         release.save()
 
-        django_rq.enqueue(start_release, release_id=release.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            start_release, release_id=release.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
         return
 
     logger.info(
@@ -200,7 +203,10 @@ def initialize_release(release_id=None):
             f"Queuing initialize_task for task '{task.pk}' "
             f"of service '{task.release_service.name}'"
         )
-        django_rq.enqueue(initialize_task, task_id=task.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            initialize_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
 
 
 @task("release_task")
@@ -226,8 +232,12 @@ def initialize_task(task_id=None):
         task.release.cancel()
         task.release.save()
 
-        django_rq.enqueue(
-            cancel_release, release_id=task.release.pk, failed=True
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            cancel_release,
+            release_id=task.release.pk,
+            failed=True,
+            ttl=settings.RQ_DEFAULT_TTL,
         )
 
     # Check if all tasks are initialized now and queue up the release start
@@ -238,7 +248,12 @@ def initialize_task(task_id=None):
         )
         task.release.start()
         task.release.save()
-        django_rq.enqueue(start_release, release_id=task.release.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            start_release,
+            release_id=task.release.pk,
+            ttl=settings.RQ_DEFAULT_TTL,
+        )
 
 
 @task("release")
@@ -267,7 +282,8 @@ def start_release(release_id=None):
             f"Queuing start_task for task '{task.pk}' "
             f"of service '{task.release_service.name}'"
         )
-        django_rq.enqueue(start_task, task_id=task.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(start_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL)
 
 
 @task("release_task")
@@ -291,8 +307,12 @@ def start_task(task_id=None):
         task.release.cancel()
         task.release.save()
 
-        django_rq.enqueue(
-            cancel_release, release_id=task.release.pk, failed=True
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            cancel_release,
+            release_id=task.release.pk,
+            failed=True,
+            ttl=settings.RQ_DEFAULT_TTL,
         )
 
 
@@ -324,7 +344,10 @@ def publish_release(release_id=None):
             f"Queuing publish_task for task '{task.pk}' "
             f"of service '{task.release_service.name}'"
         )
-        django_rq.enqueue(publish_task, task_id=task.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            publish_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
 
 
 @task("release_task")
@@ -349,8 +372,12 @@ def publish_task(task_id=None):
         task.release.cancel()
         task.release.save()
 
-        django_rq.enqueue(
-            cancel_release, release_id=task.release.pk, failed=True
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            cancel_release,
+            release_id=task.release.pk,
+            failed=True,
+            ttl=settings.RQ_DEFAULT_TTL,
         )
 
 
@@ -386,7 +413,10 @@ def cancel_release(release_id=None, failed=False):
             f"Queuing cancel_task for task '{task.pk}' "
             f"of service '{task.release_service.name}'"
         )
-        django_rq.enqueue(cancel_task, task_id=task.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            cancel_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
 
 
 @task("release_task")
@@ -419,7 +449,8 @@ def scan_tasks():
         logger.info(
             f"Queuing check_task for task '{task.pk}' in state '{task.state}'"
         )
-        django_rq.enqueue(check_task, task_id=task.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(check_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL)
 
 
 @task("release_task")
@@ -451,7 +482,10 @@ def scan_releases():
             f"Queuing check_release for release '{release.pk}' in state "
             f"'{release.state}'"
         )
-        django_rq.enqueue(check_release, release_id=release.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            check_release, release_id=release.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
 
 
 @task("release")
@@ -494,7 +528,10 @@ def check_release(release_id=None):
         logger.info("All tasks are initialized. Starting release")
         release.start()
         release.save()
-        django_rq.enqueue(start_release, release_id=release.pk)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            start_release, release_id=release.pk, ttl=settings.RQ_DEFAULT_TTL
+        )
 
     # Check to see if we can mark the release as staged
     elif release.state == "running" and all(
@@ -528,4 +565,10 @@ def check_release(release_id=None):
         release.cancel()
         release.save()
 
-        django_rq.enqueue(cancel_release, release_id=release.pk, failed=failed)
+        queue = django_rq.get_queue("releases")
+        queue.enqueue(
+            cancel_release,
+            release_id=release.pk,
+            failed=failed,
+            ttl=settings.RQ_DEFAULT_TTL,
+        )
