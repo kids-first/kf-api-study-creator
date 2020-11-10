@@ -38,6 +38,9 @@ def test_new_service_token(db, mocker):
     """
     Test that Auth0 is called for a new token
     """
+    settings.AUTH0_CLIENT = "123"
+    settings.AUTH0_SECRET = "abc"
+    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
 
     class Resp:
         def json(self):
@@ -50,12 +53,16 @@ def test_new_service_token(db, mocker):
     mock.return_value = Resp()
 
     assert get_service_token() == "ABC"
+    assert mock.call_count == 1
 
 
 def test_new_service_token_malformed_resp(db, mocker):
     """
     Test the case that Auth0 returns json without an access key
     """
+    settings.AUTH0_CLIENT = "123"
+    settings.AUTH0_SECRET = "abc"
+    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
 
     class Resp:
         def json(self):
@@ -87,3 +94,15 @@ def test_new_service_token_exception(db, mocker):
 
     assert get_service_token() is None
     assert mock.call_count == 1
+
+
+def test_new_service_token_insuficient_config(db, mocker):
+    """
+    Test that no token is fetched when there is not enough config
+    """
+    settings.AUTH0_CLIENT = None
+
+    mock = mocker.patch("creator.authentication.requests.post")
+
+    assert get_service_token() is None
+    assert mock.call_count == 0

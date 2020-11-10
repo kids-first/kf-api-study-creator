@@ -25,6 +25,18 @@ def get_service_token():
     """
     Get a new token from Auth0 so we can authenticate with our release services
     """
+    if (
+        settings.AUTH0_CLIENT is None
+        or settings.AUTH0_SECRET is None
+        or settings.AUTH0_SERVICE_AUD is None
+    ):
+        logger.warning(
+            "There is insufficient configuration available to retrieve a "
+            "service token. "
+            "Requests may be sent without an Authorization header"
+        )
+        return
+
     logger.info(
         f"There is no Auth0 token or it has expired. Will request a new one "
         f"for clientId={settings.AUTH0_CLIENT}"
@@ -45,7 +57,10 @@ def get_service_token():
         resp.raise_for_status()
         logger.info(f"Retrieved a new client_credentials token from Auth0")
     except requests.exceptions.RequestException as err:
-        logger.warning(f"Problem retrieving access token from Auth0: {err}")
+        logger.warning(
+            f"Problem retrieving access token from Auth0: {err}. "
+            f"Response: {getattr(err.response, 'content', '')}"
+        )
         logger.warning(
             "An authentication token could not be retrieved. "
             "Requests may be sent without an Authorization header"
