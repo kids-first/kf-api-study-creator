@@ -21,7 +21,7 @@ def test_initialize_release_no_tasks(db, mocker):
     Test that the initialize_release task immediately moves the release
     to 'running' if there are no services in the release.
     """
-    mock_rq = mocker.patch("creator.releases.tasks.django_rq.enqueue")
+    mock_rq = mocker.patch("rq.Queue.enqueue")
 
     release = ReleaseFactory(state="initializing")
 
@@ -31,7 +31,7 @@ def test_initialize_release_no_tasks(db, mocker):
 
     assert release.state == "running"
     assert mock_rq.call_count == 1
-    mock_rq.assert_called_with(start_release, release.pk)
+    mock_rq.assert_called_with(start_release, release_id=release.pk, ttl=60)
 
 
 def test_initialize_release_with_tasks(db, mocker):
@@ -39,7 +39,7 @@ def test_initialize_release_with_tasks(db, mocker):
     Test that the initialize_release task enqueues tasks to initialize each
     service in the release.
     """
-    mock_rq = mocker.patch("creator.releases.tasks.django_rq.enqueue")
+    mock_rq = mocker.patch("rq.Queue.enqueue")
 
     release = ReleaseFactory(state="initializing")
     service = ReleaseServiceFactory()
@@ -61,7 +61,7 @@ def test_initialize_task_successful(db, mocker):
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(release=release, release_service=service)
 
-    mock_rq = mocker.patch("creator.releases.tasks.django_rq.enqueue")
+    mock_rq = mocker.patch("rq.Queue.enqueue")
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
     mock.return_value = {
         "state": "initialized",
@@ -77,7 +77,7 @@ def test_initialize_task_successful(db, mocker):
     assert mock.call_count == 1
     mock.assert_called_with("initialize")
     assert mock_rq.call_count == 1
-    mock_rq.assert_called_with(start_release, release.pk)
+    mock_rq.assert_called_with(start_release, release_id=release.pk, ttl=60)
 
 
 def test_initialize_task_rejected(db, mocker):
@@ -101,6 +101,5 @@ def test_initialize_task_rejected(db, mocker):
     task.refresh_from_db()
 
     assert task.state == "rejected"
-    assert mock.call_count == 2
+    assert mock.call_count == 1
     mock.assert_any_call("initialize")
-    mock.assert_called_with("cancel")
