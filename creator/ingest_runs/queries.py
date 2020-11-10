@@ -16,7 +16,9 @@ class IngestRunFilter(FilterSet):
 
 
 class Query(object):
-    ingest_run = relay.Node.Field(IngestRunNode, description="Get a single ingest_run")
+    ingest_run = relay.Node.Field(
+        IngestRunNode, description="Get a single ingest_run"
+    )
     all_ingest_runs = DjangoFilterConnectionField(
         IngestRunNode,
         filterset_class=IngestRunFilter,
