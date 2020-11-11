@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'creator.extract_configs',
     'creator.jobs',
     'creator.events.apps.EventsConfig',
+    'creator.ingest_requests',
     'creator',
     'corsheaders',
     'creator.ingest_runs.apps.IngestRunsConfig',
@@ -159,6 +160,13 @@ RQ_QUEUES = {
         "SSL": redis_ssl,
     },
     "slack": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
+    "ingest": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'creator.users',
     'creator.projects',
     'creator.buckets',
+    'creator.ingest_requests',
     'creator.email',
     'creator.referral_tokens',
     'creator.extract_configs',
@@ -161,6 +162,13 @@ RQ_QUEUES = {
         "SSL": redis_ssl,
     },
     "slack": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
+    "ingest": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
