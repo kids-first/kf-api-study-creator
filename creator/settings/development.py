@@ -61,7 +61,6 @@ INSTALLED_APPS = [
     'creator.extract_configs',
     'creator.jobs',
     'creator.events.apps.EventsConfig',
-    'creator.ingest_requests',
     'creator',
     'corsheaders',
     'creator.ingest_runs.apps.IngestRunsConfig',

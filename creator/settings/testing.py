@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'creator.users',
     'creator.projects',
     'creator.buckets',
-    'creator.ingest_requests',
     'creator.email',
     'creator.referral_tokens',
     'creator.extract_configs',
