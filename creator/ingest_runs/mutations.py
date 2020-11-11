@@ -1,5 +1,4 @@
 import graphene
-import django_rq
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 from django.db import transaction
@@ -60,7 +59,7 @@ class StartIngestRunMutation(graphene.Mutation):
             ingest_run.save()
 
         uuid_str = str(ingest_run.id)
-        django_rq.enqueue(
+        IngestRun.get_job_queue().enqueue(
             run_ingest,
             args=(uuid_str,),
             job_id=uuid_str,
@@ -96,7 +95,9 @@ class CancelIngestRunMutation(graphene.Mutation):
         except IngestRun.DoesNotExist:
             raise GraphQLError(f"IngestRun {obj_id} was not found")
 
-        django_rq.enqueue(cancel_ingest, args=(str(ingest_run.id),))
+        IngestRun.get_job_queue().enqueue(
+            cancel_ingest, args=(str(ingest_run.id),)
+        )
 
         return CancelIngestRunMutation(ingest_run=ingest_run)
 

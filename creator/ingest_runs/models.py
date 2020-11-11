@@ -1,13 +1,17 @@
 import hashlib
 import uuid
+
 from django.db import models
 from django.contrib.auth import get_user_model
+import django_rq
+from rq.job import NoSuchJobError, JobStatus
 
 from creator.files.models import Version
 from creator.jobs.models import JobLog
 
 DELIMITER = "-"
 NAME_PREFIX = "INGEST_REQUEST"
+INGEST_QUEUE_NAME = 'ingest'
 
 User = get_user_model()
 
@@ -103,13 +107,24 @@ class IngestRun(models.Model):
         Cancel or stop the associated job if it is running
 
         This method should be called:
-        - After a new IngestRun is started
+        - Before a new IngestRun is started
         - Before a file version is deleted and that version is involved in
           an IngestRun with an active job
 
-        TODO
+        TODO:
+        After we figure out how to kill job
+        See https://github.com/rq/rq/issues/684
         """
         pass
+
+    @staticmethod
+    def get_job_queue(**kwargs):
+        """
+        Return a reference to the ingest queue. Forward kwargs to django_rq
+        get_queue
+        """
+        kwargs["name"] = INGEST_QUEUE_NAME
+        return django_rq.get_queue(**kwargs)
 
     def __str__(self):
         if self.name:
