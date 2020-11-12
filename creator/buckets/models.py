@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from creator.studies.models import Study
@@ -35,4 +36,38 @@ class Bucket(models.Model):
         null=False,
         default=False,
         help_text="Whether this bucket has been deleted from S3",
+    )
+
+
+class BucketInventory(models.Model):
+    """
+    Represents and summarizes a bucket inventory created by S3
+    """
+
+    class Meta:
+        permissions = [
+            ("list_all_bucketinventory", "Show all bucket_inventories")
+        ]
+
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    bucket = models.ForeignKey(
+        Bucket,
+        related_name="inventories",
+        help_text="The bucket this inventory belongs to",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    created_at = models.DateTimeField(
+        null=False, help_text="Time when the bucket_inventory was created"
+    )
+    key = models.FileField(
+        max_length=512,
+        help_text="Field to track the storage location of the inventory",
+    )
+    summary = JSONField(
+        default=dict, help_text="Summary analysis of the inventory"
+    )
+    total_bytes = models.FloatField(
+        default=0.0,
+        help_text="The sum of all the object's size on disk in bytes",
     )

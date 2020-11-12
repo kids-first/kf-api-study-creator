@@ -21,4 +21,4 @@ class StudyFactory(factory.DjangoModelFactory):
     bucket = factory.Faker("slug")
     external_id = factory.Faker("slug")
 
-    buckets = factory.RelatedFactory(BucketFactory, "study")
+    buckets = factory.RelatedFactory(BucketFactory, "study", inventories=5)
