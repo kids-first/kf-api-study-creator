@@ -119,17 +119,20 @@ DATABASES = {
 }
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
-}
-
 # Redis for RQ
 redis_host = os.environ.get("REDIS_HOST", "localhost")
 redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
 redis_ssl = os.environ.get("REDIS_SSL", "True") == "True"
+
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.RedisCache",
+        "LOCATION": f"{redis_host}:{redis_port}",
+        "OPTIONS": {"DB": 1},
+    }
+}
+
 RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
 RQ_QUEUES = {
     "default": {
@@ -176,6 +179,7 @@ RQ_QUEUES = {
     },
 }
 if redis_pass:
+    CACHES["default"]["OPTIONS"]["PASSWORD"] = redis_pass
     RQ_QUEUES["default"]["PASSWORD"] = redis_pass
 
 # Password validation
