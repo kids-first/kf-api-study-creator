@@ -57,17 +57,32 @@ class BucketInventory(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
+    creation_date = models.DateTimeField(
+        null=False,
+        help_text=(
+            "The date the inventory was generated. "
+            "Not to be confused with the created_at time which is when it was "
+            "registered in the database"
+        ),
+    )
     created_at = models.DateTimeField(
-        null=False, help_text="Time when the bucket_inventory was created"
+        auto_now_add=True,
+        null=False,
+        help_text="Time when the bucket inventory was created",
     )
     key = models.FileField(
         max_length=512,
         help_text="Field to track the storage location of the inventory",
     )
+    manifest = JSONField(
+        default=dict,
+        help_text=(
+            "Copy of the manifest.json for the inventory that was saved in s3"
+        ),
+    )
     summary = JSONField(
         default=dict, help_text="Summary analysis of the inventory"
     )
-    total_bytes = models.FloatField(
-        default=0.0,
-        help_text="The sum of all the object's size on disk in bytes",
+    imported = models.BooleanField(
+        default=False, help_text="Whether this inventory was imported or not"
     )

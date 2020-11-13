@@ -4,7 +4,7 @@ from creator.buckets.models import Bucket, BucketInventory
 
 
 class BucketFilter(FilterSet):
-    order_by = OrderingFilter(fields=("created_on"))
+    order_by = OrderingFilter(fields=("created_at",))
 
     class Meta:
         model = Bucket
@@ -12,7 +12,7 @@ class BucketFilter(FilterSet):
 
 
 class BucketInventoryFilter(FilterSet):
-    order_by = OrderingFilter(fields=("created_on",))
+    order_by = OrderingFilter(fields=("created_at", "creation_date"))
 
     class Meta:
         model = BucketInventory

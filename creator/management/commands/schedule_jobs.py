@@ -18,6 +18,7 @@ from creator.tasks import (
     sync_buckets_task,
     slack_notify_task,
 )
+from creator.buckets.tasks import sync_inventories
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,7 @@ class Command(BaseCommand):
         jobs = list(self.aws_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the AWS queue")
         self.setup_buckets_sync()
+        self.setup_inventories_sync()
 
         jobs = list(self.slack_scheduler.get_jobs())
         logger.info(f"Found {len(jobs)} jobs scheduled on the Slack queue")
@@ -205,6 +207,25 @@ class Command(BaseCommand):
             func=sync_buckets_task,
             repeat=None,
             interval=900,
+        )
+        job, created = Job.objects.get_or_create(
+            name=name, description=description, scheduler="aws"
+        )
+        job.scheduled = True
+        job.save()
+
+    def setup_inventories_sync(self):
+        logger.info("Scheduling Inventories Sync jobs")
+        name = "inventories_sync"
+        description = "Import Bucket Inventories to the Study Creator"
+
+        self.aws_scheduler.cancel("inventories_sync")
+
+        self.aws_scheduler.cron(
+            "0 6 * * *",
+            id=name,
+            description=description,
+            func=sync_inventories,
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="aws"

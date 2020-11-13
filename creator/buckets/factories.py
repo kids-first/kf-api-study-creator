@@ -74,9 +74,12 @@ class BucketInventoryFactory(factory.DjangoModelFactory):
 
     id = factory.Faker("uuid4")
     bucket = factory.SubFactory(BucketFactory)
+    creation_date = factory.Faker(
+        "date_between",
+        start_date="-2y",
+        end_date="now",
+    )
     created_at = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
-    total_bytes = factory.Faker("pyint", max_value=10 ** 12)
-
-    summary = factory.Faker("summary")
+    summary = {}

@@ -22,7 +22,9 @@ def sync_buckets():
         logger.error(f"Problem listing buckets in S3: {err}")
         raise
 
-    buckets = [b for b in buckets if f"-{settings.STAGE}-sd-" in b["Name"]]
+    settings.STAGE = "prd"
+    # buckets = [b for b in buckets if f"-{settings.STAGE}-sd-" in b["Name"]]
+    buckets = [b for b in buckets]
 
     logger.info(f"Found {len(buckets)} buckets to update")
     for bucket_info in buckets:

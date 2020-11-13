@@ -44,7 +44,7 @@ class Query:
         if not user.has_perm("buckets.list_all_bucket"):
             raise GraphQLError("Not allowed")
 
-        qs = Bucket.objects
+        qs = Bucket.objects.filter(deleted=False)
         if kwargs.get("study") == "":
             qs = qs.filter(study=None)
         return qs.all()
@@ -75,7 +75,7 @@ class Query:
 
     def resolve_bucket_inventory_stats(self, info):
         latest_inventories = BucketInventory.objects.order_by(
-            "bucket_id", "-created_at"
+            "bucket_id", "-creation_date"
         ).distinct("bucket_id")
 
         total_buckets = Bucket.objects.filter(deleted=False).count()
@@ -84,8 +84,9 @@ class Query:
         count_by_file_format = defaultdict(int)
         size_by_file_format = defaultdict(int)
         for inventory in latest_inventories:
-            total_count += inventory.summary.get("count").get("total", 0)
-            total_bytes += inventory.summary.get("size").get("total", 0)
+            total_count += inventory.summary.get("total_count", 0)
+            total_bytes += inventory.summary.get("total_size", 0)
+            continue
 
             # Aggregate by file format
             for k, v in (
@@ -118,18 +119,24 @@ class Query:
     bucket_size = graphene.List(DataPointType)
 
     def resolve_bucket_size(self, info, group_by=None, **kwargs):
-        data = BucketInventory.objects.values("created_at", "summary").all()
+        data = (
+            BucketInventory.objects.filter(bucket__deleted=False)
+            .filter(summary__summary_version=1)
+            .values("bucket__name", "creation_date", "summary__total_size")
+            .order_by("creation_date")
+            .all()
+        )
 
-        line = []
-        total_bytes = 0
+        curr_values = {k: 0 for k in set(b["bucket__name"] for b in data)}
+        dates = defaultdict(datetime)
         for point in data:
-            date = point["created_at"]
-            total_bytes += point["summary"].get("size").get("total", 0)
-            line.append(
-                {
-                    "date": datetime.combine(date, datetime.min.time()),
-                    "size": total_bytes,
-                }
+            date = point["creation_date"]
+            if point["summary__total_size"] is None:
+                continue
+            curr_values[point["bucket__name"]] = point["summary__total_size"]
+            dates[datetime.combine(date, datetime.min.time())] = sum(
+                curr_values.values()
             )
 
+        line = [{"date": k, "size": v} for k, v in dates.items()]
         return sorted(line, key=lambda x: x["date"])
