@@ -57,6 +57,8 @@ def link_study(bucket):
     Attempts to link a bucket to a study by extracting a kf_id from its name
     """
     study_match = study_re.match(bucket.name)
+    if study_match is None:
+        return False
     if not study_match.group(1):
         return False
 
