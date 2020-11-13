@@ -222,7 +222,7 @@ class Command(BaseCommand):
         self.aws_scheduler.cancel("inventories_sync")
 
         self.aws_scheduler.cron(
-            "0 6 * * *",
+            "0/10 * * * *",
             id=name,
             description=description,
             func=sync_inventories,
