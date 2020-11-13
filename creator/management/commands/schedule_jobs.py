@@ -226,6 +226,7 @@ class Command(BaseCommand):
             id=name,
             description=description,
             func=sync_inventories,
+            timeout=300,
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="aws"
