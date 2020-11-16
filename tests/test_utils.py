@@ -73,5 +73,3 @@ def test_stop_jobs(mocker, job_status, delete):
 
     if delete:
         mock_job.delete.call_count == 1
-
-    mock_job.reset_mock()
