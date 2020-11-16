@@ -41,57 +41,63 @@ def sync_inventories():
             Delimiter="/",
         )
 
-        folders_by_date = {}
+        # Compile all the sub-prefixes within the 'StudyBucketInventory' prefix
+        # Each sub-prefix is a date containing a 'manifest.json' and md5 sum
+        # except for 'data' and 'hive' prefixes which contain actual the actual
+        # inventory data dumps
+        inventory_prefixes = [
+            pref.get("Prefix") for pref in result.get("CommonPrefixes", [])
+        ]
 
-        for pref in reversed(result.get("CommonPrefixes", [])):
-            prefix = pref.get("Prefix")
-            try:
-                date = datetime.datetime.strptime(
-                    prefix.split("/")[-2], "%Y-%m-%dT%H-%MZ"
-                )
-                date = date.replace(tzinfo=datetime.timezone.utc)
-            except ValueError:
-                continue
-            folders_by_date[date] = prefix
+        import_inventories_for_bucket(bucket, inventory_prefixes)
 
-        logger.debug(
-            f"Found {len(folders_by_date)} inventories for bucket "
-            f"'{bucket.name}"
-        )
 
-        queued = 0
-        for date, prefix in folders_by_date.items():
-            # Try to first resolve an BucketInventory to see if we've already
-            # imported the inventory at this prefix for the given date
-            if BucketInventory.objects.filter(
-                bucket=bucket, creation_date=date
-            ).exists():
-                continue
-            # Continue with setting up the inventory
-            try:
-                with smart_open.open(
-                    f"s3://{settings.STUDY_BUCKETS_INVENTORY_LOCATION}/{prefix}"
-                    "manifest.json"
-                ) as f:
-                    manifest = json.load(f)
-            except Exception as exc:
-                logger.error(f"Problem reading file: {exc}")
-                continue
-
-            inventory = BucketInventory(
-                creation_date=date,
-                bucket=bucket,
-                manifest=manifest,
-                imported=False,
+def import_inventories_for_bucket(bucket, inventories):
+    """
+    """
+    folders_by_date = {}
+    for inventory in inventories:
+        try:
+            date = datetime.datetime.strptime(
+                inventory.split("/")[-2], "%Y-%m-%dT%H-%MZ"
             )
-            inventory.save()
-            django_rq.enqueue(
-                import_inventory, inventory_id=inventory.pk, ttl=600
-            )
+            date = date.replace(tzinfo=datetime.timezone.utc)
+        except ValueError:
+            # Skip this inventory if we could not parse a date in it
+            continue
 
-        logger.info(
-            f"Queued import of {queued} inventories for bucket '{bucket.name}'"
+        folders_by_date[date] = inventory
+
+    logger.debug(
+        f"Found {len(folders_by_date)} inventories for bucket '{bucket.name}"
+    )
+
+    for date, prefix in folders_by_date.items():
+        if date < datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc):
+            continue
+        # Try to first resolve an BucketInventory to see if we've already
+        # imported the inventory at this prefix for the given date
+        if BucketInventory.objects.filter(bucket=bucket, creation_date=date):
+            continue
+        # Continue with setting up the inventory
+        try:
+            with smart_open.open(
+                f"s3://{settings.STUDY_BUCKETS_INVENTORY_LOCATION}/{prefix}"
+                "manifest.json"
+            ) as f:
+                manifest = json.load(f)
+        except Exception as exc:
+            logger.error(f"Problem reading file: {exc}")
+            continue
+
+        inventory = BucketInventory(
+            creation_date=date,
+            bucket=bucket,
+            manifest=manifest,
+            imported=False,
         )
+        inventory.save()
+        django_rq.enqueue(import_inventory, inventory_id=inventory.pk, ttl=600)
 
 
 def generate_summary(reader):
