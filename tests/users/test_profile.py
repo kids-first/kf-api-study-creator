@@ -31,9 +31,9 @@ UPDATE_PROFILE = """
 @pytest.mark.parametrize(
     "user_type,username",
     [
-        ("admin", "user@d3b.center"),
+        ("admin", "bobby"),
         ("service", None),
-        ("user", "user@d3b.center"),
+        ("user", "bobby"),
         (None, None),
     ],
 )

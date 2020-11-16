@@ -73,7 +73,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'creator.middleware.EgoJWTAuthenticationMiddleware',
     'creator.middleware.Auth0AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -282,13 +281,6 @@ LOG_BUCKET = os.environ.get('LOG_BUCKET', 'kf-study-creator-logging')
 LOG_DIR = os.environ.get('LOG_DIR', 'logs/')
 
 AWS_S3_BUCKET_NAME = 'kf-study-us-east-1-dev-sd-me0owme0w'
-
-# API for Ego
-EGO_API = os.environ.get('EGO_API', 'https://ego.kids-first.io')
-# Cache key for where to rerieve and store the ego signing key
-CACHE_EGO_KEY = 'EGO_PUBLIC_KEY'
-# How often the Ego public key should be retrieved from ego, 1 day default
-CACHE_EGO_TIMEOUT = 86400
 
 # Auth0 settings
 AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "https://kids-first.auth0.com")
