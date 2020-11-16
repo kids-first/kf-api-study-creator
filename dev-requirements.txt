@@ -11,6 +11,5 @@ moto==1.3.10
 pycodestyle==2.5.0
 pytest-codestyle==1.4.0
 pytest-mock==1.10.4
-hypothesis==4.32.3
 pytest-cov==2.8.1
 -e git+https://github.com/codecov/codecov-python.git@4ec70db255cc2dc332fbd01aab3069d9b2e699dc#egg=codecov
