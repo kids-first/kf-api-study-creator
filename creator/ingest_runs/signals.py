@@ -1,5 +1,8 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django_fsm.signals import post_transition
+
+from creator.events.models import Event
 from creator.ingest_runs.models import IngestRun
 
 
@@ -22,28 +25,28 @@ def ingest_run_post_transition(sender, instance, name, source, target,
     Create a corresponding Event after the status of an IngestRun is changed.
     """
     TARGET_EVENT_TYPES = {
-        "running": "IR_STA",
+        "started": "IR_STA",
         "complete": "IR_COM",
         "canceled": "IR_CAN",
         "failed": "IR_FAI",
     }
-    username = instance.creator.display_name or "Anonymous user" 
-    if target in {"complete", "failed"}:
-        message = f"Status change of IngestRun {instance.id} with "
+    versions = [str(v) for v in instance.versions.all()]
+    started_by_user = target in {"complete", "failed"}
+    if not started_by_user:
+        message = (
+            f"IngestRun {instance.id} {target} for file versions {versions} "
+        )
     else:
         message = (
-            f"{username} changed the status of IngestRun {instance.id} "
-            f"with "
+            f"{instance.creator.display_name} {target} IngestRun "
+            f"{instance.id} for file versions {versions} "
         )
-    message + = (
-        f"versions {list(instance.versions.all())} to {target.upper()}."
-    )
     first_version = instance.versions.first()
     ev = Event(
         study=first_version.study,
         file=first_version.root_file,
         version=first_version,
-        user=instance.creator,
+        user=instance.creator if started_by_user else None,
         description=message,
         event_type=TARGET_EVENT_TYPES[target],
     )
