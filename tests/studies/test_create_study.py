@@ -1,6 +1,5 @@
 import pytest
-from hypothesis import given, settings
-from hypothesis.strategies import text, integers, characters, dates
+from datetime import datetime
 from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 
@@ -323,8 +322,6 @@ def test_workflows(db, settings, mocker, clients, mock_post):
     )
 
 
-@given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
-@settings(max_examples=10)
 @pytest.mark.parametrize(
     "field",
     [
@@ -339,7 +336,7 @@ def test_workflows(db, settings, mocker, clients, mock_post):
         "awardeeOrganization",
     ],
 )
-def test_text_fields(db, clients, settings, mock_post, s, field):
+def test_text_fields(db, clients, settings, mock_post, field):
     """
     Test text inputs for different fields
     """
@@ -348,7 +345,7 @@ def test_text_fields(db, clients, settings, mock_post, s, field):
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
-    variables["input"][field] = s
+    variables["input"][field] = "Lorem Ipsum"
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -358,10 +355,8 @@ def test_text_fields(db, clients, settings, mock_post, s, field):
     assert "errors" not in resp.json()
 
 
-@given(s=integers(min_value=0, max_value=2_147_483_647))
-@settings(max_examples=10)
 @pytest.mark.parametrize("field", ["anticipatedSamples"])
-def test_integer_fields(db, clients, settings, mock_post, s, field):
+def test_integer_fields(db, clients, settings, mock_post, field):
     """
     Test positive integer inputs for different fields
     """
@@ -370,7 +365,7 @@ def test_integer_fields(db, clients, settings, mock_post, s, field):
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
-    variables["input"][field] = s
+    variables["input"][field] = 324
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -380,10 +375,8 @@ def test_integer_fields(db, clients, settings, mock_post, s, field):
     assert "errors" not in resp.json()
 
 
-@given(s=text(alphabet=characters(blacklist_categories=("Cc", "Cs"))))
-@settings(max_examples=10)
 @pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
-def test_internal_fields(db, clients, settings, mock_post, s, field):
+def test_internal_fields(db, clients, settings, mock_post, field):
     """
     Test that inputs for our internal study fields are saved correctly.
 
@@ -394,20 +387,18 @@ def test_internal_fields(db, clients, settings, mock_post, s, field):
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
-    variables["input"][field] = s
+    variables["input"][field] = "Lorem Ipsum"
     resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createStudy"]["study"][field] == s
+    assert resp.json()["data"]["createStudy"]["study"][field] == "Lorem Ipsum"
 
 
-@given(s=dates())
-@settings(max_examples=10)
 @pytest.mark.parametrize("field", ["releaseDate"])
-def test_internal_datetime_fields(db, clients, settings, mock_post, s, field):
+def test_internal_datetime_fields(db, clients, settings, mock_post, field):
     """
     Test that inputs datetime study fields are saved correctly.
     """
@@ -416,14 +407,17 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, s, field):
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
     variables = {"input": {"externalId": "TEST"}}
-    variables["input"][field] = s
+    d = datetime.now()
+    variables["input"][field] = d.strftime("%Y-%m-%d")
     resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
     assert "errors" not in resp.json()
-    assert resp.json()["data"]["createStudy"]["study"][field] == str(s)
+    assert resp.json()["data"]["createStudy"]["study"][field] == str(
+        d.strftime("%Y-%m-%d")
+    )
 
 
 def test_attach_volumes(db, clients, settings, mock_cavatica_api):
