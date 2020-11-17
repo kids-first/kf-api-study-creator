@@ -30,9 +30,8 @@ def sync_inventories():
         settings.STUDY_BUCKETS_INVENTORY_LOCATION + "/inventories"
     )
 
+    total_queued = 0
     for bucket in buckets:
-        logger.info(f"Scanning bucket '{bucket.name}' for new inventories")
-
         prefix = f"inventories/{bucket.name}/StudyBucketInventory/"
 
         result = client.list_objects(
@@ -49,7 +48,16 @@ def sync_inventories():
             pref.get("Prefix") for pref in result.get("CommonPrefixes", [])
         ]
 
-        import_inventories_for_bucket(bucket, inventory_prefixes)
+        queued = import_inventories_for_bucket(bucket, inventory_prefixes)
+        total_queued += queued
+        if queued > 0:
+            logger.info(
+                f"Queued {queued} inventories for import for '{bucket.name}'"
+            )
+    logger.info(
+        f"Scanned {len(buckets)} buckets for new inventories and queued "
+        f"{total_queued} inventories for import"
+    )
 
 
 def import_inventories_for_bucket(bucket, inventories):
@@ -72,12 +80,19 @@ def import_inventories_for_bucket(bucket, inventories):
         f"Found {len(folders_by_date)} inventories for bucket '{bucket.name}"
     )
 
+    # Keep track of how many inventories are being queued for import
+    queued = 0
     for date, prefix in folders_by_date.items():
         if date < datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc):
             continue
         # Try to first resolve an BucketInventory to see if we've already
         # imported the inventory at this prefix for the given date
-        if BucketInventory.objects.filter(bucket=bucket, creation_date=date):
+        if BucketInventory.objects.filter(
+            bucket=bucket,
+            creation_date=date,
+            imported=True,
+            summary__summary_version=SUMMARY_VERSION,
+        ):
             continue
         # Continue with setting up the inventory
         try:
@@ -90,14 +105,18 @@ def import_inventories_for_bucket(bucket, inventories):
             logger.error(f"Problem reading file: {exc}")
             continue
 
-        inventory = BucketInventory(
+        inventory, created = BucketInventory.objects.get_or_create(
             creation_date=date,
             bucket=bucket,
-            manifest=manifest,
             imported=False,
+            defaults={"manifest": manifest},
         )
         inventory.save()
-        django_rq.enqueue(import_inventory, inventory_id=inventory.pk, ttl=600)
+
+        queue = django_rq.get_queue("aws", default_timeout=300)
+        queue.enqueue(import_inventory, inventory_id=inventory.pk, ttl=600)
+        queued += 1
+    return queued
 
 
 def generate_summary(reader):
