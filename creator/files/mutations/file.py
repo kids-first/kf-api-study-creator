@@ -86,7 +86,7 @@ class CreateFileMutation(graphene.Mutation):
                 study=study,
                 creator=user,
                 description=description,
-                file_type=fileType,
+                file_type=fileType.value,
                 tags=tags,
             )
             root_file.save()
