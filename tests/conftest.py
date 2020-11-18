@@ -16,6 +16,7 @@ from creator.users.factories import UserFactory
 from creator.files.models import File
 from creator.files.factories import FileFactory
 from creator.studies.factories import StudyFactory
+from creator.ingest_runs.factories import IngestRunFactory
 from creator.studies.models import Study
 from creator.groups import GROUPS
 
