@@ -2,6 +2,7 @@ import hashlib
 import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
+from django_fsm import FSMField
 
 from creator.files.models import Version
 from creator.jobs.models import JobLog
@@ -71,6 +72,10 @@ class IngestRun(models.Model):
         related_name="ingest_runs",
         on_delete=models.SET_NULL,
         help_text="The user who submitted this ingest run",
+    )
+
+    state = FSMField(
+        default="waiting", help_text="The current state of the ingest run"
     )
 
     def compute_input_hash(self):

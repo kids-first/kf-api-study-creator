@@ -54,6 +54,8 @@ services:
       - POSTGRES_DB=study-creator
       - POSTGRES_USER=study-creator
       - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
   redis:
     image: redis:latest
 networks:
