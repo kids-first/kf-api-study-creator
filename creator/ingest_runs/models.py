@@ -63,6 +63,10 @@ class IngestRun(models.Model):
             "for this ingest run"
         ),
     )
+
+    state = FSMField(
+        default="waiting", help_text="The current state of the ingest run"
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         null=True,
