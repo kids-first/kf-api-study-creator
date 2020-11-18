@@ -1,6 +1,6 @@
 from datetime import datetime
 import graphene
-from collections import defaultdict
+from collections import defaultdict, Counter
 from graphene import relay
 from graphql import GraphQLError
 from django.db.models import Sum
@@ -17,8 +17,8 @@ class DataPointType(graphene.ObjectType):
     date = graphene.DateTime()
 
 
-class FileFormatStat(graphene.ObjectType):
-    file_format = graphene.String()
+class Stat(graphene.ObjectType):
+    metric = graphene.String()
     value = graphene.Float()
 
 
@@ -26,8 +26,14 @@ class BucketInventoryStats(graphene.ObjectType):
     total_objects = graphene.Float()
     total_bytes = graphene.Float()
     total_buckets = graphene.Float()
-    count_by_file_format = graphene.List(FileFormatStat)
-    size_by_file_format = graphene.List(FileFormatStat)
+    count_by_is_latest = graphene.List(Stat)
+    count_by_storage_class = graphene.List(Stat)
+    count_by_replication_status = graphene.List(Stat)
+    count_by_encryption_status = graphene.List(Stat)
+    size_by_is_latest = graphene.List(Stat)
+    size_by_storage_class = graphene.List(Stat)
+    size_by_replication_status = graphene.List(Stat)
+    size_by_encryption_status = graphene.List(Stat)
 
 
 class Query:
@@ -81,39 +87,51 @@ class Query:
         total_buckets = Bucket.objects.filter(deleted=False).count()
         total_count = 0
         total_bytes = 0
-        count_by_file_format = defaultdict(int)
-        size_by_file_format = defaultdict(int)
+
+        count_aggs = defaultdict(lambda: defaultdict(int))
+        size_aggs = defaultdict(lambda: defaultdict(int))
+
+        def combine(c, group, metric):
+            return Counter(c) + Counter(
+                inventory.summary.get(group, {}).get(metric, {})
+            )
+
+        def to_list(agg):
+            return [{"metric": k, "value": v} for k, v in agg.items()]
+
         for inventory in latest_inventories:
             total_count += inventory.summary.get("total_count", 0)
             total_bytes += inventory.summary.get("total_size", 0)
-            continue
 
-            # Aggregate by file format
-            for k, v in (
-                inventory.summary.get("count").get("by_file_format").items()
-            ):
-                count_by_file_format[k] += v
-            for k, v in (
-                inventory.summary.get("size").get("by_file_format").items()
-            ):
-                size_by_file_format[k] += v
-
-        # Convert counts and size aggregations into lists of dicts
-        count_by_file_format = [
-            {"file_format": k, "value": v}
-            for k, v in count_by_file_format.items()
-        ]
-        size_by_file_format = [
-            {"file_format": k, "value": v}
-            for k, v in size_by_file_format.items()
-        ]
+            for metric in [
+                "is_latest",
+                "storage_class",
+                "replication_status",
+                "encryption_status",
+            ]:
+                count_aggs[metric] = combine(
+                    count_aggs[metric], "count", metric
+                )
+                size_aggs[metric] = combine(size_aggs[metric], "size", metric)
 
         return BucketInventoryStats(
             total_objects=total_count,
             total_bytes=total_bytes,
             total_buckets=total_buckets,
-            count_by_file_format=count_by_file_format,
-            size_by_file_format=size_by_file_format,
+            count_by_is_latest=to_list(count_aggs["is_latest"]),
+            count_by_storage_class=to_list(count_aggs["storage_class"]),
+            count_by_replication_status=to_list(
+                count_aggs["replication_status"]
+            ),
+            count_by_encryption_status=to_list(
+                count_aggs["encryption_status"]
+            ),
+            size_by_is_latest=to_list(size_aggs["is_latest"]),
+            size_by_storage_class=to_list(size_aggs["storage_class"]),
+            size_by_replication_status=to_list(
+                size_aggs["replication_status"]
+            ),
+            size_by_encryption_status=to_list(size_aggs["encryption_status"]),
         )
 
     bucket_size = graphene.List(DataPointType)
