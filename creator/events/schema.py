@@ -60,6 +60,6 @@ class Query(object):
             return Event.objects.all()
 
         if user.has_perm("events.view_my_event"):
-            return Event.objects.filter(study__in=user.studies)
+            return Event.objects.filter(study__in=user.studies.all())
 
         raise GraphQLError("Not allowed")
