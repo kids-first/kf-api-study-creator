@@ -30,10 +30,14 @@ class BucketInventoryStats(graphene.ObjectType):
     count_by_storage_class = graphene.List(Stat)
     count_by_replication_status = graphene.List(Stat)
     count_by_encryption_status = graphene.List(Stat)
+    count_by_top_folder = graphene.List(Stat)
+    count_by_extension = graphene.List(Stat)
     size_by_is_latest = graphene.List(Stat)
     size_by_storage_class = graphene.List(Stat)
     size_by_replication_status = graphene.List(Stat)
     size_by_encryption_status = graphene.List(Stat)
+    size_by_top_folder = graphene.List(Stat)
+    size_by_extension = graphene.List(Stat)
 
 
 class Query:
@@ -108,11 +112,33 @@ class Query:
                 "storage_class",
                 "replication_status",
                 "encryption_status",
+                "top_folder",
+                "extension",
             ]:
+                if (
+                    metric == "top_folder"
+                    and "sd-" not in inventory.bucket.name
+                ):
+                    continue
                 count_aggs[metric] = combine(
                     count_aggs[metric], "count", metric
                 )
                 size_aggs[metric] = combine(size_aggs[metric], "size", metric)
+
+        size_aggs["extension"] = dict(
+            sorted(
+                size_aggs["extension"].items(),
+                key=lambda x: x[1],
+                reverse=True,
+            )[:6]
+        )
+        count_aggs["extension"] = dict(
+            sorted(
+                count_aggs["extension"].items(),
+                key=lambda x: x[1],
+                reverse=True,
+            )[:6]
+        )
 
         return BucketInventoryStats(
             total_objects=total_count,
@@ -126,12 +152,16 @@ class Query:
             count_by_encryption_status=to_list(
                 count_aggs["encryption_status"]
             ),
+            count_by_top_folder=to_list(count_aggs["top_folder"]),
+            count_by_extension=to_list(count_aggs["extension"]),
             size_by_is_latest=to_list(size_aggs["is_latest"]),
             size_by_storage_class=to_list(size_aggs["storage_class"]),
             size_by_replication_status=to_list(
                 size_aggs["replication_status"]
             ),
             size_by_encryption_status=to_list(size_aggs["encryption_status"]),
+            size_by_top_folder=to_list(size_aggs["top_folder"]),
+            size_by_extension=to_list(size_aggs["extension"]),
         )
 
     bucket_size = graphene.List(DataPointType)
@@ -139,7 +169,6 @@ class Query:
     def resolve_bucket_size(self, info, group_by=None, **kwargs):
         data = (
             BucketInventory.objects.filter(bucket__deleted=False)
-            .filter(summary__summary_version=1)
             .values("bucket__name", "creation_date", "summary__total_size")
             .order_by("creation_date")
             .all()
