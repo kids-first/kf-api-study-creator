@@ -1,5 +1,22 @@
 # Kids First Study Creator Change History
 
+## Release 1.14.7
+
+### Summary
+
+- Emojis: 🐛 x2, 🔥 x2, ⬆️ x1, ✨ x1
+- Categories: Fixes x2, Removals x2, Ops x1, Additions x1
+
+### New features and changes
+
+- [#515](https://github.com/kids-first/kf-api-study-creator/pull/515) - 🐛 Don't resolve downloadUrls if not enough info - [8dbae2a0](https://github.com/kids-first/kf-api-study-creator/commit/8dbae2a0691f978bf5c22b9b22ac7e064ca9c43d) by [dankolbman](https://github.com/dankolbman)
+- [#514](https://github.com/kids-first/kf-api-study-creator/pull/514) - 🐛 Fix events query for non-admins - [9f2c9f81](https://github.com/kids-first/kf-api-study-creator/commit/9f2c9f817353218d175a658bb091c6199be7797b) by [dankolbman](https://github.com/dankolbman)
+- [#511](https://github.com/kids-first/kf-api-study-creator/pull/511) - 🔥 Remove ego authentication - [f803ec54](https://github.com/kids-first/kf-api-study-creator/commit/f803ec5444120d5f49c6ec2d95a37406fc0e05f6) by [dankolbman](https://github.com/dankolbman)
+- [#512](https://github.com/kids-first/kf-api-study-creator/pull/512) - 🔥 Remove hypothesis testing - [09b1a9ef](https://github.com/kids-first/kf-api-study-creator/commit/09b1a9ef66532f8b6d4f054231ec3ab101ec6e6f) by [dankolbman](https://github.com/dankolbman)
+- [#496](https://github.com/kids-first/kf-api-study-creator/pull/496) - ⬆️ Bump cryptography from 2.5 to 3.2 - [709450f4](https://github.com/kids-first/kf-api-study-creator/commit/709450f4821e83eba793b5ddbdbf0bc5cefcc9bc) by [dependabot[bot]](https://github.com/apps/dependabot)
+- [#509](https://github.com/kids-first/kf-api-study-creator/pull/509) - ✨ Kill rq jobs by id - [c747e001](https://github.com/kids-first/kf-api-study-creator/commit/c747e001e4a09d48ed60252f32a39aca29a9d7aa) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.14.6
 
 ### Summary
