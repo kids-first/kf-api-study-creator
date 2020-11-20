@@ -29,13 +29,22 @@ class task:
     A decorator to uniformly setup tasks that get enqueued for workers to
     execute.
 
-    If the wrapped task contains a release_id or task_id, save the log to the
-    appropriate model so that it may be retrieved relationally.
+    related_models may be specified to attach the generated job_log to other
+    models.
+    This takes one of two forms:
+        {Model1: "kwarg_name_for_pk", Model2: ...}
+            or
+        {Model1: ModelInstance, Model2: ...}
+    Any number of relations may be specified in this way.
+    Note that an object's model must have a 'job_log' foreign key to the JobLog
+    table in order to be saved.
+    If there is no foreign key, or no object instance can be resolved, it will
+    be skipped and no relation saved.
+    When calling the job function, it is important that the appropriate keyword
+    argument is passed, positional arguments will not be able to be resolved.
     """
 
-    def __init__(self, job=None):
-        self._release = None
-        self._task = None
+    def __init__(self, job=None, related_models=None):
         self.job = job
         self.logger = logging.getLogger("TaskLogger")
         self.start_time = datetime.utcnow()
@@ -49,6 +58,52 @@ class task:
         self.logger.addHandler(handler)
         # Add the handler to the base module to capture all log output
         logging.getLogger("creator").addHandler(handler)
+
+        self.related_models = related_models or {}
+        self.related_instances = []
+
+    def _resolve_related(self, *args, **kwargs):
+        """
+        Attempt to resolve arguments to the task to a model instance in the
+        database so we can link them back at save.
+        """
+        for model, inst in self.related_models.items():
+            if inst not in kwargs:
+                logger.warning(
+                    f"Could not find '{inst}' in the keyword arguments. "
+                    f"Will not be able to attach logs to a related {model}"
+                )
+                continue
+
+            # If the argument is an actual object of the model, use that.
+            # Otherwise, try to use the argument to look up an object by pk
+            if isinstance(kwargs[inst], model):
+                instance = kwargs[inst]
+            else:
+                try:
+                    instance = model.objects.get(pk=kwargs[inst])
+                except model.DoesNotExist:
+                    continue
+
+            if not hasattr(instance, "job_log"):
+                logger.warning(
+                    f"Cannot attach log to {instance}. "
+                    "Models must have a 'job_log' foreign key relation"
+                )
+                continue
+
+            self.related_instances.append(instance)
+
+    def _attach_related(self, log):
+        """
+        Attaches a given log to any related instances that are stored
+        """
+        for instance in self.related_instances:
+            # Only update if the job_log has not yet been saved, otherwise will
+            # throw a 'did not affect any rows' error.
+            if instance.job_log is None:
+                instance.job_log = log
+                instance.save(update_fields=["job_log"])
 
     def __call__(self, f):
         @wraps(f)
@@ -68,15 +123,7 @@ class task:
                 )
                 return
 
-            # If the function recieves a release id, store it so we can link
-            # the log back to it later
-            if "release_id" in kwargs:
-                self._release = Release.objects.get(
-                    pk=kwargs.get("release_id")
-                )
-            # Do the same if the function recieves a task id
-            if "task_id" in kwargs:
-                self._task = ReleaseTask.objects.get(pk=kwargs.get("task_id"))
+            self._resolve_related(*args, **kwargs)
 
             self.log_preamble()
 
@@ -127,68 +174,62 @@ class task:
         """
         duration = (datetime.utcnow() - self.start_time).total_seconds()
 
-        # Try to get an existing log if one exists for this job or else create
-        # a new one
-        log = self._get_existing_job_log()
-        existing_log_contents = ""
+        # Retrieve any existing job logs from related models so we can append
+        # this session's log output to them. If there are no existing logs,
+        # we will create a new one
+        job_logs = self._get_existing_job_logs()
+        if len(job_logs) == 0:
+            job_logs = [JobLog(job=self._job, error=self._job.failing)]
 
-        if log is None:
-            log = JobLog(job=self._job, error=self._job.failing)
+        self.logger.info(
+            f"Job complete after {duration:.2f}s. "
+            f"Saving to Job Logs: "
+            f"{', '.join(yellow(str(log.id)) for log in job_logs)}, "
+            f"goodbye! 👋"
+        )
 
+        for job_log in job_logs:
+            self._append_previous_log(job_log)
+            self._attach_related(job_log)
+
+    def _append_previous_log(self, job_log):
+        """
+        Append a given job_log's file with the log stream from this session
+        """
         # Need to manually configure the log's bucket if we're using S3 storage
         if (
             settings.DEFAULT_FILE_STORAGE
             == "django_s3_storage.storage.S3Storage"
         ):
-            log.log_file.storage = S3Storage(
+            job_log.log_file.storage = S3Storage(
                 aws_s3_bucket_name=settings.LOG_BUCKET
             )
 
-        if log is not None:
-            # This may be a new log with no log file saved yet so don't panic
-            # if there is no contents to read
-            try:
-                existing_log_contents = log.log_file.open().read().decode()
-            except ValueError:
-                pass
-
-        self.logger.info(
-            f"Job complete after {duration:.2f}s. "
-            f"Saving as Job Log {yellow(str(log.id))}, "
-            f"goodbye! 👋"
-        )
-
-        name = (
-            f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
-            f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
-        )
+        existing_log_contents = ""
+        # This may be a new log with no log file saved yet so don't panic
+        # if there is no contents to read
+        try:
+            existing_log_contents = job_log.log_file.open().read().decode()
+            name = job_log.log_file.name
+        except ValueError:
+            name = (
+                f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
+                f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
+            )
 
         content = existing_log_contents + self.stream.getvalue()
-        log.log_file.save(name, ContentFile(content))
-        log.save()
+        job_log.log_file.save(name, ContentFile(content))
+        job_log.save()
 
-        # Save the log to the release and/or task, if there is one
-        if self._release:
-            self._release.job_log = log
-            self._release.save(update_fields=["job_log"])
-        if self._task:
-            self._task.job_log = log
-            self._task.save(update_fields=["job_log"])
-
-    def _get_existing_job_log(self):
+    def _get_existing_job_logs(self):
         """
-        If this task executed for a job that has an ongoing log, such as for
-        releases or release tasks, try to resolve that job log and return it.
-        Otherwise, return None if we cannot resolve an existing job log.
+        Resolve the unique set of related instances' job_logs
         """
-
-        if self._release and self._release.job_log is not None:
-            return self._release.job_log
-
-        if self._task and self._task.job_log is not None:
-            return self._task.job_log
-
-        return None
+        return {
+            instance.job_log
+            for instance in self.related_instances
+            if instance.job_log is not None
+        }
 
     def log_preamble(self):
         """
@@ -196,11 +237,12 @@ class task:
         If the job invocation already has a log, don't log the header as it's
         already been included in an earlier log.
         """
-        log = self._get_existing_job_log()
-        if log:
+        job_logs = self._get_existing_job_logs()
+        if len(job_logs) > 0:
             self.logger.info("")
             self.logger.info(
-                blue(f"Re-attaching to Job Log ") + yellow(str(log.id))
+                blue(f"Re-attaching to Job Log ")
+                + ", ".join([yellow(str(log.id)) for log in job_logs])
             )
             self.logger.info("")
             return

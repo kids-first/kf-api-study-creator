@@ -174,7 +174,7 @@ def sync_new_release(release, query):
     )
 
 
-@task("release")
+@task("release", related_models={Release: "release_id"})
 def initialize_release(release_id=None):
     """
     Initializes a release by queueing up jobs to initialize each task in the
@@ -212,7 +212,7 @@ def initialize_release(release_id=None):
         )
 
 
-@task("release_task")
+@task("release_task", related_models={ReleaseTask: "task_id"})
 def initialize_task(task_id=None):
     """
     Initializes a task by sending it the initialize command.
@@ -259,7 +259,7 @@ def initialize_task(task_id=None):
         )
 
 
-@task("release")
+@task("release", related_models={Release: "release_id"})
 def start_release(release_id=None):
     """
     Begin a release by invoking start on all services in the release.
@@ -289,7 +289,7 @@ def start_release(release_id=None):
         queue.enqueue(start_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL)
 
 
-@task("release_task")
+@task("release_task", related_models={ReleaseTask: "task_id"})
 def start_task(task_id=None):
     """
     Starts a task by sending it the start command.
@@ -319,7 +319,7 @@ def start_task(task_id=None):
         )
 
 
-@task("release")
+@task("release", related_models={Release: "release_id"})
 def publish_release(release_id=None):
     """
     Publish a release by sending the release action to each service in the
@@ -353,7 +353,7 @@ def publish_release(release_id=None):
         )
 
 
-@task("release_task")
+@task("release_task", related_models={ReleaseTask: "task_id"})
 def publish_task(task_id=None):
     """
     Publish a task by sending it the publish command.
@@ -384,7 +384,7 @@ def publish_task(task_id=None):
         )
 
 
-@task("release")
+@task("release", related_models={Release: "release_id"})
 def cancel_release(release_id=None, failed=False):
     """
     Cancel a release by sending the cancel action to each service in the
@@ -422,7 +422,7 @@ def cancel_release(release_id=None, failed=False):
         )
 
 
-@task("release_task")
+@task("release_task", related_models={ReleaseTask: "task_id"})
 def cancel_task(task_id=None):
     """
     Cancel a task by sending it the cancel command.
@@ -456,7 +456,7 @@ def scan_tasks():
         queue.enqueue(check_task, task_id=task.pk, ttl=settings.RQ_DEFAULT_TTL)
 
 
-@task("release_task")
+@task("release_task", related_models={ReleaseTask: "task_id"})
 def check_task(task_id=None):
     """
     Check the task and update its state if needed
@@ -491,7 +491,7 @@ def scan_releases():
         )
 
 
-@task("release")
+@task("release", related_models={Release: "release_id"})
 def check_release(release_id=None):
     """
     Check a release's state and schedule any jobs needed to move it foreward.
