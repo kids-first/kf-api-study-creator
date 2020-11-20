@@ -303,11 +303,20 @@ class Version(models.Model):
         """
         Returns absolute path to file download endpoint with version_id
         """
+        # Currently, to generate a download path, we must have either:
+        # A) a root file that is connected to a study
+        # B) a root file that is not connected to a study but a version that is
+        # Sometimes this is not possible because a version can be created
+        # without a linked root file
+        if not (self.root_file and (self.root_file.study or self.study)):
+            return None
         study_id = self.root_file.study.kf_id
         file_id = self.root_file.kf_id
         version_id = self.kf_id
-        download_url = (f'/download/study/{study_id}/file/{file_id}'
-                        f'/version/{version_id}')
+        download_url = (
+            f"/download/study/{study_id}/file/{file_id}"
+            f"/version/{version_id}"
+        )
         return download_url
 
 

@@ -15,6 +15,9 @@ class VersionNode(DjangoObjectType):
     valid_types = graphene.List("creator.files.nodes.file.FileType")
 
     def resolve_download_url(self, info):
+        path = self.path
+        if path is None:
+            return None
         return f"https://{info.context.get_host()}{self.path}"
 
     @classmethod
