@@ -1,3 +1,4 @@
+import logging
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -6,6 +7,8 @@ from django_fsm.signals import post_transition
 from creator.releases.models import Release, ReleaseTask, ReleaseEvent
 from creator.releases.models import ReleaseEvent
 from creator.releases.slack import send_status_notification
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_transition, sender=Release)
@@ -53,4 +56,7 @@ def send_slack_notification(sender, instance, **kwargs):
     if instance.release.state in ["waiting", "initializing"]:
         return
 
-    send_status_notification(instance.release.pk)
+    try:
+        send_status_notification(instance.release.pk)
+    except Exception as err:
+        logger.warning(f"Problem sending status notification to Slack: {err}")
