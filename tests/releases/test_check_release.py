@@ -37,6 +37,9 @@ from creator.releases.factories import (
         (("publishing", "failed"), "publishing", "canceling"),
         (("publishing", "published"), "publishing", "publishing"),
         (("published", "published"), "publishing", "published"),
+        (("canceled", "canceled"), "canceling", "canceled"),
+        (("canceled", "failed"), "canceling", "failed"),
+        (("canceled", "rejected"), "canceling", "failed"),
     ],
 )
 def test_check_release(

@@ -364,7 +364,7 @@ def publish_task(task_id=None):
         task.save()
     except Exception as err:
         logger.error(f"There was a problem trying to publish the task: {err}")
-        logger.warn(
+        logger.warning(
             "The release will be canceled as the service failed to publish "
             "the task. Be cautious of undesired end states as some other "
             "tasks may have published their data!"
@@ -434,6 +434,9 @@ def cancel_task(task_id=None):
         task.save()
     except Exception as err:
         logger.error(f"There was a problem trying to cancel the task: {err}")
+        logger.warning("Will mark the task as failed.")
+        task.failed()
+        task.save()
 
 
 @task("scan_tasks")
@@ -466,10 +469,10 @@ def check_task(task_id=None):
     try:
         task.check_state()
     except Exception as err:
-        logger.info(
+        logger.error(
             f"There was a problem checking the task's status: {err}. "
-            "Will mark the task as failed."
         )
+        logger.warning("Will mark the task as failed.")
         task.failed()
         task.save()
 

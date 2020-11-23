@@ -65,25 +65,6 @@ def test_cancel_task(db, mocker):
     """
     Test that the cancel_task updates correctly
     """
-    mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
-
-    release = ReleaseFactory(state="canceling")
-    service = ReleaseServiceFactory()
-    task = ReleaseTaskFactory(
-        release=release, release_service=service, state="initialized"
-    )
-
-    cancel_task(task_id=task.pk)
-
-    task.refresh_from_db()
-
-    assert task.state == "canceled"
-
-
-def test_cancel_task(db, mocker):
-    """
-    Test that the cancel_task updates correctly
-    """
     release = ReleaseFactory(state="canceling")
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(
@@ -92,9 +73,9 @@ def test_cancel_task(db, mocker):
 
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
     mock.return_value = {
-        "state": "canceled",
         "task_id": task.pk,
         "release_id": release.pk,
+        "state": "canceled",
     }
 
     cancel_task(task_id=task.pk)
@@ -102,3 +83,23 @@ def test_cancel_task(db, mocker):
     task.refresh_from_db()
 
     assert task.state == "canceled"
+
+
+def test_cancel_task_failed(db, mocker):
+    """
+    Test that tasks are failed if they fail to cancel
+    """
+    release = ReleaseFactory(state="canceling")
+    service = ReleaseServiceFactory()
+    task = ReleaseTaskFactory(
+        release=release, release_service=service, state="initialized"
+    )
+
+    mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
+    mock.side_effect = Exception("Problem sending action")
+
+    cancel_task(task_id=task.pk)
+
+    task.refresh_from_db()
+
+    assert task.state == "failed"

@@ -1,6 +1,6 @@
 import pytest
 
-from creator.releases.tasks import scan_tasks
+from creator.releases.tasks import scan_tasks, check_task
 from creator.releases.factories import ReleaseFactory, ReleaseTaskFactory
 
 
@@ -98,3 +98,20 @@ def test_check_task_invalid_states(db, mocker, our_state, service_state):
         task.check_state()
 
     assert task.state == our_state
+
+
+def test_check_task_failed(db, mocker):
+    """
+    Check that a task that fails to respond to the status request is failed
+    """
+    release = ReleaseFactory()
+    task = ReleaseTaskFactory(state="running", release=release)
+
+    mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
+    mock.side_effect = Exception("Problem sending action")
+
+    check_task(task_id=task.pk)
+
+    task.refresh_from_db()
+
+    assert task.state == "failed"
