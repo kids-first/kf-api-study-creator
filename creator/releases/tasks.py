@@ -463,7 +463,15 @@ def check_task(task_id=None):
     Check the task and update its state if needed
     """
     task = ReleaseTask.objects.get(pk=task_id)
-    task.check_state()
+    try:
+        task.check_state()
+    except Exception as err:
+        logger.info(
+            f"There was a problem checking the task's status: {err}. "
+            "Will mark the task as failed."
+        )
+        task.failed()
+        task.save()
 
 
 @task("scan_releases")
