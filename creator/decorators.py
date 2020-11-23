@@ -211,6 +211,9 @@ class task:
         try:
             existing_log_contents = job_log.log_file.open().read().decode()
             name = job_log.log_file.name
+            # The logging directory is included in the name already and will
+            # be prepended when we write back to the storage, so remove it now
+            name = name.replace(f"{settings.LOG_DIR}", "")
         except ValueError:
             name = (
                 f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
