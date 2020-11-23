@@ -443,6 +443,7 @@ def scan_tasks():
     """
     tasks = (
         ReleaseTask.objects.exclude(state="canceled")
+        & ReleaseTask.objects.exclude(state="staged")
         & ReleaseTask.objects.exclude(state="rejected")
         & ReleaseTask.objects.exclude(state="failed")
         & ReleaseTask.objects.exclude(state="published")

@@ -30,7 +30,7 @@ def test_scan_tasks(db, mocker):
 
     scan_tasks()
 
-    assert mock_rq.call_count == 7
+    assert mock_rq.call_count == 6
 
 
 @pytest.mark.parametrize(
