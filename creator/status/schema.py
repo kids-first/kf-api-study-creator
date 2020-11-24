@@ -53,6 +53,9 @@ class Features(graphene.ObjectType):
     create_slack_channels = graphene.Boolean(
         description=("Create a Slack channel for new studies")
     )
+    slack_send_release_notifications = graphene.Boolean(
+        description="Send notifications to slack for changes in release states"
+    )
 
 
 class Settings(graphene.ObjectType):
@@ -133,7 +136,10 @@ class Status(graphene.ObjectType):
             "study_buckets_create_buckets": (
                 settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
             ),
-            "create_slack_channels": (settings.FEAT_SLACK_CREATE_CHANNELS),
+            "create_slack_channels": settings.FEAT_SLACK_CREATE_CHANNELS,
+            "slack_send_release_notifications": (
+                settings.FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS
+            ),
         }
 
         return Features(**features)

@@ -4,6 +4,8 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from creator.events.schema import EventNode, EventFilter
 from creator.files.schema.file import FileNode, FileFilter
+from creator.releases.nodes import ReleaseNode
+from creator.releases.queries import ReleaseFilter
 from creator.studies.models import (
     Study,
     SEQ_STATUS_CHOICES,
@@ -21,6 +23,12 @@ class StudyNode(DjangoObjectType):
 
     files = DjangoFilterConnectionField(
         FileNode, filterset_class=FileFilter, description="List all files"
+    )
+
+    releases = DjangoFilterConnectionField(
+        ReleaseNode,
+        filterset_class=ReleaseFilter,
+        description="List all releases for the study",
     )
 
     class Meta:

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'creator.referral_tokens',
     'creator.extract_configs',
     'creator.jobs',
+    'creator.releases',
     'creator.events.apps.EventsConfig',
     'creator',
     'corsheaders'
@@ -129,6 +130,7 @@ redis_host = os.environ.get("REDIS_HOST", "localhost")
 redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
 redis_ssl = os.environ.get("REDIS_SSL", "False") == "True"
+RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
@@ -146,6 +148,13 @@ RQ_QUEUES = {
         "SSL": redis_ssl,
     },
     "dataservice": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
+    "releases": {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
@@ -317,6 +326,8 @@ REQUESTS_HEADERS = {"User-Agent": "StudyCreator/testing (python-requests)"}
 
 DATASERVICE_URL = os.environ.get("DATASERVICE_URL", "http://dataservice")
 
+COORDINATOR_URL = os.environ.get("COORDINATOR_URL", "http://coordinator:5000/graphql")
+
 CAVATICA_URL = os.environ.get(
     "CAVATICA_URL", "https://cavatica-api.sbgenomics.com/v2"
 )
@@ -369,6 +380,10 @@ STUDY_BUCKETS_LOG_PREFIX = os.environ.get(
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 # Users to add to new channels, comma delimited, ids only
 SLACK_USERS = os.environ.get("SLACK_USERS", "").split(",")
+# Channel to post release notifications to
+SLACK_RELEASE_CHANNEL = os.environ.get(
+    "SLACK_RELEASE_CHANNEL", "#release-notifications"
+)
 
 ################################################################################
 ### Feature Flags
@@ -408,6 +423,11 @@ REFERRAL_TOKEN_EXPIRATION_DAYS = os.environ.get(
 # Create Slack channels for new studies
 FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
     "FEAT_SLACK_CREATE_CHANNELS", False
+)
+
+# Whether slack notifications about releases should be sent
+FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS = (
+    os.environ.get("FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS", "False") == "True"
 )
 
 # Set default from email

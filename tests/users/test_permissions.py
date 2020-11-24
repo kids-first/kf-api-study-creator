@@ -86,9 +86,10 @@ def test_permission_query(db, clients):
         "/graphql",
         data={
             "query": GET_PERMISSION,
-            "variables": {"id": to_global_id("PermissionNode", 999)},
+            "variables": {"id": to_global_id("PermissionNode", -99)},
         },
         content_type="application/json",
     )
+    print(resp.json())
     assert resp.status_code == 200
     assert resp.json()["errors"][0]["message"] == "Permission not found"

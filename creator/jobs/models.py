@@ -78,6 +78,7 @@ def _get_upload_directory(instance, filename):
     Resolves the directory where a file should be stored
     """
     if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
+        filename = filename.replace(f"{settings.LOG_DIR}/", "")
         prefix = f"{settings.LOG_DIR}/{filename}"
         return prefix
     else:

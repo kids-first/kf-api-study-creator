@@ -4,6 +4,22 @@
 
 GROUPS = {
     "Administrators": [
+        "view_release",
+        "list_all_release",
+        "add_release",
+        "change_release",
+        "cancel_release",
+        "publish_release",
+        "view_releasetask",
+        "list_all_releasetask",
+        "add_releasetask",
+        "change_releasetask",
+        "view_releaseservice",
+        "list_all_releaseservice",
+        "add_releaseservice",
+        "change_releaseservice",
+        "view_releaseevent",
+        "list_all_releaseevent",
         "view_analysis",
         "list_all_analysis",
         "change_analysis",
