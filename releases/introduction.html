@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Email &mdash; Kids First Study Creator  documentation</title>
+  <title>Introduction &mdash; Kids First Study Creator  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Introduction" href="../releases/introduction.html" />
-    <link rel="prev" title="Development API" href="dev_api.html" />
+    <link rel="next" title="Release Process" href="process.html" />
+    <link rel="prev" title="Email" href="../development/email.html" />
     <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
  
 </head>
@@ -89,24 +89,24 @@
             
             
               <p class="caption"><span class="caption-text">Development:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Development</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/quickstart.html">Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../downloads.html">Downloads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authorization.html">Authorization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dev_api.html">Development API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Email</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#development">Development</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../development/dev_api.html">Development API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/email.html">Email</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Releases</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../releases/introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../releases/process.html">Release Process</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#service-coordination">Service Coordination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="process.html">Release Process</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Deployment:</span></p>
 <ul>
@@ -160,13 +160,13 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Email</li>
+      <li>Introduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/development/email.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/releases/introduction.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -179,36 +179,47 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="email">
-<h1>Email<a class="headerlink" href="#email" title="Permalink to this headline">¶</a></h1>
-<p>Email is used to communicate with end users about signing up and notifying on
-important events.</p>
-<div class="section" id="development">
-<h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
-<p>The Study Creator contains an additional Docker Compose file that may be
-applied to start up a mock email server for use when developing.
-To run it, include <code class="docutils literal notranslate"><span class="pre">docker-compose.email.yml</span></code> when starting the development
-stack:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DEVELOP</span><span class="o">=</span>True <span class="se">\</span>
-<span class="nv">DEVELOPMENT_ENDPOINTS</span><span class="o">=</span>True <span class="se">\</span>
-docker-compose <span class="se">\</span>
-    -f docker-compose.yml <span class="se">\</span>
-    -f docker-compose.email.yml <span class="se">\</span>
-    up -d
-</pre></div>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Publishing new data to the research community is an important role of the
+Data Resource Center.
+The Data Resource Center does this through <em>releasing</em> finalized data for one
+or more new or existing studies.
+A <em>release</em> will first be invoked then <em>staged</em> for publication whence it will
+be reviewed and <em>published</em>.
+Once a release has been published, the new data will be available to end users.</p>
+<p>The Study Creator helps the Data Resource Center perform releases by tracking
+and automating some steps in the process and by doing so aims to:
+- Ensure consistency of the release process
+- Reduce liklihood of publishing faulty data
+- Create an auditable history of past data changes and publications</p>
+<div class="section" id="service-coordination">
+<h2>Service Coordination<a class="headerlink" href="#service-coordination" title="Permalink to this headline">¶</a></h2>
+<p>There are several services which deliver and act on data in Kids First.
+Many of these services rely on internal operations to process new data and
+prepare it for distribution to the end users.
+The Data Resource Center has formalized steps in its release process to notify,
+using a standard specification, downstream services.
+Any service that is deemed critical to the distribution of new data is expected
+to accept these notifications and respond with the current status of processing
+the data.
+In this way, the Data Resource Center may ensure that all necessary services
+have correctly processed the new data before publishing it for general
+consumption.</p>
 </div>
-<p>This will start a development server that will catch all emails and display
-them at <code class="docutils literal notranslate"><span class="pre">http://localhost:1080</span></code>:</p>
-<div class="figure" id="id1">
-<img alt="Mock email interface" src="../_images/email.png" />
-<p class="caption"><span class="caption-text">Mock email interface running at <a class="reference external" href="http://localhost:1080">http://localhost:1080</a></span></p>
-</div>
-</div>
-<div class="section" id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>The Study Creator uses the Django email configuration using the <code class="docutils literal notranslate"><span class="pre">EMAIL_*</span></code>
-settings.
-More information may be found in the <a class="reference external" href="https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-EMAIL_HOST">Django Docs</a>.</p>
+<div class="section" id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<p>The Data Resource Center includes version numbers with each release it makes
+to assist in auditing.
+Release version numbers follow semantic versioning with major releases
+signifying data changes that impact all studies (such as moving or addition
+of data fields).
+Minor versions encompass any changes or additions to one or more studies.
+Patch versions are reserved for releases being staged or unpublished, including
+failed releases.
+A release will begin its life as an incremental patch but will be updated to
+bump the major or minor version and reset the patch number upon being
+published.</p>
 </div>
 </div>
 
@@ -220,10 +231,10 @@ More information may be found in the <a class="reference external" href="https:/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../releases/introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="process.html" class="btn btn-neutral float-right" title="Release Process" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="dev_api.html" class="btn btn-neutral float-left" title="Development API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../development/email.html" class="btn btn-neutral float-left" title="Email" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Email &mdash; Kids First Study Creator  documentation</title>
+  <title>Release Process &mdash; Kids First Study Creator  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Introduction" href="../releases/introduction.html" />
-    <link rel="prev" title="Development API" href="dev_api.html" />
+    <link rel="next" title="Auth0 Integration" href="../auth0.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" />
     <link rel="stylesheet" href="https://kids-first.github.io/kf-sphinx-docs-theme/sphinx_kidsfirst_theme/static/css/kidsfirst.css" type="text/css" />
  
 </head>
@@ -89,24 +89,27 @@
             
             
               <p class="caption"><span class="caption-text">Development:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Development</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/quickstart.html">Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../uploads.html">Uploads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../downloads.html">Downloads</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../authorization.html">Authorization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dev_api.html">Development API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Email</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#development">Development</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../development/dev_api.html">Development API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/email.html">Email</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Releases</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../releases/introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../releases/process.html">Release Process</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Release Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-initialization">Step 1: Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-processing">Step 2: Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-review">Step 3: Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-publication">Step 4: Publication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-completion">Step 5: Completion</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Deployment:</span></p>
 <ul>
@@ -160,13 +163,13 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Email</li>
+      <li>Release Process</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/development/email.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/releases/process.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -179,36 +182,67 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="email">
-<h1>Email<a class="headerlink" href="#email" title="Permalink to this headline">¶</a></h1>
-<p>Email is used to communicate with end users about signing up and notifying on
-important events.</p>
-<div class="section" id="development">
-<h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
-<p>The Study Creator contains an additional Docker Compose file that may be
-applied to start up a mock email server for use when developing.
-To run it, include <code class="docutils literal notranslate"><span class="pre">docker-compose.email.yml</span></code> when starting the development
-stack:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DEVELOP</span><span class="o">=</span>True <span class="se">\</span>
-<span class="nv">DEVELOPMENT_ENDPOINTS</span><span class="o">=</span>True <span class="se">\</span>
-docker-compose <span class="se">\</span>
-    -f docker-compose.yml <span class="se">\</span>
-    -f docker-compose.email.yml <span class="se">\</span>
-    up -d
-</pre></div>
+  <div class="section" id="release-process">
+<h1>Release Process<a class="headerlink" href="#release-process" title="Permalink to this headline">¶</a></h1>
+<p>In order to standardize processing across services, the Data Resource Center
+has defined the key steps in the release process.</p>
+<ol class="arabic simple">
+<li>Initialization</li>
+<li>Processing</li>
+<li>Staging and Review</li>
+<li>Publication</li>
+<li>Completion</li>
+</ol>
+<div class="section" id="step-1-initialization">
+<h2>Step 1: Initialization<a class="headerlink" href="#step-1-initialization" title="Permalink to this headline">¶</a></h2>
+<p>During this step, the Data Resource Center notifies all required services of a
+new release and the included studies.
+If any of the services do not accept the new release or are unhealthy in some
+other way, the release will not be allowed to continue and will be cancelled
+immediately.
+When all required services respond positively, the next step will commence.
+The Data Resource Center will also assign a tentative version id by
+incrementing the patch number of the last created release’s version
+(regardless of its publication status).</p>
 </div>
-<p>This will start a development server that will catch all emails and display
-them at <code class="docutils literal notranslate"><span class="pre">http://localhost:1080</span></code>:</p>
-<div class="figure" id="id1">
-<img alt="Mock email interface" src="../_images/email.png" />
-<p class="caption"><span class="caption-text">Mock email interface running at <a class="reference external" href="http://localhost:1080">http://localhost:1080</a></span></p>
+<div class="section" id="step-2-processing">
+<h2>Step 2: Processing<a class="headerlink" href="#step-2-processing" title="Permalink to this headline">¶</a></h2>
+<p>After successfully verifying all required services are ready to accept the
+new release, the Data Resource Center sends a notification to all required
+services instructing them to begin the processing step.
+During this step, the services retrieve the latest data and manipulate it as
+necessary for distribution.
+Once each service has completed its work, it well report back to the Data
+Resource Center that it is done and wait for further instruction.</p>
 </div>
+<div class="section" id="step-3-review">
+<h2>Step 3: Review<a class="headerlink" href="#step-3-review" title="Permalink to this headline">¶</a></h2>
+<p>When all required services have completed the processing step and reported
+back successfully, the release will be said to be staged.
+During this time, the Data Resource Center may review the results of the
+processing for quality and may hold the release if necessary.</p>
 </div>
-<div class="section" id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>The Study Creator uses the Django email configuration using the <code class="docutils literal notranslate"><span class="pre">EMAIL_*</span></code>
-settings.
-More information may be found in the <a class="reference external" href="https://docs.djangoproject.com/en/3.0/ref/settings/#std:setting-EMAIL_HOST">Django Docs</a>.</p>
+<div class="section" id="step-4-publication">
+<h2>Step 4: Publication<a class="headerlink" href="#step-4-publication" title="Permalink to this headline">¶</a></h2>
+<p>Once the Data Resource Center has declared the release ready for publication,
+a member of the Data Resource Center wil publish the release.
+Doing so will send notifications to all the required services telling them to
+make public the data which they produced in the processing step.
+The Data Resource Center will update the version of this release by
+incrementing either the major or minor version depending on the classification
+of the release.
+During this step, required services should do minimal work needed to make the
+data public so as to publish as quickly as possible.
+All of the intense work should have been completed up front during the
+processing step.
+Each service will notify the Data Resource Center once it has completed
+publishing its data.</p>
+</div>
+<div class="section" id="step-5-completion">
+<h2>Step 5: Completion<a class="headerlink" href="#step-5-completion" title="Permalink to this headline">¶</a></h2>
+<p>When all required services have notified the Data Resource Center of successful
+publication, the release will be said to be published and available to end
+users.</p>
 </div>
 </div>
 
@@ -220,10 +254,10 @@ More information may be found in the <a class="reference external" href="https:/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../releases/introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../auth0.html" class="btn btn-neutral float-right" title="Auth0 Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="dev_api.html" class="btn btn-neutral float-left" title="Development API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
