@@ -45,19 +45,18 @@ def run_ingest(ingest_run_id=None):
         print("All files in the ingest run are genomic workflow manifests.")
         ingest_genomic_workflow_ouput_manifests(versions)
 
-    import time
-    t_end = time.time() + 10
-    progress = ''
-    while time.time() < t_end:
-        progress += '.'
-        print(progress)
+    # Update run state upon completion
     print(f"Finished ingest run {ingest_run_id}")
+    ingest_run.complete()
+    ingest_run.save()
 
 
-@task("cancel_job")
 def cancel_ingest(ingest_run_id):
     # TODO
     print(f"Cancelling ingest run {ingest_run_id}")
+    ingest_run = get_ingest_run(ingest_run_id)
+    ingest_run.cancel()
+    ingest_run.save()
 
 
 def ingest_genomic_workflow_ouput_manifests(versions):

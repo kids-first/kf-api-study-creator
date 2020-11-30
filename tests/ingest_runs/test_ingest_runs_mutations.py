@@ -1,6 +1,7 @@
 import pytest
 from graphql_relay import to_global_id
 from creator.files.models import File
+from creator.events.models import Event
 
 
 START_INGEST_RUN = """
@@ -62,11 +63,14 @@ def send_query(client, query, input_dict):
     ],
 )
 def test_start_ingest_run(
-    db, clients, prep_file, mock_ingest_job, user_group, allowed
+    db, mocker, clients, prep_file, mock_ingest_job, user_group, allowed
 ):
     """
     Test the start ingest run mutation
     """
+    mock_ingest_queue = mocker.patch(
+        "creator.ingest_runs.mutations.IngestRun.get_job_queue"
+    )
     client = clients.get(user_group)
 
     # Create a study with some files
@@ -86,6 +90,10 @@ def test_start_ingest_run(
         assert ir["inputHash"]
         for version in ir["versions"]["edges"]:
             assert version["node"]["kfId"] in ir["name"]
+
+        # Check that the call to IngestRun.get_job_queue().enqueue occurs
+        mock_ingest_queue.assert_called_once()
+        mock_ingest_queue.reset_mock()
 
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
@@ -118,11 +126,14 @@ def test_start_ingest_run_invalid(db, clients, prep_file, user_group):
     ],
 )
 def test_cancel_ingest_run(
-    db, clients, ingest_runs, mock_ingest_job, user_group, allowed
+    db, mocker, clients, ingest_runs, mock_ingest_job, user_group, allowed
 ):
     """
     Test the cancel ingest run mutation.
     """
+    mock_ingest_queue = mocker.patch(
+        "creator.ingest_runs.mutations.IngestRun.get_job_queue"
+    )
     client = clients.get(user_group)
 
     ingest_run = ingest_runs(n=1)[0]
@@ -140,5 +151,7 @@ def test_cancel_ingest_run(
 
     if allowed:
         assert resp.json()["data"]["cancelIngestRun"]["ingestRun"] is not None
+        mock_ingest_queue.assert_called_once()
+        mock_ingest_queue.reset_mock()
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"

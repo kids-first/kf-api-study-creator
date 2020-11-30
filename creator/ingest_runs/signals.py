@@ -26,12 +26,12 @@ def ingest_run_post_transition(sender, instance, name, source, target,
     """
     TARGET_EVENT_TYPES = {
         "started": "IR_STA",
-        "complete": "IR_COM",
+        "completed": "IR_COM",
         "canceled": "IR_CAN",
         "failed": "IR_FAI",
     }
     versions = [str(v) for v in instance.versions.all()]
-    started_by_user = target in {"complete", "failed"}
+    started_by_user = target in {"started", "canceled"}
     if not started_by_user:
         message = (
             f"IngestRun {instance.id} {target} for file versions {versions} "

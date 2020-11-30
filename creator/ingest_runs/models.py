@@ -92,7 +92,7 @@ class IngestRun(models.Model):
         """
         return
 
-    @transition(field=state, source="started", target="complete")
+    @transition(field=state, source="started", target="completed")
     def complete(self):
         """
         Finish running the ingest process without error.
