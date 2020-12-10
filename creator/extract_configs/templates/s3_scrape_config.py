@@ -22,7 +22,7 @@ operations.append(
 import os
 
 from kf_lib_data_ingest.common import constants
-from kf_lib_data_ingest.common.constants import GENOMIC_FILE
+from kf_lib_data_ingest.common.constants import GENOMIC_FILE, COMMON
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
 from kf_lib_data_ingest.etl.extract.operations import (
     keep_map,
@@ -71,13 +71,13 @@ DATA_TYPES = {
     GENOMIC_FILE.FORMAT.FASTQ: GENOMIC_FILE.DATA_TYPE.UNALIGNED_READS,
     GENOMIC_FILE.FORMAT.BAM: GENOMIC_FILE.DATA_TYPE.ALIGNED_READS,
     GENOMIC_FILE.FORMAT.CRAM: GENOMIC_FILE.DATA_TYPE.ALIGNED_READS,
-    GENOMIC_FILE.FORMAT.BAI: "Aligned Reads Index",
-    GENOMIC_FILE.FORMAT.CRAI: "Aligned Reads Index",
-    GENOMIC_FILE.FORMAT.VCF: "Variant Calls",
-    GENOMIC_FILE.FORMAT.GVCF: "gVCF",
-    "g.vcf.gz.tbi": "gVCF Index",
-    "vcf.gz.tbi": "Variant Calls Index",
-    "html": "Other",
+    GENOMIC_FILE.FORMAT.BAI: GENOMIC_FILE.DATA_TYPE.ALIGNED_READS_INDEX,
+    GENOMIC_FILE.FORMAT.CRAI: GENOMIC_FILE.DATA_TYPE.ALIGNED_READS_INDEX,
+    GENOMIC_FILE.FORMAT.VCF: GENOMIC_FILE.DATA_TYPE.VARIANT_CALLS,
+    GENOMIC_FILE.FORMAT.GVCF: GENOMIC_FILE.DATA_TYPE.GVCF,
+    "g.vcf.gz.tbi": GENOMIC_FILE.DATA_TYPE.GVCF_INDEX,
+    "vcf.gz.tbi": GENOMIC_FILE.DATA_TYPE.VARIANT_CALLS_INDEX,
+    "html": COMMON.OTHER,
 }
 
 
