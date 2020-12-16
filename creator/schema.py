@@ -6,8 +6,6 @@ or Mutation from the application's schema module.
 No resolvers or type definitions should be included here.
 """
 import graphene
-from graphql import GraphQLError
-from graphene_django import DjangoObjectType
 
 import creator.analyses.schema
 import creator.buckets.schema
@@ -48,6 +46,7 @@ class Mutation(
     creator.files.schema.Mutation,
     creator.users.schema.Mutation,
     creator.referral_tokens.schema.Mutation,
+    creator.status.schema.Mutation,
     creator.releases.schema.Mutation,
     graphene.ObjectType,
 ):
