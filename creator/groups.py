@@ -74,6 +74,11 @@ GROUPS = {
         "list_all_job",
         "view_joblog",
         "list_all_joblog",
+        "add_banner",
+        "delete_banner",
+        "change_banner",
+        "view_banner",
+        "list_all_banner",
     ],
     "Developers": [
         "view_study",
