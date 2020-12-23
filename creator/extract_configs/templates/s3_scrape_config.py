@@ -107,23 +107,16 @@ def file_format(x):
     Get genomic file format by looking genomic file ext up in
     FILE_EXT_FORMAT_MAP dict
     """
-    # File format
     return FILE_EXT_FORMAT_MAP.get(file_ext(x))
 
 
 def data_type(x):
     """
     Get genomic file data type by looking up file format in DATA_TYPES.
-    However, if the file's extension has `tbi` in it, then use the file
-    extension itself to do the data type lookup.
+    However, some types share formats, so then use the file extension itself
+    to do the data type lookup.
     """
-    ext = file_ext(x)
-    if "tbi" in ext:
-        data_type = DATA_TYPES.get(ext)
-    else:
-        data_type = DATA_TYPES.get(file_format(x))
-
-    return data_type
+    return DATA_TYPES.get(file_format(x)) or DATA_TYPES.get(file_ext(x))
 
 
 def fname(key):
