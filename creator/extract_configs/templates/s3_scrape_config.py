@@ -19,8 +19,6 @@ operations.append(
     )
 )
 """
-import os
-
 from kf_lib_data_ingest.common import constants
 from kf_lib_data_ingest.common.constants import GENOMIC_FILE, COMMON
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
@@ -128,16 +126,19 @@ def data_type(x):
     return data_type
 
 
+def fname(key):
+    """
+    Return just the filename portion of the key
+    """
+    return key.rsplit("/", 1)[-1]
+
+
 operations = [
     row_map(out_col=CONCEPT.GENOMIC_FILE.ID, m=lambda row: s3_url(row)),
     row_map(
         out_col=CONCEPT.GENOMIC_FILE.URL_LIST, m=lambda row: [s3_url(row)]
     ),
-    value_map(
-        in_col="Key",
-        out_col=CONCEPT.GENOMIC_FILE.FILE_NAME,
-        m=lambda x: os.path.split(x)[-1],
-    ),
+    value_map(out_col=CONCEPT.GENOMIC_FILE.FILE_NAME, in_col="Key", m=fname),
     keep_map(in_col="Size", out_col=CONCEPT.GENOMIC_FILE.SIZE),
     value_map(
         in_col="ETag",
