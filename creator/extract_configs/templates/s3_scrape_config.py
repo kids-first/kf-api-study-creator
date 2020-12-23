@@ -86,9 +86,7 @@ def filter_df_by_file_ext(df):
     Only keep rows where file extension is one of those in
     FILE_EXT_FORMAT_MAP.keys
     """
-    df[CONCEPT.GENOMIC_FILE.FILE_FORMAT] = df["Key"].apply(
-        lambda x: file_format(x)
-    )
+    df[CONCEPT.GENOMIC_FILE.FILE_FORMAT] = df["Key"].apply(file_format)
     return df[df[CONCEPT.GENOMIC_FILE.FILE_FORMAT].notnull()]
 
 
@@ -129,7 +127,7 @@ def data_type(x):
 
 
 operations = [
-    row_map(out_col=CONCEPT.GENOMIC_FILE.ID, m=lambda row: s3_url(row)),
+    row_map(out_col=CONCEPT.GENOMIC_FILE.ID, m=s3_url),
     row_map(
         out_col=CONCEPT.GENOMIC_FILE.URL_LIST, m=lambda row: [s3_url(row)]
     ),
@@ -155,6 +153,6 @@ operations = [
     value_map(
         in_col="Key",
         out_col=CONCEPT.GENOMIC_FILE.DATA_TYPE,
-        m=lambda x: data_type(x),
+        m=data_type,
     ),
 ]
