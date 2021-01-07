@@ -85,6 +85,7 @@ class ReleaseTaskFactory(factory.DjangoModelFactory):
 class ReleaseServiceFactory(factory.DjangoModelFactory):
     class Meta:
         model = ReleaseService
+        django_get_or_create = ("uuid",)
 
     uuid = factory.Faker("uuid4")
     name = factory.Faker("bs")
