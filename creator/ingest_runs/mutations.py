@@ -1,5 +1,4 @@
 import graphene
-import django_rq
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 from django.db import transaction
@@ -52,21 +51,41 @@ class StartIngestRunMutation(graphene.Mutation):
             except Version.DoesNotExist:
                 raise GraphQLError(f"The Version {vid} does not exist")
 
-        # Create ingest run for a set of file versions
-        with transaction.atomic():
-            ingest_run = IngestRun()
-            ingest_run.save()
-            ingest_run.versions.set(versions)
-            ingest_run.save()
+        # Create IngestRun for a set of file versions, if one does not exist
+        # with same input_hash
+        ingest_run = IngestRun()
+        input_hash = ingest_run.compute_input_hash(versions=versions)
 
-        uuid_str = str(ingest_run.id)
-        django_rq.enqueue(
-            run_ingest,
-            args=(uuid_str,),
-            job_id=uuid_str,
-        )
+        # Check if duplicate IngestRuns exist
+        irs_with_same_input_hash = IngestRun.objects.filter(
+            state__in=["waiting", "started"],
+            input_hash=input_hash,
+        ).all()
 
+        if irs_with_same_input_hash.count() > 0:
+            cancel_duplicate_ingest_runs(irs_with_same_input_hash)
+        else:
+            with transaction.atomic():
+                ingest_run.save()
+                ingest_run.creator = user
+                ingest_run.versions.set(versions)
+                ingest_run.save()
+
+            ingest_run.queue.enqueue(
+                run_ingest,
+                args=(ingest_run.id,),
+                job_id=str(ingest_run.id),
+            )
         return StartIngestRunMutation(ingest_run=ingest_run)
+
+
+def cancel_duplicate_ingest_runs(irs_with_same_input_hash):
+    """
+    Cancel duplicate IngestRuns. This is put into a separate function
+    to make the unit tests simpler.
+    """
+    for ir in irs_with_same_input_hash:
+        ir.queue.enqueue(cancel_ingest, args=(ir.id,))
 
 
 class CancelIngestRunMutation(graphene.Mutation):
@@ -96,7 +115,7 @@ class CancelIngestRunMutation(graphene.Mutation):
         except IngestRun.DoesNotExist:
             raise GraphQLError(f"IngestRun {obj_id} was not found")
 
-        django_rq.enqueue(cancel_ingest, args=(str(ingest_run.id),))
+        ingest_run.queue.enqueue(cancel_ingest, args=(str(ingest_run.id),))
 
         return CancelIngestRunMutation(ingest_run=ingest_run)
 

@@ -173,6 +173,13 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 30,
         "SSL": redis_ssl,
     },
+    "ingest": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
 }
 if redis_pass:
     RQ_QUEUES["default"]["PASSWORD"] = redis_pass
