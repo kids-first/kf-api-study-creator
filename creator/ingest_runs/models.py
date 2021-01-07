@@ -1,13 +1,18 @@
 import hashlib
+import django_rq
 import uuid
-from django.db import models
+
 from django.contrib.auth import get_user_model
+from django.db import models
+from django_fsm import FSMField, transition
 
 from creator.files.models import Version
 from creator.jobs.models import JobLog
+from creator.utils import stop_job
 
 DELIMITER = "-"
-NAME_PREFIX = "INGEST_REQUEST"
+NAME_PREFIX = "INGEST_RUN"
+INGEST_QUEUE_NAME = "ingest"
 
 User = get_user_model()
 
@@ -35,6 +40,7 @@ class IngestRun(models.Model):
             "input parameters."
         ),
     )
+
     name = models.TextField(
         blank=True,
         null=True,
@@ -43,11 +49,13 @@ class IngestRun(models.Model):
             "concatenation of the IngestRun's file version IDs"
         ),
     )
+
     versions = models.ManyToManyField(
         Version,
         related_name="ingest_runs",
         help_text="List of files to ingest in the ingest run",
     )
+
     job_log = models.OneToOneField(
         JobLog,
         null=True,
@@ -64,6 +72,7 @@ class IngestRun(models.Model):
         null=True,
         help_text="Time when the ingest run was created",
     )
+
     creator = models.ForeignKey(
         User,
         null=True,
@@ -73,12 +82,48 @@ class IngestRun(models.Model):
         help_text="The user who submitted this ingest run",
     )
 
-    def compute_input_hash(self):
+    state = FSMField(
+        default="waiting", help_text="The current state of the ingest run"
+    )
+
+    @transition(field=state, source="waiting", target="started")
+    def start(self):
+        """
+        Begin running the ingest process.
+        """
+        return
+
+    @transition(field=state, source="started", target="completed")
+    def complete(self):
+        """
+        Finish running the ingest process without error.
+        """
+        return
+
+    @transition(field=state, source=["started", "waiting"], target="canceled")
+    def cancel(self):
+        """
+        Cancel the ingest run on request from the user or on account of a new
+        ingest run being started for the same input parameters.
+        """
+        stop_job(str(self.id), queue=self.queue, delete=True)
+
+    @transition(
+        field=state, source=["started", "canceled", "waiting"], target="failed"
+    )
+    def fail(self):
+        """
+        Fail the ingest run due to a problem that prevented completion.
+        """
+        return
+
+    def compute_input_hash(self, versions=None):
         """
         Compute an MD5 hash digest from the IngestRun's input parameters:
             - List of file version ids (Version.kf_id)
         """
-        version_id_str = "".join(sorted(v.kf_id for v in self.versions.all()))
+        versions = versions or self.versions.all()
+        version_id_str = "".join(sorted(v.kf_id for v in versions))
         return hashlib.md5(version_id_str.encode("utf-8")).hexdigest()
 
     def compute_name(self):
@@ -90,26 +135,12 @@ class IngestRun(models.Model):
         )
         return DELIMITER.join([NAME_PREFIX, version_id_str])
 
-    def start(self):
+    @property
+    def queue(self):
         """
-        Start an ingest job
-
-        TODO
+        Return a reference to the ingest queue.
         """
-        pass
-
-    def cancel(self):
-        """
-        Cancel or stop the associated job if it is running
-
-        This method should be called:
-        - After a new IngestRun is started
-        - Before a file version is deleted and that version is involved in
-          an IngestRun with an active job
-
-        TODO
-        """
-        pass
+        return django_rq.get_queue(name=INGEST_QUEUE_NAME)
 
     def __str__(self):
         if self.name:
