@@ -22,3 +22,7 @@ class IngestRunFactory(factory.DjangoModelFactory):
         if extracted:
             for version in extracted:
                 self.versions.add(version)
+
+    created_at = factory.Faker(
+        "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
+    )
