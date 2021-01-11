@@ -190,6 +190,7 @@ class CreateReleaseServiceMutation(graphene.Mutation):
             if attr in input:
                 setattr(release_service, attr, input[attr])
 
+        release_service.save()
         return CreateReleaseServiceMutation(release_service=release_service)
 
 
