@@ -242,6 +242,7 @@ LOGGING = {
         "TaskLogger": {},
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
+        "creator": {"handlers": ["task"], "level": "INFO"},
         "creator.tasks": {"handlers": ["task"], "level": "INFO"},
         "creator.slack": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
