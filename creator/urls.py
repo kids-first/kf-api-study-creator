@@ -68,6 +68,7 @@ urlpatterns = [
         r'extract_config/study/<study_id>/file/<file_id>',
         creator.extract_configs.views.download_config,
     ),
+    path("countservice/", include("creator.count_service.urls")),
     path(r"logs/<log_id>", creator.jobs.views.download_log),
 ]
 
