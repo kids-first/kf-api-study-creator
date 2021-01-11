@@ -16,6 +16,7 @@ done
 
 /app/manage.py setup_permissions
 /app/manage.py setup_test_user
+/app/manage.py setup_count_service
 
 case $PRELOAD_DATA in
     "DATASERVICE")
