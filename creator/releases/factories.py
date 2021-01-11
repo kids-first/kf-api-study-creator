@@ -92,7 +92,7 @@ class ReleaseServiceFactory(factory.DjangoModelFactory):
     description = factory.Faker("paragraph", nb_sentences=3)
     url = factory.Faker("url")
     creator = factory.SubFactory(UserFactory)
-    enabled = True
+    enabled = False
     created_at = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
