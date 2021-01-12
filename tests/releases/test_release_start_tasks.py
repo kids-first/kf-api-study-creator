@@ -35,7 +35,7 @@ def test_start_release_with_tasks(db, mocker):
     release = ReleaseFactory(state="running")
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(
-        release=release, release_service=service, state="initialized"
+        release=release, release_service=service, state="pending"
     )
 
     start_release(release.pk)
@@ -54,7 +54,7 @@ def test_start_task_successful(db, mocker):
     release = ReleaseFactory(state="running")
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(
-        release=release, release_service=service, state="initialized"
+        release=release, release_service=service, state="pending"
     )
 
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
@@ -81,7 +81,7 @@ def test_start_task_fail(db, mocker):
     release = ReleaseFactory(state="running")
     service = ReleaseServiceFactory()
     task = ReleaseTaskFactory(
-        release=release, release_service=service, state="initialized"
+        release=release, release_service=service, state="pending"
     )
 
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")

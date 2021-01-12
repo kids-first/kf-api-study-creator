@@ -64,7 +64,7 @@ def test_initialize_task_successful(db, mocker):
     mock_rq = mocker.patch("rq.Queue.enqueue")
     mock = mocker.patch("creator.releases.models.ReleaseTask._send_action")
     mock.return_value = {
-        "state": "initialized",
+        "state": "pending",
         "task_id": task.pk,
         "release_id": release.pk,
     }
@@ -73,7 +73,7 @@ def test_initialize_task_successful(db, mocker):
 
     task.refresh_from_db()
 
-    assert task.state == "initialized"
+    assert task.state == "pending"
     assert mock.call_count == 1
     mock.assert_called_with("initialize")
     assert mock_rq.call_count == 1
@@ -82,7 +82,7 @@ def test_initialize_task_successful(db, mocker):
 
 def test_initialize_task_rejected(db, mocker):
     """
-    Test that tasks that respond with anything other than 'initialized' cancel
+    Test that tasks that respond with anything other than 'pending' cancel
     the release.
     """
     release = ReleaseFactory(state="initializing")

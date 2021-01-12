@@ -270,7 +270,7 @@ class ReleaseTask(models.Model):
 
         return state
 
-    @transition(field=state, source="waiting", target="initialized")
+    @transition(field=state, source="waiting", target="pending")
     def initialize(self):
         """
         Sends the initialize command to the task's service.
@@ -279,15 +279,15 @@ class ReleaseTask(models.Model):
 
         task_state = state["state"]
 
-        if task_state not in ["initialized"]:
+        if task_state not in ["pending"]:
             error = (
                 f"Recieved invalid state '{task_state}' for task "
-                f"'{self.kf_id}'. Expected to recieve 'initialized' state."
+                f"'{self.kf_id}'. Expected to recieve 'pending' state."
             )
             logger.error(error)
             raise ValueError(error)
 
-    @transition(field=state, source="initialized", target="running")
+    @transition(field=state, source="pending", target="running")
     def start(self):
         """
         Sends the start command to the task's service.
@@ -360,7 +360,7 @@ class ReleaseTask(models.Model):
         We only care about terminal states and the staged state as all other
         states should immediately be returned in response to an action
         initiated by us:
-         - initialized should be returned in response to initialize
+         - pending should be returned in response to initialize
          - running should be returned in response to start
          - publishing should be returned in response to publish
          - canceling should be returned in response to cancel
