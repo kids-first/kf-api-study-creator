@@ -75,6 +75,7 @@ def test_initialize_task_successful(db, mocker):
 
     assert task.state == "pending"
     assert mock.call_count == 1
+    print(mock.call_args_list)
     mock.assert_called_with("initialize")
     assert mock_rq.call_count == 1
     mock_rq.assert_called_with(start_release, release_id=release.pk, ttl=60)

@@ -24,7 +24,7 @@ class CountTask(models.Model):
 
     kf_id = models.CharField(max_length=11, primary_key=True, null=False)
     state = FSMField(
-        default="initialized", help_text="The current state of the task"
+        default="pending", help_text="The current state of the task"
     )
     progress = models.IntegerField(
         default=0,
@@ -43,7 +43,7 @@ class CountTask(models.Model):
         auto_now_add=True, help_text="Time the task was created"
     )
 
-    @transition(field=state, source="initialized", target="running")
+    @transition(field=state, source="pending", target="running")
     def start(self):
         pass
 
