@@ -219,6 +219,9 @@ class task:
                 f"{datetime.utcnow().strftime('%Y/%m/%d/')}"
                 f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
             )
+        except FileNotFoundError as err:
+            self.logger.error(f"Could not read log file: {err}")
+            return
 
         content = existing_log_contents + self.stream.getvalue()
         job_log.log_file.save(name, ContentFile(content))
