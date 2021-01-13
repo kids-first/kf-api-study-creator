@@ -243,10 +243,10 @@ def initialize_task(task_id=None):
             ttl=settings.RQ_DEFAULT_TTL,
         )
 
-    # Check if all tasks are initialized now and queue up the release start
-    if all([t.state == "initialized" for t in task.release.tasks.all()]):
+    # Check if all tasks are pending now and queue up the release start
+    if all([t.state == "pending" for t in task.release.tasks.all()]):
         logger.info(
-            "It looks like all tasks in this release are initialized now. "
+            "It looks like all tasks in this release are pending now. "
             "Queueing start_release"
         )
         task.release.start()
@@ -538,9 +538,9 @@ def check_release(release_id=None):
 
     # Check to see if we can start the releases
     elif release.state == "initializing" and all(
-        [t.state == "initialized" for t in release.tasks.all()]
+        [t.state == "pending" for t in release.tasks.all()]
     ):
-        logger.info("All tasks are initialized. Starting release")
+        logger.info("All tasks are pending. Starting release")
         release.start()
         release.save()
         queue = django_rq.get_queue("releases")
