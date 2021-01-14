@@ -291,14 +291,12 @@ def test_workflows(db, settings, mocker, clients, mock_post):
         data={"query": CREATE_STUDY_MUTATION, "variables": variables},
     )
 
-    user = User.objects.first()
-
     assert setup_cavatica.call_count == 1
     setup_cavatica.assert_called_with(
         setup_cavatica_task,
         Study.objects.first().kf_id,
         ["bwa_mem"],
-        User.objects.first().sub,
+        User.objects.filter(groups__name="Administrators").first().sub,
         depends_on=None,
     )
 

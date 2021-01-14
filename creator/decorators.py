@@ -189,8 +189,9 @@ class task:
         )
 
         for job_log in job_logs:
-            self._append_previous_log(job_log)
-            self._attach_related(job_log)
+            job_log = self._append_previous_log(job_log)
+            if job_log:
+                self._attach_related(job_log)
 
     def _append_previous_log(self, job_log):
         """
@@ -220,7 +221,11 @@ class task:
                 f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
             )
         except Exception as err:
-            self.logger.error(f"Could not read log file: {err}")
+            self.logger.warning(
+                f"Could not read log file."
+                f"Will delete JobLog in database: {err}"
+            )
+            job_log.delete()
             return
 
         content = existing_log_contents + self.stream.getvalue()
@@ -230,6 +235,7 @@ class task:
         except Exception as err:
             self.logger.error(f"Could not write log file: {err}")
             return
+        return job_log
 
     def _get_existing_job_logs(self):
         """
