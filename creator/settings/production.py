@@ -18,11 +18,13 @@ from creator.settings.features import *
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+from graphql import GraphQLError
 
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_URL"),
     environment=os.environ.get("STAGE", "dev"),
     integrations=[DjangoIntegration(), RedisIntegration()],
+    ignore_errors=(GraphQLError,),
     traces_sample_rate=0.1,
     send_default_pii=False,
 )
