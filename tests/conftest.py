@@ -260,7 +260,10 @@ def token():
         key = f.read()
 
     def make_token(
-        groups=None, roles=None, sub="cfa211bc-6fa8-4a03-bb81-cf377f99da47"
+        groups=None,
+        roles=None,
+        sub="cfa211bc-6fa8-4a03-bb81-cf377f99da47",
+        exp=None,
     ):
         """
         Returns an Auth0 JWT for a user with given roles and groups.
@@ -274,7 +277,7 @@ def token():
         tomorrow = now + datetime.timedelta(days=1)
         token = {
             "iat": now.timestamp(),
-            "exp": tomorrow.timestamp(),
+            "exp": exp if exp else tomorrow.timestamp(),
             "sub": sub,
             "iss": "Auth0",
             "aud": "creator",
