@@ -112,7 +112,7 @@ class Release(models.Model):
     )
     job_log = models.ForeignKey(
         JobLog,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="releases",
