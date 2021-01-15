@@ -221,11 +221,7 @@ class task:
                 f"{int(datetime.utcnow().timestamp())}_{self._job.name}.log"
             )
         except Exception as err:
-            self.logger.warning(
-                f"Could not read log file."
-                f"Will delete JobLog in database: {err}"
-            )
-            job_log.delete()
+            self.logger.warning(f"Could not read log file to append to: {err}")
             return
 
         content = existing_log_contents + self.stream.getvalue()
