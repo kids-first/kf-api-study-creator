@@ -101,6 +101,37 @@ class UpdateBannerMutation(graphene.Mutation):
         return UpdateBannerMutation(banner=banner)
 
 
+class DeleteBannerMutation(graphene.Mutation):
+    """ Delete an existing banner """
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="The ID of the banner to delete"
+        )
+
+    success = graphene.Boolean()
+    id = graphene.String()
+
+    def mutate(self, info, id):
+        """
+        Deletes an existing banner
+        """
+        user = info.context.user
+        if not user.has_perm("status.delete_banner"):
+            raise GraphQLError("Not allowed")
+
+        model, node_id = from_global_id(id)
+
+        try:
+            banner = Banner.objects.get(id=node_id)
+        except Banner.DoesNotExist:
+            raise GraphQLError("Banner was not found")
+
+        banner.delete()
+
+        return DeleteBannerMutation(success=True, id=id)
+
+
 class Mutation:
     """ Mutations for banner """
 
@@ -109,4 +140,7 @@ class Mutation:
     )
     update_banner = UpdateBannerMutation.Field(
         description="Update a given banner"
+    )
+    delete_banner = DeleteBannerMutation.Field(
+        description="Delete a given banner"
     )
