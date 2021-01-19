@@ -198,6 +198,15 @@ class Command(BaseCommand):
 
         self.aws_scheduler.cancel("buckets_sync")
 
+        # This is a legacy job that never reached production
+        self.aws_scheduler.cancel("inventories_sync")
+        try:
+            job = Job.objects.get(name="inventories_sync")
+            job.delete()
+        except Exception:
+            # The job is no longer there
+            pass
+
         self.aws_scheduler.schedule(
             id=name,
             description=description,
