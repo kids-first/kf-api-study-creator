@@ -70,10 +70,10 @@ class Auth0AuthenticationMiddleware:
                 audience=settings.AUTH0_AUD,
             )
         except jwt.exceptions.DecodeError as err:
-            logger.error(f"Problem authenticating request from Auth0: {err}")
+            logger.warning(f"Problem authenticating request from Auth0: {err}")
             return AnonymousUser()
         except jwt.exceptions.InvalidTokenError as err:
-            logger.error(f"Token provided is not valid for Auth0: {err}")
+            logger.warning(f"Token provided is not valid for Auth0: {err}")
             return AnonymousUser()
 
         sub = token.get("sub")
