@@ -315,7 +315,7 @@ def test_workflows(db, settings, mocker, clients, mock_post):
         setup_cavatica_task,
         Study.objects.first().kf_id,
         workflows,
-        User.objects.first().sub,
+        User.objects.filter(groups__name="Administrators").first().sub,
         depends_on=None,
     )
 
