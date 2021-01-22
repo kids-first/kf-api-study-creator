@@ -11,6 +11,8 @@ query ($id: ID!) {
         severity
         startDate
         endDate
+        url
+        urlLabel
     }
 }
 """
@@ -26,6 +28,8 @@ query {
            severity
            startDate
            endDate
+           url
+           urlLabel
          }
        }
    }
