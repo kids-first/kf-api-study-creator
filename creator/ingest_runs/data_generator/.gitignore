@@ -1,0 +1,5 @@
+__pycache__/
+ingest_package/logs/
+ingest_package/output/
+ingest_package/data/harmonized/
+ingest_package/data/source/

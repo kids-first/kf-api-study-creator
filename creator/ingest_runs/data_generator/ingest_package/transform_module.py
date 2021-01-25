@@ -48,13 +48,16 @@ def transform_function(mapped_df_dict):
         'family_relationship': family_relationship_df,
         'default': all_merged_data_df
     }
-
     """
-    df = outer_merge(
-        mapped_df_dict['biospec.py'],
+    gf_df = merge_wo_duplicates(
+        mapped_df_dict['s3_scrape_config.py'],
         mapped_df_dict['genomic.py'],
+        on=CONCEPT.GENOMIC_FILE.ID,
+    )
+    df = merge_wo_duplicates(
+        mapped_df_dict['biospec.py'],
+        gf_df,
         on=CONCEPT.BIOSPECIMEN.ID,
-        with_merge_detail_dfs=False,
     )
 
     return {DEFAULT_KEY: df}

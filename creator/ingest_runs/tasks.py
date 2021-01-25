@@ -1,15 +1,15 @@
-import django_rq
 import logging
+from pprint import pformat
 
 from django.core.exceptions import ValidationError
+import pandas
 
 from creator.decorators import task
+from creator.analyses.analyzer import extract_data
 from creator.files.models import FileType
-from creator.ingest_runs.manifests import ingest_manifest
+from creator.ingest_runs.genomic_data_loader import GenomicDataLoader
 from creator.ingest_runs.models import IngestRun
 from creator.utils import stop_job
-from kf_lib_data_ingest.common.io import read_df
-
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,9 @@ def check_gwo(version):
 
 @task("cancel_ingest")
 def cancel_ingest(ingest_run_uuid=None):
+    """
+    TODO - docstring
+    """
     ingest_run = IngestRun.objects.get(pk=ingest_run_uuid)
     logging.info(f"Canceling ingest run {ingest_run.pk}...")
     ingest_run.cancel()
@@ -62,16 +65,18 @@ def cancel_ingest(ingest_run_uuid=None):
 
 
 def ingest_genomic_workflow_output_manifests(ingest_run):
-    # TODO: Get versions from _ingest_run_, then grab study_id and
-    # the actual manifest data (in a DataFrame) for each (_extract_data_?).
-    print(
-        f"Begin ingesting genomic workflow manifests: "
-        f"{list(ingest_run.versions.all())}"
+    """
+    TODO docstring
+    """
+    versions = ingest_run.versions.all()
+    logger.info(
+        "Begin ingesting genomic workflow manifests: "
+        f"{len(versions)}: {pformat(list(versions))}"
     )
-    #TODO: Everything below should change
-    manifest_df = read_df('tests/data/SD_ME0WME0W/genomic-task/workflow.csv')
+    rows = []
+    for version in ingest_run.versions.all():
+        rows.extend(extract_data(version))
+    manifest_df = pandas.DataFrame(rows)
 
-    ingest_manifest(
-        manifest_df,
-        'SD_ME0WME0W',
-    )
+    loader = GenomicDataLoader(version.root_file.study.kf_id)
+    df = loader.ingest_gwo(manifest_df)

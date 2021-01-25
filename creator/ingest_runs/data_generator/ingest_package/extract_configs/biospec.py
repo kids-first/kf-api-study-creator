@@ -11,7 +11,7 @@ from kf_lib_data_ingest.common.concept_schema import CONCEPT
 from kf_lib_data_ingest.etl.extract.operations import *
 
 # TODO - Replace this with a URL to your own data file
-source_data_url = "file://../../data/bio_manifest.csv" # noqa
+source_data_url = "file://../data/bio_manifest.tsv"
 
 # TODO (Optional) Fill in special loading parameters here
 source_data_read_params = {}
@@ -22,14 +22,20 @@ source_data_read_params = {}
 
 # TODO - Replace this with operations that make sense for your own data file
 operations = [
-    value_map(
-        in_col="sample_id",
-        m={r"SM-(\d+)": lambda x: int(x)},
-        out_col=CONCEPT.BIOSPECIMEN.ID,
+    keep_map(
+        in_col="kf_id_family",
+        out_col=CONCEPT.FAMILY.TARGET_SERVICE_ID,
     ),
-    value_map(
+    keep_map(
+        in_col="family_id",
+        out_col=CONCEPT.FAMILY.ID,
+    ),
+    keep_map(
+        in_col="kf_id_participant",
+        out_col=CONCEPT.PARTICIPANT.TARGET_SERVICE_ID,
+    ),
+    keep_map(
         in_col="participant_id",
-        m={r"CARE-(\d+)": lambda x: int(x)},
         out_col=CONCEPT.PARTICIPANT.ID,
     ),
     value_map(
@@ -40,6 +46,14 @@ operations = [
         },
         out_col=CONCEPT.PARTICIPANT.GENDER,
     ),
+    keep_map(
+        in_col="kf_id_biospecimen",
+        out_col=CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
+    ),
+    keep_map(
+        in_col="sample_id",
+        out_col=CONCEPT.BIOSPECIMEN.ID,
+    ),
     value_map(
         in_col="volume",
         m=lambda x: float(x),
@@ -49,11 +63,6 @@ operations = [
         in_col="concentration",
         m=lambda x: float(x),
         out_col=CONCEPT.BIOSPECIMEN.CONCENTRATION_MG_PER_ML,
-    ),
-    value_map(
-        in_col="family_id",
-        m={r"FA-(\d+)": lambda x: int(x)},
-        out_col=CONCEPT.FAMILY.ID,
     ),
     keep_map(
         in_col="tissue_type",

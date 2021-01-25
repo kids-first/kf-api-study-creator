@@ -5,24 +5,20 @@ See documentation at
 https://kids-first.github.io/kf-lib-data-ingest/tutorial/extract.html for
 information on writing extract config files.
 """
-import pandas as pd
-
-from kf_lib_data_ingest.common import constants  # noqa F401
+import os
+from kf_lib_data_ingest.common import constants, pandas_utils  # noqa F401
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
 from kf_lib_data_ingest.etl.extract.operations import *
+from kf_lib_data_ingest.common.io import read_df
 
-# TODO - Replace this with a URL to your own data file
-source_data_url = "file://../../data/gen_manifest.csv"
-
-def do_after_read(df):
-    s3_scrape = pd.read_csv("data/s3_scrape.csv")
-    merged_df = df.merge(
-        right=s3_scrape,
-        left_on="filepath",
-        right_on="Filepath",
-        how="inner"
+DATA_DIR = (
+    os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "data"
     )
-    return merged_df
+)
+source_data_url = "file://../data/gf_manifest.tsv"
+
 
 # TODO (Optional) Fill in special loading parameters here
 source_data_read_params = {}
@@ -33,46 +29,25 @@ source_data_read_params = {}
 
 # TODO - Replace this with operations that make sense for your own data file
 operations = [
-    value_map(
+    keep_map(
         in_col="project_id",
-        m={r"RP-(\d+)": lambda x: int(x)},
         out_col=CONCEPT.SEQUENCING.ID,
     ),
-    value_map(
-        in_col="biospec_id",
-        m={r"SM-(\d+)": lambda x: int(x)},
+    keep_map(
+        in_col="sample_id",
         out_col=CONCEPT.BIOSPECIMEN.ID,
     ),
     constant_map(
         out_col=CONCEPT.SEQUENCING.STRATEGY,
         m=constants.SEQUENCING.STRATEGY.WGS,
     ),
-    value_map(
-        in_col="participant_id",
-        m={r"CARE-(\d+)": lambda x: int(x)},
-        out_col=CONCEPT.PARTICIPANT.ID,
-    ),
-    value_map(
-        in_col="filepath",
-        m=lambda x: [str(x)],
-        out_col=CONCEPT.GENOMIC_FILE.URL_LIST,
-    ),
-    value_map(
-        in_col="ETag",
-        m=lambda x: {constants.FILE.HASH.S3_ETAG: str(x)},
-        out_col=CONCEPT.GENOMIC_FILE.HASH_DICT,
-    ),
-    value_map(
-        in_col="Size",
-        m=lambda x: float(x),
-        out_col=CONCEPT.GENOMIC_FILE.SIZE,
+    # Source genomic file KF ID
+    keep_map(
+        in_col="kf_id_genomic_file",
+        out_col=CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
     ),
     keep_map(
-        in_col="Filename",
-        out_col=CONCEPT.GENOMIC_FILE.FILE_NAME,
-    ),
-    keep_map(
-        in_col="filepath",
+        in_col="source_read",
         out_col=CONCEPT.GENOMIC_FILE.ID,
     ),
     constant_map(
