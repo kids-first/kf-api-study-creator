@@ -93,30 +93,3 @@ def analyze_version(version):
     analysis.ncols = ncols
 
     return analysis
-
-
-def extract_data(version):
-    """
-    Determine what file type the file is and attempt to extract it into rows
-    of data returned in a DictReader type interface.
-    """
-    _, data_format = os.path.splitext(version.key.name)
-
-    if data_format not in KNOWN_FORMATS:
-        raise IOError(f"{data_format} is not an understood data format.")
-
-    # Need to set storage location for study bucket if using S3 backend
-    if settings.DEFAULT_FILE_STORAGE == "django_s3_storage.storage.S3Storage":
-        if version.study is not None:
-            study = version.study
-        elif version.root_file is not None:
-            study = version.root_file.study
-        else:
-            raise GraphQLError("Version must be part of a study.")
-
-        version.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
-
-    with version.key.open(mode="rb") as f:
-        parsed = list(KNOWN_FORMATS[data_format]["reader"](f))
-
-    return parsed

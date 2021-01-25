@@ -24,3 +24,4 @@ django-fsm==2.7.0
 semantic-version==2.8.5
 django-redis-cache==3.0.0
 kf_lib_data_ingest @ git+https://git@github.com/kids-first/kf-lib-data-ingest.git@latest-release
+kf_utils @ git+https://github.com/kids-first/kf-utils-python.git#egg=kf_utils
