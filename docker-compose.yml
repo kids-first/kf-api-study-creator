@@ -56,6 +56,21 @@ services:
       - POSTGRES_PASSWORD=password
   redis:
     image: redis:latest
+  dataservice:
+    image: kfdrc/kf-api-dataservice:latest
+    command: /bin/ash -c "sleep 5; ./bin/run.sh"
+    environment:
+      - FLASK_CONFIG=development
+      - PG_NAME=dataservice
+      - PG_HOST=dataservice-pg
+    depends_on:
+      - dataservice-pg
+    ports:
+      - 5000:80
+  dataservice-pg:
+    image: postgres:11.1
+    environment:
+      - POSTGRES_DB=dataservice
 networks:
   default:
     external:

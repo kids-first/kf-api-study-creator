@@ -5,8 +5,10 @@ from django.core.exceptions import ValidationError
 
 from creator.decorators import task
 from creator.files.models import FileType
+from creator.ingest_runs.manifests import ingest_manifest
 from creator.ingest_runs.models import IngestRun
 from creator.utils import stop_job
+from kf_lib_data_ingest.common.io import read_df
 
 
 logger = logging.getLogger(__name__)
@@ -60,17 +62,16 @@ def cancel_ingest(ingest_run_uuid=None):
 
 
 def ingest_genomic_workflow_output_manifests(ingest_run):
-    # TODO
+    # TODO: Get versions from _ingest_run_, then grab study_id and
+    # the actual manifest data (in a DataFrame) for each (_extract_data_?).
     print(
         f"Begin ingesting genomic workflow manifests: "
         f"{list(ingest_run.versions.all())}"
     )
-    import time
+    #TODO: Everything below should change
+    manifest_df = read_df('tests/data/SD_ME0WME0W/genomic-task/workflow.csv')
 
-    t_end = time.time() + 10
-    progress = ""
-    while time.time() < t_end:
-        time.sleep(1)
-        progress += "."
-        print(progress)
-    print(f"Finished ingest run {ingest_run.id}")
+    ingest_manifest(
+        manifest_df,
+        'SD_ME0WME0W',
+    )
