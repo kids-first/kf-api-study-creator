@@ -39,11 +39,16 @@ class JobNode(DjangoObjectType):
 
 class JobLogFilter(FilterSet):
     order_by = OrderingFilter(fields=("created_at",))
+    created_before = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="lt"
+    )
+    created_after = django_filters.DateTimeFilter(
+        field_name="created_at", lookup_expr="gt"
+    )
 
     class Meta:
         model = JobLog
-        # fields = {"job": ["exact"]}
-        fields = []
+        fields = ["job"]
 
 
 class JobLogNode(DjangoObjectType):
