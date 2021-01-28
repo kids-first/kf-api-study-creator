@@ -69,7 +69,12 @@ class Job(models.Model):
         ts = scheduler.connection.zscore(
             "rq:scheduler:scheduled_jobs", self.name
         )
-        dt = datetime.fromtimestamp(ts)
+        try:
+            dt = datetime.fromtimestamp(ts)
+        except TypeError:
+            # Sometimes this is returned as none from redis, perhaps if it is
+            # a one off job
+            return None
         return dt.replace(tzinfo=pytz.UTC)
 
 
