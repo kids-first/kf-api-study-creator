@@ -16,6 +16,29 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+class SentryMiddleware:
+    """ Attach user info to Sentry to include with events """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not request.user or request.user.is_anonymous:
+            return self.get_response(request)
+
+        from sentry_sdk import set_user
+
+        set_user(
+            {
+                "id": request.user.sub,
+                "email": request.user.email,
+                "username": request.user.display_name,
+            }
+        )
+
+        return self.get_response(request)
+
+
 class Auth0AuthenticationMiddleware:
     """
     Authentication middleware for validating a user's identity through Auth0
