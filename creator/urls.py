@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from graphene_file_upload.django import FileUploadGraphQLView
+from creator.views import SentryGraphQLView
 import creator.files.views
 import creator.extract_configs.views
 import creator.jobs.views
@@ -13,7 +13,7 @@ def health_check(request):
     return HttpResponse("ok")
 
 
-class GraphQLView(FileUploadGraphQLView):
+class GraphQLView(SentryGraphQLView):
     """
     Custom view that overwrites error formatting to handle Django form
     validation errors more natively.
@@ -22,7 +22,7 @@ class GraphQLView(FileUploadGraphQLView):
     @staticmethod
     def format_error(error):
         formatted_error = super(
-            FileUploadGraphQLView, FileUploadGraphQLView
+            SentryGraphQLView, SentryGraphQLView
         ).format_error(error)
 
         if (
