@@ -88,14 +88,12 @@ class CreateReferralTokenMutation(graphene.Mutation):
         studies = get_studies(input)
         groups = get_groups(input)
 
-        existing_token = (
-            ReferralToken.objects.filter(email=input["email"])
-            .filter(
-                created_at__lte=timezone.now()
-                + timedelta(days=settings.REFERRAL_TOKEN_EXPIRATION_DAYS)
-            )
-            .count()
-        )
+        existing_token = ReferralToken.objects.filter(
+            email=input["email"],
+            created_at__lte=timezone.now(),
+            created_at__gte=timezone.now()
+            - timedelta(days=settings.REFERRAL_TOKEN_EXPIRATION_DAYS),
+        ).count()
 
         if existing_token > 0:
             raise GraphQLError("Invite already sent, awaiting user response")
