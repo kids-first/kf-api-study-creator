@@ -19,12 +19,11 @@ We recommend the following to get running with a complete dev-environment:
     docker-compose \
         -f docker-compose.yml \
         -f docker-compose.dataservice.yml \
-        -f docker-compose.coordinator.yml \
         -f docker-compose.email.yml \
         up -d
 
 This should start a full development setup on the local consisting of the Study
-Creator API, the Data Service API, and the Release Coordinator API.
+Creator API, the Data Service API, and a mock email service.
 
 Development Settings
 --------------------
@@ -65,23 +64,6 @@ containers running in docker.
 It will also enable the dataservice features and configure them as needed
 through the environment variables.
 
-Enabling Release Coordinator Features
-+++++++++++++++++++++++++++++++++++++
-
-Many front-end features require both the Study Creator and Release Coordinator
-as data sources.
-Both may be setup with similar data using the included docker-compose file:
-
-.. code-block:: bash
-
-    docker-compose -f docker-compose.yml -f docker-compose.coordinator.yml up -d
-
-.. Note::
-    The full functionality of the Release Coordinator depends on other
-    services running that are not started as part of this process.
-
-This will start a Release Coordinator container alongside the Study Creator
-with mock data populated to match the studies in the Study Creator.
 
 
 Bootstrapping the Database
