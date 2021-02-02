@@ -96,7 +96,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#bypassing-authentication">Bypassing Authentication</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reseting-database-state">Reseting Database State</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#enabling-dataservice-features">Enabling Dataservice Features</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#enabling-release-coordinator-features">Enabling Release Coordinator Features</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bootstrapping-the-database">Bootstrapping the Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#enabling-cavatica-integration">Enabling Cavatica Integration</a></li>
 </ul>
@@ -205,13 +204,12 @@
 docker-compose <span class="se">\</span>
     -f docker-compose.yml <span class="se">\</span>
     -f docker-compose.dataservice.yml <span class="se">\</span>
-    -f docker-compose.coordinator.yml <span class="se">\</span>
     -f docker-compose.email.yml <span class="se">\</span>
     up -d
 </pre></div>
 </div>
 <p>This should start a full development setup on the local consisting of the Study
-Creator API, the Data Service API, and the Release Coordinator API.</p>
+Creator API, the Data Service API, and a mock email service.</p>
 </div>
 <div class="section" id="development-settings">
 <h2>Development Settings<a class="headerlink" href="#development-settings" title="Permalink to this headline">¶</a></h2>
@@ -243,22 +241,6 @@ enable additional features.</p>
 containers running in docker.
 It will also enable the dataservice features and configure them as needed
 through the environment variables.</p>
-</div>
-<div class="section" id="enabling-release-coordinator-features">
-<h3>Enabling Release Coordinator Features<a class="headerlink" href="#enabling-release-coordinator-features" title="Permalink to this headline">¶</a></h3>
-<p>Many front-end features require both the Study Creator and Release Coordinator
-as data sources.
-Both may be setup with similar data using the included docker-compose file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose -f docker-compose.yml -f docker-compose.coordinator.yml up -d
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The full functionality of the Release Coordinator depends on other
-services running that are not started as part of this process.</p>
-</div>
-<p>This will start a Release Coordinator container alongside the Study Creator
-with mock data populated to match the studies in the Study Creator.</p>
 </div>
 <div class="section" id="bootstrapping-the-database">
 <h3>Bootstrapping the Database<a class="headerlink" href="#bootstrapping-the-database" title="Permalink to this headline">¶</a></h3>

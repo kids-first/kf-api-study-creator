@@ -27,7 +27,6 @@ with data, install
     docker-compose \
         -f docker-compose.yml \
         -f docker-compose.dataservice.yml \
-        -f docker-compose.coordinator.yml \
         -f docker-compose.email.yml \
         up -d
 
