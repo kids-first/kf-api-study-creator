@@ -21,6 +21,9 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from graphql import GraphQLError
 
 
+SENTRY_TRACE_SAMPLE_RATE = os.environ.get("SENTRY_TRACE_SAMPLE_RATE", 0.1)
+
+
 def traces_sampler(sampling_context):
     """ Filter out unwanted transactions """
     if (
@@ -29,7 +32,7 @@ def traces_sampler(sampling_context):
     ):
         return 0
 
-    return 0.1
+    return SENTRY_TRACE_SAMPLE_RATE
 
 
 sentry_sdk.init(
