@@ -21,14 +21,19 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from graphql import GraphQLError
 
 
-SENTRY_TRACE_SAMPLE_RATE = os.environ.get("SENTRY_TRACE_SAMPLE_RATE", 0.1)
+SENTRY_TRACE_SAMPLE_RATE = os.environ.get("SENTRY_TRACE_SAMPLE_RATE", "0.1")
+try:
+    SENTRY_TRACE_SAMPLE_RATE = float(SENTRY_TRACE_SAMPLE_RATE)
+except ValueError:
+    SENTRY_TRACE_SAMPLE_RATE = 0.1
 
 
 def traces_sampler(sampling_context):
     """ Filter out unwanted transactions """
     if (
-        sampling_context.get("wsgi_environ").get("PATH_INFO")
-        == "/health_check"
+        "wsgi_environ" in sampling_context
+        and "PATH_INFO" in sampling_context["wsgi_environ"]
+        and sampling_context["wsgi_environ"]["PATH_INFO"] == "/health_check"
     ):
         return 0
 
