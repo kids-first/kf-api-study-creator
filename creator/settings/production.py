@@ -20,12 +20,28 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from graphql import GraphQLError
 
+
+SENTRY_TRACE_SAMPLE_RATE = os.environ.get("SENTRY_TRACE_SAMPLE_RATE", 0.1)
+
+
+def traces_sampler(sampling_context):
+    """ Filter out unwanted transactions """
+    if (
+        sampling_context.get("wsgi_environ").get("PATH_INFO")
+        == "/health_check"
+    ):
+        return 0
+
+    return SENTRY_TRACE_SAMPLE_RATE
+
+
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_URL"),
     environment=os.environ.get("STAGE", "dev"),
     integrations=[DjangoIntegration(), RedisIntegration()],
     ignore_errors=(GraphQLError,),
     traces_sample_rate=0.1,
+    traces_sampler=traces_sampler,
     send_default_pii=False,
 )
 
