@@ -260,9 +260,8 @@ class ReleaseTask(models.Model):
             )
         # Check that we recieved the state for correct task
         # Otherwise, we should ignore this response and raise an error
-        if (
-            state["task_id"] != self.kf_id
-            or state["release_id"] != self.release.kf_id
+        if state["task_id"] != self.kf_id or (
+            "release_id" in state and state["release_id"] != self.release.kf_id
         ):
             error = "Recieved a response that did not match the expected task"
             logger.error(error)
