@@ -1,14 +1,19 @@
 """
 This is an extract config intended for Genomic Workflow Output Manifests
-produced by the Bix team. This manifest contains the list of files produced
-by the genomic harmonization workflows along with the attached specimens,
-and source genomic files.
+produced by the Bix team.
 
-To use this extract config, you can make a copy of it and add it to your
-ingest package or you can import it as a module in an existing extract config
-and override at least the `source_data_url`. You may also append additional:w
+See: https://www.notion.so/d3b/Expedited-File-Types-and-Guidelines-fc5bd4390fa54de5a70b550d73779de9#9e9e1f8f66184484aa0a187e171365a7
 
-operations to the `operations` list as well.
+Required Columns:
+    Cavatica ID
+    Cavatica Task ID
+    KF Biospecimen ID
+    KF Participant ID
+    KF Family ID
+    Filepath
+    Data Type
+    Workflow Type
+    Source Read
 """
 
 from kf_lib_data_ingest.common.concept_schema import CONCEPT

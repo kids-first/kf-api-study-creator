@@ -1,23 +1,8 @@
 """
-This is an extract config intended for S3 object manifests produced by TBD.
+This is an extract configuration for a S3 Scrape file.
 
-To use it, you must import it in another extract config and override at least
-the `source_data_url`. You may also append additional operations to the
-`operations` list as well.
-
-For example you could have the following in your extract config module:
-
-from kf_ingest_packages.common.extract_configs.s3_object_info import *
-
-source_data_url = 'file://../data/kf-seq-data-bcm-chung-s3-objects.tsv'
-
-operations.append(
-    value_map(
-        in_col='Key',
-        out_col=CONCEPT.BIOSPECIMEN.ID,
-        m=lambda x: x
-    )
-)
+See template definitions here:
+https://docs.google.com/spreadsheets/d/1ugcw1Rh3e7vXnc7OWlR4J7bafiBjGnfd4-rEThI-BNI
 """
 from kf_lib_data_ingest.common import constants
 from kf_lib_data_ingest.common.constants import GENOMIC_FILE, COMMON
@@ -30,7 +15,7 @@ from kf_lib_data_ingest.etl.extract.operations import (
 )
 
 
-def file_ext(x):
+def genomic_file_ext(x):
     """
     Get genomic file extension
     """
@@ -63,6 +48,7 @@ FILE_EXT_FORMAT_MAP = {
     ".vcf": GENOMIC_FILE.FORMAT.VCF,
     ".vcf.gz.tbi": GENOMIC_FILE.FORMAT.TBI,
     ".peddy.html": GENOMIC_FILE.FORMAT.HTML,
+    ".md5": COMMON.OTHER,
 }
 
 DATA_TYPES = {
@@ -77,6 +63,7 @@ DATA_TYPES = {
     # Different TBI types share the same format in FILE_EXT_FORMAT_MAP above
     ".g.vcf.gz.tbi": GENOMIC_FILE.DATA_TYPE.GVCF_INDEX,
     ".vcf.gz.tbi": GENOMIC_FILE.DATA_TYPE.VARIANT_CALLS_INDEX,
+    ".md5": COMMON.OTHER,
 }
 
 
@@ -106,7 +93,7 @@ def file_format(x):
     Get genomic file format by looking genomic file ext up in
     FILE_EXT_FORMAT_MAP dict
     """
-    return FILE_EXT_FORMAT_MAP.get(file_ext(x))
+    return FILE_EXT_FORMAT_MAP.get(genomic_file_ext(x))
 
 
 def data_type(x):
@@ -115,7 +102,10 @@ def data_type(x):
     However, some types share formats, so then use the file extension itself
     to do the data type lookup.
     """
-    return DATA_TYPES.get(file_format(x)) or DATA_TYPES.get(file_ext(x))
+    return (
+        DATA_TYPES.get(file_format(x)) or
+        DATA_TYPES.get(genomic_file_ext(x))
+    )
 
 
 def fname(key):
@@ -130,7 +120,7 @@ operations = [
     row_map(
         out_col=CONCEPT.GENOMIC_FILE.URL_LIST, m=lambda row: [s3_url(row)]
     ),
-    value_map(out_col=CONCEPT.GENOMIC_FILE.FILE_NAME, in_col="Key", m=fname),
+    value_map(in_col="Key", out_col=CONCEPT.GENOMIC_FILE.FILE_NAME, m=fname),
     keep_map(in_col="Size", out_col=CONCEPT.GENOMIC_FILE.SIZE),
     value_map(
         in_col="ETag",
