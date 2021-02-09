@@ -53,7 +53,8 @@ def send_status_notification(release_id):
 
 def release_header(release):
     data_tracker_url = f"{settings.DATA_TRACKER_URL}"
-    release_url = f"{data_tracker_url}/releases/history/{release.pk}"
+    utm = "utm_source=slack_release_channel"
+    release_url = f"{data_tracker_url}/releases/history/{release.pk}?{utm}"
 
     header = {
         "type": "header",
