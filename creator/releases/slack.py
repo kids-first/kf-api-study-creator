@@ -27,10 +27,15 @@ def send_status_notification(release_id):
     if release.state in ["waiting", "initializing"]:
         return
 
+    data_tracker_url = f"{settings.DATA_TRACKER_URL}"
+    utm = "utm_source=slack_release_channel"
+    release_url = f"{data_tracker_url}/releases/history/{release.pk}?{utm}"
+
     client = WebClient(token=settings.SLACK_TOKEN)
 
     message = (
-        f"🏷 *{release.kf_id}* ({release.version}) - {release.name} "
+        f"<{release_url}|🏷 *{release.kf_id}*> ({release.version}) - "
+        f"{release.name} "
         f"\n{state_emojis.get(release.state)} The release is now "
         f"*{release.state}*"
     )
