@@ -27,10 +27,15 @@ def send_status_notification(release_id):
     if release.state in ["waiting", "initializing"]:
         return
 
+    data_tracker_url = f"{settings.DATA_TRACKER_URL}"
+    utm = "utm_source=slack_release_channel"
+    release_url = f"{data_tracker_url}/releases/history/{release.pk}?{utm}"
+
     client = WebClient(token=settings.SLACK_TOKEN)
 
     message = (
-        f"🏷 *{release.kf_id}* ({release.version}) - {release.name} "
+        f"<{release_url}|🏷 *{release.kf_id}*> ({release.version}) - "
+        f"{release.name} "
         f"\n{state_emojis.get(release.state)} The release is now "
         f"*{release.state}*"
     )
@@ -53,16 +58,12 @@ def send_status_notification(release_id):
 
 def release_header(release):
     data_tracker_url = f"{settings.DATA_TRACKER_URL}"
-    release_url = f"{data_tracker_url}/releases/history/{release.pk}"
-
-    header = {
-        "type": "header",
-        "text": {"type": "plain_text", "text": release.name},
-    }
+    utm = "utm_source=slack_release_channel"
+    release_url = f"{data_tracker_url}/releases/history/{release.pk}?{utm}"
 
     link_button = {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": f"> _New release!_\n"},
+        "text": {"type": "mrkdwn", "text": f"*{release.name}*\n"},
         "accessory": {
             "type": "button",
             "text": {"type": "plain_text", "text": "Go to the Release Page"},
@@ -81,8 +82,8 @@ def release_header(release):
         "text": {
             "type": "mrkdwn",
             "text": (
-                f"There are {release.studies.count()} studies in this "
-                "release\n"
+                f"*There are {release.studies.count()} studies in this "
+                "release:*\n"
             ),
         },
     }
@@ -99,8 +100,8 @@ def release_header(release):
         "text": {
             "type": "mrkdwn",
             "text": (
-                f"There are {release.tasks.count()} services being run "
-                "in this release\n"
+                f"*There are {release.tasks.count()} services being run "
+                "in this release:*\n"
             ),
         },
     }
@@ -112,4 +113,4 @@ def release_header(release):
         )
         services["text"]["text"] += service_text
 
-    return [header, link_button, description, studies, services]
+    return [link_button, description, studies, services]
