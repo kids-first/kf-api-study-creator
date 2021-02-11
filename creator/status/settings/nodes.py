@@ -50,6 +50,12 @@ class Settings(graphene.ObjectType):
         description=("Developer endpoints are active")
     )
     dataservice_url = graphene.String(description="The URL of the Dataservice")
+    datatracker_url = graphene.String(
+        description=(
+            "The URL of the Data Tracker frontend. Used for referring users "
+            "back to the UI in messaging and notifications"
+        )
+    )
     cavatica_url = graphene.String(description="The URL of the Cavatica API")
     cavatica_delivery_account = graphene.String(
         description="The Cavatica account used for delivery projects"
@@ -61,6 +67,12 @@ class Settings(graphene.ObjectType):
     )
     cavatica_user_access_project = graphene.String(
         description="The project to copy users from for new projects"
+    )
+    default_from_email = graphene.String(
+        description="The sender email address to use in email communications"
+    )
+    referral_token_expiration_days = graphene.String(
+        description="How many days a referral token is valid for"
     )
     study_buckets_region = graphene.String(
         description=("The AWS region where new study buckets will be created")
@@ -83,6 +95,11 @@ class Settings(graphene.ObjectType):
             "buckets will be stored"
         )
     )
+    study_buckets_replication_role = graphene.String(
+        description=(
+            "The AWS IAM role to use when configuring DR bucket replication"
+        )
+    )
     study_buckets_inventory_location = graphene.String(
         description=(
             "The full aws bucket with prefix where bucket inventories will be "
@@ -94,6 +111,9 @@ class Settings(graphene.ObjectType):
             "The prefix under which access logs will be stored in the logging "
             "and dr logging buckets"
         )
+    )
+    slack_release_channel = graphene.String(
+        description="Slack channel where release notifications are posted",
     )
     slack_users = graphene.List(
         graphene.String,

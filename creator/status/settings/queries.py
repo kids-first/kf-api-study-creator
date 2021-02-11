@@ -49,6 +49,7 @@ class Status(graphene.ObjectType):
         conf = {
             "development_endpoints": settings.DEVELOPMENT_ENDPOINTS,
             "dataservice_url": settings.DATASERVICE_URL,
+            "datatracker_url": settings.DATA_TRACKER_URL,
             "cavatica_url": settings.CAVATICA_URL,
             "cavatica_delivery_account": settings.CAVATICA_DELIVERY_ACCOUNT,
             "cavatica_harmonization_account": (
@@ -56,6 +57,10 @@ class Status(graphene.ObjectType):
             ),
             "cavatica_user_access_project": (
                 settings.CAVATICA_USER_ACCESS_PROJECT
+            ),
+            "default_from_email": settings.DEFAULT_FROM_EMAIL,
+            "referral_token_expiration_days": (
+                settings.REFERRAL_TOKEN_EXPIRATION_DAYS
             ),
             "study_buckets_region": settings.STUDY_BUCKETS_REGION,
             "study_buckets_logging_bucket": (
@@ -65,10 +70,14 @@ class Status(graphene.ObjectType):
             "study_buckets_dr_logging_bucket": (
                 settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
             ),
+            "study_buckets_replication_role": (
+                settings.STUDY_BUCKETS_REPLICATION_ROLE
+            ),
             "study_buckets_inventory_location": (
                 settings.STUDY_BUCKETS_INVENTORY_LOCATION
             ),
             "study_buckets_log_prefix": settings.STUDY_BUCKETS_LOG_PREFIX,
+            "slack_release_channel": settings.SLACK_RELEASE_CHANNEL,
             "slack_users": settings.SLACK_USERS,
             "log_dir": settings.LOG_DIR,
             "log_bucket": settings.LOG_BUCKET,
