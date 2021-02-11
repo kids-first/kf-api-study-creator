@@ -2,6 +2,9 @@ import graphene
 
 
 class Features(graphene.ObjectType):
+    development_endpoints = graphene.Boolean(
+        description="Whether developer endpoints are active"
+    )
     study_creation = graphene.Boolean(
         description=(
             "Will create new studies in the dataservice when a createStudy "
@@ -46,9 +49,6 @@ class Features(graphene.ObjectType):
 
 
 class Settings(graphene.ObjectType):
-    development_endpoints = graphene.Boolean(
-        description=("Developer endpoints are active")
-    )
     dataservice_url = graphene.String(description="The URL of the Dataservice")
     datatracker_url = graphene.String(
         description=(

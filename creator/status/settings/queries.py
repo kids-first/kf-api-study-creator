@@ -22,6 +22,7 @@ class Status(graphene.ObjectType):
 
     def resolve_features(self, info):
         features = {
+            "development_endpoints": settings.DEVELOPMENT_ENDPOINTS,
             "study_creation": settings.FEAT_DATASERVICE_CREATE_STUDIES,
             "study_updates": settings.FEAT_DATASERVICE_UPDATE_STUDIES,
             "cavatica_create_projects": settings.FEAT_CAVATICA_CREATE_PROJECTS,
@@ -47,7 +48,6 @@ class Status(graphene.ObjectType):
             raise GraphQLError("Not allowed")
 
         conf = {
-            "development_endpoints": settings.DEVELOPMENT_ENDPOINTS,
             "dataservice_url": settings.DATASERVICE_URL,
             "datatracker_url": settings.DATA_TRACKER_URL,
             "cavatica_url": settings.CAVATICA_URL,
