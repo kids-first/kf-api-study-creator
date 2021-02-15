@@ -1,23 +1,20 @@
-FROM python:3.7-alpine as base
+FROM python:3.8-slim-buster as base
 ENV PYTHONUNBUFFERED 1
 
-RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt /app/
-RUN apk add --no-cache postgresql-libs postgresql-client && \
-    apk add --no-cache --virtual .build-deps gcc libffi-dev musl-dev postgresql-dev && \
-    pip install awscli && \
-    pip install -r requirements.txt --no-cache-dir && \
-    apk --purge del .build-deps
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git
+RUN pip install awscli && \
+    pip install --no-cache-dir -r requirements.txt
+
 COPY . /app/
 
 # Bake version number
-RUN apk add --no-cache --virtual .build-deps git && \
-    cd /app && \
+RUN cd /app && \
     COMMIT=`git rev-parse --short HEAD` && echo "COMMIT=\"${COMMIT}\"" > /app/creator/version_info.py && \
     VERSION=`git describe --always --tags` && echo "VERSION=\"${VERSION}\"" >> /app/creator/version_info.py && \
-    cd / && \
-    apk --purge del .build-deps
+    cd / 
 
 EXPOSE 80
 
@@ -28,16 +25,14 @@ FROM base as dev
 
 ENV PRELOAD_DATA false
 COPY dev-requirements.txt /app/
-RUN apk add --no-cache --virtual .build-deps git && \
-    pip install -r /app/dev-requirements.txt && \
-    apk --purge del .build-deps
+RUN  pip install -r /app/dev-requirements.txt
 
 CMD /app/bin/dev_entrypoint.sh
 
 
 FROM base as prd
 
-RUN apk add --no-cache jq wget supervisor
+RUN apt-get install -y --no-install-recommends jq wget supervisor
 
 RUN mkdir -p /var/log/supervisor/conf.d
 COPY bin/worker.conf /etc/supervisor/conf.d/worker.conf
