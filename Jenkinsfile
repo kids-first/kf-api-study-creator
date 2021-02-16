@@ -2,7 +2,7 @@
 ecs_service_type_1_standard {
     projectName = "kf-api-study-creator"
     environments = "dev,qa,prd"
-    docker_image_type = "alpine"
+    docker_image_type = "debian"
     entrypoint_command = "/app/bin/entrypoint.sh" 
     quick_deploy = "true"
     deploy_scripts_version = "master"
