@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 COPY requirements.txt /app/
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git
+    apt-get install -y --no-install-recommends git postgresql-client
 RUN pip install awscli && \
     pip install --no-cache-dir -r requirements.txt
 
