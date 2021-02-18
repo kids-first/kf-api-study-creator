@@ -1,4 +1,4 @@
-#!/usr/bin/env ash
+#!/usr/bin/env bash
 # This runs the worker on periodic burst mode so that changes made to tasks
 # during development will be applied when the worker executes them
 while true; do
