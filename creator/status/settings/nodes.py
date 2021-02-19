@@ -40,6 +40,11 @@ class Features(graphene.ObjectType):
             "created"
         )
     )
+    study_buckets_replication_enabled = graphene.Boolean(
+        description=(
+            "Data recovery buckets will be created for new study buckets"
+        )
+    )
     create_slack_channels = graphene.Boolean(
         description=("Create a Slack channel for new studies")
     )
