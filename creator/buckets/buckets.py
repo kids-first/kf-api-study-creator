@@ -193,6 +193,12 @@ def _add_replication(bucket_name: str, study_id: str):
     Adds a lifecycle policy to the dr bucket to immediately roll data into
     glacier for cold storage
     """
+    if not settings.FEAT_STUDY_BUCKETS_REPLICATION_ENABLED:
+        logger.info(
+            "FEAT_STUDY_BUCKETS_REPLICATION_ENABLED is set to False. "
+            f"Will not create replication bucket for {bucket_name}."
+        )
+        return
     dr_bucket_name = get_bucket_name(
         study_id, region=settings.STUDY_BUCKETS_DR_REGION, suffix="dr"
     )
