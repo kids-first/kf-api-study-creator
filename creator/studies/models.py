@@ -82,6 +82,11 @@ class Study(models.Model):
         validators=[RegexValidator(BUCKET_RE)],
         help_text="The s3 bucket name",
     )
+    investigator_name = models.CharField(
+        max_length=200,
+        help_text="The name of the principle investigator of the study",
+        null=True,
+    )
     slack_channel = models.CharField(
         max_length=80,
         help_text="The name of the related Slack channel",
