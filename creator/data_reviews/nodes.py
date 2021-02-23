@@ -22,7 +22,7 @@ class DataReviewNode(DjangoObjectType):
             raise GraphQLError("Not allowed")
 
         try:
-            data_review = cls._meta.model.objects.get(id=id)
+            data_review = cls._meta.model.objects.get(pk=id)
         except cls._meta.model.DoesNotExist:
             raise GraphQLError("DataReviews was not found")
 
