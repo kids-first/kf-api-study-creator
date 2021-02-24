@@ -76,6 +76,24 @@ def test_replication(settings, logging_bucket):
 
 
 @mock_s3
+def test_replication_flag(settings):
+    """
+    Test that replication buckets are not created if the feature is disabled.
+    """
+
+    settings.FEAT_STUDY_BUCKETS_REPLICATION_ENABLED = False
+
+    study_id = "sd-00000000"
+    bucket_name = get_bucket_name(study_id)
+
+    client = boto3.client("s3")
+
+    _add_replication(bucket_name, study_id)
+
+    assert len(client.list_buckets()["Buckets"]) == 0
+
+
+@mock_s3
 def test_replication_bucket_exists(settings, logging_bucket, mocker):
     """
     Test when dr bucket already exists

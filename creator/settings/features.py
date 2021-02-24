@@ -36,6 +36,12 @@ STUDY_BUCKETS_LOG_PREFIX = os.environ.get(
     "STUDY_BUCKETS_LOG_PREFIX", "/studies/dev/"
 )
 
+# Whether or not to create replication buckets
+FEAT_STUDY_BUCKETS_REPLICATION_ENABLED = (
+    os.environ.get("FEAT_STUDY_BUCKETS_REPLICATION_ENABLED", "True").lower()
+    == "true"
+)
+
 # The aws region where data recovery buckets will be stored
 STUDY_BUCKETS_DR_REGION = os.environ.get(
     "STUDY_BUCKETS_DR_REGION", "us-west-2"
