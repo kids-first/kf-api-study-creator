@@ -1,5 +1,26 @@
 # Kids First Study Creator Change History
 
+## Release 1.15.0
+
+### Summary
+
+- Emojis: ✨ x1, 🔧 x2, 🐛 x3, ⬆️ x2, 🐳 x1, 💄 x1
+- Categories: Additions x1, Other Changes x3, Fixes x3, Ops x3
+
+### New features and changes
+
+- [#581](https://github.com/kids-first/kf-api-study-creator/pull/581) - ✨ Add investigator name to study - [7c147b2e](https://github.com/kids-first/kf-api-study-creator/commit/7c147b2e2da047961ca15380b8de58f9281557dd) by [dankolbman](https://github.com/dankolbman)
+- [#580](https://github.com/kids-first/kf-api-study-creator/pull/580) - 🔧 Add flag to enabled/disable DR bucket creation - [428020b5](https://github.com/kids-first/kf-api-study-creator/commit/428020b5008050c2ed318176652c6b76d932bdd6) by [dankolbman](https://github.com/dankolbman)
+- [#573](https://github.com/kids-first/kf-api-study-creator/pull/573) - 🔧 Add settings to status schema - [7c03defe](https://github.com/kids-first/kf-api-study-creator/commit/7c03defe4aa08212eebf9e64023953674150aa52) by [dankolbman](https://github.com/dankolbman)
+- [#579](https://github.com/kids-first/kf-api-study-creator/pull/579) - 🐛 Fix bugs from switching to Debian image - [40cf58cd](https://github.com/kids-first/kf-api-study-creator/commit/40cf58cd4c6b65558127551b7eb563a0e4c0f1e3) by [znatty22](https://github.com/znatty22)
+- [#578](https://github.com/kids-first/kf-api-study-creator/pull/578) - ⬆️ Bump boto3 and requests - [fa5896a0](https://github.com/kids-first/kf-api-study-creator/commit/fa5896a0364596583bfc2447af4fe7918d180b7a) by [znatty22](https://github.com/znatty22)
+- [#577](https://github.com/kids-first/kf-api-study-creator/pull/577) - 🐳 Switch to python:3.8-slim-buster docker img - [3ca47fd7](https://github.com/kids-first/kf-api-study-creator/commit/3ca47fd70f491080195e937004dafdb98fb1663b) by [znatty22](https://github.com/znatty22)
+- [#567](https://github.com/kids-first/kf-api-study-creator/pull/567) - 💄 Clean up release messages - [843f0bab](https://github.com/kids-first/kf-api-study-creator/commit/843f0bab5128902332359beaca9be3e8643fcee9) by [dankolbman](https://github.com/dankolbman)
+- [#572](https://github.com/kids-first/kf-api-study-creator/pull/572) - ⬆️ Bump cryptography from 3.2 to 3.3.2 - [e046430d](https://github.com/kids-first/kf-api-study-creator/commit/e046430df6b9e75c4475b1d3e088428ab22f622a) by [dependabot[bot]](https://github.com/apps/dependabot)
+- [#566](https://github.com/kids-first/kf-api-study-creator/pull/566) - 🐛 Only verify release id if its in the response - [d27077d9](https://github.com/kids-first/kf-api-study-creator/commit/d27077d98ae0e429a2c94a4428380053fdeb06ca) by [dankolbman](https://github.com/dankolbman)
+- [#564](https://github.com/kids-first/kf-api-study-creator/pull/564) - 🐛 Add safeguards for trace sampler - [32e7f2e0](https://github.com/kids-first/kf-api-study-creator/commit/32e7f2e03d70463591260896a501c722825fddf2) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.14.7
 
 ### Summary
