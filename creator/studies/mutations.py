@@ -119,6 +119,9 @@ class StudyInput(graphene.InputObjectType):
             "Date that this study is expected to be released to the public"
         )
     )
+    investigator_name = graphene.String(
+        description="The name of the principle investigator of this study"
+    )
     bucket = graphene.String(
         description="The s3 bucket where data for this study resides"
     )
