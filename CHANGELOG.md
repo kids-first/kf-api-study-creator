@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.15.1
+
+### Summary
+
+- Emojis: 🐛 x1, 🔥 x1, ✨ x1
+- Categories: Fixes x1, Removals x1, Additions x1
+
+### New features and changes
+
+- [#586](https://github.com/kids-first/kf-api-study-creator/pull/586) - 🐛 Add missing import - [fdcd20a6](https://github.com/kids-first/kf-api-study-creator/commit/fdcd20a6891934b9df43774ea20fe4d3dbf69d23) by [dankolbman](https://github.com/dankolbman)
+- [#587](https://github.com/kids-first/kf-api-study-creator/pull/587) - 🔥 Remove build_environments for worker - [7be9e360](https://github.com/kids-first/kf-api-study-creator/commit/7be9e3600b30b3bbe24c04b4f74d3bf5d1d60776) by [dankolbman](https://github.com/dankolbman)
+- [#574](https://github.com/kids-first/kf-api-study-creator/pull/574) - ✨ Initial DataReview GraphQL API - [5903cbb8](https://github.com/kids-first/kf-api-study-creator/commit/5903cbb8233802c7bc4eb95e18141f6f58c0c85d) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.15.0
 
 ### Summary
