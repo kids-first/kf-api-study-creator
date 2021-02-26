@@ -79,6 +79,11 @@ GROUPS = {
         "change_banner",
         "view_banner",
         "list_all_banner",
+        "add_datareview",
+        "delete_datareview",
+        "change_datareview",
+        "view_datareview",
+        "list_all_datareview",
     ],
     "Developers": [
         "view_study",

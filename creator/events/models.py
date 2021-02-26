@@ -6,6 +6,7 @@ from creator.studies.models import Study
 from creator.files.models import File, Version
 from creator.projects.models import Project
 from creator.buckets.models import Bucket
+from creator.data_reviews.models import DataReview
 
 User = get_user_model()
 
@@ -67,6 +68,12 @@ class Event(models.Model):
             ("SL_STR", "Slack Channel Creation Start"),
             ("SL_ERR", "Slack Channel Creation Error"),
             ("SL_SUC", "Slack Channel Creation Success"),
+            ("DR_STA", "Data Review Started"),
+            ("DR_WAI", "Data Review Waiting for Updates"),
+            ("DR_UPD", "Data Review Updated"),
+            ("DR_APP", "Data Review Approved"),
+            ("DR_CLO", "Data Review Closed"),
+            ("DR_REO", "Data Review Re-opened"),
             ("OTH", "Other"),
         ),
         default="OTH",
@@ -124,4 +131,12 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="User related to this event",
+    )
+    data_review = models.ForeignKey(
+        DataReview,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Data Review related to this event",
     )
