@@ -5,6 +5,7 @@ from collections import defaultdict
 from functools import partial
 from django.conf import settings
 from django_s3_storage.storage import S3Storage
+from graphql import GraphQLError
 from creator.analyses.models import Analysis
 from creator.files.models import Version
 
