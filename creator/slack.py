@@ -312,11 +312,30 @@ def summary_post():
     )
     client = WebClient(token=settings.SLACK_TOKEN)
 
+    # Construct a mapping of channel name to id mappings, most Slack methods
+    # require ids, not names
+    channels = {
+        c["name"]: c["id"]
+        for c in client.conversations_list(
+            exclude_archived=True,
+            limit=1000,
+        ).get("channels", [])
+    }
+
     for study in filtered_studies:
-        channel_id = study.slack_channel
+        # Try to get channel id from list of channels
+        channel_id = channels.get(study.slack_channel)
+        # We couldn't find the channel
+        if channel_id is None:
+            logger.warning(
+                f"The channel '{study.slack_channel}' could not be found "
+                "in the workspace."
+            )
+            continue
+
         blocks = make_study_message(study)
         if len(blocks) > 0:
-            response = client.channels_join(name=channel_id)
+            response = client.conversations_join(channel=channel_id)
 
             response = client.chat_postMessage(
                 channel=channel_id, blocks=blocks
@@ -324,6 +343,6 @@ def summary_post():
 
             # Should be caught by the slack client but we will check anyway
             if "ok" in response and not response["ok"]:
-                logger.warn(f"Slack responded unexpectedly: {response}")
+                logger.warning(f"Slack responded unexpectedly: {response}")
 
     return len(filtered_studies)
