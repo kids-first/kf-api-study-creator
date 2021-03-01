@@ -5,7 +5,7 @@ import re
 from django.conf import settings
 from django.utils import timezone
 from collections import defaultdict
-from slack import WebClient
+from slack_sdk import WebClient
 from creator.studies.models import Study
 
 logger = logging.getLogger(__name__)
