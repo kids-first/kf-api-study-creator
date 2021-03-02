@@ -4,6 +4,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from django_filters import FilterSet, OrderingFilter
+from django.conf import settings
 from graphql import GraphQLError
 
 from creator.jobs.models import Job, JobLog
@@ -61,7 +62,8 @@ class JobLogNode(DjangoObjectType):
     download_url = graphene.String()
 
     def resolve_download_url(self, info):
-        return f"https://{info.context.get_host()}{self.path}"
+        protocol = "http" if settings.DEVELOP else "https"
+        return f"{protocol}://{info.context.get_host()}{self.path}"
 
     @classmethod
     def get_node(cls, info, id):

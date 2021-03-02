@@ -3,6 +3,7 @@ import pytest
 import json
 import boto3
 from moto import mock_s3
+from django.core import management
 from django.http.response import HttpResponse
 
 from creator.files.models import Version, File, DownloadToken
@@ -78,6 +79,33 @@ def test_file_download_url(clients, db, mocker):
     )
 
 
+def test_file_download_url_develop(clients, db, mocker, settings):
+    settings.DEVELOP = True
+    management.call_command("setup_test_user")
+    client = clients.get("Administrators")
+
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+
+    assert File.objects.count() == 1
+
+    query = "{allFiles { edges { node { downloadUrl } } } }"
+    query_data = {"query": query.strip()}
+    resp = client.post(
+        "/graphql", data=query_data, content_type="application/json"
+    )
+    assert resp.status_code == 200
+    file_json = resp.json()["data"]["allFiles"]["edges"][0]["node"]
+    expect_url = (
+        f"http://testserver/download/study/{study.kf_id}/file/{file.kf_id}"
+    )
+    assert file_json["downloadUrl"] == expect_url
+
+
 def test_version_download_url(db, clients, mocker):
     mock_resp = mocker.patch("creator.files.views.HttpResponse")
     mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
@@ -102,6 +130,43 @@ def test_version_download_url(db, clients, mocker):
     version_json = resp.json()["data"]["allVersions"]["edges"][0]["node"]
     expect_url = (
         f"https://testserver/download/study/{study.kf_id}/file/{file.kf_id}"
+        f"/version/{version.kf_id}"
+    )
+    assert version_json["downloadUrl"] == expect_url
+    resp = client.get(version_json["downloadUrl"])
+    assert resp.status_code == 200
+    assert (
+        resp.get("Content-Disposition")
+        == f"attachment; filename*=UTF-8''{version.kf_id}_{version.file_name}"
+    )
+
+
+def test_version_download_url_develop(db, clients, mocker, settings):
+    settings.DEVELOP = True
+    management.call_command("setup_test_user")
+    client = clients.get("Administrators")
+    mock_resp = mocker.patch("creator.files.views.HttpResponse")
+    mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
+
+    study = StudyFactory()
+    file = FileFactory(study=study)
+    version = file.versions.latest("created_at")
+
+    query = """
+    {
+        allVersions(orderBy: "-created_at") {
+            edges { node { downloadUrl } }
+        }
+    }
+    """
+    query_data = {"query": query.strip()}
+    resp = client.post(
+        "/graphql", data=query_data, content_type="application/json"
+    )
+    assert resp.status_code == 200
+    version_json = resp.json()["data"]["allVersions"]["edges"][0]["node"]
+    expect_url = (
+        f"http://testserver/download/study/{study.kf_id}/file/{file.kf_id}"
         f"/version/{version.kf_id}"
     )
     assert version_json["downloadUrl"] == expect_url
