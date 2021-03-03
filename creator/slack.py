@@ -338,7 +338,9 @@ def summary_post():
             response = client.conversations_join(channel=channel_id)
 
             response = client.chat_postMessage(
-                channel=channel_id, blocks=blocks
+                channel=channel_id,
+                blocks=blocks,
+                text="There are new updates for study {study.name}.",
             )
 
             # Should be caught by the slack client but we will check anyway
