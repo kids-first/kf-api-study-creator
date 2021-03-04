@@ -1,4 +1,4 @@
-from slack import WebClient
+from slack_sdk import WebClient
 from django.conf import settings
 from creator.releases.models import Release
 
