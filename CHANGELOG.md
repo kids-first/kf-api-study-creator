@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.15.2
+
+### Summary
+
+- Emojis: 👷 x1, ⬆️ x1, 🔧 x1
+- Categories: Ops x2, Other Changes x1
+
+### New features and changes
+
+- [#595](https://github.com/kids-first/kf-api-study-creator/pull/595) - 👷 Add new workflow for sentry releases - [ecddda23](https://github.com/kids-first/kf-api-study-creator/commit/ecddda234bee1710438997307ee5e32125051104) by [dankolbman](https://github.com/dankolbman)
+- [#591](https://github.com/kids-first/kf-api-study-creator/pull/591) - ⬆️ Upgrade slack sdk - [5bd19f82](https://github.com/kids-first/kf-api-study-creator/commit/5bd19f82ff0968f06c83247ba161ea23c10a3084) by [dankolbman](https://github.com/dankolbman)
+- [#594](https://github.com/kids-first/kf-api-study-creator/pull/594) - 🔧 Increase timeout for Cavatica tasks - [713c4c06](https://github.com/kids-first/kf-api-study-creator/commit/713c4c067fcbd55016f0498d557b58ea4041f1cb) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.15.1
 
 ### Summary
