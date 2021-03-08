@@ -18,6 +18,7 @@ import creator.status.schema
 import creator.jobs.schema
 import creator.releases.schema
 import creator.data_reviews.schema
+import creator.count_service.schema
 
 
 class Query(
@@ -33,6 +34,7 @@ class Query(
     creator.jobs.schema.Query,
     creator.releases.schema.Query,
     creator.data_reviews.schema.Query,
+    creator.count_service.schema.Query,
     graphene.ObjectType,
 ):
     """ Root query schema combining all apps' schemas """

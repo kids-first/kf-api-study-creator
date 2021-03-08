@@ -72,12 +72,15 @@ def tasks(request):
     """
     Process one of the requested actions
     """
-    action, task, release = parse_request(request)
+    parsed = parse_request(request)
+    if isinstance(parsed, HttpResponseBadRequest):
+        return parsed
+    action, task, release = parsed
 
     logger.info(f"{action} {task} {release}")
 
     if action == "initialize":
-        count_task = CountTask(pk=task.pk)
+        count_task = CountTask(pk=task.pk, release=release)
         count_task.save()
     else:
         try:

@@ -84,6 +84,8 @@ GROUPS = {
         "change_datareview",
         "view_datareview",
         "list_all_datareview",
+        "view_studysummary",
+        "list_all_studysummary",
     ],
     "Developers": [
         "view_study",
