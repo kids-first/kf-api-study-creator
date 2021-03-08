@@ -1,6 +1,7 @@
-@Library(value="kids-first/aws-infra-jenkins-shared-libraries", changelog=false) _
+@Library(value="kids-first/aws-infra-jenkins-shared-libraries@feature/add-pseudo-terminal", changelog=false) _
 ecs_service_type_1_standard {
     projectName = "kf-api-study-creator"
+    module_version = "feature/add-pseudo-terminal"
     environments = "dev,qa,prd"
     docker_image_type = "debian"
     entrypoint_command = "/app/bin/entrypoint.sh" 
