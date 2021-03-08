@@ -1,4 +1,4 @@
-@Library(value='kids-first/aws-infra-jenkins-shared-libraries', changelog=false) _
+@Library(value='kids-first/aws-infra-jenkins-shared-libraries@feature/add-pseudo-terminal', changelog=false) _
 ecs_service_existing_alb {
     projectName                = "kf-api-study-creator-worker"
     alb_name                   = "kf-api-study-creator"
@@ -14,6 +14,6 @@ ecs_service_existing_alb {
     health_check_path          = "/"
     internal_app               = "false"
     dependencies               = "ecr"
-    module_version             = "v1.4"
     pseudo_terminal            = "true"
+    module_version = "feature/add-pseudo-terminal"
 }
