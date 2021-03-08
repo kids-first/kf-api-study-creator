@@ -15,4 +15,5 @@ ecs_service_existing_alb {
     internal_app               = "false"
     dependencies               = "ecr"
     module_version             = "v1.4"
+    pseudo_terminal            = "true"
 }
