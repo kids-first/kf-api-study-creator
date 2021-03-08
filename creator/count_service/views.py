@@ -23,7 +23,7 @@ def parse_request(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
     except Exception as err:
-        raise HttpResponseBadRequest(f"Problem parsing request: {err}")
+        return HttpResponseBadRequest(f"Problem parsing request: {err}")
 
     if (
         data is None
@@ -32,7 +32,7 @@ def parse_request(request):
         or "release_id" not in data
         or "studies" not in data
     ):
-        raise HttpResponseBadRequest(
+        return HttpResponseBadRequest(
             "A JSON payload including 'action', 'task_id', "
             "'release_id', and 'studies' is required"
         )
@@ -48,7 +48,7 @@ def parse_request(request):
         "get_status",
         "cancel",
     ]:
-        raise HttpResponseBadRequest(
+        return HttpResponseBadRequest(
             "The action must be specified as one of 'initialize', "
             "'start', 'publish', 'get_status', 'cancel'"
         )
@@ -56,12 +56,12 @@ def parse_request(request):
     try:
         task = ReleaseTask.objects.get(pk=task_id)
     except ReleaseTask.DoesNotExist:
-        raise HttpResponseBadRequest("The specified task does not exist")
+        return HttpResponseBadRequest("The specified task does not exist")
 
     try:
         release = Release.objects.get(pk=release_id)
     except Release.DoesNotExist:
-        raise HttpResponseBadRequest("The specified release does not exist")
+        return HttpResponseBadRequest("The specified release does not exist")
 
     return action, task, release
 

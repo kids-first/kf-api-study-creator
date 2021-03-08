@@ -16,7 +16,8 @@ def run(task_id=None):
     try:
         count_task = CountTask.objects.get(pk=task.pk)
     except CountTask.DoesNotExist:
-        raise HttpResponseBadRequest("The specified task does not exist")
+        logger.warning("The specified task does not exist")
+        return
 
     count_task.stage()
     count_task.save()
