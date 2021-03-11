@@ -1,3 +1,4 @@
+from django.conf import settings
 import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -18,7 +19,8 @@ class VersionNode(DjangoObjectType):
         path = self.path
         if path is None:
             return None
-        return f"https://{info.context.get_host()}{self.path}"
+        protocol = "http" if settings.DEVELOP else "https"
+        return f"{protocol}://{info.context.get_host()}{self.path}"
 
     @classmethod
     def get_node(cls, info, kf_id):
