@@ -1,11 +1,17 @@
 from graphene import relay
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
+from graphene_django.filter import DjangoFilterConnectionField
+from creator.events.schema import EventNode, EventFilter
 
 from creator.data_reviews.models import DataReview
 
 
 class DataReviewNode(DjangoObjectType):
+    events = DjangoFilterConnectionField(
+        EventNode, filterset_class=EventFilter, description="List all events"
+    )
+
     class Meta:
         model = DataReview
         interfaces = (relay.Node,)
