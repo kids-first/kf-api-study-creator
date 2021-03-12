@@ -86,6 +86,12 @@ GROUPS = {
         "list_all_datareview",
         "subscribe_study",
         "unsubscribe_study",
+        "add_ingestrun",
+        "delete_ingestrun",
+        "change_ingestrun",
+        "view_ingestrun",
+        "list_all_ingestrun",
+        "cancel_ingestrun",
     ],
     "Developers": [
         "view_study",
