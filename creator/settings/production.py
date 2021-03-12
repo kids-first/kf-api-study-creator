@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator",
     "corsheaders",
+    'creator.ingest_runs.apps.IngestRunsConfig',
 ]
 
 MIDDLEWARE = [
@@ -212,6 +213,13 @@ RQ_QUEUES = {
         "PORT": redis_port,
         "DB": 0,
         "DEFAULT_TIMEOUT": 60,
+        "SSL": redis_ssl,
+    },
+    "ingest": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": "60m",
         "SSL": redis_ssl,
     },
 }
