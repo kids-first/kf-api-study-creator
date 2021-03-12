@@ -34,6 +34,10 @@ class Event(models.Model):
     event_type = models.CharField(
         max_length=6,
         choices=(
+            ("IR_STA", "Ingest Run Started"),
+            ("IR_CAN", "Ingest Run Canceled"),
+            ("IR_COM", "Ingest Run Completed"),
+            ("IR_FAI", "Ingest Run Failed"),
             ("SF_CRE", "Study File Created"),
             ("SF_UPD", "Study File Updated"),
             ("SF_DEL", "Study File Deleted"),
