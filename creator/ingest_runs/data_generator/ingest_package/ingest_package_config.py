@@ -20,5 +20,5 @@ extract_config_dir = "extract_configs"
 
 transform_function_path = "transform_module.py"
 
-# TODO - Replace this with your own valid target service ID for the study!
-study = "SD_ME0WME0W"
+# Kids First Study ID
+study = ""
