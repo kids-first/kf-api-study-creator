@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "creator.releases",
     "creator.data_reviews",
     "creator.events.apps.EventsConfig",
+    "creator.c2m2_submissions",
     "creator",
     "corsheaders",
     'creator.ingest_runs.apps.IngestRunsConfig',
