@@ -3,6 +3,7 @@ import csv
 import xlrd
 from collections import defaultdict
 from functools import partial
+from graphql import GraphQLError
 from django.conf import settings
 from django_s3_storage.storage import S3Storage
 from graphql import GraphQLError
