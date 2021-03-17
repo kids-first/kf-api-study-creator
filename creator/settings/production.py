@@ -297,6 +297,9 @@ LOGGING = {
         "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"]},
         "creator.decorators": {"handlers": ["task"]},
+        "creator.ingest_runs.genomic_data_loader": {
+            "handlers": ["task"], "level": "DEBUG"
+        }
     },
 }
 

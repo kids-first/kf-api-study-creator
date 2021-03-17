@@ -17,8 +17,7 @@ def fetch_s3_obj_info(bucket_name, search_prefixes=None):
     """
     df = pd.DataFrame(
         fetch_aws_bucket_obj_info(
-            bucket_name=bucket_name,
-            search_prefixes=search_prefixes
+            bucket_name=bucket_name, search_prefixes=search_prefixes
         )
     )
     # Filepath
@@ -41,8 +40,7 @@ def scrape_s3(buckets):
         parsed_s3 = urlparse(bucket)
         bucket_df = pd.DataFrame(
             fetch_s3_obj_info(
-                bucket_name=parsed_s3.netloc,
-                search_prefixes=[parsed_s3.path]
+                bucket_name=parsed_s3.netloc, search_prefixes=[parsed_s3.path]
             )
         )
         dfs.append(bucket_df)
@@ -68,10 +66,7 @@ def get_entities(base_url, endpoint, study_id, filter_dict=None):
     if not filter_dict:
         filter_dict = {}
 
-    filter_dict.update({
-        "study_id": study_id,
-        "visible": True
-    })
+    filter_dict.update({"study_id": study_id, "visible": True})
 
     entities = list(yield_entities(base_url, endpoint, filter_dict))
 

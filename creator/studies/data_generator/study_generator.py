@@ -361,8 +361,11 @@ class StudyGenerator(object):
         :param ingest_kwargs: Keyword arguments to forward to the constructor
         of the ingest pipeline
         """
-        # Load study, sequencing center into Dataservice
-        self.initialize_study()
+
+        dry_run = ingest_kwargs.get("dry_run")
+        if not dry_run:
+            # Load study, sequencing center into Dataservice
+            self.initialize_study()
 
         # Initialize pipeline - use default settings (KF Dataservice)
         self.ingest_pipeline = DataIngestPipeline(
@@ -383,6 +386,12 @@ class StudyGenerator(object):
             etype = payload["type"]
             kf_id = payload["body"]["kf_id"]
             self.dataservice_payloads[etype][kf_id] = payload["body"]
+
+        self.cache = getattr(
+            self.ingest_pipeline.stages.get("LoadStage"),
+            "uid_cache",
+            None
+        )
 
     def _create_bio_manifest(self) -> pd.DataFrame:
         """

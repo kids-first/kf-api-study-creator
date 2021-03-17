@@ -255,6 +255,9 @@ LOGGING = {
         "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
+        "creator.ingest_runs.genomic_data_loader": {
+            "handlers": ["task"], "level": "DEBUG"
+        }
     },
 }
 

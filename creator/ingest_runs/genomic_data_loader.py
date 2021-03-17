@@ -1,16 +1,15 @@
 from creator.ingest_runs import utils
+from django.conf import settings
 import ast
-import os
 import logging
-from pprint import pprint
-
+import os
 import pandas as pd
 
 from kf_lib_data_ingest.app import settings as ingest_settings
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
 from kf_lib_data_ingest.etl.load.load import LoadStage
 
-from creator.ingest_runs.data_generator.ingest_package.extract_configs.s3_scrape_config import genomic_file_ext  # noqa
+from creator.studies.data_generator.ingest_package.extract_configs.s3_scrape_config import genomic_file_ext  # noqa
 
 GEN_FILE = "genomic_file"
 GEN_FILES = "genomic-files"
@@ -20,29 +19,15 @@ SEQ_EXP_GEN_FILE = "sequencing_experiment_genomic_file"
 SEQ_EXP_GEN_FILES = "sequencing-experiment-genomic-files"
 BIO_GEN_FILE = "biospecimen_genomic_file"
 BIO_GEN_FILES = "biospecimen-genomic-files"
-LOAD_ENTITY_TYPES = [GEN_FILE, BIO_GEN_FILE, SEQ_EXP_GEN_FILE]
+LOAD_ENTITY_TYPES = {GEN_FILE, BIO_GEN_FILE, SEQ_EXP_GEN_FILE}
 
-LOCALHOST = "http://localhost:5000"  # testing
-DATASERVICE_URL = LOCALHOST  # During testing
+logger = logging.getLogger(__name__)
 
 
 class GenomicDataLoader(object):
-
-    def __init__(self, study_id, init_logger=False):
-        self.study_id = study_id
-
-        if init_logger:
-            format_ = (
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            root = logging.getLogger()
-            consoleHandler = logging.StreamHandler()
-            consoleHandler.setFormatter(logging.Formatter(format_))
-            root.setLevel("INFO")
-            root.addHandler(consoleHandler)
-
-        self.logger = logging.getLogger(type(self).__name__)
-
+    def __init__(self, study):
+        self.study = study
+        self.study_id = study.kf_id
         self.loader = None
         self.target_api_cfg = ingest_settings.load().TARGET_API_CONFIG
 
@@ -61,7 +46,7 @@ class GenomicDataLoader(object):
         source files have direct relations to the specimens and sequencing
         experiments.
         """
-        self.logger.info(
+        logger.info(
             "Begin the ingest process for genomic workflow output files"
         )
         # -- Step 1: Load harmonized genomic files --
@@ -81,7 +66,7 @@ class GenomicDataLoader(object):
     def load_harmonized_genomic_files(self, manifest_df):
         """
         Load harmonized genomic file metadata from the manifest into the
-        DataService.Scrape S3 to obtain file metadata needed.
+        DataService. Scrape S3 to obtain file metadata needed.
 
         After loading, grab the generated kf_ids from the ingest lib cache,
         join them to _genomic_df_ and then return _genomic_df_. This DataFrame
@@ -90,10 +75,8 @@ class GenomicDataLoader(object):
         assert not manifest_df.empty, "Empty manifest DataFrame"
 
         # Get S3 file metadata
-        buckets = set(
-            os.path.split(row)[0] for row in manifest_df["Filepath"]
-        )
-        self.logger.info(f"Getting file metadata from S3 {buckets} ...")
+        buckets = set(os.path.split(row)[0] for row in manifest_df["Filepath"])
+        logger.info(f"Getting file metadata from S3 {buckets} ...")
 
         file_df = utils.scrape_s3(buckets)
         file_df = file_df[~file_df["Filename"].isnull()]
@@ -106,9 +89,9 @@ class GenomicDataLoader(object):
         genomic_df = self._prep_harmonized_gf_df(genomic_df)
 
         df = genomic_df.drop_duplicates([CONCEPT.GENOMIC_FILE.ID])
-        self.logger.info(
+        logger.info(
             f"Loading {df.shape[0]} harmonized genomic files into "
-            f"{DATASERVICE_URL}"
+            f"{settings.DATASERVICE_URL}"
         )
 
         # Load harmonized genomic files
@@ -125,28 +108,32 @@ class GenomicDataLoader(object):
         the appropriate biospecimen-genomic-file records into the Data Service
         """
         # Prepare data
-        biospec_gen_df = genomic_df[[
-            CONCEPT.GENOMIC_FILE.ID,
-            CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
-            CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
-        ]]
+        biospec_gen_df = genomic_df[
+            [
+                CONCEPT.GENOMIC_FILE.ID,
+                CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
+                CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
+            ]
+        ]
         biospec_gen_df[CONCEPT.BIOSPECIMEN.ID] = biospec_gen_df[
             CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID
         ]
         biospec_gen_df[CONCEPT.BIOSPECIMEN_GENOMIC_FILE.VISIBLE] = True
         df = biospec_gen_df.drop_duplicates(
-            [CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
-             CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID],
+            [
+                CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
+                CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
+            ],
         )
 
         # Load into Data Service
-        self.logger.info(
+        logger.info(
             f"Creating {df.shape[0]} biospecimen-genomic-file links in "
-            f"{DATASERVICE_URL}"
+            f"{settings.DATASERVICE_URL}"
         )
         _ = self._load_entities(BIO_GEN_FILE, df)
 
-        return biospec_gen_df
+        return df
 
     def load_seq_exp_harmonized_genomic_files(self, genomic_df):
         """
@@ -162,11 +149,9 @@ class GenomicDataLoader(object):
         """
         # Get sequencing experiments for the unharmonized genomic files in
         # the study
-        se_source_gf_df = self._get_seq_experiment_genomic_files(
-            harmonized=False
-        )
-        # Merge ^ with the genomic df which as both harmonized and unharmonized
-        # gfs in one table
+        se_source_gf_df = self._get_seq_experiment_genomic_files()
+        # Merge ^ with the genomic df which has both harmonized and
+        # unharmonized gfs in one table
         se_gf_df = pd.merge(
             genomic_df, se_source_gf_df, on=CONCEPT.GENOMIC_FILE.SOURCE_FILE
         )
@@ -174,42 +159,45 @@ class GenomicDataLoader(object):
 
         # Load the harmonized genomic-file sequencing-experiment links
         df = se_gf_df.drop_duplicates(
-            [CONCEPT.SEQUENCING.TARGET_SERVICE_ID,
-             CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID],
+            [
+                CONCEPT.SEQUENCING.TARGET_SERVICE_ID,
+                CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
+            ],
         )
-        self.logger.info(
+        logger.info(
             f"Creating {df.shape[0]} sequencing-experiment-genomic-file "
-            f"links in {DATASERVICE_URL}"
+            f"links in {settings.DATASERVICE_URL}"
         )
         _ = self._load_entities(SEQ_EXP_GEN_FILE, df)
 
-        return se_gf_df
+        return df
 
     def _prep_harmonized_gf_df(self, df):
         """
         Part of Step 1
 
-        Clean up the genomic file DataFrame (output from get_s3_file_metadata)
-        and get it ready to be ingested by transforming column values and
-        standardizing the column names.
+        Clean up the genomic file DataFrame (_manifest_df_ joined with S3
+        data obtained from utils.scrape_s3) and get it ready to be ingested
+        by transforming column values and standardizing the column names.
         """
-        self.logger.info("Preparing genomic file DataFrame for ingest ...")
+        logger.info("Preparing genomic file DataFrame for ingest ...")
 
-        df['Hashes'] = df.apply(lambda row: {"ETag": row['ETag']}, axis=1)
-        df['urls'] = df.apply(lambda row: [row['Filepath']], axis=1)
-        df['file_type'] = df.apply(
-            lambda row: genomic_file_ext(row["Filename"]), axis=1,
+        df["Hashes"] = df.apply(lambda row: {"ETag": row["ETag"]}, axis=1)
+        df["urls"] = df.apply(lambda row: [row["Filepath"]], axis=1)
+        df["file_type"] = df.apply(
+            lambda row: genomic_file_ext(row["Filename"]),
+            axis=1,
         )
         col_rename = {
-            'KF Biospecimen ID': CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
-            'Data Type': CONCEPT.GENOMIC_FILE.DATA_TYPE,
-            'Filename': CONCEPT.GENOMIC_FILE.FILE_NAME,
-            'Hashes': CONCEPT.GENOMIC_FILE.HASH_DICT,
-            'Size': CONCEPT.GENOMIC_FILE.SIZE,
-            'urls': CONCEPT.GENOMIC_FILE.URL_LIST,
-            'file_type': CONCEPT.GENOMIC_FILE.FILE_FORMAT,
-            'Filepath': CONCEPT.GENOMIC_FILE.ID,
-            'Source Read': CONCEPT.GENOMIC_FILE.SOURCE_FILE,
+            "KF Biospecimen ID": CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
+            "Data Type": CONCEPT.GENOMIC_FILE.DATA_TYPE,
+            "Filename": CONCEPT.GENOMIC_FILE.FILE_NAME,
+            "Hashes": CONCEPT.GENOMIC_FILE.HASH_DICT,
+            "Size": CONCEPT.GENOMIC_FILE.SIZE,
+            "urls": CONCEPT.GENOMIC_FILE.URL_LIST,
+            "file_type": CONCEPT.GENOMIC_FILE.FILE_FORMAT,
+            "Filepath": CONCEPT.GENOMIC_FILE.ID,
+            "Source Read": CONCEPT.GENOMIC_FILE.SOURCE_FILE,
         }
         df = df[list(col_rename.keys())]
         df.rename(columns=col_rename, inplace=True)
@@ -226,40 +214,41 @@ class GenomicDataLoader(object):
         as a new column to the genomic file DataFrame _genomic_df_.
         Return _genomic_df_
         """
-        self.logger.info(
+        logger.info(
             "Fetching harmonized genomic file KF IDs from ingest cache ..."
         )
         cache_dict = {
-            ast.literal_eval(key)['external_id']: value
+            ast.literal_eval(key)["external_id"]: value
             for key, value in ingest_cache["genomic_file"].items()
         }
         hash_df = pd.DataFrame(
             list(cache_dict.items()),
             columns=[
-                CONCEPT.GENOMIC_FILE.ID, CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID
+                CONCEPT.GENOMIC_FILE.ID,
+                CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
             ],
         )
         genomic_df = genomic_df.merge(
             right=hash_df,
             on=CONCEPT.GENOMIC_FILE.ID,
-            how='inner',
+            how="inner",
         )
         return genomic_df
 
-    def _get_seq_experiment_genomic_files(self, harmonized=False):
+    def _get_seq_experiment_genomic_files(self):
         """
         Part of Step 3
 
         Get related sequencing experiments for a study's
-        genomic files. Returns the DataFrame from step 4.
+        genomic files. Returns the DataFrame from step 5.
 
-        1. Get the study's genomic files
+        1. Get the study's unharmonized genomic files
         2. Get the study's sequencing-experiments
         3. Get the study's sequencing-experiment-genomic-file links
         4. Extract the KF IDs from step 1, 2, 3
         5. Join DataFrames from 1, 2, 3
         """
-        self.logger.info(
+        logger.info(
             "Fetching sequencing experiment info for source genomic files ..."
         )
 
@@ -268,7 +257,7 @@ class GenomicDataLoader(object):
             The links given by the DataService yield strings of the form
             /entity-type/kf_id. This function will return the kf_id.
             """
-            return link.split('/')[-1]
+            return link.split("/")[-1]
 
         dfs = {}
         endpoints = {
@@ -278,13 +267,15 @@ class GenomicDataLoader(object):
         }
 
         # Steps 1-3
-        filter_dict = {}
         for endpoint in endpoints:
-            if endpoint == GEN_FILES:
-                filter_dict = {"harmonized": harmonized}
+            filter_dict = (
+                {"is_harmonized": False} if endpoint == GEN_FILES else None
+            )
             dfs[endpoint] = utils.get_entities(
-                DATASERVICE_URL, endpoint,
-                self.study_id, filter_dict=filter_dict
+                settings.DATASERVICE_URL,
+                endpoint,
+                self.study_id,
+                filter_dict=filter_dict,
             )
 
         # Step 4
@@ -292,7 +283,7 @@ class GenomicDataLoader(object):
         gdf = dfs[GEN_FILES][["kf_id", "external_id"]].rename(
             columns={
                 "kf_id": "gf_kf_id",
-                "external_id": CONCEPT.GENOMIC_FILE.SOURCE_FILE
+                "external_id": CONCEPT.GENOMIC_FILE.SOURCE_FILE,
             }
         )
         # Sequencing experiments
@@ -320,9 +311,8 @@ class GenomicDataLoader(object):
             lambda link: get_kf_id(link)
         )
         sgdf[CONCEPT.SEQUENCING.TARGET_SERVICE_ID] = sgdf[
-            "_links.sequencing_experiment"].apply(
-            lambda link: get_kf_id(link)
-        )
+            "_links.sequencing_experiment"
+        ].apply(lambda link: get_kf_id(link))
         # Merge se-gf with se
         sgdf = pd.merge(sedf, sgdf, on=CONCEPT.SEQUENCING.TARGET_SERVICE_ID)
 
@@ -339,15 +329,17 @@ class GenomicDataLoader(object):
     def _load_entities(self, entity_type, df):
         """
         Uses the ingest lib's load stage to load the entities of _entity_type_
-        from DataFrame _df_ into the Data Service
+        from DataFrame _df_ into the Data Service.
         """
         self.loader = LoadStage(
             self.target_api_cfg,
-            DATASERVICE_URL,
+            settings.DATASERVICE_URL,
             [entity_type],
             self.study_id,
             cache_dir=os.getcwd(),
         )
+        self.loader.logger = logger
+        self.loader.logger.setLevel(logging.DEBUG)
         self.loader.run({entity_type: df})
         return self.loader.uid_cache
 
