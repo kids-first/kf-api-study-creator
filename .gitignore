@@ -6,3 +6,5 @@ db.sqlite3
 *.swp
 build/
 .hypothesis
+LoadStage/
+cached_schema.json
