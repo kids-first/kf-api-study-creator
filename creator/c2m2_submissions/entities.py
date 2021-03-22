@@ -380,6 +380,7 @@ class PrimaryDCCContact(Entity):
     _filename: str = "primary_dcc_contact.tsv"
 
 
+@dataclass
 class ProjectInProject(Entity):
     parent_project_id_namespace: Optional[str] = None
     parent_project_local_id: Optional[str] = None
@@ -387,6 +388,27 @@ class ProjectInProject(Entity):
     child_project_local_id: Optional[str] = None
 
     _filename: str = "project_in_project.tsv"
+
+    @classmethod
+    def _fetch_entities(cls, study: Optional[str]) -> List["Project"]:
+        """
+        Relate each study back to the top-level Kids First project.
+        If no study is given, we cannot make any relations.
+        """
+        if study is None:
+            return []
+
+        entities = []
+
+        entities.append(
+            ProjectInProject(
+                parent_project_id_namespace=ROOT_PROJECT_NS,
+                parent_project_local_id=ROOT_PROJECT_LOCAL_ID,
+                child_project_id_namespace=ROOT_PROJECT_NS,
+                child_project_local_id=study,
+            )
+        )
+        return entities
 
 
 class Subject(Entity):
