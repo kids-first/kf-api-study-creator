@@ -204,17 +204,35 @@ class Project(Entity):
     )
 
     @classmethod
-    def _fetch_entities(cls, study: Optional[str]) -> "Project":
+    def _fetch_entities(cls, study: Optional[str]) -> List["Project"]:
+        """
+        If no study is passed, create the high-level project for Kids First.
+        If a study is passed, retrieve its info from the DataService
+        """
         entities = []
-        try:
-            resp = requests.get(f"{settings.DATASERVICE_URL}/studies/{study}")
-        except Exception as err:
-            logger.error(
-                f"Problem getting study {study} from Dataservice: {err}"
+        # Make the high-level project which is not captured in the Dataservice
+        if study is None:
+            entities.append(
+                Project(
+                    id_namespace=ROOT_PROJECT_NS,
+                    local_id=ROOT_PROJECT_LOCAL_ID,
+                    abbreviation=ROOT_PROJECT_ABBR,
+                    name=ROOT_PROJECT_NAME,
+                    description=ROOT_PROJECT_DESCRIPTION,
+                )
             )
-            raise
+        else:
+            try:
+                resp = requests.get(
+                    f"{settings.DATASERVICE_URL}/studies/{study}"
+                )
+            except Exception as err:
+                logger.error(
+                    f"Problem getting study {study} from Dataservice: {err}"
+                )
+                raise
+            entities.append(cls._deserialize(resp.json()["results"]))
 
-        entities.append(cls._deserialize(resp.json()["results"]))
         return entities
 
 
