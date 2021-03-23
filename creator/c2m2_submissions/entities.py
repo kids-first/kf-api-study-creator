@@ -195,7 +195,7 @@ class Project(Entity):
     _endpoint: str = "studies"
     _mapping: Dict[str, Mapping] = field(
         default_factory=lambda: {
-            "id_namespace": StrConst("kidsfirst"),
+            "id_namespace": StrConst(ROOT_PROJECT_NS),
             "local_id": DSField("kf_id"),
             "abbreviation": DSField("kf_id"),
             "name": DSField("short_name"),
@@ -358,6 +358,7 @@ class FileInCollection(Entity):
     _filename: str = "file_in_collection.tsv"
 
 
+@dataclass
 class IdNamespace(Entity):
     id: Optional[str] = None
     abbreviation: Optional[str] = None
@@ -365,6 +366,20 @@ class IdNamespace(Entity):
     description: Optional[str] = None
 
     _filename: str = "id_namespace.tsv"
+
+    @classmethod
+    def _fetch_entities(cls, study: Optional[str]) -> List["IdNamespace"]:
+        """
+        Write out a single record for the kidsfirst namespace
+        """
+        ns = cls(
+            id=ROOT_PROJECT_NS,
+            abbreviation="KFDRC_NS",
+            name=ROOT_PROJECT_NAME,
+            description=ROOT_PROJECT_DESCRIPTION,
+        )
+
+        return [ns]
 
 
 class PrimaryDCCContact(Entity):
