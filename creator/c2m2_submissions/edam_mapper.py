@@ -1,15 +1,18 @@
 import os
 import logging
 import requests
+from dataclasses import dataclass
 from owlready2 import get_ontology
-from typing import Optional
+from typing import Optional, TypedDict
 
 logger = logging.getLogger(__name__)
 
 EDAM_PATH = "./edam.owl"
 
+Entry = TypedDict("Entry", {"label": str, "description": str})
 
-def get_edam_mapping():
+
+def get_edam_mapping() -> Dict[str, Entry]:
     """
     Build mapping of edam ontology to use for data type and file format
     encoding.
@@ -23,10 +26,15 @@ def get_edam_mapping():
     for c in list(onto.classes()):
         if "data" not in c.get_name(c) and "format" not in c.get_name(c):
             continue
-        for p in c.get_properties(c):
 
+        entry = {}
+        for p in c.get_properties(c):
+            # print(p, p[c])
             if p._name == "label":
-                mapping[p[c][0]] = c.get_name(c).replace("_", ":")
+                entry["label"] = c.get_name(c).replace("_", ":")
+            if p._name == "hasDefinition":
+                entry["description"] = p[c][0]
+        mapping[entry["label"]] = entry
 
     return mapping
 
