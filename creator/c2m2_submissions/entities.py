@@ -22,7 +22,7 @@ from .globals import (
     ROOT_PROJECT_ABBR,
     ROOT_PROJECT_LOCAL_ID,
 )
-from .edam_mapper import edam_data_type_mapper, edam_file_format_mapper
+from .edam_mapper import EDAMMapper
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,9 @@ class Table(Generic[EntityType]):
             writer = csv.writer(f, delimiter="\t")
             for e in self.entities:
                 writer.writerow(T._serialize(e))
+
+
+mapper = EDAMMapper()
 
 
 class Entity:
@@ -152,11 +155,11 @@ class Entity:
             elif type(v) is DSField:
                 props[k] = data.get(v, None)
             elif type(v) is FileFormat:
-                props[k] = edam_file_format_mapper(data.get(v, None))
+                props[k] = mapper.map_file_format(data.get(v, None))
             elif type(v) is FileNameField:
                 props[k] = filename_mapper(data.get(v, None))
             elif type(v) is DataType:
-                props[k] = edam_data_type_mapper(data.get(v, None))
+                props[k] = mapper.map_data_type(data.get(v, None))
 
         # Actually set properties on the instance
         for k, v in props.items():

@@ -3,7 +3,7 @@ import logging
 import requests
 from dataclasses import dataclass
 from owlready2 import get_ontology
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -11,35 +11,6 @@ EDAM_PATH = "./edam.owl"
 
 Entry = TypedDict("Entry", {"label": str, "description": str})
 
-
-def get_edam_mapping() -> Dict[str, Entry]:
-    """
-    Build mapping of edam ontology to use for data type and file format
-    encoding.
-    """
-
-    onto = get_ontology(
-        "https://www.ebi.ac.uk/ols/ontologies/edam/download"
-    ).load()
-
-    mapping = {}
-    for c in list(onto.classes()):
-        if "data" not in c.get_name(c) and "format" not in c.get_name(c):
-            continue
-
-        entry = {}
-        for p in c.get_properties(c):
-            # print(p, p[c])
-            if p._name == "label":
-                entry["label"] = c.get_name(c).replace("_", ":")
-            if p._name == "hasDefinition":
-                entry["description"] = p[c][0]
-        mapping[entry["label"]] = entry
-
-    return mapping
-
-
-MAPPING = get_edam_mapping()
 
 DATA_TYPES = {
     "Aligned Reads": "Alignment",
@@ -66,24 +37,74 @@ DATA_TYPES = {
 }
 
 
-def edam_data_type_mapper(v: Optional[str]) -> Optional[str]:
-    data_type = MAPPING.get(v, None)
-    if data_type is None:
-        data_type = MAPPING.get(DATA_TYPES.get(v))
-    # If the data: prefix is not there, we must have resolved a bad
-    # value, like a file format, for instance.
-    if data_type is not None and "data:" not in data_type:
-        return None
-    return data_type
+class EDAMMapper:
+    def __init__(
+        self,
+        edam_url: str = "https://www.ebi.ac.uk/ols/ontologies/edam/download",
+    ):
+        self.edam_url = edam_url
+        self._onto = None
+        self._mapping: Dict[str, Entry] = None
 
+    @property
+    def onto(self):
+        """
+        Load the EDAM ontology if it has not yet been loaded
+        """
+        if self._onto is None:
+            self._onto = get_ontology(self.edam_url).load()
 
-def edam_file_format_mapper(v: Optional[str]) -> str:
-    file_format = MAPPING.get(v, None)
-    if file_format is None:
-        # Often the dataservice file formats are just lowercased EDAM values
-        file_format = MAPPING.get(v.upper(), None)
+        return self._onto
 
-    if file_format is not None and "format:" not in file_format:
-        return None
+    def _get_edam_mapping(self) -> Dict[str, Entry]:
+        """
+        Build mapping of edam ontology to use for data type and file format
+        encoding.
+        """
 
-    return file_format
+        mapping = {}
+        for c in list(self.onto.classes()):
+            if "data_" not in c.get_name(c) and "format_" not in c.get_name(c):
+                continue
+
+            entry = {}
+            name = None
+            for p in c.get_properties(c):
+                if p._name == "label":
+                    entry["label"] = c.get_name(c).replace("_", ":")
+                    name = p[c][0]
+                if p._name == "hasDefinition":
+                    entry["description"] = p[c][0]
+
+            mapping[name] = entry
+        return mapping
+
+    @property
+    def mapping(self):
+        if self._mapping is None:
+            self._mapping = self._get_edam_mapping()
+
+        return self._mapping
+
+    def map_data_type(self, v: Optional[str]) -> Optional[str]:
+        data_type = self.mapping.get(v, None)
+        if data_type is None:
+            data_type = self.mapping.get(DATA_TYPES.get(v.upper()))
+
+        if data_type is not None:
+            # If the data: prefix is not there, we must have resolved a bad
+            # value, like a file format, for instance.
+            if "data:" not in data_type["label"]:
+                return None
+            return data_type["label"]
+
+    def map_file_format(self, v: Optional[str]) -> str:
+        file_format = self.mapping.get(v, None)
+        if file_format is None:
+            # Often the dataservice file formats are just lowercased EDAM
+            file_format = self.mapping.get(v.upper(), None)
+
+        if file_format is not None:
+            if "format:" not in file_format["label"]:
+                return None
+            return file_format["label"]
