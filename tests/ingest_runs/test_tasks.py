@@ -82,6 +82,37 @@ def test_run_ingest(db, mocker, clients, prep_file):
     assert except_ir.state == "failed"
 
 
+def test_ingest_gwo_feat_flag(db, clients, mocker, prep_file, settings):
+    """
+    Test that running the GWO manifest ingest pipeline does not work when the
+    feature flag is turned off.
+    """
+    client = clients.get("Administrators")
+    settings.FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS = False
+    mock_genomic_workflow = mocker.patch(
+        "creator.ingest_runs.tasks.ingest_genomic_workflow_output_manifests"
+    )
+
+    user = User.objects.first()
+    # Create data.
+    for _ in range(3):
+        prep_file(authed=True)
+    files = list(File.objects.all())
+    for file_ in files:
+        file_.file_type = FileType.GWO.value
+        file_.save()
+    versions = [f.versions.first() for f in files]
+
+    ir = setup_ingest_run(versions, user)
+    with pytest.raises(Exception) as ex:
+        run_ingest(ir.id)
+    assert str(ex.value).startswith("Ingesting genomic workflow")
+    assert IngestRun.objects.all().count() == 1
+    ir = IngestRun.objects.get(pk=ir.id)
+    assert ir.state == "failed"
+    mock_genomic_workflow.assert_not_called()
+
+
 def setup_ingest_run(file_versions, user):
     ir = IngestRun()
     ir.creator = user
