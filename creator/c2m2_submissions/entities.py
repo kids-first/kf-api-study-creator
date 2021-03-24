@@ -40,7 +40,7 @@ def filename_mapper(name: Optional[str]):
 @dataclass
 class Table(Generic[EntityType]):
     out_dir: str = "data_dir"
-    entities: list[EntityType] = field(default_factory=list)
+    entities: List[EntityType] = field(default_factory=list)
 
     def prepare_file(self):
         """
