@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import call
 from creator.files.models import File, FileType
 from creator.ingest_runs.models import IngestRun
 from creator.ingest_runs.tasks import (
@@ -98,10 +97,11 @@ def test_ingest_gwo_feat_flag(db, clients, mocker, prep_file, settings):
     for _ in range(3):
         prep_file(authed=True)
     files = list(File.objects.all())
+    versions = []
     for file_ in files:
         file_.file_type = FileType.GWO.value
         file_.save()
-    versions = [f.versions.first() for f in files]
+        versions.append(file_.versions.first())
 
     ir = setup_ingest_run(versions, user)
     with pytest.raises(Exception) as ex:
@@ -111,6 +111,26 @@ def test_ingest_gwo_feat_flag(db, clients, mocker, prep_file, settings):
     ir = IngestRun.objects.get(pk=ir.id)
     assert ir.state == "failed"
     mock_genomic_workflow.assert_not_called()
+
+
+def test_cancel_ingest(db, clients, prep_file):
+    """
+    Test the cancel_ingest function.
+    """
+    client = clients.get("Administrators")
+
+    # Create some data
+    for i in range(2):
+        prep_file(authed=True)
+    file_versions = [f.versions.first() for f in File.objects.all()]
+    user = User.objects.first()
+    ir = setup_ingest_run(file_versions, user)
+    ir.start()
+    ir.save()
+    cancel_ingest(ir.id)
+    ir = IngestRun.objects.get(pk=ir.id)
+    assert IngestRun.objects.all().count() == 1
+    assert ir.state == "canceled"
 
 
 def setup_ingest_run(file_versions, user):

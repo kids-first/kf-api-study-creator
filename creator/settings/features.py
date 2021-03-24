@@ -43,9 +43,7 @@ FEAT_STUDY_BUCKETS_REPLICATION_ENABLED = (
 )
 
 # The aws region where data recovery buckets will be stored
-STUDY_BUCKETS_DR_REGION = os.environ.get(
-    "STUDY_BUCKETS_DR_REGION", "us-west-2"
-)
+STUDY_BUCKETS_DR_REGION = os.environ.get("STUDY_BUCKETS_DR_REGION", "us-west-2")
 
 # The name of the bucket where bucket access logs will be stored for data
 # recovery buckets
@@ -138,9 +136,7 @@ SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 
 
 # Whether to create Slack channels for new studies
-FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
-    "FEAT_SLACK_CREATE_CHANNELS", False
-)
+FEAT_SLACK_CREATE_CHANNELS = os.environ.get("FEAT_SLACK_CREATE_CHANNELS", False)
 
 # Slack user IDs for users to add to new channels created for studies
 # User IDs should be separated by commas
@@ -163,7 +159,7 @@ SLACK_RELEASE_CHANNEL = os.environ.get(
 # harmonized genomic files.
 
 FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS = os.environ.get(
-    'FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS', 'True'
+    "FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS", "True"
 )
 
 
