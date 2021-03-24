@@ -1,13 +1,10 @@
-import django_rq
 import logging
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 
 from creator.decorators import task
 from creator.files.models import FileType
 from creator.ingest_runs.models import IngestRun
-from creator.utils import stop_job
 
 
 logger = logging.getLogger(__name__)
@@ -71,17 +68,4 @@ def cancel_ingest(ingest_run_uuid=None):
 
 
 def ingest_genomic_workflow_output_manifests(ingest_run):
-    # TODO
-    print(
-        f"Begin ingesting genomic workflow manifests: "
-        f"{list(ingest_run.versions.all())}"
-    )
-    import time
-
-    t_end = time.time() + 10
-    progress = ""
-    while time.time() < t_end:
-        time.sleep(1)
-        progress += "."
-        print(progress)
-    print(f"Finished ingest run {ingest_run.id}")
+    pass

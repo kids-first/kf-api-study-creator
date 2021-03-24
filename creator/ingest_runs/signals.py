@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django_fsm.signals import post_transition
 
 from creator.events.models import Event
-from creator.files.models import File, Version
+from creator.files.models import Version
 from creator.ingest_runs.models import IngestRun
 from creator.ingest_runs.tasks import cancel_ingest
 
