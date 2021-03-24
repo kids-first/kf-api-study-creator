@@ -50,9 +50,14 @@ class Command(BaseCommand):
         self.out_dir = options.get("out_dir")
         self.setup_directory()
 
+        mapper = EDAMMapper()
+        mapper.write(self.out_dir)
+
         self.tables = [
             entities.Table[entity](out_dir=self.out_dir)
             for entity in [
+                entities.Anatomy,
+                entities.AssayType,
                 entities.Biosample,
                 entities.BiosampleFromSubject,
                 entities.BiosampleInCollection,
@@ -64,6 +69,7 @@ class Command(BaseCommand):
                 entities.FileDescribesSubject,
                 entities.FileInCollection,
                 entities.IdNamespace,
+                entities.NCBITaxonomy,
                 entities.PrimaryDCCContact,
                 entities.Project,
                 entities.ProjectInProject,

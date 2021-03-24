@@ -1060,6 +1060,177 @@ DATAPACKAGE = {
         },
         {
             "profile": "tabular-data-resource",
+            "name": "assay_type",
+            "title": "assay_type",
+            "path": "assay_type.tsv",
+            "description": "List of Ontology for Biomedical Investigations (OBI) CV terms used to describe types of experiment that generate results stored in C2M2 files",
+            "schema": {
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "An OBI CV term",
+                        "type": "string",
+                        "constraints": {
+                            "required": True,
+                            "unique": True,
+                            "pattern": "^OBI:[0-9]+$",
+                        },
+                    },
+                    {
+                        "name": "name",
+                        "description": "A short, human-readable, machine-read-friendly label for this OBI term",
+                        "type": "string",
+                    },
+                    {
+                        "name": "description",
+                        "description": "A human-readable description of this OBI term",
+                        "type": "string",
+                    },
+                ],
+                "missingValues": [""],
+                "primaryKey": "id",
+            },
+        },
+        {
+            "profile": "tabular-data-resource",
+            "name": "ncbi_taxonomy",
+            "title": "ncbi_taxonomy",
+            "path": "ncbi_taxonomy.tsv",
+            "description": "List of NCBI Taxonomy Database IDs identifying taxa used to describe C2M2 subjects",
+            "schema": {
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "An NCBI Taxonomy Database ID identifying a particular taxon",
+                        "type": "string",
+                        "constraints": {
+                            "required": True,
+                            "unique": True,
+                            "pattern": "^NCBI:txid[0-9]+$",
+                        },
+                    },
+                    {
+                        "name": "clade",
+                        "description": "The phylogenetic level (e.g. species, genus) assigned to this taxon",
+                        "type": "string",
+                        "constraints": {"required": True},
+                    },
+                    {
+                        "name": "name",
+                        "description": "A short, human-readable, machine-read-friendly label for this taxon",
+                        "type": "string",
+                    },
+                    {
+                        "name": "description",
+                        "description": "A human-readable description of this taxon",
+                        "type": "string",
+                    },
+                ],
+                "missingValues": [""],
+                "primaryKey": "id",
+            },
+        },
+        {
+            "profile": "tabular-data-resource",
+            "name": "anatomy",
+            "title": "anatomy",
+            "path": "anatomy.tsv",
+            "description": "List of Uber-anatomy ontology (Uberon) CV terms used to locate the origin of a C2M2 biosample within the physiology of its source or host organism",
+            "schema": {
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "An Uberon CV term",
+                        "type": "string",
+                        "constraints": {
+                            "required": True,
+                            "unique": True,
+                            "pattern": "^UBERON:[0-9]+$",
+                        },
+                    },
+                    {
+                        "name": "name",
+                        "description": "A short, human-readable, machine-read-friendly label for this Uberon term",
+                        "type": "string",
+                    },
+                    {
+                        "name": "description",
+                        "description": "A human-readable description of this Uberon term",
+                        "type": "string",
+                    },
+                ],
+                "missingValues": [""],
+                "primaryKey": "id",
+            },
+        },
+        {
+            "profile": "tabular-data-resource",
+            "name": "file_format",
+            "title": "file_format",
+            "path": "file_format.tsv",
+            "description": "List of EDAM CV 'format:' terms used to describe formats of C2M2 files",
+            "schema": {
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "An EDAM CV format term",
+                        "type": "string",
+                        "constraints": {
+                            "required": True,
+                            "unique": True,
+                            "pattern": "^format:[0-9]+$",
+                        },
+                    },
+                    {
+                        "name": "name",
+                        "description": "A short, human-readable, machine-read-friendly label for this EDAM format term",
+                        "type": "string",
+                    },
+                    {
+                        "name": "description",
+                        "description": "A human-readable description of this EDAM format term",
+                        "type": "string",
+                    },
+                ],
+                "missingValues": [""],
+                "primaryKey": "id",
+            },
+        },
+        {
+            "profile": "tabular-data-resource",
+            "name": "data_type",
+            "title": "data_type",
+            "path": "data_type.tsv",
+            "description": "List of EDAM CV 'data:' terms used to describe data in C2M2 files",
+            "schema": {
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "An EDAM CV data term",
+                        "type": "string",
+                        "constraints": {
+                            "required": True,
+                            "unique": True,
+                            "pattern": "^data:[0-9]+$",
+                        },
+                    },
+                    {
+                        "name": "name",
+                        "description": "A short, human-readable, machine-read-friendly label for this EDAM data term",
+                        "type": "string",
+                    },
+                    {
+                        "name": "description",
+                        "description": "A human-readable description of this EDAM data term",
+                        "type": "string",
+                    },
+                ],
+                "missingValues": [""],
+                "primaryKey": "id",
+            },
+        },
+        {
+            "profile": "tabular-data-resource",
             "name": "id_namespace",
             "title": "id_namespace",
             "path": "id_namespace.tsv",

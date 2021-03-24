@@ -239,6 +239,22 @@ class Project(Entity):
         return entities
 
 
+class Anatomy(Entity):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+    _filename: str = "anatomy.tsv"
+
+
+class AssayType(Entity):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+    _filename: str = "assay_type.tsv"
+
+
 class Biosample(Entity):
     id_namespace: Optional[str] = None
     local_id: Optional[str] = None
@@ -383,6 +399,15 @@ class IdNamespace(Entity):
         )
 
         return [ns]
+
+
+class NCBITaxonomy(Entity):
+    id: Optional[str] = None
+    clade: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+    _filename: str = "ncbi_taxonomy.tsv"
 
 
 class PrimaryDCCContact(Entity):
