@@ -14,6 +14,7 @@ from .types import (
     Mapping,
     FileNameField,
     DSField,
+    DSRelation,
 )
 from .globals import (
     ROOT_PROJECT_NS,
@@ -154,6 +155,14 @@ class Entity:
                 props[k] = v
             elif type(v) is DSField:
                 props[k] = data.get(v, None)
+            elif type(v) is DSRelation:
+                # Try to get the desired relation from _links
+                link = data.get("_links", {}).get(v, None)
+                if link is None:
+                    return
+                # Extract the kf_id from the link
+                link = link.split("/")[-1]
+                props[k] = link
             elif type(v) is FileFormat:
                 props[k] = mapper.map_file_format(data.get(v, None))
             elif type(v) is FileNameField:
@@ -255,6 +264,7 @@ class AssayType(Entity):
     _filename: str = "assay_type.tsv"
 
 
+@dataclass
 class Biosample(Entity):
     id_namespace: Optional[str] = None
     local_id: Optional[str] = None
@@ -265,8 +275,19 @@ class Biosample(Entity):
     anatomy: Optional[str] = None
 
     _filename: str = "biosample.tsv"
+    _endpoint: str = "biospecimens"
+    _mapping: Dict[str, Mapping] = field(
+        default_factory=lambda: {
+            "id_namespace": StrConst(ROOT_PROJECT_NS),
+            "local_id": DSField("kf_id"),
+            "project_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "project_local_id": DSField("study_id"),
+            "creation_time": DSField("created_at"),
+        }
+    )
 
 
+@dataclass
 class BiosampleFromSubject(Entity):
     biosample_id_namespace: Optional[str] = None
     biosample_local_id: Optional[str] = None
@@ -274,6 +295,16 @@ class BiosampleFromSubject(Entity):
     subject_local_id: Optional[str] = None
 
     _filename: str = "biosample_from_subject.tsv"
+
+    _endpoint: str = "biospecimens"
+    _mapping: Dict[str, Mapping] = field(
+        default_factory=lambda: {
+            "biosample_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "biosample_local_id": DSField("kf_id"),
+            "subject_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "subject_local_id": DSRelation("participant"),
+        }
+    )
 
 
 class BiosampleInCollection(Entity):
@@ -350,6 +381,7 @@ class File(Entity):
     )
 
 
+@dataclass
 class FileDescribesBiosample(Entity):
     file_id_namespace: Optional[str] = None
     file_local_id: Optional[str] = None
@@ -357,6 +389,16 @@ class FileDescribesBiosample(Entity):
     biosample_local_id: Optional[str] = None
 
     _filename: str = "file_describes_biosample.tsv"
+
+    _endpoint: str = "biospecimen-genomic-files"
+    _mapping: Dict[str, Mapping] = field(
+        default_factory=lambda: {
+            "file_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "file_local_id": DSRelation("genomic_file"),
+            "biosample_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "biosample_local_id": DSRelation("biospecimen"),
+        }
+    )
 
 
 class FileDescribesSubject(Entity):
@@ -454,6 +496,7 @@ class ProjectInProject(Entity):
         return entities
 
 
+@dataclass
 class Subject(Entity):
     id_namespace: Optional[str] = None
     local_id: Optional[str] = None
@@ -464,6 +507,17 @@ class Subject(Entity):
     granularity: Optional[str] = None
 
     _filename: str = "subject.tsv"
+    _endpoint: str = "participants"
+    _mapping: Dict[str, Mapping] = field(
+        default_factory=lambda: {
+            "id_namespace": StrConst(ROOT_PROJECT_NS),
+            "local_id": DSField("kf_id"),
+            "project_id_namespace": StrConst(ROOT_PROJECT_NS),
+            "project_local_id": DSField("study_id"),
+            "creation_time": DSField("created_at"),
+            "granularity": StrConst("cfde_subject_granularity:0"),
+        }
+    )
 
 
 class SubjectInCollection(Entity):
