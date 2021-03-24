@@ -110,7 +110,7 @@ class EDAMMapper:
     def map_data_type(self, v: Optional[str]) -> Optional[str]:
         data_type = self.mapping.get(v, None)
         if data_type is None:
-            data_type = self.mapping.get(DATA_TYPES.get(v.upper()))
+            data_type = self.mapping.get(DATA_TYPES.get(v))
 
         if data_type is not None:
             # If the data: prefix is not there, we must have resolved a bad
