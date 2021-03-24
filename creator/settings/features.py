@@ -137,7 +137,7 @@ FEAT_STUDY_BUCKETS_CREATE_BUCKETS = os.environ.get(
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 
 
-# Wheather to create Slack channels for new studies
+# Whether to create Slack channels for new studies
 FEAT_SLACK_CREATE_CHANNELS = os.environ.get(
     "FEAT_SLACK_CREATE_CHANNELS", False
 )
@@ -155,6 +155,15 @@ FEAT_SLACK_SEND_RELEASE_NOTIFICATIONS = (
 # Channel to post release notifications to
 SLACK_RELEASE_CHANNEL = os.environ.get(
     "SLACK_RELEASE_CHANNEL", "#release-notifications"
+)
+
+
+# GWO INGEST RUNS ##############################################################
+# The Study Creator can automate various ingest processes such as ingesting
+# harmonized genomic files.
+
+FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS = os.environ.get(
+    'FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS', 'True'
 )
 
 

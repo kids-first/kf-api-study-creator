@@ -1,6 +1,7 @@
 import django_rq
 import logging
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from creator.decorators import task
@@ -29,6 +30,16 @@ def run_ingest(ingest_run_uuid=None):
     versions = ingest_run.versions.all()
     are_gwo = all(check_gwo(version) for version in versions)
     if are_gwo:
+        # If FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is enabled, try to run
+        # the custom ingest process for genomic workflow manifests. If it's not
+        # enabled, raise an error and nothing else happens.
+        if not settings.FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS:
+            ingest_run.fail()
+            ingest_run.save()
+            raise Exception(
+                "Ingesting genomic workflow output manifests is not enabled."
+                "Make sure that FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is set."
+            )
         logging.info(
             "All files in the ingest run are genomic workflow manifests."
         )
