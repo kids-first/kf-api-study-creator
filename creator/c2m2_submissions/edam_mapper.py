@@ -1,4 +1,5 @@
 import os
+import csv
 import logging
 import requests
 from dataclasses import dataclass
@@ -55,6 +56,26 @@ class EDAMMapper:
             self._onto = get_ontology(self.edam_url).load()
 
         return self._onto
+
+    def write(self, out_dir: str):
+
+        # Write out the file formats
+        with open(os.path.join(out_dir, "file_format.tsv"), "w") as f:
+            writer = csv.writer(f, delimiter="\t", lineterminator="\n")
+
+            writer.writerow(["id", "name", "description"])
+            for name, entry in self.mapping.items():
+                if "format:" in entry["label"]:
+                    writer.writerow([entry["label"], name, name])
+
+        # Write out data types
+        with open(os.path.join(out_dir, "data_type.tsv"), "w") as f:
+            writer = csv.writer(f, delimiter="\t", lineterminator="\n")
+
+            writer.writerow(["id", "name", "description"])
+            for name, entry in self.mapping.items():
+                if "data:" in entry["label"]:
+                    writer.writerow([entry["label"], name, name])
 
     def _get_edam_mapping(self) -> Dict[str, Entry]:
         """

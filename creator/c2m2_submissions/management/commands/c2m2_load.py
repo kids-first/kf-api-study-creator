@@ -18,6 +18,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from creator.c2m2_submissions import entities
+from creator.c2m2_submissions.edam_mapper import EDAMMapper
 from creator.c2m2_submissions.datapackage import DATAPACKAGE
 from creator.c2m2_submissions.globals import PUBLISHED_STUDIES
 
