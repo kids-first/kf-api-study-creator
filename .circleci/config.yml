@@ -5,7 +5,7 @@ jobs:
       ignore:
         - gh-pages
     docker:
-      - image: python:3.7
+      - image: python:3.8
         environment:
           - PG_USER=study-creator
           - PG_PASS=password
