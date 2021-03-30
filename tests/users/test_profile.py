@@ -21,7 +21,6 @@ UPDATE_PROFILE = """
                 slackNotify
                 slackMemberId
                 emailNotify
-                roles
             }
         }
     }
@@ -66,9 +65,7 @@ def test_my_profile(
         )
 
 
-@pytest.mark.parametrize(
-    "field", ["password", "ego_roles", "ego_groups", "isStaff"]
-)
+@pytest.mark.parametrize("field", ["password", "isStaff"])
 def test_hidden_fields(db, admin_client, field):
     """
     Test that fields are not available

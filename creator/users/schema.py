@@ -92,12 +92,6 @@ class CollaboratorConnection(graphene.Connection):
 
 class UserNode(DjangoObjectType):
     display_name = graphene.String(source="display_name")
-    roles = graphene.List(
-        graphene.String, description="Roles that the user has"
-    )
-
-    def resolve_roles(self, info):
-        return self.ego_roles
 
     class Meta:
         model = User

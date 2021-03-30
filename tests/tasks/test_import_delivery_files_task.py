@@ -16,7 +16,7 @@ def test_import_delivery_files_task(db, mocker):
     mock = mocker.patch("creator.tasks.import_volume_files")
 
     project = ProjectFactory()
-    user = User(sub="abc", ego_roles=["USER"], ego_groups=[])
+    user = User(sub="abc")
     user.save()
 
     import_delivery_files_task(project.project_id, user.sub)
@@ -33,7 +33,7 @@ def test_import_delivery_files_task_no_project(db, mocker):
     """
     mock = mocker.patch("creator.tasks.import_volume_files")
 
-    user = User(sub="abc", ego_roles=["USER"], ego_groups=[])
+    user = User(sub="abc")
     user.save()
 
     with pytest.raises(Project.DoesNotExist):
@@ -64,7 +64,7 @@ def test_import_delivery_files_task_error(db, mocker):
     mock.side_effect = Exception("error occured")
 
     project = ProjectFactory()
-    user = User(sub="abc", ego_roles=["USER"], ego_groups=[])
+    user = User(sub="abc")
     user.save()
 
     with pytest.raises(Exception):
