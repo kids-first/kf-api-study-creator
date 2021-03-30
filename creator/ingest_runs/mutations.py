@@ -3,8 +3,10 @@ from graphql import GraphQLError
 from graphql_relay import from_global_id
 from django.db import transaction
 from django.core.exceptions import ValidationError
+
 from creator.ingest_runs.nodes import IngestRunNode
-from creator.ingest_runs.models import IngestRun
+from creator.ingest_runs.models import IngestRun, State
+from creator.ingest_runs.common.model import hash_versions
 from creator.ingest_runs.tasks import run_ingest, cancel_ingest
 from creator.files.models import Version
 
@@ -54,11 +56,11 @@ class StartIngestRunMutation(graphene.Mutation):
         # Create IngestRun for a set of file versions, if one does not exist
         # with same input_hash
         ingest_run = IngestRun()
-        input_hash = ingest_run.compute_input_hash(versions=versions)
+        input_hash = hash_versions(versions)
 
         # Check if duplicate IngestRuns exist
         irs_with_same_input_hash = IngestRun.objects.filter(
-            state__in=["waiting", "started"],
+            state__in=[State.NOT_STARTED, State.RUNNING],
             input_hash=input_hash,
         ).all()
 

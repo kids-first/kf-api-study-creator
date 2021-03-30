@@ -8,6 +8,8 @@ query ($id: ID!) {
         id
         name
         inputHash
+        startedAt
+        stoppedAt
         versions {
           edges {
             node {
@@ -27,6 +29,8 @@ query {
          id
          name
          inputHash
+         startedAt
+         stoppedAt
          versions {
            edges {
              node {
@@ -47,6 +51,8 @@ query ($name: String!){
        node {
          id
          name
+         startedAt
+         stoppedAt
          versions {
            edges {
              node {

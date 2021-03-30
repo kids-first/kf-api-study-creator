@@ -6,8 +6,8 @@ from django.dispatch import receiver
 from django_fsm.signals import post_transition
 
 from creator.events.models import Event
-from creator.files.models import Version
-from creator.ingest_runs.models import IngestRun
+from creator.files.models import File, Version
+from creator.ingest_runs.models import IngestRun, State
 from creator.ingest_runs.tasks import cancel_ingest
 
 
@@ -30,7 +30,7 @@ def version_pre_delete(sender, instance, using, *args, **kwargs):
     that include this Version.
     """
     logging.info(
-        f"Canceling all ingest runs containing version {instance.pk} before"
+        f"Canceling all processes containing version {instance.pk} before"
         f" its deletion."
     )
     cancel_invalid_ingest_runs(instance)
@@ -42,43 +42,7 @@ def cancel_invalid_ingest_runs(version):
     Versions.
     """
     invalid_ingests = IngestRun.objects.filter(
-        state="started", versions=version
+        state=State.RUNNING, versions=version
     ).all()
     for ingest in invalid_ingests:
         django_rq.enqueue(cancel_ingest, ingest.id)
-
-
-@receiver(post_transition, sender=IngestRun)
-def ingest_run_post_transition(
-    sender, instance, name, source, target, *args, **kwargs
-):
-    """
-    Create a corresponding Event after the status of an IngestRun is changed.
-    """
-    TARGET_EVENT_TYPES = {
-        "started": "IR_STA",
-        "completed": "IR_COM",
-        "canceled": "IR_CAN",
-        "failed": "IR_FAI",
-    }
-    versions = [str(v) for v in instance.versions.all()]
-    started_by_user = target in {"started", "canceled"}
-    if not started_by_user:
-        message = (
-            f"IngestRun {instance.pk} {target} for file versions {versions} "
-        )
-    else:
-        message = (
-            f"{instance.creator.display_name} {target} IngestRun "
-            f"{instance.pk} for file versions {versions} "
-        )
-    first_version = instance.versions.first()
-    ev = Event(
-        study=first_version.study,
-        file=first_version.root_file,
-        version=first_version,
-        user=instance.creator,
-        description=message,
-        event_type=TARGET_EVENT_TYPES[target],
-    )
-    ev.save()
