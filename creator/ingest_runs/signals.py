@@ -7,7 +7,7 @@ from django_fsm.signals import post_transition
 
 from creator.events.models import Event
 from creator.files.models import File, Version
-from creator.ingest_runs.models import IngestRun, State
+from creator.ingest_runs.models import IngestRun, State, ValidationRun
 from creator.ingest_runs.tasks import cancel_ingest
 
 
@@ -20,6 +20,16 @@ def ingest_run_pre_save(sender, instance, *args, **kwargs):
     # Populate the input_hash and name from the version IDs
     if instance.versions.count() > 0:
         instance.name = instance.compute_name()
+        instance.input_hash = instance.compute_input_hash()
+
+
+@receiver(pre_save, sender=ValidationRun)
+def validation_run_presave(sender, instance, *args, **kwargs):
+    """
+    Set the ValidationRun's input_hash from its input parameters using the
+    version ids if they exist
+    """
+    if instance.versions and instance.versions.count() > 0:
         instance.input_hash = instance.compute_input_hash()
 
 
