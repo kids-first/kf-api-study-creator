@@ -12,8 +12,7 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.models import update_last_login
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class SentryMiddleware:
