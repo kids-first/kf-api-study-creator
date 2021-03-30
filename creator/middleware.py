@@ -125,9 +125,9 @@ class Auth0AuthenticationMiddleware:
             update_last_login(None, user)
         except User.DoesNotExist:
             profile = Auth0AuthenticationMiddleware._get_profile(encoded)
-            # Problem getting the profile, don't try to create the user now
+            # We don't have enough info to create the user
             if profile is None:
-                return User()
+                return AnonymousUser()
             user = User(
                 username=profile.get("nickname", ""),
                 email=profile.get("email", ""),

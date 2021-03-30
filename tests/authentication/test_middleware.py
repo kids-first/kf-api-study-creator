@@ -27,7 +27,6 @@ def test_auth0_middleware(db, client, mocker, token):
     key = cache.set(settings.CACHE_AUTH0_KEY, None)
 
     middleware = "creator.middleware"
-    auth0_middleware = "{middleware}.Auth0AuthenticationMiddleware"
 
     req_mock = mocker.patch(f"{middleware}.requests.get")
     with open("tests/keys/jwks.json", "rb") as f:
@@ -55,6 +54,66 @@ def test_auth0_middleware(db, client, mocker, token):
 
 
 @pytest.mark.no_mocks
+def test_auth0_no_sub(db, client, mocker, token):
+    """
+    Test that if no sub is included in the token, the user will be authed
+    as an AnonymousUser.
+    """
+    key = cache.set(settings.CACHE_AUTH0_KEY, None)
+
+    middleware = "creator.middleware"
+
+    req_mock = mocker.patch(f"{middleware}.requests.get")
+    with open("tests/keys/jwks.json", "rb") as f:
+        req_mock().json.return_value = json.load(f)
+
+    token = token(sub=None)
+
+    # Send a test query
+    q = "{ allStudies { edges { node { name } } } }"
+    resp = client.post(
+        "/graphql",
+        data={"query": q},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+    assert User.objects.count() == 0
+
+
+@pytest.mark.no_mocks
+def test_auth0_no_profile(db, client, mocker, token):
+    """
+    Test that a user does not get authenticated when their profile cannot
+    be resolved.
+    """
+    key = cache.set(settings.CACHE_AUTH0_KEY, None)
+
+    middleware = "creator.middleware"
+
+    req_mock = mocker.patch(f"{middleware}.requests.get")
+    with open("tests/keys/jwks.json", "rb") as f:
+        req_mock().json.return_value = json.load(f)
+    profile_mock = mocker.patch(
+        f"{middleware}.Auth0AuthenticationMiddleware._get_profile"
+    )
+    profile_mock.return_value = None
+
+    token = token()
+
+    # Send a test query
+    q = "{ allStudies { edges { node { name } } } }"
+    resp = client.post(
+        "/graphql",
+        data={"query": q},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
+
+    assert User.objects.count() == 0
+    assert profile_mock.call_count == 1
+
+
+@pytest.mark.no_mocks
 def test_auth0_expired_token(db, client, mocker, token):
     """
     Test that user is not authenticated if the token has expired
@@ -62,7 +121,6 @@ def test_auth0_expired_token(db, client, mocker, token):
     key = cache.set(settings.CACHE_AUTH0_KEY, None)
 
     middleware = "creator.middleware"
-    auth0_middleware = "{middleware}.Auth0AuthenticationMiddleware"
 
     req_mock = mocker.patch(f"{middleware}.requests.get")
     with open("tests/keys/jwks.json", "rb") as f:
@@ -93,8 +151,6 @@ def test_test_user(db, settings, mocker, clients):
     """
     settings.DEVELOP = True
     management.call_command("setup_test_user")
-    middleware = "creator.middleware"
-    auth0_middleware = f"{middleware}.Auth0AuthenticationMiddleware"
 
     query = "{ myProfile { username email } }"
 
