@@ -17,6 +17,8 @@ from creator.files.models import File
 from creator.files.factories import FileFactory
 from creator.studies.factories import StudyFactory
 from creator.ingest_runs.factories import IngestRunFactory
+from creator.data_reviews.factories import DataReviewFactory
+from creator.ingest_runs.models import ValidationResultset
 from creator.studies.models import Study
 from creator.groups import GROUPS
 
@@ -414,3 +416,27 @@ def ingest_runs(prep_file):
             for f in File.objects.all()
         ]
     return create_ingest_runs
+
+
+@pytest.fixture
+def data_review(db, clients, prep_file):
+    """
+    Create a data review with two file versions
+    """
+    versions = []
+    for i in range(2):
+        study_id, file_id, _ = prep_file(authed=True)
+        versions.append(File.objects.get(pk=file_id).versions.first())
+
+    study = Study.objects.get(pk=study_id)
+    study.bucket = f"kf-study-us-east-1-{study.kf_id.replace('_', '-')}"
+    study.save()
+
+    dr = DataReviewFactory(
+        creator=User.objects.first(),
+        study=study,
+        versions=versions
+    )
+    ValidationResultset(data_review=dr).save()
+    dr.refresh_from_db()
+    return dr
