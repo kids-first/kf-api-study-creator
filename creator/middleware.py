@@ -3,13 +3,14 @@ import json
 import jwt
 import re
 import requests
-import textwrap
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.models import update_last_login
+
+from creator.authentication import service_headers
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ class Auth0AuthenticationMiddleware:
             return AnonymousUser()
 
         sub = token.get("sub")
-        roles = token.get("https://kidsfirstdrc.org/roles")
+        roles = token.get("https://kidsfirstdrc.org/roles", [])
 
         # We need a sub to try to reconcile a user, if it doesn't exist,
         # bail and auth as an anonymous user
@@ -103,17 +104,6 @@ class Auth0AuthenticationMiddleware:
             return AnonymousUser()
 
         User = get_user_model()
-
-        # If the token is a service token and has the right scope, we will
-        # auth it as equivelant to an admin user
-        if (
-            token.get("gty") == "client-credentials"
-            and settings.CLIENT_ADMIN_SCOPE in token.get("scope", "").split()
-        ):
-            user = User(username=None)
-            # We will return the service user here without trying to save it
-            # to the database.
-            return user
 
         # Now we know that the token is valid so we will try to see if the user
         # is in our database yet, if so, we will return that user, if not, we
@@ -124,10 +114,15 @@ class Auth0AuthenticationMiddleware:
             # The user is already in the database, update their last login
             update_last_login(None, user)
         except User.DoesNotExist:
-            profile = Auth0AuthenticationMiddleware._get_profile(encoded)
+            profile = None
+            if token.get("gty") == "client-credentials":
+                profile = Auth0AuthenticationMiddleware._get_app_info(sub)
+            else:
+                profile = Auth0AuthenticationMiddleware._get_profile(encoded)
             # We don't have enough info to create the user
             if profile is None:
                 return AnonymousUser()
+
             user = User(
                 username=profile.get("nickname", ""),
                 email=profile.get("email", ""),
@@ -137,6 +132,13 @@ class Auth0AuthenticationMiddleware:
                 sub=sub,
             )
             user.save()
+
+            # If the user was created from a service token, add them to the
+            # services auth group
+            if token.get("gty") == "client-credentials":
+                service_group = Group.objects.filter(name="Services").first()
+                user.groups.add(service_group)
+
             update_last_login(None, user)
 
         # Elevate the user to admin if they have the right role
@@ -162,6 +164,38 @@ class Auth0AuthenticationMiddleware:
             logger.error(f"Problem fetching user profile from Auth0: {err}")
             return None
         return resp.json()
+
+    def _get_app_info(sub: str):
+        """
+        Retrieve info for an Auth0 application
+
+        NB: The application that generates the SERVICE_KEY must be authorized
+            to use the Auth0 Management API and have the read:clients scope.
+            This allows the Study Creator to get information about the client
+            given the client's sub.
+
+        :param sub: The sub from the access token, used to look up the client
+        application in Auth0.
+        """
+        # The sub on a m2m token is the client id appended with a '@client'
+        client_id = sub.replace("@clients", "")
+
+        url = f"{settings.AUTH0_DOMAIN}/api/v2/clients/{client_id}"
+        url += "?fields=name,logo_uri"
+        try:
+            resp = requests.get(url, headers=service_headers(), timeout=5)
+            resp.raise_for_status()
+        except (requests.ConnectionError, requests.HTTPError) as err:
+            logger.error(f"Problem fetching application from Auth0: {err}")
+            return None
+        info = resp.json()
+        profile = {
+            "nickname": info.get("name"),
+            "given_name": info.get("name"),
+            "family_name": "Service",
+            "picture": info.get("logo_uri"),
+        }
+        return profile
 
     @staticmethod
     def _get_auth0_key():
