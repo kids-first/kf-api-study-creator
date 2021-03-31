@@ -1,8 +1,9 @@
 import pytest
 from graphql_relay import to_global_id
+
 from creator.files.models import File
-from creator.events.models import Event
-from creator.ingest_runs.tasks import cancel_ingest
+from creator.ingest_runs.models import IngestRun
+from creator.ingest_runs.mutations import cancel_duplicate_ingest_runs
 
 
 START_INGEST_RUN = """
@@ -166,6 +167,21 @@ def test_start_ingest_run_invalid(db, clients, prep_file, user_group):
     assert "at least 1 file Version" in resp.json()["errors"][0]["message"]
 
 
+def test_start_ingest_run_bad_version(db, clients, prep_file):
+    """
+    Starting an ingest run with an invalid Version ID should
+    raise GraphQLError.
+    """
+    client = clients.get("Administrators")
+    prep_file(authed=True)
+    fake_id = File.objects.first().versions.first().kf_id
+    fake_global = to_global_id("VersionNode", fake_id)
+    # Now delete the version
+    File.objects.first().delete()
+    resp = send_query(client, START_INGEST_RUN, {"versions": [fake_global]})
+    assert f"The Version {fake_id}" in resp.json()["errors"][0]["message"]
+
+
 @pytest.mark.parametrize(
     "user_group,allowed",
     [
@@ -208,3 +224,52 @@ def test_cancel_ingest_run(
         mock_ingest_queue.reset_mock()
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_cancel_ingest_run_bad_version(db, clients):
+    """
+    Canceling an IngestRun with an invalid ID should raise GraphQLError.
+    """
+    client = clients.get("Administrators")
+    ir = IngestRun()
+    ir.save()
+    fake_id = IngestRun.objects.first().id
+    # now delete the ingestrun
+    IngestRun.objects.first().delete()
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": CANCEL_INGEST_RUN,
+            "variables": {
+                "id": to_global_id("ingestrunnode", fake_id),
+            },
+        },
+        content_type="application/json",
+    )
+    assert f"IngestRun {fake_id} was" in resp.json()["errors"][0]["message"]
+
+
+def test_cancel_duplicate_ingest_runs(
+    db, mocker, clients, prep_file, mock_ingest_queue
+):
+    """
+    Test the cancel_duplicate_ingest_runs helper function.
+    """
+    client = clients.get("Administrators")
+    # create two ingest runs with the same input hash
+    for i in range(2):
+        prep_file(authed=True)
+    file_versions = [f.versions.first() for f in File.objects.all()]
+
+    ir1 = IngestRun()
+    ir1.save()
+    ir1.versions.set(file_versions)
+    ir1.save()
+    ir2 = IngestRun()
+    ir2.save()
+    ir2.versions.set(file_versions)
+    ir2.save()
+    irs = (ir1, ir2)
+    assert IngestRun.objects.all().count() == 2
+    cancel_duplicate_ingest_runs(irs)
+    assert mock_ingest_queue.call_count == 2

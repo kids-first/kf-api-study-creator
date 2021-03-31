@@ -1,4 +1,4 @@
-from creator.files.models import File, Version
+from creator.files.models import File
 from creator.ingest_runs.models import IngestRun
 from creator.ingest_runs.signals import cancel_invalid_ingest_runs
 from creator.ingest_runs.tasks import cancel_ingest

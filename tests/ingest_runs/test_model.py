@@ -24,10 +24,13 @@ def test_ingest_run(db, clients, prep_file):
         ir.save()
         assert not ir.input_hash
         assert not ir.name
+        assert str(ir) == str(ir.id)
         ir.versions.set(file_versions)
         ir.save()
         assert ir.input_hash
         assert ir.name
+        assert str(ir)
+        assert str(ir) == ir.name
         for v in file_versions:
             assert v.kf_id in ir.name
     ingest_runs = [(ir.input_hash, ir.name) for ir in IngestRun.objects.all()]
