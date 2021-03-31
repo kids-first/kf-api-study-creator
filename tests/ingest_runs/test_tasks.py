@@ -26,7 +26,8 @@ def test_run_ingest(db, mocker, clients, prep_file):
     """
     client = clients.get("Administrator")
     mock_genomic_workflow = mocker.patch(
-        "creator.ingest_runs.tasks.ingest_genomic_workflow_output_manifests"
+        "creator.ingest_runs.tasks.ingest_run"
+        ".ingest_genomic_workflow_output_manifests"
     )
     user = User.objects.first()
 

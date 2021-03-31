@@ -131,7 +131,8 @@ def test_start_duplicate_run(
     IngestRun.
     """
     mock_cancel_duplicate = mocker.patch(
-        "creator.ingest_runs.mutations.cancel_duplicate_ingest_runs"
+        "creator.ingest_runs.mutations.ingest_run."
+        "cancel_duplicate_ingest_runs"
     )
     client = clients.get(user_group)
     # Create a study with some files
