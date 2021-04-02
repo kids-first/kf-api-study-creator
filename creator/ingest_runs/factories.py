@@ -1,6 +1,7 @@
 import pytz
 import factory
-from creator.ingest_runs.models import IngestRun
+from creator.ingest_runs.models import IngestRun, ValidationRun
+from creator.data_reviews.factories import DataReviewFactory
 from creator.users.factories import UserFactory
 
 
@@ -23,6 +24,22 @@ class IngestRunFactory(factory.DjangoModelFactory):
             for version in extracted:
                 self.versions.add(version)
 
+
+class ValidationRunFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ValidationRun
+
     created_at = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
+    creator = factory.SubFactory(UserFactory)
+    data_review = factory.SubFactory(DataReviewFactory)
+
+    @factory.post_generation
+    def versions(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for version in extracted:
+                self.versions.add(version)

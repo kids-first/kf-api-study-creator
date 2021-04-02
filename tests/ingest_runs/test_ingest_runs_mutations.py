@@ -1,9 +1,8 @@
 import pytest
-from graphql_relay import to_global_id
-
+from graphql_relay import to_global_id, from_global_id
 from creator.files.models import File
 from creator.ingest_runs.models import IngestRun
-from creator.ingest_runs.mutations import cancel_duplicate_ingest_runs
+from creator.ingest_runs.tasks import run_ingest, cancel_ingest
 
 
 START_INGEST_RUN = """
@@ -34,22 +33,12 @@ mutation ($id: ID!) {
 
 
 @pytest.fixture
-def mock_ingest_job(mocker):
-    """
-    Mock ingest job
-    """
-    ingest_job = mocker.patch("creator.studies.schema.django_rq.enqueue")
-    return ingest_job
-
-
-@pytest.fixture
 def mock_ingest_queue(mocker):
     """
     Mock the IngestRun queue.
     """
     ingest_queue = mocker.patch(
         "creator.ingest_runs.mutations.IngestRun.queue",
-        new_callable=mocker.PropertyMock,
     )
     return ingest_queue
 
@@ -78,10 +67,8 @@ def send_query(client, query, input_dict):
 )
 def test_start_ingest_run(
     db,
-    mocker,
     clients,
     prep_file,
-    mock_ingest_job,
     mock_ingest_queue,
     user_group,
     allowed,
@@ -109,8 +96,10 @@ def test_start_ingest_run(
         for version in ir["versions"]["edges"]:
             assert version["node"]["kfId"] in ir["name"]
 
-        # Check that the call to ingest_run.queue.enqueue occurs
-        mock_ingest_queue.assert_called_once()
+        # Check that the run_ingest task was queued
+        mock_ingest_queue.enqueue.call_count == 1
+        args, _ = mock_ingest_queue.enqueue.call_args_list[0]
+        assert args[0] == run_ingest
         mock_ingest_queue.reset_mock()
 
     else:
@@ -124,15 +113,15 @@ def test_start_ingest_run(
     ],
 )
 def test_start_duplicate_run(
-    db, mocker, clients, prep_file, mock_ingest_job, user_group
+    db, mocker, mock_ingest_queue, clients, prep_file,  user_group
 ):
     """
     Test the initialization of a start IngestRun mutation for a duplicate
     IngestRun.
     """
-    mock_cancel_duplicate = mocker.patch(
-        "creator.ingest_runs.mutations.ingest_run."
-        "cancel_duplicate_ingest_runs"
+    mock_cancel_duplicates = mocker.patch(
+        "creator.ingest_runs.mutations.ingest_run"
+        ".cancel_duplicate_ingest_processes"
     )
     client = clients.get(user_group)
     # Create a study with some files
@@ -150,7 +139,12 @@ def test_start_duplicate_run(
     # the previous IngestRun to get canceled.
     resp2 = send_query(client, START_INGEST_RUN, {"versions": version_ids})
     # Check that the correct enqueue call occurred.
-    mock_cancel_duplicate.assert_called_once()
+
+    # Check that cancel duplicates was called and run_ingest was not called
+    mock_ingest_queue.enqueue.call_count == 0
+    mock_cancel_duplicates.call_count == 1
+    args, _ = mock_cancel_duplicates.call_args_list[0]
+    assert set(args[1:]) == set([IngestRun, cancel_ingest])
 
 
 @pytest.mark.parametrize(
@@ -195,15 +189,11 @@ def test_start_ingest_run_bad_version(db, clients, prep_file):
     ],
 )
 def test_cancel_ingest_run(
-    db, mocker, clients, ingest_runs, mock_ingest_job, user_group, allowed
+    db, mock_ingest_queue, clients, ingest_runs,  user_group, allowed
 ):
     """
     Test the cancel ingest run mutation.
     """
-    mock_ingest_queue = mocker.patch(
-        "creator.ingest_runs.mutations.IngestRun.queue",
-        new_callable=mocker.PropertyMock,
-    )
     client = clients.get(user_group)
 
     ingest_run = ingest_runs(n=1)[0]
@@ -221,8 +211,11 @@ def test_cancel_ingest_run(
 
     if allowed:
         assert resp.json()["data"]["cancelIngestRun"]["ingestRun"] is not None
-        mock_ingest_queue.assert_called_once()
-        mock_ingest_queue.reset_mock()
+        ir = resp.json()["data"]["cancelIngestRun"]["ingestRun"]
+        _, ir_id = from_global_id(ir["id"])
+        mock_ingest_queue.enqueue.assert_called_once_with(
+            cancel_ingest, args=(ir_id,)
+        )
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 
@@ -248,29 +241,3 @@ def test_cancel_ingest_run_bad_version(db, clients):
         content_type="application/json",
     )
     assert f"IngestRun {fake_id} was" in resp.json()["errors"][0]["message"]
-
-
-def test_cancel_duplicate_ingest_runs(
-    db, mocker, clients, prep_file, mock_ingest_queue
-):
-    """
-    Test the cancel_duplicate_ingest_runs helper function.
-    """
-    client = clients.get("Administrators")
-    # create two ingest runs with the same input hash
-    for i in range(2):
-        prep_file(authed=True)
-    file_versions = [f.versions.first() for f in File.objects.all()]
-
-    ir1 = IngestRun()
-    ir1.save()
-    ir1.versions.set(file_versions)
-    ir1.save()
-    ir2 = IngestRun()
-    ir2.save()
-    ir2.versions.set(file_versions)
-    ir2.save()
-    irs = (ir1, ir2)
-    assert IngestRun.objects.all().count() == 2
-    cancel_duplicate_ingest_runs(irs)
-    assert mock_ingest_queue.call_count == 2

@@ -8,6 +8,9 @@ from creator.ingest_runs.nodes import IngestRunNode
 from creator.ingest_runs.models import IngestRun, State
 from creator.ingest_runs.common.model import hash_versions
 from creator.ingest_runs.tasks import run_ingest, cancel_ingest
+from creator.ingest_runs.common.mutations import (
+    cancel_duplicate_ingest_processes,
+)
 from creator.files.models import Version
 
 
@@ -55,21 +58,13 @@ class StartIngestRunMutation(graphene.Mutation):
 
         # Create IngestRun for a set of file versions, if one does not exist
         # with same input_hash
-        ingest_run = IngestRun()
-        input_hash = hash_versions([v.kf_id for v in versions])
-
-        # Check if duplicate IngestRuns exist
-        irs_with_same_input_hash = IngestRun.objects.filter(
-            state__in=[State.NOT_STARTED, State.RUNNING],
-            input_hash=input_hash,
-        ).all()
-
-        if irs_with_same_input_hash.count() > 0:
-            cancel_duplicate_ingest_runs(irs_with_same_input_hash)
-        else:
+        if not cancel_duplicate_ingest_processes(
+            versions, IngestRun, cancel_ingest
+        ):
             with transaction.atomic():
-                ingest_run.save()
+                ingest_run = IngestRun()
                 ingest_run.creator = user
+                ingest_run.save()
                 ingest_run.versions.set(versions)
                 ingest_run.save()
 
@@ -79,15 +74,6 @@ class StartIngestRunMutation(graphene.Mutation):
                 job_id=str(ingest_run.id),
             )
         return StartIngestRunMutation(ingest_run=ingest_run)
-
-
-def cancel_duplicate_ingest_runs(irs_with_same_input_hash):
-    """
-    Cancel duplicate IngestRuns. This is put into a separate function
-    to make the unit tests simpler.
-    """
-    for ir in irs_with_same_input_hash:
-        ir.queue.enqueue(cancel_ingest, args=(ir.id,))
 
 
 class CancelIngestRunMutation(graphene.Mutation):

@@ -7,11 +7,19 @@ from creator.ingest_runs.common.model import (
     State,
     camel_to_snake,
 )
+from creator.ingest_runs.common.mutations import (
+    cancel_duplicate_ingest_processes
+)
 from creator.ingest_runs.models import (
-    ValidationRun,
     IngestRun,
+    ValidationRun,
+)
+from creator.ingest_runs.factories import (
+    IngestRunFactory,
+    ValidationRunFactory,
 )
 from creator.events.models import Event
+from creator.ingest_runs.tasks import cancel_ingest, cancel_validation
 
 User = get_user_model()
 
@@ -85,9 +93,54 @@ def test_ingest_process_states(
         e = Event.objects.filter(**kwargs).all()[0]
         assert expected_msg in e.description
         assert foreign_key.replace("_", " ") in e.description.lower()
+        # Cancel method includes a call to stop_job
         if state_transition_method == "cancel":
             mock_stop_job.assert_called_with(
                 str(obj.pk), queue=obj.queue, delete=True
             )
     else:
         assert event_count_before == Event.objects.count()
+
+
+@pytest.mark.parametrize(
+    "factory,cancel_task,state",
+    [
+        (IngestRunFactory, cancel_ingest, State.NOT_STARTED),
+        (IngestRunFactory, cancel_ingest, State.RUNNING),
+        (ValidationRunFactory, cancel_validation, State.NOT_STARTED),
+        (ValidationRunFactory, cancel_validation, State.RUNNING),
+    ]
+)
+def test_cancel_duplicate_ingest_processes(
+    db, mocker, clients, prep_file, factory, cancel_task, state
+):
+    """
+    Test cancel_duplicate_ingest_processes
+    """
+    mock_queue = mocker.patch(
+        "creator.ingest_runs.common.model.IngestProcess.queue"
+    )
+    # Create an ingest process with some versions
+    versions = []
+    for i in range(2):
+        study_id, file_id, version_id = prep_file(authed=True)
+        versions.append(Version.objects.get(pk=version_id))
+    process = factory(versions=versions[0:1], state=state)
+
+    # Ingest processes with same set of versions are duplicates and should be
+    # canceled
+    canceled_any = cancel_duplicate_ingest_processes(
+        versions[0:1], process.__class__, cancel_task
+    )
+    assert canceled_any
+    mock_queue.enqueue.assert_called_with(
+        cancel_task, args=(process.id,)
+    )
+    mock_queue.reset_mock()
+
+    # Ingest processes with different versions won't be canceled
+    canceled_any = cancel_duplicate_ingest_processes(
+        versions, process.__class__, cancel_task
+    )
+    mock_queue.enqueue.call_count == 0
+    assert (not canceled_any)
