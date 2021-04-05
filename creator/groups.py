@@ -96,9 +96,10 @@ GROUPS = {
         "delete_validationrun",
         "change_validationrun",
         "view_validationrun",
-        "list_all_validationrun",
         "cancel_validationrun",
+        "list_all_validationrun",
         "list_all_validationresultset",
+        "view_validationresultset",
     ],
     "Developers": [
         "view_study",

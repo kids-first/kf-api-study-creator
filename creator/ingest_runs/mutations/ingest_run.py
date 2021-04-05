@@ -59,7 +59,7 @@ class StartIngestRunMutation(graphene.Mutation):
         # Create IngestRun for a set of file versions, if one does not exist
         # with same input_hash
         if not cancel_duplicate_ingest_processes(
-            versions, IngestRun, cancel_ingest
+            [v.kf_id for v in versions], IngestRun, cancel_ingest
         ):
             with transaction.atomic():
                 ingest_run = IngestRun()

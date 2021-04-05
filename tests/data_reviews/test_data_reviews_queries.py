@@ -16,6 +16,7 @@ query ($id: ID!) {
         name
         description
         state
+        validationResultset { id failed passed didNotRun}
         study { id kfId }
         versions { edges { node { id kfId } } }
     }
@@ -33,6 +34,7 @@ query {
                 name
                 description
                 state
+                validationResultset { id failed passed didNotRun}
                 study { id kfId }
                 versions { edges { node { id kfId } } }
             }
@@ -52,6 +54,7 @@ query($studyKfId: String) {
                 name
                 description
                 state
+                validationResultset { id failed passed didNotRun }
                 study { id kfId }
                 versions { edges { node { id kfId } } }
             }

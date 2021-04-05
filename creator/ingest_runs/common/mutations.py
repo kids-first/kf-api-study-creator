@@ -4,7 +4,7 @@ from creator.ingest_runs.common.model import hash_versions
 
 
 def cancel_duplicate_ingest_processes(
-    versions, ingest_process_cls, cancel_task
+    version_kfids, ingest_process_cls, cancel_task
 ):
     """
     Cancel ingest processes (e.g. ingest run, validation run) that are
@@ -12,7 +12,7 @@ def cancel_duplicate_ingest_processes(
     """
     duplicates = ingest_process_cls.objects.filter(
         state__in=[State.NOT_STARTED, State.RUNNING],
-        input_hash=hash_versions(versions),
+        input_hash=hash_versions(version_kfids),
     ).all()
 
     canceled_any = False
