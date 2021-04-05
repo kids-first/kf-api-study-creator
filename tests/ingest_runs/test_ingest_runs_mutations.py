@@ -3,6 +3,7 @@ from graphql_relay import to_global_id, from_global_id
 from creator.files.models import File
 from creator.ingest_runs.models import IngestRun
 from creator.ingest_runs.tasks import run_ingest, cancel_ingest
+from pprint import pprint
 
 
 START_INGEST_RUN = """
@@ -38,7 +39,7 @@ def mock_ingest_queue(mocker):
     Mock the IngestRun queue.
     """
     ingest_queue = mocker.patch(
-        "creator.ingest_runs.mutations.IngestRun.queue",
+        "creator.ingest_runs.mutations.ingest_run.IngestRun.queue",
     )
     return ingest_queue
 
@@ -88,6 +89,7 @@ def test_start_ingest_run(
 
     # Start valid ingest runs for a batch of file versions
     resp = send_query(client, START_INGEST_RUN, {"versions": version_ids})
+    pprint(resp.json())
 
     if allowed:
         ir = resp.json()["data"]["startIngestRun"]["ingestRun"]

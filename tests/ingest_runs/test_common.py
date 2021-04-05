@@ -10,6 +10,7 @@ from creator.ingest_runs.common.model import (
 from creator.ingest_runs.common.mutations import (
     cancel_duplicate_ingest_processes
 )
+from creator.files.models import Version
 from creator.ingest_runs.models import (
     IngestRun,
     ValidationRun,
@@ -126,11 +127,12 @@ def test_cancel_duplicate_ingest_processes(
         study_id, file_id, version_id = prep_file(authed=True)
         versions.append(Version.objects.get(pk=version_id))
     process = factory(versions=versions[0:1], state=state)
+    version_ids = [v.kf_id for v in versions]
 
     # Ingest processes with same set of versions are duplicates and should be
     # canceled
     canceled_any = cancel_duplicate_ingest_processes(
-        versions[0:1], process.__class__, cancel_task
+        version_ids[0:1], process.__class__, cancel_task
     )
     assert canceled_any
     mock_queue.enqueue.assert_called_with(
@@ -140,7 +142,7 @@ def test_cancel_duplicate_ingest_processes(
 
     # Ingest processes with different versions won't be canceled
     canceled_any = cancel_duplicate_ingest_processes(
-        versions, process.__class__, cancel_task
+        version_ids, process.__class__, cancel_task
     )
     mock_queue.enqueue.call_count == 0
     assert (not canceled_any)

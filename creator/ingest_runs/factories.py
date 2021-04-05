@@ -1,6 +1,8 @@
 import pytz
 import factory
-from creator.ingest_runs.models import IngestRun, ValidationRun
+from creator.ingest_runs.models import (
+    IngestRun, ValidationRun, ValidationResultset
+)
 from creator.data_reviews.factories import DataReviewFactory
 from creator.users.factories import UserFactory
 
@@ -32,6 +34,8 @@ class ValidationRunFactory(factory.DjangoModelFactory):
     created_at = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
+    success = factory.fuzzy.FuzzyChoice([True, False])
+    progress = factory.fuzzy.FuzzyFloat(0, 1)
     creator = factory.SubFactory(UserFactory)
     data_review = factory.SubFactory(DataReviewFactory)
 
@@ -43,3 +47,16 @@ class ValidationRunFactory(factory.DjangoModelFactory):
         if extracted:
             for version in extracted:
                 self.versions.add(version)
+
+
+class ValidationResultsetFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ValidationResultset
+
+    created_at = factory.Faker(
+        "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
+    )
+    failed = factory.fuzzy.FuzzyInteger(0, 50)
+    passed = factory.fuzzy.FuzzyInteger(0, 50)
+    did_not_run = factory.fuzzy.FuzzyInteger(0, 50)
+    data_review = factory.SubFactory(DataReviewFactory)
