@@ -29,7 +29,7 @@ def validation_run_presave(sender, instance, *args, **kwargs):
     Set the ValidationRun's input_hash from its input parameters using the
     version ids if they exist
     """
-    if instance.versions and instance.versions.count() > 0:
+    if instance.versions.count() > 0:
         instance.input_hash = instance.compute_input_hash()
 
 

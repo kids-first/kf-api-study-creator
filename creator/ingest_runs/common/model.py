@@ -4,6 +4,7 @@ import uuid
 import re
 
 import django_rq
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -22,12 +23,12 @@ def camel_to_snake(camel_str):
     return re.sub(r'(?<!^)(?=[A-Z])', '_', camel_str).lower()
 
 
-def hash_versions(versions):
+def hash_versions(version_kf_ids):
     """
     Uniquely identify a set of file Versions by computing an MD5 hash digest
     using the primary keys of the Versions
     """
-    version_id_str = "".join(sorted(v.kf_id for v in versions))
+    version_id_str = "".join(sorted(v for v in version_kf_ids))
     return hashlib.md5(version_id_str.encode("utf-8")).hexdigest()
 
 
@@ -44,7 +45,7 @@ class IngestProcess(models.Model):
     Common model functionality for ingest processes
     (e.g. ingest run, validation run)
     """
-    __queue__ = "ingest"
+    __queue__ = settings.INGEST_QUEUE
 
     class Meta:
         abstract = True
@@ -158,14 +159,16 @@ class IngestProcess(models.Model):
         This will be used to determine whether an ingest process is already
         running for a set of file versions
         """
-        return hash_versions(self.versions.all())
+        return hash_versions(
+            self.versions.values_list("pk", flat=True)
+        )
 
     def _save_event(self, event_type):
         """ Create and save an event for an ingest process state transition """
         from creator.events.models import Event
         snake_name = camel_to_snake(self.__class__.__name__)
         name = camel_to_snake(self.__class__.__name__).replace("_", " ")
-        prefix = "".join([w[0].upper()for w in snake_name.split("_")])
+        prefix = "".join([w[0] for w in snake_name.split("_")]).upper()
         msgs = {
             State.RUNNING: (
                 f"{prefix}_STA",
