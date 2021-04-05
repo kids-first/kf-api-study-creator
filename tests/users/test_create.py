@@ -23,8 +23,6 @@ def test_new_auth0_user(client, token, db):
     assert User.objects.count() == 1
     user = User.objects.first()
     # Groups and roles should be empty, despite token containing them
-    assert user.ego_groups == []
-    assert user.ego_roles == []
     assert user.username == "bobby"
     assert user.email == "bobbytables@example.com"
     last_login = user.last_login

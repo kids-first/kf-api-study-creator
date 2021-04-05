@@ -103,15 +103,21 @@ class SubscribeToMutation(graphene.Mutation):
         """
         user = info.context.user
         if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to subscribe")
+            raise GraphQLError("Not allowed")
 
         try:
             study = Study.objects.get(kf_id=study_id)
         except Study.DoesNotExist:
             raise GraphQLError("Study does not exist.")
 
-        if study_id not in user.ego_groups and "ADMIN" not in user.ego_roles:
-            raise GraphQLError("Not authenticated to subscribe")
+        if not (
+            user.has_perm("studies.subscribe_study")
+            or (
+                user.has_perm("studies.subscribe_my_study")
+                and user.studies.filter(kf_id=study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         # Add the study to the users subscriptions
         user.study_subscriptions.add(study)
@@ -136,12 +142,21 @@ class UnsubscribeFromMutation(graphene.Mutation):
         """
         user = info.context.user
         if user is None or not user.is_authenticated:
-            raise GraphQLError("Not authenticated to unsubscribe")
+            raise GraphQLError("Not allowed")
 
         try:
             study = Study.objects.get(kf_id=study_id)
         except Study.DoesNotExist:
             raise GraphQLError("Study does not exist.")
+
+        if not (
+            user.has_perm("studies.unsubscribe_study")
+            or (
+                user.has_perm("studies.unsubscribe_my_study")
+                and user.studies.filter(kf_id=study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         # Remove the study to the users subscriptions
         user.study_subscriptions.remove(study)

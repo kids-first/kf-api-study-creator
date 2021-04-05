@@ -84,6 +84,8 @@ GROUPS = {
         "change_datareview",
         "view_datareview",
         "list_all_datareview",
+        "subscribe_study",
+        "unsubscribe_study",
     ],
     "Developers": [
         "view_study",
@@ -110,6 +112,8 @@ GROUPS = {
         "change_my_version_meta",
         "view_my_event",
         "view_my_study_project",
+        "subscribe_my_study",
+        "unsubscribe_my_study",
     ],
     "Bioinformatics": [
         "view_study",

@@ -35,9 +35,7 @@ def test_list_users_counts(transactional_db, clients, user_group, expected):
     assert len(resp.json()["data"]["allUsers"]["edges"]) == expected
 
 
-@pytest.mark.parametrize(
-    "field", ["password", "ego_roles", "ego_groups", "isStaff"]
-)
+@pytest.mark.parametrize("field", ["password", "isStaff"])
 def test_hidden_fields(db, clients, field):
     """
     Test that fields are not available

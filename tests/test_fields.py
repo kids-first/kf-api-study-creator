@@ -11,7 +11,7 @@ User = get_user_model()
 def test_kf_id_prefix_value(db):
     s = Study()
     s.save()
-    user = User(username="user", ego_groups=[], ego_roles=[])
+    user = User(username="user")
     user.save()
     f = File(study=s, creator=user)
     f.save()

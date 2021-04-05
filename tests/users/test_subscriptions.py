@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from creator.studies.factories import StudyFactory
 from django.test.client import Client
 
@@ -36,10 +37,17 @@ UNSUBSCRIBE_FROM = """
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", False), ("user", True), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", True),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
 )
-def test_subscribe_own(db, token, service_token, user_type, expected):
+def test_subscribe_own(db, clients, user_group, allowed):
     """
     Test that a user may or may not subscribe to a study that is in their
     groups.
@@ -49,16 +57,16 @@ def test_subscribe_own(db, token, service_token, user_type, expected):
     user - can subscribe to any study they are in the group of
     unauthed - can not subscribe to studies
     """
+    client = clients.get(user_group)
+
     studies = StudyFactory.create_batch(25)
     study = studies[0]
 
-    api_token = {
-        "admin": f"Bearer {token([], ['ADMIN'])}",
-        "service": service_token(),
-        "user": f"Bearer {token([study.kf_id], ['USER'])}",
-        None: None,
-    }[user_type]
-    client = Client(HTTP_AUTHORIZATION=api_token)
+    group = Group.objects.filter(name=user_group).first()
+    if group:
+        user = group.user_set.first()
+        user.studies.add(study)
+        user.save()
 
     resp = client.post(
         "/graphql",
@@ -66,31 +74,29 @@ def test_subscribe_own(db, token, service_token, user_type, expected):
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             resp.json()["data"]["subscribeTo"]["user"]["studySubscriptions"][
                 "edges"
             ][0]["node"]["kfId"]
             == study.kf_id
         )
-        if user_type not in [None, "service"]:
-            user = User.objects.get(
-                username=resp.json()["data"]["subscribeTo"]["user"]["username"]
-            )
-            assert user.study_subscriptions.count() == 1
-            assert user.study_subscriptions.first().kf_id == study.kf_id
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to subscribe"
-        )
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
 @pytest.mark.parametrize(
-    "user_type,expected",
-    [("admin", True), ("service", False), ("user", False), (None, False)],
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", False),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
 )
-def test_subscribe_other(db, token, service_token, user_type, expected):
+def test_subscribe_other(db, clients, user_group, allowed):
     """
     Test that a user may or may not subscribe to a study that is not in their
     groups.
@@ -100,14 +106,9 @@ def test_subscribe_other(db, token, service_token, user_type, expected):
     user - can subscribe to any study they are in the group of
     unauthed - can not subscribe to studies
     """
+    client = clients.get(user_group)
+
     studies = StudyFactory.create_batch(25)
-    api_token = {
-        "admin": f"Bearer {token([], ['ADMIN'])}",
-        "service": service_token(),
-        "user": f"Bearer {token([], ['USER'])}",
-        None: None,
-    }[user_type]
-    client = Client(HTTP_AUTHORIZATION=api_token)
 
     resp = client.post(
         "/graphql",
@@ -118,35 +119,25 @@ def test_subscribe_other(db, token, service_token, user_type, expected):
         content_type="application/json",
     )
 
-    if expected:
+    if allowed:
         assert (
             resp.json()["data"]["subscribeTo"]["user"]["studySubscriptions"][
                 "edges"
             ][0]["node"]["kfId"]
             == studies[0].kf_id
         )
-        if user_type not in [None, "service"]:
-            user = User.objects.get(
-                username=resp.json()["data"]["subscribeTo"]["user"]["username"]
-            )
-            assert user.study_subscriptions.count() == 1
-            assert user.study_subscriptions.first().kf_id == studies[0].kf_id
     else:
-        assert (
-            resp.json()["errors"][0]["message"]
-            == "Not authenticated to subscribe"
-        )
-        if user_type not in [None, "service"]:
-            assert User.objects.first().study_subscriptions.count() == 0
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
-def test_subscribe_does_not_exist(db, admin_client):
+def test_subscribe_does_not_exist(db, clients):
     """
     Test that a study that does not exist cannot be subscribed to.
     """
+    client = clients.get("Administrators")
     studies = StudyFactory.create_batch(25)
 
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={"query": SUBSCRIBE_TO, "variables": {"studyId": "SD_XXXXXXXX"}},
         content_type="application/json",
@@ -155,34 +146,34 @@ def test_subscribe_does_not_exist(db, admin_client):
     assert resp.json()["errors"][0]["message"] == "Study does not exist."
 
 
-def test_unsubscribe(db, admin_client):
+@pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", False),
+        ("Investigators", True),
+        ("Bioinformatics", False),
+        (None, False),
+    ],
+)
+def test_unsubscribe(db, clients, user_group, allowed):
     """
     Test that studies may be removed from a user's subscription
     """
+    client = clients.get(user_group)
     studies = StudyFactory.create_batch(5)
 
     # Subscribe to all the studies
-    for study in studies:
-        resp = admin_client.post(
-            "/graphql",
-            data={
-                "query": SUBSCRIBE_TO,
-                "variables": {"studyId": study.kf_id},
-            },
-            content_type="application/json",
-        )
-
-    assert (
-        len(
-            resp.json()["data"]["subscribeTo"]["user"]["studySubscriptions"][
-                "edges"
-            ]
-        )
-        == 5
-    )
+    group = Group.objects.filter(name=user_group).first()
+    if group:
+        user = group.user_set.first()
+        user.studies.set(studies)
+        user.study_subscriptions.set(studies)
+        user.save()
 
     # Unsubscribe from the last study
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         data={
             "query": UNSUBSCRIBE_FROM,
@@ -190,15 +181,17 @@ def test_unsubscribe(db, admin_client):
         },
         content_type="application/json",
     )
-    subs = resp.json()["data"]["unsubscribeFrom"]["user"][
-        "studySubscriptions"
-    ]["edges"]
+    if allowed:
+        subs = resp.json()["data"]["unsubscribeFrom"]["user"][
+            "studySubscriptions"
+        ]["edges"]
 
-    assert len(subs) == 4
-    assert studies[-1].kf_id not in [s["node"]["kfId"] for s in subs]
+        assert len(subs) == 4
+        assert studies[-1].kf_id not in [s["node"]["kfId"] for s in subs]
 
-    # Unsubscribe from the last study
-    user = User.objects.get(
-        username=resp.json()["data"]["unsubscribeFrom"]["user"]["username"]
-    )
-    assert user.study_subscriptions.count() == 4
+        user = User.objects.get(
+            username=resp.json()["data"]["unsubscribeFrom"]["user"]["username"]
+        )
+        assert user.study_subscriptions.count() == 4
+    else:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"

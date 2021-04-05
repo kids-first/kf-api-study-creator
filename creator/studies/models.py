@@ -60,6 +60,22 @@ class Study(models.Model):
                 "change_phenotype_status",
                 "Can update the phenotype status of a study",
             ),
+            (
+                "subscribe_study",
+                "Can subscribe to a study for notifications",
+            ),
+            (
+                "subscribe_my_study",
+                "Can subscribe to a study that the user belongs to.",
+            ),
+            (
+                "unsubscribe_study",
+                "Can unsubscribe to a study for notifications",
+            ),
+            (
+                "unsubscribe_my_study",
+                "Can unsubscribe to a study that the user belongs to.",
+            ),
         ]
 
     kf_id = models.CharField(

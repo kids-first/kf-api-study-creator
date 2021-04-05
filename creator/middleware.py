@@ -12,8 +12,7 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.models import update_last_login
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class SentryMiddleware:
@@ -68,10 +67,6 @@ class Auth0AuthenticationMiddleware:
             User = get_user_model()
             # Pretend the user is admin when running in development
             user = User.objects.get(username="testuser")
-            # Assign specific auth permissions if they are specified in env
-            if settings.USER_ROLES or settings.USER_GROUPS:
-                user.ego_roles = settings.USER_ROLES
-                user.ego_groups = settings.USER_GROUPS
             return user
 
         user = request.user
@@ -100,10 +95,12 @@ class Auth0AuthenticationMiddleware:
             return AnonymousUser()
 
         sub = token.get("sub")
-        groups = token.get("https://kidsfirstdrc.org/groups")
         roles = token.get("https://kidsfirstdrc.org/roles")
-        # Currently unused
-        permissions = token.get("https://kidsfirstdrc.org/permissions")
+
+        # We need a sub to try to reconcile a user, if it doesn't exist,
+        # bail and auth as an anonymous user
+        if sub is None:
+            return AnonymousUser()
 
         User = get_user_model()
 
@@ -114,48 +111,35 @@ class Auth0AuthenticationMiddleware:
             and settings.CLIENT_ADMIN_SCOPE in token.get("scope", "").split()
         ):
             user = User(username=None)
-            user.ego_roles = ["ADMIN"]
-            user.ego_groups = []
             # We will return the service user here without trying to save it
             # to the database.
             return user
-
-        # Don't allow if it looks like the token doesn't have correct fields
-        if groups is None or roles is None or sub is None:
-            return AnonymousUser()
 
         # Now we know that the token is valid so we will try to see if the user
         # is in our database yet, if so, we will return that user, if not, we
         # will create a new user by fetching more information from auth0 and
         # saving it in the database
         try:
-            user = User.objects.get(sub=token["sub"])
+            user = User.objects.get(sub=sub)
             # The user is already in the database, update their last login
             update_last_login(None, user)
         except User.DoesNotExist:
             profile = Auth0AuthenticationMiddleware._get_profile(encoded)
-            # Problem getting the profile, don't try to create the user now
+            # We don't have enough info to create the user
             if profile is None:
-                user = User(ego_groups=groups, ego_roles=roles)
-                return user
+                return AnonymousUser()
             user = User(
                 username=profile.get("nickname", ""),
                 email=profile.get("email", ""),
                 first_name=profile.get("given_name", ""),
                 last_name=profile.get("family_name", ""),
                 picture=profile.get("picture", ""),
-                ego_groups=[],
-                ego_roles=[],
-                sub=token.get("sub"),
+                sub=sub,
             )
             user.save()
             update_last_login(None, user)
 
-        # NB: We ALWAYS use the JWT as the source of truth for authorization
-        # fields. They will always be stored as empty arrays in the database
-        # and populated on every request from the token after validation.
-        user.ego_groups = groups
-        user.ego_roles = roles
+        # Elevate the user to admin if they have the right role
         if "ADMIN" in roles:
             admins = Group.objects.filter(name="Administrators").first()
             user.groups.add(admins)
