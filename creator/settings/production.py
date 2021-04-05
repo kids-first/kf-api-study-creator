@@ -172,6 +172,7 @@ CACHES = {
 }
 
 RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
+INGEST_QUEUE = "ingest"
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
@@ -215,7 +216,7 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 60,
         "SSL": redis_ssl,
     },
-    "ingest": {
+    INGEST_QUEUE: {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
@@ -305,7 +306,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
-## Email
+# Email
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django_amazon_ses.EmailBackend"
 )
