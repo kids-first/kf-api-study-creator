@@ -302,12 +302,18 @@ AUTH0_AUD = os.environ.get(
 AUTH0_SERVICE_AUD = os.environ.get(
     "AUTH0_SERIVCE_AUD", "https://kf-study-creator.kidsfirstdrc.org"
 )
+AUTH0_MANAGEMENT_AUD = os.environ.get(
+    "AUTH0_MANAGEMENT_AUD", "https://kids-first.auth0.com/api/v2/"
+)
 AUTH0_CLIENT = os.environ.get("AUTH0_CLIENT")
 AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
 
 CACHE_AUTH0_KEY = os.environ.get("CACHE_AUTH0_KEY", "AUTH0_PUBLIC_KEY")
 CACHE_AUTH0_SERVICE_KEY = os.environ.get(
     "CACHE_AUTH0_SERVICE_KEY", "AUTH0_SERVICE_KEY"
+)
+CACHE_AUTH0_MANAGEMNET_KEY = os.environ.get(
+    "CACHE_AUTH0_MANAGEMNET_KEY", "AUTH0_MANAGEMENT_KEY"
 )
 CACHE_AUTH0_TIMEOUT = os.environ.get("CACHE_AUTH0_TIMEOUT", 86400)
 
