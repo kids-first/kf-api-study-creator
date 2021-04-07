@@ -32,6 +32,26 @@ class DataReview(models.Model):
     class Meta:
         permissions = [
             ("list_all_datareview", "Show all data_reviews"),
+            (
+                "add_my_study_datareview",
+                "Can add data reviews in studies that the user "
+                "is a member of"
+            ),
+            (
+                "change_my_study_datareview",
+                "Can change data reviews in studies that the user "
+                "is a member of"
+            ),
+            (
+                "delete_my_study_datareview",
+                "Can delete data reviews in studies that the user "
+                "is a member of"
+            ),
+            (
+                "view_my_study_datareview",
+                "Can view all data reviews in studies that the user "
+                "is a member of"
+            ),
         ]
 
     kf_id = models.CharField(

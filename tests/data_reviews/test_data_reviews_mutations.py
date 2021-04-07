@@ -1,13 +1,16 @@
 import pytest
 from graphql_relay import to_global_id
 from graphql import GraphQLError
+from django.contrib.auth import get_user_model
 
+from creator.studies.models import Membership
 from creator.studies.models import Study
 from creator.files.models import File
 from creator.data_reviews.models import DataReview, State
 from creator.data_reviews.factories import DataReviewFactory
 from creator.data_reviews.mutations import check_review_files
 
+User = get_user_model()
 
 CREATE_DATA_REVIEW = """
 mutation ($input: CreateDataReviewInput!) {
@@ -97,9 +100,9 @@ mutation ($id: ID!) {
     [
         ("Administrators", True),
         ("Services", False),
-        ("Developers", False),
-        ("Investigators", False),
-        ("Bioinformatics", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
         (None, False),
     ],
 )
@@ -133,6 +136,11 @@ def test_create_data_review(
                 "VersionNode", File.objects.get(pk=file_id).versions.first().pk
             )
         )
+    if user_group:
+        user = User.objects.filter(groups__name=user_group).first()
+        Membership(
+            collaborator=user, study=Study.objects.get(pk=study_id)
+        ).save()
 
     # Send request
     input_ = {
@@ -167,9 +175,9 @@ def test_create_data_review(
     [
         ("Administrators", True),
         ("Services", False),
-        ("Developers", False),
-        ("Investigators", False),
-        ("Bioinformatics", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
         (None, False),
     ],
 )
@@ -226,6 +234,9 @@ def test_update_data_review(
     data_review = DataReviewFactory(
         study=Study.objects.get(pk=study_id), state=start_state
     )
+    if user_group:
+        user = User.objects.filter(groups__name=user_group).first()
+        Membership(collaborator=user, study=data_review.study).save()
 
     # Send request
     input_ = {
@@ -272,9 +283,9 @@ def test_update_data_review(
     [
         ("Administrators", True),
         ("Services", False),
-        ("Developers", False),
-        ("Investigators", False),
-        ("Bioinformatics", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
         (None, False),
     ],
 )
@@ -307,6 +318,9 @@ def test_review_actions(
 
     # Create data review with no files
     data_review = DataReviewFactory(state=start_state)
+    if user_group:
+        user = User.objects.filter(groups__name=user_group).first()
+        Membership(collaborator=user, study=data_review.study).save()
 
     # Send request
     resp = client.post(
