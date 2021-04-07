@@ -1,5 +1,20 @@
 # Kids First Study Creator Change History
 
+## Release 1.16.0
+
+### Summary
+
+- Emojis: 🔥 x1, ⬆️ x1, ✨ x2
+- Categories: Removals x1, Ops x1, Additions x2
+
+### New features and changes
+
+- [#610](https://github.com/kids-first/kf-api-study-creator/pull/610) - 🔥 Remove lingering ego auth fields - [f091a41a](https://github.com/kids-first/kf-api-study-creator/commit/f091a41a7de66f086b7240025eaaf6186655bf3d) by [dankolbman](https://github.com/dankolbman)
+- [#606](https://github.com/kids-first/kf-api-study-creator/pull/606) - ⬆️ Bump django from 2.2.13 to 2.2.18 - [8ef82bd7](https://github.com/kids-first/kf-api-study-creator/commit/8ef82bd73dc61e1498f358fd2b482582c8862cdd) by [dependabot[bot]](https://github.com/apps/dependabot)
+- [#601](https://github.com/kids-first/kf-api-study-creator/pull/601) - ✨ Make events in data_review node sortable with EventFilter - [48d03a38](https://github.com/kids-first/kf-api-study-creator/commit/48d03a3840810017be68157de3d2e8a604fa0efd) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#592](https://github.com/kids-first/kf-api-study-creator/pull/592) - ✨ Set download endpoints to use http in dev mode - [69b1d80d](https://github.com/kids-first/kf-api-study-creator/commit/69b1d80d20d90e996dc5155fb9e276a20dc9318e) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.15.2
 
 ### Summary
