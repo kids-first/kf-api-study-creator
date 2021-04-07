@@ -3,6 +3,7 @@ from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
 from creator.data_reviews.factories import DataReviewFactory
+from creator.ingest_runs.factories import ValidationResultsetFactory
 from creator.studies.models import Study
 
 User = get_user_model()
@@ -16,7 +17,9 @@ query ($id: ID!) {
         name
         description
         state
-        validationResultset { id failed passed didNotRun}
+        validationResultset {
+            id failed passed didNotRun downloadReportUrl downloadResultsUrl
+        }
         study { id kfId }
         versions { edges { node { id kfId } } }
     }
@@ -34,7 +37,9 @@ query {
                 name
                 description
                 state
-                validationResultset { id failed passed didNotRun}
+                validationResultset {
+                    id failed passed didNotRun downloadReportUrl downloadResultsUrl # noqa
+                }
                 study { id kfId }
                 versions { edges { node { id kfId } } }
             }
@@ -75,14 +80,10 @@ query($studyKfId: String) {
         (None, False),
     ],
 )
-def test_query_data_review(db, clients, prep_file, user_group, allowed):
+def test_query_data_review(
+    db, clients, prep_file, data_review, user_group, allowed
+):
     client = clients.get(user_group)
-
-    # Create a study with some files
-    for i in range(2):
-        prep_file(authed=True)
-    # Create data review
-    data_review = DataReviewFactory()
 
     if user_group:
         user = User.objects.filter(groups__name=user_group).first()
@@ -96,8 +97,25 @@ def test_query_data_review(db, clients, prep_file, user_group, allowed):
     )
 
     if allowed:
-        assert resp.json()["data"]["dataReview"]["id"] == to_global_id(
+        dr = resp.json()["data"]["dataReview"]
+        # Check data review basic attrs
+        assert dr["id"] == to_global_id(
             "DataReviewNode", data_review.pk
+        )
+        for attr in ["name", "description", "state"]:
+            assert getattr(data_review, attr) == dr[attr]
+
+        # Check data review validation resultset
+        vrs = dr["validationResultset"]
+        for attr in ["failed", "passed", "didNotRun"]:
+            assert vrs[attr] is not None
+        assert vrs["downloadReportUrl"] == (
+            f"https://testserver/download/data_review/{data_review.kf_id}"
+            "/validation/report"
+        )
+        assert vrs["downloadResultsUrl"] == (
+            f"https://testserver/download/data_review/{data_review.kf_id}"
+            "/validation/results"
         )
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
