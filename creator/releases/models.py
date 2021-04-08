@@ -9,7 +9,7 @@ from django_fsm import FSMField, transition
 from semantic_version import Version
 from semantic_version.django_fields import VersionField
 
-from creator.authentication import service_headers
+from creator.authentication import client_headers
 from creator.fields import kf_id_generator
 from creator.studies.models import Study
 from creator.jobs.models import JobLog
@@ -225,7 +225,7 @@ class ReleaseTask(models.Model):
         return the json content of the response.
         """
 
-        headers = service_headers()
+        headers = client_headers(settings.AUTH0_SERVICE_AUD)
 
         body = {
             "action": action,

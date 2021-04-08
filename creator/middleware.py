@@ -10,7 +10,7 @@ from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.models import update_last_login
 
-from creator.authentication import management_headers
+from creator.authentication import client_headers
 
 
 logger = logging.getLogger(__name__)
@@ -183,7 +183,11 @@ class Auth0AuthenticationMiddleware:
         url = f"{settings.AUTH0_DOMAIN}/api/v2/clients/{client_id}"
         url += "?fields=name,logo_uri"
         try:
-            resp = requests.get(url, headers=management_headers(), timeout=5)
+            resp = requests.get(
+                url,
+                headers=client_headers(settings.AUTH0_MANAGEMENT_AUD),
+                timeout=5,
+            )
             resp.raise_for_status()
         except (requests.ConnectionError, requests.HTTPError) as err:
             logger.error(f"Problem fetching application from Auth0: {err}")

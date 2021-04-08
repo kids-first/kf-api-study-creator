@@ -83,7 +83,7 @@ def test_get_app_info(db, mocker, settings):
     Test that app info is correctly requested from Auth0
     """
     # Inject a fake service token into the cache for use with the Auth0 API
-    cache.set(settings.CACHE_AUTH0_SERVICE_KEY, "abc")
+    cache.set("ACCESS_TOKEN:{settings.AUTH0_SERVICE_AUD}", "abc")
 
     class MockResp:
         def json(self):
@@ -111,7 +111,7 @@ def test_get_app_info_bad_status(db, mocker, settings):
     Test that None is returned if there is a problem getting app info
     """
     # Inject a fake service token into the cache for use with the Auth0 API
-    cache.set(settings.CACHE_AUTH0_SERVICE_KEY, "abc")
+    cache.set(f"ACCESS_TOKEN:{settings.AUTH0_SERVICE_AUD}", "abc")
 
     mock_req = mocker.patch("creator.middleware.requests.get")
     mock_req.side_effect = requests.exceptions.HTTPError("404!")

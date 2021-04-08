@@ -7,7 +7,7 @@ from creator.releases.factories import ReleaseTaskFactory
 def test_send_action(db, mocker, action):
     release_task = ReleaseTaskFactory()
 
-    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header = mocker.patch("creator.releases.models.client_headers")
     mock_header.return_value = {}
 
     class Resp:
@@ -48,7 +48,7 @@ def test_http_error(db, mocker):
     """
     release_task = ReleaseTaskFactory()
 
-    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header = mocker.patch("creator.releases.models.client_headers")
     mock = mocker.patch("creator.releases.models.requests.post")
 
     mock.side_effect = requests.exceptions.RequestException()
@@ -65,7 +65,7 @@ def test_send_action_invalid_json(db, mocker):
     """
     release_task = ReleaseTaskFactory()
 
-    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header = mocker.patch("creator.releases.models.client_headers")
     mock_header.return_value = {}
 
     class Resp:
@@ -93,7 +93,7 @@ def test_incorrect_task_id(db, mocker):
     Test that state is not accepted if the returned task id does not
     match.
     """
-    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header = mocker.patch("creator.releases.models.client_headers")
 
     release_task = ReleaseTaskFactory(state="staged")
 
@@ -123,7 +123,7 @@ def test_incorrect_release_id(db, mocker):
     Test that state is not accepted if the returned release id does not
     match.
     """
-    mock_header = mocker.patch("creator.releases.models.service_headers")
+    mock_header = mocker.patch("creator.releases.models.client_headers")
 
     release_task = ReleaseTaskFactory(state="staged")
 
