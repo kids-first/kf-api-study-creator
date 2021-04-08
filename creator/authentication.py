@@ -1,5 +1,6 @@
 import requests
 import logging
+from typing import Dict, Optional
 from django.conf import settings
 from django.core.cache import cache
 
@@ -7,12 +8,14 @@ from django.core.cache import cache
 logger = logging.getLogger(__name__)
 
 
-def service_headers():
-    """ Construct headers for requests to release services """
+def client_headers(aud: str) -> Dict[str, str]:
+    """
+    Get a m2m token from Auth0 and return a dictionary to be passed as headers
+    containing the authorization field and any other fields.
+    """
+    cache_key = f"ACCESS_TOKEN:{aud}"
     token = cache.get_or_set(
-        settings.CACHE_AUTH0_SERVICE_KEY,
-        get_service_token,
-        settings.CACHE_AUTH0_TIMEOUT,
+        cache_key, get_token(aud), settings.CACHE_AUTH0_TIMEOUT
     )
 
     headers = settings.REQUESTS_HEADERS
@@ -21,33 +24,33 @@ def service_headers():
     return headers
 
 
-def get_service_token():
+def get_token(aud: str) -> Optional[str]:
     """
-    Get a new token from Auth0 so we can authenticate with our release services
+    Retrieve a token for a given audience from Auth0.
+
+    The study creator application in Auth0 as specified by the AUTH0_CLIENT
+    must have permission to use the API corresponding to the given aud or else
+    it will fail to retrieve a token.
     """
     if (
         settings.AUTH0_CLIENT is None
         or settings.AUTH0_SECRET is None
-        or settings.AUTH0_SERVICE_AUD is None
+        or aud is None
     ):
         logger.warning(
             "There is insufficient configuration available to retrieve a "
-            "service token. "
+            "m2m token. "
             "Requests may be sent without an Authorization header"
         )
         return
 
-    logger.info(
-        f"There is no Auth0 token or it has expired. Will request a new one "
-        f"for clientId={settings.AUTH0_CLIENT}"
-    )
     url = f"{settings.AUTH0_DOMAIN}/oauth/token"
     headers = {"Content-Type": "application/json"}
     data = {
         "grant_type": "client_credentials",
         "client_id": settings.AUTH0_CLIENT,
         "client_secret": settings.AUTH0_SECRET,
-        "audience": settings.AUTH0_SERVICE_AUD,
+        "audience": aud,
     }
 
     try:

@@ -2,45 +2,45 @@ import requests
 import pytest
 from django.conf import settings
 from django.core.cache import cache
-from creator.authentication import service_headers, get_service_token
+from creator.authentication import client_headers, get_token
 
 
-def test_service_headers_from_cache(db, mocker):
+def test_headers_from_cache(db, mocker):
     """
     Test that headers are retrieved from the cache when they exist
     """
+    cache_key = "ACCESS_TOKEN:my_aud"
+    cache.set(cache_key, "ABC")
 
-    cache.set(settings.CACHE_AUTH0_SERVICE_KEY, "ABC")
-
-    headers = service_headers()
+    headers = client_headers("my_aud")
     assert "Authorization" in headers
     assert headers["Authorization"] == "Bearer ABC"
 
-    cache.delete(settings.CACHE_AUTH0_SERVICE_KEY)
+    cache.delete(cache_key)
 
 
-def test_service_headers(db, mocker):
+def test_header_cache(db, mocker):
     """
     Test that a new token is fetched if it is not in the cache
     """
-    mock_token = mocker.patch("creator.authentication.get_service_token")
+    mock_token = mocker.patch("creator.authentication.get_token")
     mock_token.return_value = "ABC"
 
-    headers = service_headers()
+    headers = client_headers(settings.AUTH0_SERVICE_AUD)
     assert "Authorization" in headers
     assert headers["Authorization"] == "Bearer ABC"
 
-    assert cache.get(settings.CACHE_AUTH0_SERVICE_KEY) == "ABC"
-    cache.delete(settings.CACHE_AUTH0_SERVICE_KEY)
+    cache_key = f"ACCESS_TOKEN:{settings.AUTH0_SERVICE_AUD}"
+    assert cache.get(cache_key) == "ABC"
+    cache.delete(cache_key)
 
 
-def test_new_service_token(db, mocker):
+def test_new_token(db, mocker):
     """
     Test that Auth0 is called for a new token
     """
     settings.AUTH0_CLIENT = "123"
     settings.AUTH0_SECRET = "abc"
-    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
 
     class Resp:
         def json(self):
@@ -52,17 +52,16 @@ def test_new_service_token(db, mocker):
     mock = mocker.patch("creator.authentication.requests.post")
     mock.return_value = Resp()
 
-    assert get_service_token() == "ABC"
+    assert get_token("my_aud") == "ABC"
     assert mock.call_count == 1
 
 
-def test_new_service_token_malformed_resp(db, mocker):
+def test_new_token_malformed_resp(db, mocker):
     """
     Test the case that Auth0 returns json without an access key
     """
     settings.AUTH0_CLIENT = "123"
     settings.AUTH0_SECRET = "abc"
-    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
 
     class Resp:
         def json(self):
@@ -77,26 +76,25 @@ def test_new_service_token_malformed_resp(db, mocker):
     mock = mocker.patch("creator.authentication.requests.post")
     mock.return_value = Resp()
 
-    assert get_service_token() is None
+    assert get_token("my_aud") is None
     assert mock.call_count == 1
 
 
-def test_new_service_token_exception(db, mocker):
+def test_new_token_exception(db, mocker):
     """
     Test that no token is returned if there is a problem with the request
     """
     settings.AUTH0_CLIENT = "123"
     settings.AUTH0_SECRET = "abc"
-    settings.AUTH0_SERVICE_AUD = "https://my-service.auth0.com"
 
     mock = mocker.patch("creator.authentication.requests.post")
     mock.side_effect = requests.exceptions.RequestException("error")
 
-    assert get_service_token() is None
+    assert get_token("my_aud") is None
     assert mock.call_count == 1
 
 
-def test_new_service_token_insuficient_config(db, mocker):
+def test_new_token_insuficient_config(db, mocker):
     """
     Test that no token is fetched when there is not enough config
     """
@@ -104,5 +102,5 @@ def test_new_service_token_insuficient_config(db, mocker):
 
     mock = mocker.patch("creator.authentication.requests.post")
 
-    assert get_service_token() is None
+    assert get_token("my_aud") is None
     assert mock.call_count == 0
