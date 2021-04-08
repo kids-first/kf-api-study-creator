@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.17.0
+
+### Summary
+
+- Emojis: ✨ x1
+- Categories: Additions x1
+
+### New features and changes
+
+- [#612](https://github.com/kids-first/kf-api-study-creator/pull/612) - ✨ Save services as users - [f67bd173](https://github.com/kids-first/kf-api-study-creator/commit/f67bd17393a5618f9f8fbad4235c5b3d3cd364a6) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.16.0
 
 ### Summary
