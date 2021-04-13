@@ -10,6 +10,70 @@ from unittest.mock import call
 User = get_user_model()
 
 
+def test_data_review_delete(db, mocker, clients, data_review):
+    """
+    Test all validation runs for a data review to be deleted, are cancelled
+    before the review's deletion
+    """
+    mock_enqueue = mocker.patch(
+        "creator.ingest_runs.signals.django_rq.enqueue"
+    )
+    # Create some data - a data review with two validation runs, one active and
+    # one failed
+    user = User.objects.first()
+    vrs = [
+        ValidationRunFactory(data_review=data_review, state=x, creator=user)
+        for x in (State.RUNNING, State.FAILED)
+    ]
+
+    # Delete the data review
+    # Should result in cancellation of the running validation
+    data_review.delete()
+    expected_args = [
+        call(cancel_validation, str(run.id)) for run in vrs[0:1]
+    ]
+    mock_enqueue.assert_has_calls(expected_args, any_order=True)
+
+
+def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
+    """
+    Test the cancel_invalid_validation_runs function.
+    """
+    mock_enqueue = mocker.patch(
+        "creator.ingest_runs.signals.django_rq.enqueue"
+    )
+    # Create some data - 3 reviews with one running validation run
+    # First two reviews share same version, third review has different version
+    user = User.objects.first()
+    versions = []
+    for i in range(2):
+        _, _, version_id = prep_file(authed=True)
+        versions.append(Version.objects.get(pk=version_id))
+    vrs = []
+    drs = []
+    for i in range(3):
+        if i == 2:
+            dr = DataReviewFactory(versions=versions[1:])
+            vr = ValidationRunFactory(
+                state=State.RUNNING, data_review=dr, creator=user
+            )
+        else:
+            dr = DataReviewFactory(versions=versions[0:1])
+            vr = ValidationRunFactory(
+                state=State.RUNNING, data_review=dr, creator=user
+            )
+        drs.append(dr)
+        vrs.append(vr)
+
+    # Cancel the validation runs involving version 0
+    # Should result in canceling validation runs 0, 1
+    cancel_invalid_validation_runs(versions[0])
+    expected_args = [
+        call(cancel_validation, str(run.id)) for run in vrs[0:2]
+    ]
+    mock_enqueue.assert_has_calls(expected_args, any_order=True)
+
+
 def test_cancel_invalid_ingest_runs(db, mocker, clients, prep_file):
     """
     Test the cancel_invalid_ingest_runs function.
