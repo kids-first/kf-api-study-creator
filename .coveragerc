@@ -3,4 +3,5 @@ omit =
     */migrations/*
     */settings/*
     creator/version_info.py
+    creator/studies/data_generator/ingest_package/*
 source = creator
