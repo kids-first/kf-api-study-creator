@@ -79,6 +79,8 @@ class ValidationRun(IngestProcess):
         """
         if self.data_review:
             return self.data_review.versions
+        else:
+            return Version.objects.none()
 
     @property
     def study(self):

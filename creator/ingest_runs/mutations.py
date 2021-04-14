@@ -56,7 +56,7 @@ class StartIngestRunMutation(graphene.Mutation):
         # Create IngestRun for a set of file versions, if one does not exist
         # with same input_hash
         ingest_run = IngestRun()
-        input_hash = hash_versions(versions)
+        input_hash = hash_versions([v.kf_id for v in versions])
 
         # Check if duplicate IngestRuns exist
         irs_with_same_input_hash = IngestRun.objects.filter(

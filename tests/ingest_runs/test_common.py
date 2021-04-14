@@ -11,7 +11,6 @@ from creator.ingest_runs.models import (
     ValidationRun,
     IngestRun,
 )
-from creator.files.models import Version
 from creator.events.models import Event
 
 User = get_user_model()
@@ -25,7 +24,7 @@ def test_hash_versions(db, clients, prep_file):
     versions = []
     for i in range(3):
         study_id, file_id, version_id = prep_file(authed=True)
-        versions.append(Version.objects.get(pk=version_id))
+        versions.append(version_id)
 
     # Hashes for two version lists, regardless of order, should be equal
     h1 = hash_versions(versions)
