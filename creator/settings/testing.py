@@ -131,6 +131,7 @@ redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
 redis_ssl = os.environ.get("REDIS_SSL", "False") == "True"
 RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
+INGEST_QUEUE = "ingest"
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
@@ -175,7 +176,7 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 30,
         "SSL": redis_ssl,
     },
-    "ingest": {
+    INGEST_QUEUE: {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
