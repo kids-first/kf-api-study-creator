@@ -28,9 +28,9 @@ class DataReviewFactory(factory.DjangoModelFactory):
     study = factory.SubFactory(StudyFactory)
 
     @factory.post_generation
-    def files(self, create, extracted, **kwargs):
+    def versions(self, create, extracted, **kwargs):
         if not create:
             return
 
         if extracted:
-            self.files.set(extracted)
+            self.versions.set(extracted)
