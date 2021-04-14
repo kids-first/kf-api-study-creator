@@ -1,39 +1,24 @@
+import os
 import pytest
+import boto3
+from moto import mock_s3
 
+from django_s3_storage.storage import S3Storage
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
 
 from creator.ingest_runs.models import (
     ValidationRun,
     ValidationResultset,
 )
-from creator.data_reviews.factories import DataReviewFactory, DataReview
-from django.core.exceptions import ValidationError
-from creator.studies.models import Study
-from creator.files.models import File
+from creator.data_reviews.factories import DataReview, DataReviewFactory
 
 User = get_user_model()
 
 
-@pytest.fixture
-def data_review(db, clients, prep_file):
-    """
-    Create a data review with two file versions
-    """
-    versions = []
-    for i in range(2):
-        study_id, file_id, _ = prep_file(authed=True)
-        versions.append(File.objects.get(pk=file_id).versions.first())
-    dr = DataReviewFactory(
-        creator=User.objects.first(),
-        study=Study.objects.get(pk=study_id),
-        versions=versions
-    )
-    dr.save()
-    dr.refresh_from_db()
-    return dr
-
-
-def test_validation_run(data_review):
+def test_validation_run(db, data_review):
     """
     Test ValidationRun model
     """
@@ -48,19 +33,18 @@ def test_validation_run(data_review):
     assert vr.study == data_review.study
 
 
-def test_validation_resultset(data_review):
+def test_validation_resultset(db, data_review):
     """
     Test ValidationResultset model
     """
-    vr = ValidationResultset(data_review=data_review)
+    vr = data_review.validation_resultset
     vr.clean()
-    vr.save()
     assert vr.study == data_review.study
     assert vr.data_review.pk in vr.report_path
     assert vr.data_review.pk in vr.results_path
 
 
-def test_missing_study():
+def test_missing_study(db):
     """
     Test missing study on ValidationRun and ValidationResultset
     """
@@ -77,3 +61,49 @@ def test_missing_study():
         with pytest.raises(ValidationError) as e:
             obj.clean()
             assert "must have an associated DataReview" in str(e)
+
+
+@pytest.mark.parametrize(
+    "file_field",
+    ["report_file", "results_file"]
+)
+def test_file_upload_local(
+    db, clients, tmp_uploads_local, file_field, data_review
+):
+    """
+    Test validation report/results file uploads
+    """
+    vrs = data_review.validation_resultset
+    file_field = getattr(vrs, file_field)
+    file_field.save(f"foo.ext", ContentFile("foo"))
+    assert vrs.study.bucket in file_field.path
+    assert settings.UPLOAD_DIR in file_field.path
+    assert os.path.exists(file_field.path)
+
+
+@pytest.mark.parametrize(
+    "file_field",
+    ["report_file", "results_file"]
+)
+@mock_s3
+def test_file_upload_s3(
+    db, clients, tmp_uploads_s3, file_field, data_review
+):
+    """
+    Test validation report/results file uploads
+    """
+    s3 = boto3.client("s3")
+    vrs = data_review.validation_resultset
+    bucket = tmp_uploads_s3(bucket_name=data_review.study.bucket)
+
+    file_field = getattr(vrs, file_field)
+    file_field.storage = S3Storage(
+        aws_s3_bucket_name=data_review.study.bucket
+    )
+    file_field.save(f"foo.ext", ContentFile("foo"))
+    assert vrs.study.bucket in file_field.url
+    assert settings.UPLOAD_DIR in file_field.url
+    objs = s3.list_objects(Bucket=vrs.study.bucket)["Contents"]
+    assert len(objs) == 1
+    assert vrs.study.bucket in objs[0]["Key"]
+    assert f"foo.ext" in objs[0]["Key"]

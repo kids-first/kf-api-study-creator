@@ -8,7 +8,7 @@ from creator.ingest_runs.common.model import (
     camel_to_snake,
 )
 from creator.ingest_runs.models import (
-    # ValidationRun,
+    ValidationRun,
     IngestRun,
 )
 from creator.files.models import Version
@@ -49,7 +49,7 @@ def test_hash_versions(db, clients, prep_file):
 @pytest.mark.parametrize(
     "ingest_process_cls",
     [
-        # ValidationRun,
+        ValidationRun,
         IngestRun,
     ]
 )
