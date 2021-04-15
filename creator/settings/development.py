@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator",
     "corsheaders",
+    'creator.ingest_runs.apps.IngestRunsConfig',
 ]
 
 MIDDLEWARE = [
@@ -129,6 +130,7 @@ redis_port = os.environ.get("REDIS_PORT", 6379)
 redis_pass = os.environ.get("REDIS_PASS", False)
 redis_ssl = os.environ.get("REDIS_SSL", "False") == "True"
 RQ_DEFAULT_TTL = int(os.environ.get("RQ_DEFAULT_TTL", "60"))
+INGEST_QUEUE = "ingest"
 RQ_QUEUES = {
     "default": {
         "HOST": redis_host,
@@ -166,6 +168,13 @@ RQ_QUEUES = {
         "SSL": redis_ssl,
     },
     "slack": {
+        "HOST": redis_host,
+        "PORT": redis_port,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 30,
+        "SSL": redis_ssl,
+    },
+    INGEST_QUEUE: {
         "HOST": redis_host,
         "PORT": redis_port,
         "DB": 0,
@@ -316,3 +325,4 @@ CLIENT_ADMIN_SCOPE = "role:admin"
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
+

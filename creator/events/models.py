@@ -7,6 +7,7 @@ from creator.files.models import File, Version
 from creator.projects.models import Project
 from creator.buckets.models import Bucket
 from creator.data_reviews.models import DataReview
+from creator.ingest_runs.models import IngestRun, ValidationRun
 
 User = get_user_model()
 
@@ -34,6 +35,14 @@ class Event(models.Model):
     event_type = models.CharField(
         max_length=6,
         choices=(
+            ("VR_STA", "Validation Run Started"),
+            ("VR_CAN", "Validation Run Canceled"),
+            ("VR_COM", "Validation Run Completed"),
+            ("VR_FAI", "Validation Run Failed"),
+            ("IR_STA", "Ingest Run Started"),
+            ("IR_CAN", "Ingest Run Canceled"),
+            ("IR_COM", "Ingest Run Completed"),
+            ("IR_FAI", "Ingest Run Failed"),
             ("SF_CRE", "Study File Created"),
             ("SF_UPD", "Study File Updated"),
             ("SF_DEL", "Study File Deleted"),
@@ -139,4 +148,20 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="Data Review related to this event",
+    )
+    ingest_run = models.ForeignKey(
+        IngestRun,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Ingest Run related to this event",
+    )
+    validation_run = models.ForeignKey(
+        ValidationRun,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Validation Run related to this event",
     )
