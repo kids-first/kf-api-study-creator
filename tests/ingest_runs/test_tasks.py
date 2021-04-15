@@ -4,7 +4,9 @@ from creator.ingest_runs.models import IngestRun
 from creator.ingest_runs.tasks import (
     run_ingest,
     cancel_ingest,
+    cancel_validation,
 )
+from creator.ingest_runs.factories import ValidationRunFactory, ValidationRun
 
 from django.contrib.auth import get_user_model
 
@@ -26,7 +28,8 @@ def test_run_ingest(db, mocker, clients, prep_file):
     """
     client = clients.get("Administrator")
     mock_genomic_workflow = mocker.patch(
-        "creator.ingest_runs.tasks.ingest_genomic_workflow_output_manifests"
+        "creator.ingest_runs.tasks.ingest_run"
+        ".ingest_genomic_workflow_output_manifests"
     )
     user = User.objects.first()
 
@@ -131,6 +134,20 @@ def test_cancel_ingest(db, clients, prep_file):
     ir = IngestRun.objects.get(pk=ir.id)
     assert IngestRun.objects.all().count() == 1
     assert ir.state == "canceled"
+
+
+def test_cancel_validation(db, clients):
+    """
+    Test the cancel_ingest function.
+    """
+    # Create a validation run
+    vr = ValidationRunFactory()
+    vr.start()
+    vr.save()
+    cancel_validation(vr.pk)
+    vr = ValidationRun.objects.get(pk=vr.pk)
+    assert ValidationRun.objects.all().count() == 1
+    assert vr.state == "canceled"
 
 
 def setup_ingest_run(file_versions, user):

@@ -13,7 +13,8 @@ from creator.ingest_runs.models import (
     ValidationRun,
     ValidationResultset,
 )
-from creator.data_reviews.factories import DataReview, DataReviewFactory
+from creator.data_reviews.factories import DataReview
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 

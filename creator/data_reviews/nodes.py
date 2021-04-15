@@ -24,12 +24,18 @@ class DataReviewNode(DjangoObjectType):
         """
         user = info.context.user
 
-        if not (user.has_perm("data_reviews.view_datareview")):
-            raise GraphQLError("Not allowed")
-
         try:
             data_review = cls._meta.model.objects.get(pk=id)
         except cls._meta.model.DoesNotExist:
             raise GraphQLError("DataReviews was not found")
+
+        if not (
+            user.has_perm("data_reviews.add_datareview")
+            or (
+                user.has_perm("data_reviews.add_my_study_datareview")
+                and user.studies.filter(kf_id=data_review.study.kf_id).exists()
+            )
+        ):
+            raise GraphQLError("Not allowed")
 
         return data_review

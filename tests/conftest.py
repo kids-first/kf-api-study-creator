@@ -16,9 +16,12 @@ from creator.users.factories import UserFactory
 from creator.files.models import File
 from creator.files.factories import FileFactory
 from creator.studies.factories import StudyFactory
-from creator.ingest_runs.factories import IngestRunFactory
+from creator.ingest_runs.factories import (
+    IngestRunFactory,
+    ValidationResultsetFactory,
+)
 from creator.data_reviews.factories import DataReviewFactory
-from creator.ingest_runs.models import ValidationResultset
+from creator.ingest_runs.factories import ValidationResultsetFactory
 from creator.studies.models import Study
 from creator.groups import GROUPS
 
@@ -123,7 +126,7 @@ def tmp_uploads_s3(tmpdir, settings):
     settings.DEFAULT_FILE_STORAGE = "django_s3_storage.storage.S3Storage"
 
     def mock(bucket_name="kf-study-us-east-1-my-study"):
-        client = boto3.client("s3")
+        client = boto3.client("s3", region_name="us-east-1")
         return client.create_bucket(Bucket=bucket_name)
 
     return mock
@@ -437,6 +440,6 @@ def data_review(db, clients, prep_file):
         study=study,
         versions=versions
     )
-    ValidationResultset(data_review=dr).save()
+    ValidationResultsetFactory(data_review=dr)
     dr.refresh_from_db()
     return dr

@@ -7,6 +7,7 @@ from creator.views import SentryGraphQLView
 import creator.files.views
 import creator.extract_configs.views
 import creator.jobs.views
+import creator.ingest_runs.views
 
 
 def health_check(request):
@@ -69,6 +70,10 @@ urlpatterns = [
         creator.extract_configs.views.download_config,
     ),
     path(r"logs/<log_id>", creator.jobs.views.download_log),
+    path(
+        r'download/data_review/<review_id>/validation/<file_type>',
+        creator.ingest_runs.views.download_validation_file
+    ),
 ]
 
 if settings.DEVELOPMENT_ENDPOINTS:
