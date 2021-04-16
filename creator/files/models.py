@@ -15,6 +15,10 @@ from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
 
+EXTRACT_CFG_DIR = os.path.join(
+    settings.BASE_DIR, "extract_configs", "templates"
+)
+
 User = get_user_model()
 
 
@@ -26,6 +30,23 @@ def only_printable(string):
     """ Converts to a string and removes any non-printable characters"""
     string = str(string)
     return "".join([s for s in string if s.isprintable()])
+
+
+def extract_config_path(version):
+    """
+    Get the extract config filename for the version
+    """
+    config_path = None
+    try:
+        file_type = version.root_file.file_type
+    except Exception:
+        pass
+    else:
+        filename = FILE_TYPES.get(file_type, {}).get("template")
+        if filename:
+            config_path = os.path.join(EXTRACT_CFG_DIR, filename)
+
+    return config_path
 
 
 class FileType(Enum):
