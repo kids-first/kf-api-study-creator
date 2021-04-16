@@ -1,5 +1,7 @@
+import os
 import pytest
 from django.http.response import HttpResponse
+from django.conf import settings
 
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
@@ -30,7 +32,17 @@ def test_no_extract_configs(clients, db, mocker, file_type):
 @pytest.mark.parametrize(
     "file_type,content",
     [
-        ("S3S", "S3 object manifests"),
+        ("FCM", "Complex Family"),
+        ("FTR", "Family Trio"),
+        ("PDA", "Participant Details"),
+        ("PTD", "Participant Diseases"),
+        ("PTP", "Participant Phenotypes"),
+        ("GOB", "General Observations"),
+        ("BCM", "Biospecimen Collection Manifest"),
+        ("BBM", "Biobank Manifest"),
+        ("ALM", "Aliquot Manifest"),
+        ("SEQ", "Sequencing File Manifest"),
+        ("S3S", "S3 Scrape"),
         ("GWO", "Genomic Workflow Output Manifest"),
     ],
 )
@@ -38,9 +50,12 @@ def test_has_extract_config(clients, db, mocker, file_type, content):
     """
     Test that user can download extract config for expedited file types
     """
+    extract_config_dir = os.path.join(
+        settings.BASE_DIR, "extract_configs", "templates"
+    )
     mock_resp = mocker.patch("creator.files.views.HttpResponse")
     mock_resp.return_value = HttpResponse(
-        open(f"tests/data/{FILE_TYPES[file_type]['template']}")
+        open(f"{extract_config_dir}/{FILE_TYPES[file_type]['template']}")
     )
     client = clients.get("Administrators")
     study = StudyFactory()
