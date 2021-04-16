@@ -7,14 +7,18 @@ from creator.authentication import client_headers, get_token
 
 def test_headers_from_cache(db, mocker):
     """
-    Test that headers are retrieved from the cache when they exist
+    Test that headers are retrieved from the cache when they exist and not
+    retrieved from Auth0 unecessarily.
     """
+    get_token = mocker.patch('creator.authentication.get_token')
+
     cache_key = "ACCESS_TOKEN:my_aud"
     cache.set(cache_key, "ABC")
 
     headers = client_headers("my_aud")
     assert "Authorization" in headers
     assert headers["Authorization"] == "Bearer ABC"
+    assert get_token.call_count == 0
 
     cache.delete(cache_key)
 

@@ -15,7 +15,7 @@ def client_headers(aud: str) -> Dict[str, str]:
     """
     cache_key = f"ACCESS_TOKEN:{aud}"
     token = cache.get_or_set(
-        cache_key, get_token(aud), settings.CACHE_AUTH0_TIMEOUT
+        cache_key, lambda: get_token(aud), settings.CACHE_AUTH0_TIMEOUT
     )
 
     headers = settings.REQUESTS_HEADERS
