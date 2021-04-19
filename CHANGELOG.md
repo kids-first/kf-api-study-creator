@@ -1,5 +1,20 @@
 # Kids First Study Creator Change History
 
+## Release 1.17.1
+
+### Summary
+
+- Emojis: 🐛 x1, ✨ x2, ⬆️ x1
+- Categories: Fixes x1, Additions x2, Ops x1
+
+### New features and changes
+
+- [#621](https://github.com/kids-first/kf-api-study-creator/pull/621) - 🐛 Don't refetch tokens every request - [72f4706f](https://github.com/kids-first/kf-api-study-creator/commit/72f4706fd92a0f70f8957252648a800192fad998) by [dankolbman](https://github.com/dankolbman)
+- [#613](https://github.com/kids-first/kf-api-study-creator/pull/613) - ✨ Validation GraphQL API - [2ef7a6ee](https://github.com/kids-first/kf-api-study-creator/commit/2ef7a6ee673b0682ab69b01d2988adeef814af24) by [znatty22](https://github.com/znatty22)
+- [#498](https://github.com/kids-first/kf-api-study-creator/pull/498) - ✨ New ingest runs app - [ef282950](https://github.com/kids-first/kf-api-study-creator/commit/ef282950fc007292c5458175bec2cc72f7c3fd35) by [znatty22](https://github.com/znatty22)
+- [#616](https://github.com/kids-first/kf-api-study-creator/pull/616) - ⬆️ Bump django from 2.2.18 to 2.2.20 - [ed30a545](https://github.com/kids-first/kf-api-study-creator/commit/ed30a545b8ed74211527c3c34495c5b6d7f19393) by [dependabot[bot]](https://github.com/apps/dependabot)
+
+
 ## Release 1.17.0
 
 ### Summary
