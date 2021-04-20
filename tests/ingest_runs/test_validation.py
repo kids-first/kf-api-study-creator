@@ -20,7 +20,7 @@ from tests.extract_configs.fixtures import (
     MockAnalysis
 )
 
-DATA_REVIEW_FILE_TYPES = ["PDA", "PTC", "PTO", "SAM", "S3S", "FTR"]
+DATA_REVIEW_FILE_TYPES = ["PDA", "PTD", "PTP", "SAM", "S3S", "FTR"]
 
 
 @pytest.fixture
