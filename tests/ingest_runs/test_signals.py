@@ -1,7 +1,12 @@
-from creator.files.models import File
-from creator.ingest_runs.models import IngestRun
-from creator.ingest_runs.signals import cancel_invalid_ingest_runs
-from creator.ingest_runs.tasks import cancel_ingest
+from creator.data_reviews.factories import DataReviewFactory
+from creator.files.models import File, Version
+from creator.ingest_runs.models import IngestRun, State
+from creator.ingest_runs.factories import ValidationRunFactory
+from creator.ingest_runs.signals import (
+    cancel_invalid_ingest_runs,
+    cancel_invalid_validation_runs,
+)
+from creator.ingest_runs.tasks import cancel_ingest, cancel_validation
 
 from django.contrib.auth import get_user_model
 from itertools import chain, combinations
@@ -52,16 +57,11 @@ def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
     vrs = []
     drs = []
     for i in range(3):
-        if i == 2:
-            dr = DataReviewFactory(versions=versions[1:])
-            vr = ValidationRunFactory(
-                state=State.RUNNING, data_review=dr, creator=user
-            )
-        else:
-            dr = DataReviewFactory(versions=versions[0:1])
-            vr = ValidationRunFactory(
-                state=State.RUNNING, data_review=dr, creator=user
-            )
+        vers = versions[1:] if i == 2 else versions[:1]
+        dr = DataReviewFactory(versions=vers)
+        vr = ValidationRunFactory(
+            state=State.RUNNING, data_review=dr, creator=user
+        )
         drs.append(dr)
         vrs.append(vr)
 
@@ -124,9 +124,14 @@ def test_file_version_pre_delete(db, mocker, clients, prep_file):
     Test that the pre_delete signals are properly called and
     function accordingly.
     """
-    mock_cancel = mocker.patch(
+    mock_cancel_ingest = mocker.patch(
         "creator.ingest_runs.signals.cancel_invalid_ingest_runs"
     )
+    mock_cancel_validation = mocker.patch(
+        "creator.ingest_runs.signals.cancel_invalid_validation_runs"
+    )
+    mocks = [mock_cancel_ingest, mock_cancel_validation]
+
     # Create data
     for _ in range(4):
         prep_file(authed=False)
@@ -139,14 +144,16 @@ def test_file_version_pre_delete(db, mocker, clients, prep_file):
 
     # Case 1: A Version is deleted.
     v4.delete()
-    mock_cancel.assert_called_once_with(v4)
-    mock_cancel.reset_mock()
+    for mock_cancel in mocks:
+        mock_cancel.assert_called_once_with(v4)
+        mock_cancel.reset_mock()
 
     # Case 2: A File is deleted. Since this is done with cascade in the
     # database, not sure how to check for the correct arguments (or if this is
     # actually necessary).
     f1.delete()
-    assert mock_cancel.call_count == 2
+    for mock_cancel in mocks:
+        assert mock_cancel.call_count == 2
 
 
 def setup_ir(file_versions, user):

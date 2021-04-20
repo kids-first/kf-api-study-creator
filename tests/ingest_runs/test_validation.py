@@ -16,7 +16,7 @@ from creator.ingest_runs.models import ValidationResultset, State
 
 from tests.extract_configs.fixtures import make_template_df
 
-DATA_REVIEW_FILE_TYPES = ["PDA", "PTC", "PTO", "SAM", "S3S", "FTR"]
+DATA_REVIEW_FILE_TYPES = ["PDA", "PTD", "PTP", "SAM", "S3S", "FTR"]
 
 
 @pytest.fixture
