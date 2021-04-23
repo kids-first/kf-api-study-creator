@@ -113,7 +113,7 @@ class task:
             except Job.DoesNotExist:
                 logger.info(
                     f"The {self.job} job does not exist. "
-                    "Registering a new unsceduled-job for it."
+                    "Registering a new unscheduled-job for it."
                 )
                 self._job = Job(name=self.job, active=True, scheduled=False)
 
@@ -126,9 +126,6 @@ class task:
             self._resolve_related(*args, **kwargs)
 
             self.log_preamble()
-
-            self.logger.info(blue("Dropping into the Job process"))
-            self.logger.info("")
 
             # Used to store any exception that gets raised during execution
             exception = None
@@ -146,9 +143,6 @@ class task:
                 self._job.failing = True
                 self._job.last_error = str(err)
             else:
-                self.logger.info("")
-                self.logger.info(green("Job exited successfully"))
-                self.logger.info("")
                 self._job.failing = False
                 self._job.last_error = ""
 
@@ -253,7 +247,7 @@ class task:
         if len(job_logs) > 0:
             self.logger.info("")
             self.logger.info(
-                blue(f"Re-attaching to Job Log ")
+                blue("Re-attaching to Job Log ")
                 + ", ".join([yellow(str(log.id)) for log in job_logs])
             )
             self.logger.info("")
