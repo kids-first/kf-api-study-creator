@@ -102,7 +102,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "creator.wsgi.application"
 
-GRAPHENE = {"SCHEMA": "creator.schema.schema"}
+GRAPHENE = {
+    "SCHEMA": "creator.schema.schema",
+    "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware"],
+}
 
 
 # Database
