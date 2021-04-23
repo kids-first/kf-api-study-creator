@@ -34,6 +34,9 @@ class ReleaseNode(DjangoObjectType):
 
         return release
 
+    def resolve_creator(root, info):
+        return info.context.loaders.user_loader.load(root.creator_id)
+
 
 class ReleaseTaskNode(DjangoObjectType):
     class Meta:

@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator",
     "corsheaders",
-    'creator.ingest_runs.apps.IngestRunsConfig',
+    "creator.ingest_runs.apps.IngestRunsConfig",
 ]
 
 MIDDLEWARE = [
@@ -104,7 +104,10 @@ WSGI_APPLICATION = "creator.wsgi.application"
 
 GRAPHENE = {
     "SCHEMA": "creator.schema.schema",
-    "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware"],
+    "MIDDLEWARE": [
+        "graphene_django.debug.DjangoDebugMiddleware",
+        "creator.loaders.LoaderMiddleware",
+    ],
 }
 
 
@@ -328,4 +331,3 @@ CLIENT_ADMIN_SCOPE = "role:admin"
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
-

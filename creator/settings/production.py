@@ -139,7 +139,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "creator.wsgi.application"
 
-GRAPHENE = {"SCHEMA": "creator.schema.schema"}
+GRAPHENE = {
+    "SCHEMA": "creator.schema.schema",
+    "MIDDLEWARE": ["creator.loaders.LoaderMiddleware"],
+}
 
 
 # Database
