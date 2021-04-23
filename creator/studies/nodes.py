@@ -4,6 +4,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from creator.events.schema import EventNode, EventFilter
 from creator.files.schema.file import FileNode, FileFilter
+from creator.releases.models import Release
 from creator.releases.nodes import ReleaseNode
 from creator.releases.queries import ReleaseFilter
 from creator.studies.models import (
@@ -31,6 +32,10 @@ class StudyNode(DjangoObjectType):
         description="List all releases for the study",
     )
 
+    latest_release = graphene.Field(
+        ReleaseNode, description="The latest published release for this study"
+    )
+
     class Meta:
         model = Study
         filter_fields = ["name", "investigator_name"]
@@ -55,6 +60,21 @@ class StudyNode(DjangoObjectType):
             return study
         else:
             raise GraphQLError("Not allowed")
+
+    def resolve_latest_release(root, info):
+        """
+        Returns the latest published release for the study if one exists.
+
+        This is a hack to avoid using a subquery such as:
+          releases(first: 1, state: published)
+        Performing this subquery requires count(*) to be called for each study
+        which it is performed on which will add up when done within allStudies
+        or similar queries.
+        """
+        try:
+            return root.releases.filter(state="published").latest()
+        except Release.DoesNotExist:
+            return None
 
 
 SequencingStatusType = graphene.Enum(

@@ -198,23 +198,17 @@ query AllStudies {
         sequencingStatus
         ingestionStatus
         phenotypeStatus
-        releases(first: 1, orderBy: \"-created_at\", state: \"published\") {
-          edges {
-            node {
-              id
-              kfId
-              name
-              version
-              createdAt
-              creator {
-                ...UserFields
-                __typename
-              }
-              __typename
-            }
+        latestRelease {
+          id
+          kfId
+          name
+          version
+          createdAt
+          creator {
+            ...UserFields
             __typename
           }
-          __typename
+        __typename
         }
         collaborators {
           edges {
@@ -270,7 +264,7 @@ def test_all_studies_query(db, django_assert_num_queries, clients):
     studies[0].collaborators.set(users)
     studies[0].save()
 
-    with django_assert_num_queries(34) as queries:
+    with django_assert_num_queries(28) as queries:
 
         resp = client.post(
             "/graphql",
