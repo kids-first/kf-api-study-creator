@@ -6,6 +6,7 @@ or Mutation from the application's schema module.
 No resolvers or type definitions should be included here.
 """
 import graphene
+from django.conf import settings
 
 import creator.analyses.schema
 import creator.buckets.schema
@@ -39,7 +40,10 @@ class Query(
 ):
     """ Root query schema combining all apps' schemas """
 
-    pass
+    if settings.DEBUG:
+        from graphene_django.debug import DjangoDebug
+
+        debug = graphene.Field(DjangoDebug, name="_debug")
 
 
 class Mutation(
