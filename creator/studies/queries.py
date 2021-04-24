@@ -2,6 +2,7 @@ import logging
 import graphene
 from graphql import GraphQLError
 from graphene_django.filter import DjangoFilterConnectionField
+import graphene_django_optimizer as gql_optimizer
 
 from creator.studies.nodes import StudyNode
 from creator.studies.models import Study
@@ -32,9 +33,13 @@ class Query:
         user = info.context.user
 
         if user.has_perm("studies.view_study"):
-            return Study.objects.filter(deleted=False)
+            return gql_optimizer.query(
+                Study.objects.filter(deleted=False), info
+            )
 
         if user.has_perm("studies.view_my_study"):
-            return user.studies.filter(deleted=False).all(), info
+            return gql_optimizer.query(
+                user.studies.filter(deleted=False).all(), info
+            )
 
         raise GraphQLError("Not allowed")

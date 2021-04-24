@@ -264,7 +264,7 @@ def test_all_studies_query(db, django_assert_num_queries, clients):
     studies[0].collaborators.set(users)
     studies[0].save()
 
-    with django_assert_num_queries(28) as queries:
+    with django_assert_num_queries(18) as queries:
 
         resp = client.post(
             "/graphql",
