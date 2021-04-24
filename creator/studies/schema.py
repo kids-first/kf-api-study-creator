@@ -1,41 +1,20 @@
-import django_rq
-import json
 import logging
-import requests
+import graphene
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from graphql import GraphQLError
-from graphql_relay import from_global_id
-from graphene import (
-    relay,
-    List,
-    Boolean,
-    Date,
-    InputObjectType,
-    ID,
-    List,
-    ObjectType,
-    Field,
-    String,
-    Int,
-)
 from graphene_django.filter import DjangoFilterConnectionField
-from dateutil.parser import parse
 from .models import Study
 from creator.studies.nodes import StudyNode
 from creator.studies.mutations import Mutation
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class Query(object):
-    study = relay.Node.Field(StudyNode, description="Get a study")
-    study_by_kf_id = Field(
+    study = graphene.relay.Node.Field(StudyNode, description="Get a study")
+    study_by_kf_id = graphene.Field(
         StudyNode,
-        kf_id=String(required=True),
+        kf_id=graphene.String(required=True),
         description="Get a study by its kf_id",
     )
     all_studies = DjangoFilterConnectionField(
