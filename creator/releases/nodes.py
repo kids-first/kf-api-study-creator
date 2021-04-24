@@ -35,6 +35,8 @@ class ReleaseNode(DjangoObjectType):
         return release
 
     def resolve_creator(root, info):
+        if root.creator_id is None:
+            return None
         return info.context.loaders.user_loader.load(root.creator_id)
 
 
