@@ -41,7 +41,7 @@ def mock_cavatica(mocker, settings):
     """ Mocks out project setup functions """
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
-    cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
+    cavatica = mocker.patch("creator.studies.mutations.django_rq.enqueue")
     return cavatica
 
 
@@ -249,7 +249,7 @@ def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
     settings.STUDY_BUCKETS_REPLICATION_ROLE = "arn:::"
     settings.STUDY_BUCKETS_INVENTORY_LOCATION = "bucket-metrics/inventory"
 
-    mock_setup = mocker.patch("creator.studies.schema.django_rq.enqueue")
+    mock_setup = mocker.patch("creator.studies.mutations.django_rq.enqueue")
 
     variables = {"input": {"externalId": "Test Study"}}
     resp = client.post(
@@ -279,7 +279,9 @@ def test_workflows(db, settings, mocker, clients, mock_post):
     client = clients.get("Administrators")
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
-    setup_cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
+    setup_cavatica = mocker.patch(
+        "creator.studies.mutations.django_rq.enqueue"
+    )
 
     variables = {
         "workflows": ["bwa_mem"],

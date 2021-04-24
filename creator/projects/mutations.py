@@ -168,7 +168,7 @@ class LinkProjectMutation(graphene.Mutation):
     """
 
     project = graphene.Field("creator.projects.schema.ProjectNode")
-    study = graphene.Field("creator.studies.schema.StudyNode")
+    study = graphene.Field("creator.studies.nodes.StudyNode")
 
     class Arguments:
         project = graphene.ID(
@@ -228,7 +228,7 @@ class UnlinkProjectMutation(graphene.Mutation):
     """
 
     project = graphene.Field("creator.projects.schema.ProjectNode")
-    study = graphene.Field("creator.studies.schema.StudyNode")
+    study = graphene.Field("creator.studies.nodes.StudyNode")
 
     class Arguments:
         project = graphene.ID(

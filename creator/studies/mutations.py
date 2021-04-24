@@ -19,8 +19,8 @@ from creator.tasks import setup_cavatica_task
 from creator.tasks import setup_slack_task
 from creator.users.schema import CollaboratorConnection
 from creator.studies.models import Study, Membership
-from creator.studies.schema import StudyNode
 from creator.studies.nodes import (
+    StudyNode,
     SequencingStatusType,
     IngestionStatusType,
     PhenotypeStatusType,

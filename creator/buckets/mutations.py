@@ -16,7 +16,7 @@ class LinkBucketMutation(graphene.Mutation):
     """
 
     bucket = graphene.Field("creator.buckets.schema.BucketNode")
-    study = graphene.Field("creator.studies.schema.StudyNode")
+    study = graphene.Field("creator.studies.nodes.StudyNode")
 
     class Arguments:
         bucket = graphene.ID(
@@ -76,7 +76,7 @@ class UnlinkBucketMutation(graphene.Mutation):
     """
 
     bucket = graphene.Field("creator.buckets.schema.BucketNode")
-    study = graphene.Field("creator.studies.schema.StudyNode")
+    study = graphene.Field("creator.studies.nodes.StudyNode")
 
     class Arguments:
         bucket = graphene.ID(
