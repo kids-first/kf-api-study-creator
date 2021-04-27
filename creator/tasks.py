@@ -254,6 +254,7 @@ def analyzer_task():
             analysis = analyze_version(version)
         except Exception:
             errors += 1
+            logger.warning(f"Failed to analyze version {version.kf_id}")
             continue
         analysis.user = version.creator
         analysis.save()
@@ -261,5 +262,3 @@ def analyzer_task():
         f"Successfully analyzed {len(versions) - errors} versions. "
         f"Failed to analyze {errors} versions."
     )
-    if errors > 0:
-        raise Exception(f"Failed to analyze {errors} versions.")

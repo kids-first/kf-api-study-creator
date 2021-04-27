@@ -40,15 +40,19 @@ def test_analyzer_task_error(db, mocker, versions):
     job.save()
 
     mock = mocker.patch("creator.tasks.analyze_version")
+    logging = mocker.patch("creator.tasks.logger")
     mock.side_effect = Exception("error occurred")
 
-    with pytest.raises(Exception):
-        analyzer_task()
+    versions = VersionFactory(analysis=None)
 
-    job.refresh_from_db()
-    assert job.failing
-    assert "Failed to analyze" in job.last_error
+    analyzer_task()
+
     assert mock.call_count == Version.objects.count()
+    assert logging.warning.call_count == Version.objects.count()
+    assert (
+        f"Failed to analyze {Version.objects.count()} versions"
+        in logging.info.call_args_list[-1][0][0]
+    )
 
 
 def test_analyzer_task_inactive(db, mocker, versions):
