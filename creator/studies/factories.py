@@ -3,6 +3,7 @@ import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
 from .models import Study
+from creator.organizations.models import Organization
 from creator.buckets.factories import BucketFactory
 
 
@@ -22,3 +23,5 @@ class StudyFactory(factory.DjangoModelFactory):
     external_id = factory.Faker("slug")
 
     buckets = factory.RelatedFactory(BucketFactory, "study")
+
+    organization = factory.Iterator(Organization.objects.all())

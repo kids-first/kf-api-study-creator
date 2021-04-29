@@ -170,6 +170,12 @@ class Study(models.Model):
         help_text="Current phenotype status of this study",
     )
 
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="studies",
+    )
+
     collaborators = models.ManyToManyField(
         "creator.User",
         related_name="studies",
