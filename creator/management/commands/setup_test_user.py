@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.utils import IntegrityError
+from creator.organizations.models import Organization
 
 User = get_user_model()
 
@@ -24,6 +25,7 @@ class Command(BaseCommand):
             user.first_name = "Bobby"
             user.last_name = "Tables"
             user.groups.add(Group.objects.get(name="Administrators"))
+            user.organizations.add(Organization.objects.first())
             user.save()
         except Exception as err:
             logger.error(f"Problem occurred adding user as admin: {err}")
