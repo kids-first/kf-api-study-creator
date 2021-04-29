@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_cavatica_task
 from creator.files.models import Study
+from creator.studies.factories import StudyFactory
 from creator.users.factories import UserFactory
+from creator.organizations.factories import OrganizationFactory
 from creator.projects.models import Project
 from creator.projects.cavatica import attach_volume
 
@@ -120,11 +122,13 @@ def test_create_study_mutation(
     Only admins should be allowed to create studies
     """
     user = UserFactory()
+    organization = OrganizationFactory()
     client = clients.get(user_group)
     variables = {
         "input": {
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", user.id)],
+            "organization": to_global_id("OrganizationNode", organization.pk),
         }
     }
     resp = client.post(
@@ -154,12 +158,13 @@ def test_create_study_collaborator_does_not_exist(
     Study should not be created and an error returned if one of the
     collaborators does not exist
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
-
     variables = {
         "input": {
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", 123)],
+            "organization": to_global_id("OrganizationNode", organization.pk),
         }
     }
     resp = client.post(
@@ -174,13 +179,46 @@ def test_create_study_collaborator_does_not_exist(
     assert mock_cavatica.call_count == 0
 
 
+def test_create_study_organization_does_not_exist(db, clients, mock_post):
+    """
+    Test that a study may not be created if the specified organization does not
+    exist.
+    """
+    client = clients.get("Administrators")
+
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "collaborators": [to_global_id("UserNode", 123)],
+            "organization": to_global_id("OrganizationNode", "ABC"),
+        }
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert (
+        "Organization ABC does not exist"
+        in resp.json()["errors"][0]["message"]
+    )
+    assert Study.objects.count() == 0
+
+
 def test_dataservice_call(db, clients, mock_post, settings):
     """
     Test that the dataservice is called correctly
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
-
-    variables = {"input": {"externalId": "Test Study"}}
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -202,11 +240,17 @@ def test_dataservice_feat_flag(db, clients, mock_post, settings):
     Test that creating studies does not work when the feature flag is turned
     off.
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
 
     settings.FEAT_DATASERVICE_CREATE_STUDIES = False
 
-    variables = {"input": {"externalId": "Test Study"}}
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -223,8 +267,14 @@ def test_dataservice_error(db, clients, mock_error):
     """
     Test behavior when dataservice returns an error.
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
-    variables = {"input": {"externalId": "Test Study"}}
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -241,6 +291,7 @@ def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
     """
     Test that buckets are only created if the correct settings are configured
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
     settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS = True
     settings.STUDY_BUCKETS_REGION = "us-east-1"
@@ -251,7 +302,12 @@ def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
 
     mock_setup = mocker.patch("creator.studies.schema.django_rq.enqueue")
 
-    variables = {"input": {"externalId": "Test Study"}}
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -276,6 +332,7 @@ def test_workflows(db, settings, mocker, clients, mock_post):
     """
     Test that a new study may be created with specific workflows
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
@@ -283,7 +340,10 @@ def test_workflows(db, settings, mocker, clients, mock_post):
 
     variables = {
         "workflows": ["bwa_mem"],
-        "input": {"externalId": "Test Study"},
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        },
     }
     resp = client.post(
         "/graphql",
@@ -303,7 +363,13 @@ def test_workflows(db, settings, mocker, clients, mock_post):
     # Try multiple workflows
     setup_cavatica.reset_mock()
     workflows = ["bwa_mem", "mutect2_somatic_mode", "kallisto"]
-    variables = {"workflows": workflows, "input": {"externalId": "Test Study"}}
+    variables = {
+        "workflows": workflows,
+        "input": {
+            "externalId": "Test Study",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        },
+    }
     resp = client.post(
         "/graphql",
         content_type="application/json",
@@ -338,11 +404,17 @@ def test_text_fields(db, clients, settings, mock_post, field):
     """
     Test text inputs for different fields
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
-    variables = {"input": {"externalId": "TEST"}}
+    variables = {
+        "input": {
+            "externalId": "TEST",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     variables["input"][field] = "Lorem Ipsum"
     resp = client.post(
         "/graphql",
@@ -358,11 +430,17 @@ def test_integer_fields(db, clients, settings, mock_post, field):
     """
     Test positive integer inputs for different fields
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
-    variables = {"input": {"externalId": "TEST"}}
+    variables = {
+        "input": {
+            "externalId": "TEST",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     variables["input"][field] = 324
     resp = client.post(
         "/graphql",
@@ -380,11 +458,17 @@ def test_internal_fields(db, clients, settings, mock_post, field):
 
     TODO: Merge with test_text_fields by making dataservice mock more flexible
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
-    variables = {"input": {"externalId": "TEST"}}
+    variables = {
+        "input": {
+            "externalId": "TEST",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     variables["input"][field] = "Lorem Ipsum"
     resp = client.post(
         "/graphql",
@@ -400,11 +484,17 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, field):
     """
     Test that inputs datetime study fields are saved correctly.
     """
+    organization = OrganizationFactory()
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
 
-    variables = {"input": {"externalId": "TEST"}}
+    variables = {
+        "input": {
+            "externalId": "TEST",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     d = datetime.now()
     variables["input"][field] = d.strftime("%Y-%m-%d")
     resp = client.post(

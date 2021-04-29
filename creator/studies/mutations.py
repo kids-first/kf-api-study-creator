@@ -12,12 +12,14 @@ from graphql import GraphQLError
 from graphql_relay import from_global_id
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from creator.tasks import setup_bucket_task
 from creator.tasks import setup_cavatica_task
 from creator.tasks import setup_slack_task
 from creator.users.schema import CollaboratorConnection
+from creator.organizations.models import Organization
 from creator.studies.models import Study, Membership
 from creator.studies.schema import StudyNode
 from creator.studies.nodes import (
@@ -146,6 +148,9 @@ class CreateStudyInput(StudyInput):
             "If null, the collaborators will not be modified."
         ),
     )
+    organization = graphene.ID(
+        description="The organization to create the study in.", required=True
+    )
 
 
 class CreateStudyMutation(graphene.Mutation):
@@ -167,7 +172,7 @@ class CreateStudyMutation(graphene.Mutation):
 
     def mutate(self, info, input, workflows=None):
         """
-        Creates a new study.
+        Creates a new study in the specified organization.
         If FEAT_DATASERVICE_CREATE_STUDIES is enabled, try to first create
         the study in the dataservice. If the request fails, no study will be
         saved in the creator's database
@@ -177,6 +182,12 @@ class CreateStudyMutation(graphene.Mutation):
         user = info.context.user
         if not user.has_perm("studies.add_study"):
             raise GraphQLError("Not allowed")
+
+        try:
+            _, org_id = from_global_id(input.get("organization"))
+            organization = Organization.objects.get(pk=org_id)
+        except (Organization.DoesNotExist, ValidationError):
+            raise GraphQLError(f"Organization {org_id} does not exist.")
 
         # Error if this feature is not enabled
         if not (
@@ -226,6 +237,8 @@ class CreateStudyMutation(graphene.Mutation):
         collaborators = get_collaborators(input)
         if "collaborators" in input:
             del input["collaborators"]
+        if "organization" in input:
+            del input["organization"]
 
         # Merge dataservice response attributes with the original input
         attributes = {**input, **resp.json()["results"]}
@@ -233,7 +246,7 @@ class CreateStudyMutation(graphene.Mutation):
         if created_at:
             attributes["created_at"] = parse(created_at)
         attributes["deleted"] = False
-        study = Study(**attributes)
+        study = Study(organization=organization, **attributes)
         study.save()
 
         # Add any specified users as collaborators

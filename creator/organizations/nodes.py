@@ -1,5 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphql import GraphQLError
 
 from creator.organizations.models import Organization
 

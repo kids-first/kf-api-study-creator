@@ -35,6 +35,7 @@ def test_new_study_event(
     settings.FEAT_CAVATICA_CREATE_PROJECTS = True
     settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
     settings.CAVATICA_DELIVERY_TOKEN = "abc"
+    organization = OrganizationFactory()
 
     post = mocker.patch("requests.post")
     MockResp = MagicMock()
@@ -42,7 +43,12 @@ def test_new_study_event(
     MockResp.json.return_value = {"results": {"kf_id": "ABCABCBA"}}
     post.return_value = MockResp
 
-    variables = {"input": {"externalId": "TEST"}}
+    variables = {
+        "input": {
+            "externalId": "TEST",
+            "organization": to_global_id("OrganizationNode", organization.pk),
+        }
+    }
     resp = admin_client.post(
         "/graphql",
         content_type="application/json",
