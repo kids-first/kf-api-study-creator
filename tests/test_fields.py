@@ -2,15 +2,14 @@ import pytest
 from django.db import models
 from django.contrib.auth import get_user_model
 from creator.fields import KFIDField, kf_id_generator
-from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 from creator.files.models import File
 
 User = get_user_model()
 
 
 def test_kf_id_prefix_value(db):
-    s = Study()
-    s.save()
+    s = StudyFactory()
     user = User(username="user")
     user.save()
     f = File(study=s, creator=user)

@@ -368,7 +368,7 @@ def prep_file(admin_client, upload_file):
     def file(file_name="manifest.txt", client=admin_client, authed=False):
         if authed:
             study_id = "SD_00000000"
-            study = Study(kf_id=study_id, external_id="Test")
+            study = StudyFactory(kf_id=study_id, external_id="Test")
             study.save()
         else:
             studies = StudyFactory.create_batch(1)

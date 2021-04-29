@@ -428,7 +428,7 @@ def test_attach_volumes(db, clients, settings, mock_cavatica_api):
     settings.CAVATICA_READWRITE_SECRET_KEY = "123"
     settings.CAVATICA_DELIVERY_ACCOUNT = "kids-first"
 
-    study = Study(kf_id="SD_00000000", name="test", bucket="my bucket")
+    study = StudyFactory(kf_id="SD_00000000", name="test", bucket="my bucket")
     study.save()
 
     attach_volume(study)

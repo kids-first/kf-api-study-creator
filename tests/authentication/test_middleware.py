@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.core import management
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 
 User = get_user_model()
 
@@ -31,7 +31,7 @@ def test_auth0_middleware(db, client, mocker, token):
     with open("tests/keys/jwks.json", "rb") as f:
         req_mock().json.return_value = json.load(f)
 
-    study = Study(kf_id="SD_ME0WME0W")
+    study = StudyFactory(kf_id="SD_ME0WME0W")
     study.save()
     assert User.objects.count() == 0
 
@@ -124,7 +124,7 @@ def test_auth0_expired_token(db, client, mocker, token):
 
     warn_mock = mocker.patch(f"{middleware}.logger.warning")
 
-    study = Study(kf_id="SD_ME0WME0W")
+    study = StudyFactory(kf_id="SD_ME0WME0W")
     study.save()
     assert User.objects.count() == 0
 

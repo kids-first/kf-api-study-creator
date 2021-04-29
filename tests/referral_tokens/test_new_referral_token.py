@@ -1,7 +1,7 @@
 import pytest
 from datetime import timedelta
 from graphql_relay import to_global_id
-from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 from django.contrib.auth.models import Group
 from creator.referral_tokens.models import ReferralToken
 
@@ -50,7 +50,7 @@ def test_create_referral_token_mutation(db, clients, user_group, allowed):
     """
     client = clients.get(user_group)
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
     study_id = to_global_id("StudyNode", "SD_00000000")
 
@@ -88,7 +88,7 @@ def test_create_referral_token_mutation_existing(db, clients):
     """
     client = clients.get("Administrators")
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
     study_id = to_global_id("StudyNode", "SD_00000000")
 
@@ -128,7 +128,7 @@ def test_create_referral_token_mutation_expired(db, clients, settings):
     """
     client = clients.get("Administrators")
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
     study_id = to_global_id("StudyNode", "SD_00000000")
 

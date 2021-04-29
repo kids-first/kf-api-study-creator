@@ -150,7 +150,7 @@ def test_exchange_referral_token_expired(db, clients, settings):
     # Reset the referral token expiring days to have an expired token
     settings.REFERRAL_TOKEN_EXPIRATION_DAYS = -1
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
     study_id = to_global_id("StudyNode", "SD_00000000")
 

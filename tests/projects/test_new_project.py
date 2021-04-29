@@ -11,7 +11,7 @@ from creator.projects.cavatica import (
     create_project,
     copy_users,
 )
-from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 from creator.projects.models import Project
 
 
@@ -54,7 +54,7 @@ def test_create_project_mutation(
     """
     Test that correct users may create Cavatica projects
     """
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
 
     client = clients.get(user_group)
@@ -107,7 +107,7 @@ def test_create_project_no_duplicate_workflows(db, clients, mock_cavatica_api):
     """
     client = clients.get("Administrators")
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
 
     kf_id = to_global_id("StudyNode", "SD_00000000")
@@ -137,7 +137,7 @@ def test_create_project_invalid_workflows(db, clients, mock_cavatica_api):
     """
     client = clients.get("Administrators")
 
-    study = Study(kf_id="SD_00000000")
+    study = StudyFactory(kf_id="SD_00000000")
     study.save()
 
     kf_id = to_global_id("StudyNode", "SD_00000000")

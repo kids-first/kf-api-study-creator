@@ -3,6 +3,8 @@ from graphql_relay import to_global_id
 from creator.studies.models import Study
 from creator.projects.models import Project
 from creator.events.models import Event
+from creator.studies.factories import StudyFactory
+from creator.organizations.factories import OrganizationFactory
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -76,7 +78,7 @@ def test_update_study_event(admin_client, db, mocker):
     MockResp.json.return_value = {"results": {"kf_id": "ABCABCBA"}}
     patch.return_value = MockResp
 
-    study = Study(kf_id="SD_ABCABCBA", external_id="TEST")
+    study = StudyFactory(kf_id="SD_ABCABCBA", external_id="TEST")
     study.save()
 
     variables = {
