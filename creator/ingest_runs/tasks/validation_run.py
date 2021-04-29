@@ -96,6 +96,16 @@ def validate_file_versions(validation_run):
             "to a file type template. No templates were found for any of "
             "the input files."
         )
+
+    # TEMPORARY FOR TESTING
+    import time
+    t_end = time.time() + 20
+    progress = ""
+    while time.time() < t_end:
+        time.sleep(1)
+        progress += "."
+        logger.info(progress)
+
     # Validate
     return DataValidator().validate(df_dict, include_implicit=True)
 
@@ -234,7 +244,7 @@ def run_validation(validation_run_uuid=None):
     Run validation process for the file version in a ValidationRun
     """
     vr = ValidationRun.objects.get(pk=validation_run_uuid)
-    logging.info(
+    logger.info(
         f"Starting validation run {vr.pk} for data review {vr.data_review.pk}"
     )
     vr.start()
@@ -263,6 +273,6 @@ def cancel_validation(validation_run_uuid=None):
     Cancel validation run
     """
     vr = ValidationRun.objects.get(pk=validation_run_uuid)
-    logging.info(f"Canceling validation run {vr.pk}...")
+    logger.info(f"******** Canceling validation run {vr.pk}...")
     vr.cancel()
     vr.save()
