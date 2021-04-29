@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "creator.releases",
     "creator.data_reviews",
     "creator.events.apps.EventsConfig",
+    "creator.organizations",
     "creator",
     "corsheaders",
     'creator.ingest_runs.apps.IngestRunsConfig',

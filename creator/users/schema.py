@@ -110,6 +110,7 @@ class UserNode(DjangoObjectType):
             "slack_member_id",
             "email_notify",
             "studies",
+            "organizations",
             "groups",
         ]
 
