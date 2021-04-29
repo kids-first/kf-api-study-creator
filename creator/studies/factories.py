@@ -3,14 +3,14 @@ import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
 from .models import Study
-from creator.organizations.models import Organization
+from creator.organizations.factories import OrganizationFactory
 from creator.buckets.factories import BucketFactory
 
 
 class StudyFactory(factory.DjangoModelFactory):
     class Meta:
         model = Study
-        django_get_or_create = ('kf_id',)
+        django_get_or_create = ("kf_id",)
 
     kf_id = factory.fuzzy.FuzzyText(
         length=8, prefix="SD_", chars="ABCDEFGHIJKLMNOPQRSTVWXYZ1234567890"
@@ -24,4 +24,4 @@ class StudyFactory(factory.DjangoModelFactory):
 
     buckets = factory.RelatedFactory(BucketFactory, "study")
 
-    organization = factory.Iterator(Organization.objects.all())
+    organization = factory.SubFactory(OrganizationFactory)

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from creator.studies.factories import StudyFactory
 from creator.studies.models import Membership
+from creator.organizations.factories import OrganizationFactory
 
 User = get_user_model()
 
@@ -17,7 +18,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         import factory.random
-        factory.random.reseed_random('Fake data seed')
+
+        factory.random.reseed_random("Fake data seed")
+
+        organization, created = Organization.objects.get_or_create(
+            id="da4cb83b-4649-4ac9-9745-337111b0f4b7",
+            name="Magical Memes",
+            defaults={
+                "website": "https://cataas.com",
+                "email": "admin@example.com",
+                "image": "https://cataas.com/cat",
+            },
+        )
+        organization.save()
 
         study = StudyFactory(
             kf_id="SD_ME0WME0W",
