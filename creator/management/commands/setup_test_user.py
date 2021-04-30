@@ -25,7 +25,25 @@ class Command(BaseCommand):
             user.first_name = "Bobby"
             user.last_name = "Tables"
             user.groups.add(Group.objects.get(name="Administrators"))
-            user.organizations.add(Organization.objects.first())
+            organization, created = Organization.objects.get_or_create(
+                id="da4cb83b-4649-4ac9-9745-337111b0f4b7",
+                name="Magical Memes",
+                defaults={
+                    "website": "https://cataas.com",
+                    "email": "admin@example.com",
+                    "image": "https://cataas.com/cat",
+                },
+            )
+            organization.save()
+            user.organizations.add(organization)
+
+            organization = Organization.objects.filter(
+                name="Default Organization"
+            ).first()
+
+            if organization:
+                user.organizations.add(organization)
+
             user.save()
         except Exception as err:
             logger.error(f"Problem occurred adding user as admin: {err}")
