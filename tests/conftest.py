@@ -6,6 +6,7 @@ import boto3
 import json
 import jwt
 from unittest import mock
+from typing import List
 
 from django.test.client import Client
 from django.contrib.auth.models import Group, Permission
@@ -110,7 +111,30 @@ def clients(django_db_setup, django_db_blocker, groups, token):
         User.objects.all().delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=False)
+def permission_client(django_db_setup, django_db_blocker, token):
+    """
+    Setup a test client with a user with a specific permission set.
+    """
+
+    with django_db_blocker.unblock():
+        user = UserFactory(username="Permission User")
+
+        def client(permissions: List[str]):
+            # Setup the user with desired permissions
+            perms = Permission.objects.filter(codename__in=permissions).all()
+            user.user_permissions.set(perms)
+            user.save()
+            # Create a client for that user
+            user_token = token([], [], sub=user.sub)
+            return user, Client(HTTP_AUTHORIZATION=f"Bearer {user_token}")
+
+        yield client
+
+        user.delete()
+
+
+@pytest.yield_fixture
 def tmp_uploads_local(tmp_path, settings):
     settings.UPLOAD_DIR = str(tmp_path.relative_to(tmp_path.cwd()))
     settings.DEFAULT_FILE_STORAGE = (
