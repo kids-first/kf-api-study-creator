@@ -5,6 +5,7 @@ from creator.ingest_runs.tasks import (
     run_ingest,
     cancel_ingest,
     cancel_validation,
+    ingest_genomic_workflow_output_manifests,
 )
 from creator.ingest_runs.factories import ValidationRunFactory, ValidationRun
 
@@ -148,6 +149,28 @@ def test_cancel_validation(db, clients):
     vr = ValidationRun.objects.get(pk=vr.pk)
     assert ValidationRun.objects.all().count() == 1
     assert vr.state == "canceled"
+
+
+def test_ingest_genomic_workflow_output_manifests(
+    db, clients, prep_file, mocker
+):
+    """
+    Test the _ingest_genomic_workflow_output_manifests_ function.
+    """
+    mock_ingest = mocker.patch(
+        "creator.ingest_runs.tasks.ingest_run.GenomicDataLoader.ingest_gwo"
+    )
+    mock_extract = mocker.patch(
+        "creator.ingest_runs.tasks.ingest_run.extract_data",
+        return_value=[{"Test": "Test"}],
+    )
+    for _ in range(2):
+        prep_file(authed=True)
+    file_versions = [f.versions.first() for f in File.objects.all()]
+    user = User.objects.first()
+    ir = setup_ingest_run(file_versions, user)
+    ingest_genomic_workflow_output_manifests(ir)
+    mock_ingest.assert_called_once()
 
 
 def setup_ingest_run(file_versions, user):

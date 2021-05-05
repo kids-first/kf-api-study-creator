@@ -10,6 +10,8 @@ from creator.files.models import File, Version
 from creator.ingest_runs.models import IngestRun, State, ValidationRun
 from creator.ingest_runs.tasks import cancel_ingest
 
+logger = logging.getLogger(__name__)
+
 
 @receiver(pre_save, sender=IngestRun)
 def ingest_run_pre_save(sender, instance, *args, **kwargs):
