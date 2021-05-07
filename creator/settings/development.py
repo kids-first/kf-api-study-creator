@@ -259,7 +259,10 @@ LOGGING = {
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
             "handlers": ["task"], "level": "DEBUG"
-        }
+        },
+        "creator.ingest_runs.tasks.validation_run": {
+            "handlers": ["task"], "level": "INFO"
+        },
     },
 }
 
@@ -331,4 +334,3 @@ CLIENT_ADMIN_SCOPE = "role:admin"
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
-

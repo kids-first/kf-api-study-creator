@@ -257,6 +257,9 @@ LOGGING = {
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
             "handlers": ["task"], "level": "DEBUG"
+        },
+        "creator.ingest_runs.tasks.validation_run": {
+            "handlers": ["task"], "level": "INFO"
         }
     },
 }
