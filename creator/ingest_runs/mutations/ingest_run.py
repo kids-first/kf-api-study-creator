@@ -68,6 +68,10 @@ class StartIngestRunMutation(graphene.Mutation):
                 ingest_run.versions.set(versions)
                 ingest_run.save()
 
+            # Transition to initializing state
+            ingest_run.initialize()
+            ingest_run.save()
+
             ingest_run.queue.enqueue(
                 run_ingest,
                 args=(ingest_run.id,),
@@ -102,6 +106,10 @@ class CancelIngestRunMutation(graphene.Mutation):
             ingest_run = IngestRun.objects.get(id=obj_id)
         except IngestRun.DoesNotExist:
             raise GraphQLError(f"IngestRun {obj_id} was not found")
+
+        # Transition to canceling state
+        ingest_run.start_cancel()
+        ingest_run.save()
 
         ingest_run.queue.enqueue(cancel_ingest, args=(str(ingest_run.id),))
 

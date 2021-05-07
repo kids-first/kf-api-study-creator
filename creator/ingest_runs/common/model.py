@@ -20,7 +20,7 @@ def camel_to_snake(camel_str):
     """
     Convert CamelCase to snake_case
     """
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_str).lower()
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', camel_str).lower()
 
 
 def hash_versions(version_kf_ids):
@@ -34,10 +34,25 @@ def hash_versions(version_kf_ids):
 
 class State(object):
     NOT_STARTED = "not_started"
+    INITIALIZING = "initializing"
     RUNNING = "running"
     FAILED = "failed"
+    CANCELING = "canceling"
     CANCELED = "canceled"
     COMPLETED = "completed"
+
+
+FAIL_SOURCES = [
+    State.NOT_STARTED,
+    State.INITIALIZING,
+    State.RUNNING,
+    State.CANCELING,
+]
+CANCEL_SOURCES = [
+    State.NOT_STARTED,
+    State.INITIALIZING,
+    State.RUNNING,
+]
 
 
 class IngestProcess(models.Model):
@@ -45,23 +60,26 @@ class IngestProcess(models.Model):
     Common model functionality for ingest processes
     (e.g. ingest run, validation run)
     """
-
     __queue__ = settings.INGEST_QUEUE
 
     class Meta:
         abstract = True
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         null=True,
         help_text="Time when the ingest process was created",
     )
     started_at = models.DateTimeField(
-        null=True, help_text="Time when ingest process started running"
+        null=True,
+        help_text="Time when ingest process started running"
     )
     stopped_at = models.DateTimeField(
-        null=True, help_text="Time when ingest process stopped running"
+        null=True,
+        help_text="Time when ingest process stopped running"
     )
     creator = models.ForeignKey(
         User,
@@ -84,7 +102,7 @@ class IngestProcess(models.Model):
     )
     state = FSMField(
         default=State.NOT_STARTED,
-        help_text="The current state of the ingest process",
+        help_text="The current state of the ingest process"
     )
     job_log = models.OneToOneField(
         JobLog,
@@ -96,6 +114,15 @@ class IngestProcess(models.Model):
         help_text=(
             "The associated job log detailing the execution "
             "for this ingest process"
+        ),
+    )
+    error_msg = models.TextField(
+        blank=True,
+        null=True,
+        help_text=(
+            "The error message that is a product of an ingest process "
+            "failing. This field is populated in the exception handler "
+            "before the fail method is called on the process."
         ),
     )
 
@@ -113,12 +140,23 @@ class IngestProcess(models.Model):
         """
         raise NotImplementedError
 
-    @transition(field=state, source=State.NOT_STARTED, target=State.RUNNING)
+    @transition(
+        field=state, source=State.NOT_STARTED, target=State.INITIALIZING
+    )
+    def initialize(self):
+        """
+        Begin initializing the ingest process.
+        """
+        self.started_at = timezone.now()
+        self._save_event(State.INITIALIZING)
+
+    @transition(
+        field=state, source=State.INITIALIZING, target=State.RUNNING
+    )
     def start(self):
         """
         Begin running the ingest process.
         """
-        self.started_at = timezone.now()
         self._save_event(State.RUNNING)
 
     @transition(field=state, source=State.RUNNING, target=State.COMPLETED)
@@ -129,31 +167,33 @@ class IngestProcess(models.Model):
         self.stopped_at = timezone.now()
         self._save_event(State.COMPLETED)
 
-    @transition(
-        field=state,
-        source=[State.NOT_STARTED, State.RUNNING],
-        target=State.CANCELED,
-    )
-    def cancel(self):
+    @transition(field=state, source=CANCEL_SOURCES, target=State.CANCELING)
+    def start_cancel(self, on_delete=False):
         """
-        Cancel the ingest process on request from the user or on account of a
-        new ingest process being started for the same input parameters.
+        Start the cancellation of an ingest process on request from the user
+        or on account of a new ingest process being started for the same
+        input parameters.
+        """
+        self._save_event(State.CANCELING, on_delete=on_delete)
+
+    @transition(field=state, source=[State.CANCELING], target=State.CANCELED)
+    def cancel(self, on_delete=False):
+        """
+        Complete cancellation of the ingest process
         """
         self.stopped_at = timezone.now()
         stop_job(str(self.pk), queue=self.queue, delete=True)
-        self._save_event(State.CANCELED)
+        self._save_event(State.CANCELED, on_delete=on_delete)
 
-    @transition(
-        field=state,
-        source=[State.NOT_STARTED, State.RUNNING, State.CANCELED],
-        target=State.FAILED,
-    )
-    def fail(self):
+    @transition(field=state, source=FAIL_SOURCES, target=State.FAILED)
+    def fail(self, error_msg=None):
         """
         Fail the ingest process due to a problem that prevented completion.
         """
         self.stopped_at = timezone.now()
         self._save_event(State.FAILED)
+        if error_msg is not None:
+            self.error_msg = error_msg
 
     def compute_input_hash(self):
         """
@@ -163,31 +203,46 @@ class IngestProcess(models.Model):
         This will be used to determine whether an ingest process is already
         running for a set of file versions
         """
-        return hash_versions(self.versions.values_list("pk", flat=True))
+        return hash_versions(
+            self.versions.values_list("pk", flat=True)
+        )
 
-    def _save_event(self, event_type):
-        """Create and save an event for an ingest process state transition"""
+    def _save_event(self, event_type, on_delete=False):
+        """
+        Create and save an event for an ingest process state transition
+
+        If on_delete=True then don't include a ref to the object in the event
+        since it may not exist
+        """
+
         from creator.events.models import Event
-
         snake_name = camel_to_snake(self.__class__.__name__)
         name = camel_to_snake(self.__class__.__name__).replace("_", " ")
         prefix = "".join([w[0] for w in snake_name.split("_")]).upper()
         msgs = {
+            State.INITIALIZING: (
+                f"{prefix}_INI",
+                f"{self.creator.username} started {name} {self.pk}"
+            ),
             State.RUNNING: (
                 f"{prefix}_STA",
-                f"{self.creator.username} started {name} {self.pk}",
+                f"{name.title()} {self.pk} is running"
             ),
             State.COMPLETED: (
                 f"{prefix}_COM",
-                f"{name.title()} {self.pk} completed",
+                f"{name.title()} {self.pk} completed"
+            ),
+            State.CANCELING: (
+                f"{prefix}_CLG",
+                f"{self.creator.username} requested to cancel {name} {self.pk}"
             ),
             State.CANCELED: (
                 f"{prefix}_CAN",
-                f"{self.creator.username} canceled {name} {self.pk}",
+                f"{name.title()} {self.pk} is canceled"
             ),
             State.FAILED: (
                 f"{prefix}_FAI",
-                f"{name.title()} {self.pk} failed",
+                f"{name.title()} {self.pk} failed"
             ),
         }
         event_name, message = msgs[event_type]
@@ -196,6 +251,8 @@ class IngestProcess(models.Model):
             "user": self.creator,
             "description": message,
             "event_type": event_name,
-            snake_name: self,
         }
+        if not on_delete:
+            kwargs[snake_name] = self
+
         return Event(**kwargs).save()
