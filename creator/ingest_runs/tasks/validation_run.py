@@ -262,6 +262,6 @@ def cancel_validation(validation_run_uuid=None):
     Cancel validation run
     """
     vr = ValidationRun.objects.get(pk=validation_run_uuid)
-    logging.info(f"Canceling validation run {vr.pk}...")
+    logger.info(f"Canceling validation run {vr.pk}...")
     vr.cancel()
     vr.save()

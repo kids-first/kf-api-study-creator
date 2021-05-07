@@ -90,7 +90,9 @@ def test_run_validation_success(db, clients, mocker, data_review_with_files):
     """
     End to end test of run_validation task
     """
-    vr = ValidationRunFactory(data_review=data_review_with_files)
+    vr = ValidationRunFactory(
+        data_review=data_review_with_files, state=State.INITIALIZING
+    )
     validation_run.run_validation(str(vr.pk))
     vr.refresh_from_db()
     assert vr.state == State.COMPLETED
@@ -103,6 +105,9 @@ def test_run_validation_fail(db, clients, mocker, data_review):
     mocker.patch(
         "creator.ingest_runs.tasks.validation_run.validate_file_versions",
         side_effect=Exception
+    )
+    vr = ValidationRunFactory(
+        data_review=data_review, state=State.INITIALIZING
     )
     vr = ValidationRunFactory(data_review=data_review)
     with pytest.raises(Exception):

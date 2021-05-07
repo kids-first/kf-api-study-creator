@@ -35,12 +35,16 @@ class Event(models.Model):
     event_type = models.CharField(
         max_length=6,
         choices=(
+            ("VR_INI", "Validation Run Initializing"),
             ("VR_STA", "Validation Run Started"),
+            ("VR_CLG", "Validation Run Canceling"),
             ("VR_CAN", "Validation Run Canceled"),
             ("VR_COM", "Validation Run Completed"),
             ("VR_FAI", "Validation Run Failed"),
+            ("IR_INI", "Ingest Run Initializing"),
             ("IR_STA", "Ingest Run Started"),
             ("IR_CAN", "Ingest Run Canceled"),
+            ("IR_CLG", "Ingest Run Canceling"),
             ("IR_COM", "Ingest Run Completed"),
             ("IR_FAI", "Ingest Run Failed"),
             ("SF_CRE", "Study File Created"),

@@ -59,10 +59,15 @@ def test_hash_versions(db, clients, prep_file):
     "start_state,state_transition_method,expected_msg",
     [
         (State.NOT_STARTED, None, None),
-        (State.NOT_STARTED, "start", "started"),
+        (State.NOT_STARTED, "initialize", "started"),
+        (State.INITIALIZING, "start", "is running"),
         (State.RUNNING, "complete", "completed"),
-        (State.RUNNING, "cancel", "canceled"),
+        (State.RUNNING, "start_cancel", "requested to cancel"),
+        (State.CANCELING, "cancel", "canceled"),
         (State.RUNNING, "fail", "failed"),
+        (State.NOT_STARTED, "fail", "failed"),
+        (State.INITIALIZING, "fail", "failed"),
+        (State.CANCELING, "fail", "failed"),
     ],
 )
 @pytest.mark.parametrize(
@@ -96,9 +101,9 @@ def test_ingest_process_states(
         obj.save()
 
         # Check start/stop times
-        if state_transition_method == "start":
+        if state_transition_method == "initialize":
             assert obj.started_at
-        else:
+        elif state_transition_method in {"cancel", "fail", "complete"}:
             assert obj.stopped_at
 
         # Check event
@@ -120,8 +125,10 @@ def test_ingest_process_states(
     "factory,cancel_task,state",
     [
         (IngestRunFactory, cancel_ingest, State.NOT_STARTED),
+        (IngestRunFactory, cancel_ingest, State.INITIALIZING),
         (IngestRunFactory, cancel_ingest, State.RUNNING),
         (ValidationRunFactory, cancel_validation, State.NOT_STARTED),
+        (ValidationRunFactory, cancel_validation, State.INITIALIZING),
         (ValidationRunFactory, cancel_validation, State.RUNNING),
     ],
 )
@@ -147,8 +154,13 @@ def test_cancel_duplicate_ingest_processes(
     canceled_any = cancel_duplicate_ingest_processes(
         version_ids[0:1], process.__class__, cancel_task
     )
+    process.refresh_from_db()
+
     assert canceled_any
-    mock_queue.enqueue.assert_called_with(cancel_task, args=(process.id,))
+    assert process.state == State.CANCELING
+    mock_queue.enqueue.assert_called_with(
+        cancel_task, args=(process.id,)
+    )
     mock_queue.reset_mock()
 
     # Ingest processes with different versions won't be canceled

@@ -1,10 +1,12 @@
 import pytest
+from django.contrib.auth import get_user_model
 from graphql_relay import to_global_id, from_global_id
 from creator.files.models import File
-from creator.ingest_runs.models import IngestRun
+from creator.ingest_runs.models import IngestRun, State
 from creator.ingest_runs.tasks import run_ingest, cancel_ingest
 from pprint import pprint
 
+User = get_user_model()
 
 START_INGEST_RUN = """
 mutation ($input: StartIngestRunInput!) {
@@ -13,6 +15,7 @@ mutation ($input: StartIngestRunInput!) {
             id
             name
             inputHash
+            state
             versions { edges { node { id kfId } } }
         }
     }
@@ -26,6 +29,7 @@ mutation ($id: ID!) {
             id
             name
             inputHash
+            state
             versions { edges { node { id kfId } } }
         }
     }
@@ -89,12 +93,12 @@ def test_start_ingest_run(
 
     # Start valid ingest runs for a batch of file versions
     resp = send_query(client, START_INGEST_RUN, {"versions": version_ids})
-    pprint(resp.json())
 
     if allowed:
         ir = resp.json()["data"]["startIngestRun"]["ingestRun"]
         assert ir["name"]
         assert ir["inputHash"]
+        assert ir["state"] == State.INITIALIZING
         for version in ir["versions"]["edges"]:
             assert version["node"]["kfId"] in ir["name"]
 
@@ -214,6 +218,7 @@ def test_cancel_ingest_run(
     if allowed:
         assert resp.json()["data"]["cancelIngestRun"]["ingestRun"] is not None
         ir = resp.json()["data"]["cancelIngestRun"]["ingestRun"]
+        assert ir["state"] == State.CANCELING
         _, ir_id = from_global_id(ir["id"])
         mock_ingest_queue.enqueue.assert_called_once_with(
             cancel_ingest, args=(ir_id,)
@@ -227,7 +232,7 @@ def test_cancel_ingest_run_bad_version(db, clients):
     Canceling an IngestRun with an invalid ID should raise GraphQLError.
     """
     client = clients.get("Administrators")
-    ir = IngestRun()
+    ir = IngestRun(creator=User.objects.first())
     ir.save()
     fake_id = IngestRun.objects.first().id
     # now delete the ingestrun

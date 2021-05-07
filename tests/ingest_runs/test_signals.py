@@ -1,48 +1,59 @@
+import pytest
+from django.contrib.auth import get_user_model
+from itertools import chain, combinations
+from unittest.mock import call
+
 from creator.data_reviews.factories import DataReviewFactory
+from creator.events.models import Event
 from creator.files.models import File, Version
 from creator.ingest_runs.models import IngestRun, State
-from creator.ingest_runs.factories import ValidationRunFactory
+from creator.ingest_runs.factories import (
+    IngestRunFactory,
+    ValidationRunFactory
+)
 from creator.ingest_runs.signals import (
     cancel_invalid_ingest_runs,
     cancel_invalid_validation_runs,
 )
 from creator.ingest_runs.tasks import cancel_ingest, cancel_validation
 
-from django.contrib.auth import get_user_model
-from itertools import chain, combinations
-from unittest.mock import call
 
 User = get_user_model()
 
 
-def test_data_review_delete(db, mocker, clients, data_review):
-    """
-    Test all validation runs for a data review to be deleted, are cancelled
-    before the review's deletion
-    """
-    mock_enqueue = mocker.patch(
-        "creator.ingest_runs.signals.django_rq.enqueue"
-    )
-    # Create some data - a data review with two validation runs, one active and
-    # one failed
-    user = User.objects.first()
-    vrs = [
-        ValidationRunFactory(data_review=data_review, state=x, creator=user)
-        for x in (State.RUNNING, State.FAILED)
+@pytest.mark.parametrize(
+    "factory_cls,prefix",
+    [
+        (ValidationRunFactory, "VR"),
+        (IngestRunFactory, "IR")
     ]
-
-    # Delete the data review
-    # Should result in cancellation of the running validation
-    data_review.delete()
-    expected_args = [
-        call(cancel_validation, str(run.id)) for run in vrs[0:1]
+)
+def test_ingest_proc_pre_delete(db, clients, data_review, factory_cls, prefix):
+    """
+    Test ingest process is cancelled before its deletion
+    """
+    # Create some data
+    runs = [
+        factory_cls(state=x, creator=data_review.creator)
+        for x in (State.RUNNING, State.INITIALIZING)
     ]
-    mock_enqueue.assert_has_calls(expected_args, any_order=True)
+    # Delete the runs
+    # Should result in canceling, canceled events which means
+    # the cancellation happened
+    for run in runs:
+        pk = run.pk
+        run.delete()
+        assert Event.objects.filter(
+            event_type=f"{prefix}_CLG", description__icontains=str(pk)
+        ).count() == 1
+        assert Event.objects.filter(
+            event_type=f"{prefix}_CAN", description__icontains=str(pk)
+        ).count() == 1
 
 
 def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
     """
-    Test the cancel_invalid_validation_runs function.
+    Test the cancel_invalid_validation_runs function
     """
     mock_enqueue = mocker.patch(
         "creator.ingest_runs.signals.django_rq.enqueue"
@@ -72,6 +83,10 @@ def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
         call(cancel_validation, str(run.id)) for run in vrs[0:2]
     ]
     mock_enqueue.assert_has_calls(expected_args, any_order=True)
+    # Check state is canceling
+    for run in vrs[0:2]:
+        run.refresh_from_db()
+        assert run.state == State.CANCELING
 
 
 def test_cancel_invalid_ingest_runs(db, mocker, clients, prep_file):
@@ -102,7 +117,7 @@ def test_cancel_invalid_ingest_runs(db, mocker, clients, prep_file):
     for versions in powerset:
         ingest = setup_ir(versions, user)
         if v1 in versions:
-            ingests_with_v1.append(ingest.id)
+            ingests_with_v1.append(ingest)
 
     assert IngestRun.objects.all().count() == len(powerset)
 
@@ -110,9 +125,13 @@ def test_cancel_invalid_ingest_runs(db, mocker, clients, prep_file):
     # I.E. (1), (1, 2), (1, 3), (1, 2, 3)
     cancel_invalid_ingest_runs(v1)
     assert mock_enqueue.call_count == len(ingests_with_v1)
-    expected_args = [call(cancel_ingest, ir_id) for ir_id in ingests_with_v1]
+    expected_args = [call(cancel_ingest, ing.id) for ing in ingests_with_v1]
     mock_enqueue.assert_has_calls(expected_args, any_order=True)
     mock_enqueue.reset_mock()
+    # Check state is canceling
+    for run in ingests_with_v1:
+        run.refresh_from_db()
+        assert run.state == State.CANCELING
 
     # Case 2: Cancel IngestRuns for a Version with none associated
     cancel_invalid_ingest_runs(v4)
@@ -161,7 +180,7 @@ def setup_ir(file_versions, user):
     ir.creator = user
     ir.save()
     ir.versions.set(file_versions)
-    ir.save()
+    ir.initialize()
     ir.start()
     ir.save()
     return ir

@@ -130,6 +130,7 @@ def test_cancel_ingest(db, clients, prep_file):
     user = User.objects.first()
     ir = setup_ingest_run(file_versions, user)
     ir.start()
+    ir.start_cancel()
     ir.save()
     cancel_ingest(ir.id)
     ir = IngestRun.objects.get(pk=ir.id)
@@ -143,7 +144,9 @@ def test_cancel_validation(db, clients):
     """
     # Create a validation run
     vr = ValidationRunFactory()
+    vr.initialize()
     vr.start()
+    vr.start_cancel()
     vr.save()
     cancel_validation(vr.pk)
     vr = ValidationRun.objects.get(pk=vr.pk)
@@ -176,6 +179,7 @@ def test_ingest_genomic_workflow_output_manifests(
 def setup_ingest_run(file_versions, user):
     ir = IngestRun()
     ir.creator = user
+    ir.initialize()
     ir.save()
     ir.versions.set(file_versions)
     ir.save()
