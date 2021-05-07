@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
 from creator.data_reviews.factories import DataReviewFactory
 from creator.ingest_runs.factories import ValidationRunFactory
-from creator.ingest_runs.models import ValidationRun
+from creator.ingest_runs.models import ValidationRun, State
 from creator.ingest_runs.tasks import run_validation, cancel_validation
 
 User = get_user_model()
@@ -15,6 +15,7 @@ mutation ($input: StartValidationRunInput!) {
         validationRun {
             id
             inputHash
+            state
             dataReview { id kfId }
         }
     }
@@ -27,6 +28,7 @@ mutation ($id: ID!) {
         validationRun {
             id
             inputHash
+            state
             dataReview { id kfId }
         }
     }
@@ -93,6 +95,7 @@ def test_start_validation_run(
     if allowed:
         vr = resp.json()["data"]["startValidationRun"]["validationRun"]
         assert vr["inputHash"]
+        assert vr["state"] == State.INITIALIZING
         assert data_review.kf_id == vr["dataReview"]["kfId"]
 
         # Check that the run_validation task was queued
@@ -207,6 +210,7 @@ def test_cancel_validation_run(
     if allowed:
         vr = resp.json()["data"]["cancelValidationRun"]["validationRun"]
         assert vr is not None
+        assert vr["state"] == State.CANCELING
         _, vr_id = from_global_id(vr["id"])
         mock_valid_queue.enqueue.assert_called_once_with(
             cancel_validation, args=(vr_id,)
