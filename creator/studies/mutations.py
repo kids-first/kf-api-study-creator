@@ -131,6 +131,9 @@ class StudyInput(graphene.InputObjectType):
     slack_notify = graphene.Boolean(
         description="Whether enabled slack notifications for study updates"
     )
+    additional_fields = graphene.JSONString(
+        description="Capture any additional/non-standard fields for each study"
+    )
 
 
 class CreateStudyInput(StudyInput):
