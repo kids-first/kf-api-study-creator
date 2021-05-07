@@ -43,6 +43,7 @@ class Event(models.Model):
             ("VR_COM", "Validation Run Completed"),
             ("VR_FAI", "Validation Run Failed"),
             ("IR_INI", "Ingest Run Initializing"),
+            ("IR_MIS", "Ingest Run Missing Data"),
             ("IR_STA", "Ingest Run Started"),
             ("IR_CAN", "Ingest Run Canceled"),
             ("IR_CLG", "Ingest Run Canceling"),
