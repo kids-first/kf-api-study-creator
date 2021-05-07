@@ -92,6 +92,10 @@ class StartValidationRunMutation(graphene.Mutation):
                 validation_run.data_review = data_review
                 validation_run.save()
 
+            # Transition to initializing state
+            validation_run.initialize()
+            validation_run.save()
+
             validation_run.queue.enqueue(
                 run_validation,
                 args=(str(validation_run.id),),
@@ -122,7 +126,7 @@ class CancelValidationRunMutation(graphene.Mutation):
         try:
             validation_run = (
                 ValidationRun.objects.select_related("data_review__study")
-                .only("data_review__study__kf_id").get(pk=vr_id)
+                .only("data_review__study__kf_id", "state").get(pk=vr_id)
             )
         except ValidationRun.DoesNotExist:
             raise GraphQLError(f"Validation_run {vr_id} was not found")
@@ -140,6 +144,10 @@ class CancelValidationRunMutation(graphene.Mutation):
             )
         ):
             raise GraphQLError("Not allowed")
+
+        # Transition to canceling state
+        validation_run.start_cancel()
+        validation_run.save()
 
         validation_run.queue.enqueue(
             cancel_validation, args=(str(validation_run.id),)
