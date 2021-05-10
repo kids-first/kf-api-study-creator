@@ -8,6 +8,7 @@ from creator.data_reviews.nodes import DataReviewNode
 from creator.studies.models import Study
 from creator.files.models import Version
 from creator.data_reviews.models import DataReview, State
+from creator.ingest_runs.models import ValidationResultset
 
 
 def check_review_files(input, data_review):
@@ -150,8 +151,17 @@ class CreateDataReviewMutation(graphene.Mutation):
             # Check files in review
             review_version_ids = check_review_files(input, data_review)
 
+            # Review files are valid and they've changed
             if review_version_ids:
+                # Update versions
                 data_review.versions.set(review_version_ids)
+
+                # Clear the data review's validation results if they exist
+                try:
+                    data_review.validation_resultset.delete()
+                except ValidationResultset.DoesNotExist:
+                    pass
+
                 # Start review if we have files
                 data_review.start()
                 data_review.save()

@@ -4,7 +4,11 @@ from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
 from creator.data_reviews.factories import DataReviewFactory
 from creator.ingest_runs.factories import ValidationRunFactory
-from creator.ingest_runs.models import ValidationRun, State
+from creator.ingest_runs.models import (
+    ValidationRun,
+    ValidationResultset,
+    State
+)
 from creator.ingest_runs.tasks import run_validation, cancel_validation
 
 User = get_user_model()
@@ -97,6 +101,10 @@ def test_start_validation_run(
         assert vr["inputHash"]
         assert vr["state"] == State.INITIALIZING
         assert data_review.kf_id == vr["dataReview"]["kfId"]
+
+        # Check that validation results were cleared
+        with pytest.raises(ValidationResultset.DoesNotExist):
+            assert data_review.validation_resultset
 
         # Check that the run_validation task was queued
         mock_valid_queue.enqueue.call_count == 1
