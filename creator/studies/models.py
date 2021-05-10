@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
+from django.contrib.postgres.fields import JSONField
 
 
 # From https://stackoverflow.com/questions/50480924/regex-for-s3-bucket-name
@@ -147,6 +148,7 @@ class Study(models.Model):
         default=False,
         help_text="Whether the study hase been deleted from the dataservice",
     )
+    additional_fields = JSONField(default=dict)
 
     # Status fields
     sequencing_status = models.CharField(
