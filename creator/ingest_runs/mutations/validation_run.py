@@ -92,6 +92,14 @@ class StartValidationRunMutation(graphene.Mutation):
                 validation_run.data_review = data_review
                 validation_run.save()
 
+                # Always clear the data review's validation results if they
+                # exist. Even though the files being validated might not have
+                # changed, the validation rules could have changed.
+                try:
+                    data_review.validation_resultset.delete()
+                except ValidationResultset.DoesNotExist:
+                    pass
+
             # Transition to initializing state
             validation_run.initialize()
             validation_run.save()
