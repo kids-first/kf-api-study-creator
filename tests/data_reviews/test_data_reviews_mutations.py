@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
 from creator.studies.models import Study
 from creator.files.models import File
+from creator.ingest_runs.models import ValidationResultset
 from creator.data_reviews.models import DataReview, State
 from creator.data_reviews.factories import DataReviewFactory
 from creator.data_reviews.mutations import check_review_files
@@ -232,7 +233,8 @@ def test_update_data_review(
 
     # Create data review with no files
     data_review = DataReviewFactory(
-        study=Study.objects.get(pk=study_id), state=start_state
+        study=Study.objects.get(pk=study_id), state=start_state,
+        validation_resultset=ValidationResultset()
     )
     if user_group:
         user = User.objects.filter(groups__name=user_group).first()
@@ -263,8 +265,13 @@ def test_update_data_review(
         assert resp.json()["errors"][0]["message"] == "Not allowed"
         return
 
-    # Check expected end_state
     data_review.refresh_from_db()
+
+    # Check that validation results were cleared
+    with pytest.raises(ValidationResultset.DoesNotExist):
+        data_review.validation_resultset
+
+    # Check expected end_state
     assert data_review.state == end_state
 
     # Error
