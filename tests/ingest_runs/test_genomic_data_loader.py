@@ -250,10 +250,11 @@ def test_get_seq_experiment_genomic_files(study_generator, mock_get_entities):
         assert col in output
     assert output.shape[1] == len(expected_columns)
     gfs = study_generator.dataservice_payloads[GEN_FILE]
-    harm_gf = [
+    unharm_gf = [
         key for key, value in gfs.items() if value["is_harmonized"] == "False"
     ]
-    assert output.shape[0] == len(harm_gf)
+    output = output.drop_duplicates(CONCEPT.GENOMIC_FILE.SOURCE_FILE)
+    assert output.shape[0] == len(unharm_gf)
 
 
 def test_load_seq_exp_harmonized_genomic_files(
@@ -271,6 +272,7 @@ def test_load_seq_exp_harmonized_genomic_files(
     loader = GenomicDataLoader(FAKE_STUDY)
     manifest_df = study_generator.dataframes["gwo_manifest.tsv"]
     output_df = loader.ingest_gwo(manifest_df)
+    output_df = output_df.drop_duplicates(CONCEPT.GENOMIC_FILE.ID)
     mock_s3_scrape.assert_called_once()
 
     # Check that _load_entities_ was called the right number of times
@@ -282,6 +284,7 @@ def test_load_seq_exp_harmonized_genomic_files(
     assert isinstance(df, pd.DataFrame)
     manifest_df = manifest_df.drop_duplicates(["Filepath"])
     assert not df.empty
+    df = df.drop_duplicates(CONCEPT.GENOMIC_FILE.FILE_NAME)
     assert manifest_df.shape[0] == df.shape[0]
     expected_columns = {
         CONCEPT.SEQUENCING.TARGET_SERVICE_ID,
