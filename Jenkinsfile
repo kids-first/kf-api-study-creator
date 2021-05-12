@@ -17,4 +17,5 @@ ecs_service_type_1_standard {
     friendly_dns_name = "study-creator"
     override_templates = "true"
     additional_ssl_cert_domain_name = "*.kidsfirstdrc.org"
+    publish_to_public_repo = "true"
 }
