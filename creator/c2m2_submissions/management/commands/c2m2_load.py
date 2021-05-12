@@ -89,7 +89,7 @@ class Command(BaseCommand):
         projects.load_entities()
         projects.write_entities()
 
-        for study in PUBLISHED_STUDIES[:2]:
+        for study in PUBLISHED_STUDIES:
             logger.info(f"Compiling study '{study}'")
             for table in self.tables:
                 table.load_entities(study)

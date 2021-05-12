@@ -51,9 +51,9 @@ class Table(Generic[EntityType]):
         # Any non-private properties will be written out
         header = [k for k in T.__annotations__.keys() if not k.startswith("_")]
         with open(
-            os.path.join(self.out_dir, T._filename), "w", newline="\n"
+            os.path.join(self.out_dir, T._filename), "w", newline=""
         ) as f:
-            writer = csv.writer(f, delimiter="\t")
+            writer = csv.writer(f, delimiter="\t", lineterminator="\n")
             writer.writerow(header)
 
     def load_entities(self, study: Optional[str] = None) -> None:
@@ -69,9 +69,9 @@ class Table(Generic[EntityType]):
         """
         T = get_args(self.__orig_class__)[0]
         with open(
-            os.path.join(self.out_dir, T._filename), "a", newline="\n"
+            os.path.join(self.out_dir, T._filename), "a", newline=""
         ) as f:
-            writer = csv.writer(f, delimiter="\t")
+            writer = csv.writer(f, delimiter="\t", lineterminator="\n")
             for e in self.entities:
                 writer.writerow(T._serialize(e))
 
@@ -91,6 +91,7 @@ class Entity:
         # Skip this entity if the endpoint is not given
         if cls._endpoint is None:
             return []
+        logger.info(f"Fetching for {cls.__name__}")
 
         url = f"{settings.DATASERVICE_URL}/{cls._endpoint}"
         params = f"visible=True&limit=100"
