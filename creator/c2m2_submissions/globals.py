@@ -5,7 +5,7 @@ ROOT_PROJECT_NAME = (
     "The Gabriella Miller Kids First Pediatric Research Program"
 )
 ROOT_PROJECT_DESCRIPTION = """
-A large-scale data resource to help researchers uncover new insights into 
+A large-scale data resource to help researchers uncover new insights into
 the biology of childhood cancer and structural birth defects.
 """.replace(
     "\n", ""
