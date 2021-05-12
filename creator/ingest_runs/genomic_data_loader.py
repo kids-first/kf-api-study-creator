@@ -160,9 +160,9 @@ class GenomicDataLoader(object):
         # Load the harmonized genomic-file sequencing-experiment links
         df = se_gf_df.drop_duplicates(
             [
-                CONCEPT.SEQUENCING.TARGET_SERVICE_ID,
-                CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
-            ],
+                CONCEPT.GENOMIC_FILE.SOURCE_FILE,
+                CONCEPT.SEQUENCING.ID,
+            ]
         )
         logger.info(
             f"Creating {df.shape[0]} sequencing-experiment-genomic-file "
