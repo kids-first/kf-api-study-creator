@@ -29,30 +29,30 @@ def run_ingest(ingest_run_uuid=None):
     # Check that the files are genomic workflow manifests
     versions = ingest_run.versions.all()
     are_gwo = all(check_gwo(version) for version in versions)
-    if are_gwo:
-        # If FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is enabled, try to run
-        # the custom ingest process for genomic workflow manifests. If it's not
-        # enabled, raise an error and nothing else happens.
-        if not settings.FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS:
-            ingest_run.fail()
-            ingest_run.save()
-            raise Exception(
-                "Ingesting genomic workflow output manifests is not enabled."
-                "Make sure that FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is set."
-            )
-        logger.info(
-            "All files in the ingest run are genomic workflow manifests."
-        )
-        try:
-            ingest_genomic_workflow_output_manifests(ingest_run)
-        except Exception:
-            ingest_run.fail()
-            ingest_run.save()
-            raise
-    else:
-        ingest_run.fail()
+    try:
+        if are_gwo:
+            # If FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is enabled, try to run
+            # the custom ingest process for genomic workflow manifests. If it's
+            # not enabled, raise an error and nothing else happens.
+            if not settings.FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS:
+                raise Exception(
+                    "Ingesting genomic workflow output manifests is not "
+                    "enabled. Make sure that the "
+                    "FEAT_INGEST_GENOMIC_WORKFLOW_OUTPUTS is set."
+                )
+            else:
+                logger.info(
+                    "All files in the ingest run are genomic workflow "
+                    "manifests."
+                )
+                ingest_genomic_workflow_output_manifests(ingest_run)
+        else:
+            raise Exception("Unknown file type detected in the ingest run.")
+    except Exception as e:
+        ingest_run.fail(error_msg=str(e))
         ingest_run.save()
-        raise Exception("Unknown file type detected in the ingest run.")
+        raise
+
     logger.info(f"Ingest run {ingest_run.pk} complete!")
     ingest_run.complete()
     ingest_run.save()
