@@ -104,7 +104,7 @@ def test_start_validation_run(
 
         # Check that validation results were cleared
         with pytest.raises(ValidationResultset.DoesNotExist):
-            assert data_review.validation_resultset
+            data_review.validation_resultset
 
         # Check that the run_validation task was queued
         mock_valid_queue.enqueue.call_count == 1
