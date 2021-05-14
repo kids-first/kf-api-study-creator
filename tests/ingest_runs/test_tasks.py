@@ -58,6 +58,7 @@ def test_run_ingest(db, mocker, clients, prep_file):
     mock_genomic_workflow.reset_mock()
     happy_ir = IngestRun.objects.get(pk=happy_ir.id)
     assert happy_ir.state == "completed"
+    assert not happy_ir.error_msg
 
     """
     2) Non-GWO Case
@@ -69,6 +70,7 @@ def test_run_ingest(db, mocker, clients, prep_file):
         assert run_ingest(bad_ir.id)
     bad_ir = IngestRun.objects.get(pk=bad_ir.id)
     assert bad_ir.state == "failed"
+    assert "Unknown file type detected" in bad_ir.error_msg
 
     """
     3) Exception Case
@@ -76,13 +78,15 @@ def test_run_ingest(db, mocker, clients, prep_file):
     _ingest_genomic_workflow_manifest_ and give it an exception side effect
     and check that the IngestRun goes to a failed state.
     """
+    ER = "ERROR"
     except_ir = setup_ingest_run(happy_versions[:1], user)
-    mock_genomic_workflow.side_effect = Exception
+    mock_genomic_workflow.side_effect = Exception(ER)
     with pytest.raises(Exception):
         run_ingest(except_ir.id)
     mock_genomic_workflow.assert_called_once()
     except_ir = IngestRun.objects.get(pk=except_ir.id)
     assert except_ir.state == "failed"
+    assert ER == except_ir.error_msg
 
 
 def test_ingest_gwo_feat_flag(db, clients, mocker, prep_file, settings):
@@ -114,6 +118,7 @@ def test_ingest_gwo_feat_flag(db, clients, mocker, prep_file, settings):
     assert IngestRun.objects.all().count() == 1
     ir = IngestRun.objects.get(pk=ir.id)
     assert ir.state == "failed"
+    assert "output manifests is not enabled" in ir.error_msg
     mock_genomic_workflow.assert_not_called()
 
 
@@ -140,7 +145,7 @@ def test_cancel_ingest(db, clients, prep_file):
 
 def test_cancel_validation(db, clients):
     """
-    Test the cancel_ingest function.
+    Test the cancel_validation function.
     """
     # Create a validation run
     vr = ValidationRunFactory()
