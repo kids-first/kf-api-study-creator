@@ -1,11 +1,10 @@
 import os
-import json
 import jsonpickle
 import logging
-from pprint import pformat, pprint
+from pprint import pformat
+import sys
 
 import pandas
-import django_rq
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django_s3_storage.storage import S3Storage
@@ -54,11 +53,11 @@ def clean_and_map(version):
     try:
         df = pandas.DataFrame(extract_data(version))
     except Exception as e:
-        logger.error(
-            "Validation failed! Error in parsing {version} content into "
-            "a DataFrame."
+        er_msg = (
+            f"Validation failed! Error in parsing {version} content into "
+            f"a DataFrame."
         )
-        raise
+        raise type(e)(er_msg).with_traceback(sys.exc_info()[2])
 
     logger.info(
         f"Applied extract config {os.path.split(ec)[-1]} for file "
@@ -77,9 +76,7 @@ def validate_file_versions(validation_run):
     version, clean and map the data before passing it to the validator
     """
     versions = validation_run.versions.all()
-    logger.info(
-        f"Begin validating file versions: {pformat(list(versions))}"
-    )
+    logger.info(f"Begin validating file versions: {pformat(list(versions))}")
     # Clean and map source data
     df_dict = {}
     for version in versions:
@@ -114,7 +111,8 @@ def build_report(results):
     versions = (
         Version.objects.select_related("root_file")
         .only("root_file__file_type")
-        .filter(kf_id__in=set(results["files_validated"])).all()
+        .filter(kf_id__in=set(results["files_validated"]))
+        .all()
     )
     for version in versions:
         type_name = FILE_TYPES[version.root_file.file_type]["name"]
@@ -167,7 +165,7 @@ def upload_validation_files(results, report_md, resultset):
     """
     file_contents = {
         "report_file": (report_md, ValidationResultset.report_filename),
-        "results_file": (results, ValidationResultset.results_filename)
+        "results_file": (results, ValidationResultset.results_filename),
     }
     for attr, (content, fname) in file_contents.items():
         if not content:
@@ -202,7 +200,7 @@ def persist_results(results, report_md, validation_run):
     try:
         resultset = validation_run.data_review.validation_resultset
     except ValidationResultset.DoesNotExist:
-        logger.info(f"Creating new validation result set")
+        logger.info("Creating new validation result set")
         resultset = ValidationResultset(data_review=validation_run.data_review)
 
     passed, failed, did_not_run = validation_summary(results)
@@ -238,13 +236,14 @@ def run_validation(validation_run_uuid=None):
     )
     vr.start()
     vr.save()
+
     try:
         results = validate_file_versions(vr)
         report_markdown = build_report(results)
         vrs = persist_results(results, report_markdown, vr)
-    except Exception:
+    except Exception as e:
         vr.success = False
-        vr.fail()
+        vr.fail(error_msg=str(e))
         vr.save()
         raise
 

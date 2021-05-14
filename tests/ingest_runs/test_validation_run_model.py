@@ -54,14 +54,14 @@ def test_missing_study(db):
     for obj in objs:
         with pytest.raises(ValidationError) as e:
             obj.clean()
-            assert "must have an associated DataReview" in str(e)
+        assert "must have an associated DataReview" in str(e)
 
     # Has data review with no study
     for obj in objs:
         obj.data_review = DataReview()
         with pytest.raises(ValidationError) as e:
             obj.clean()
-            assert "must have an associated DataReview" in str(e)
+        assert "must have an associated DataReview" in str(e)
 
 
 @pytest.mark.parametrize(
