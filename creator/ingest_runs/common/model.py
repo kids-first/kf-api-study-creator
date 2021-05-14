@@ -116,6 +116,15 @@ class IngestProcess(models.Model):
             "for this ingest process"
         ),
     )
+    error_msg = models.TextField(
+        blank=True,
+        null=True,
+        help_text=(
+            "The error message that is a product of an ingest process "
+            "failing. This field is populated in the exception handler "
+            "before the fail method is called on the process."
+        ),
+    )
 
     @property
     def queue(self):
@@ -170,12 +179,14 @@ class IngestProcess(models.Model):
         self._save_event(State.CANCELED, on_delete=on_delete)
 
     @transition(field=state, source=FAIL_SOURCES, target=State.FAILED)
-    def fail(self):
+    def fail(self, error_msg=None):
         """
         Fail the ingest process due to a problem that prevented completion.
         """
         self.stopped_at = timezone.now()
         self._save_event(State.FAILED)
+        if error_msg is not None:
+            self.error_msg = error_msg
 
     def compute_input_hash(self):
         """
