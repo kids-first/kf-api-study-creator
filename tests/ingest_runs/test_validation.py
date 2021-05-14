@@ -1,7 +1,5 @@
 import os
-import json
 import jsonpickle
-from pprint import pprint
 
 import pytest
 
@@ -17,7 +15,7 @@ from creator.ingest_runs.models import ValidationResultset, State
 from tests.extract_configs.fixtures import (
     make_template_df,
     MockVersion,
-    MockAnalysis
+    MockAnalysis,
 )
 
 DATA_REVIEW_FILE_TYPES = ["PDA", "PTD", "PTP", "SAM", "S3S", "FTR"]
@@ -30,6 +28,7 @@ def template_version(db, tmpdir, settings):
     analysis for the version. The content will conform to a templated
     file type
     """
+
     def make_template_version(
         file_type, filename, version=None, file=None, study=None
     ):
@@ -100,28 +99,30 @@ def test_run_validation_success(db, clients, mocker, data_review_with_files):
     validation_run.run_validation(str(vr.pk))
     vr.refresh_from_db()
     assert vr.state == State.COMPLETED
+    assert not vr.error_msg
 
 
 def test_run_validation_fail(db, clients, mocker, data_review):
     """
     Test run_validation on failure
     """
+    ER_MSG = "Error"
     mocker.patch(
         "creator.ingest_runs.tasks.validation_run.validate_file_versions",
-        side_effect=Exception
+        side_effect=Exception(ER_MSG),
     )
     vr = ValidationRunFactory(
         data_review=data_review, state=State.INITIALIZING
     )
-    vr = ValidationRunFactory(data_review=data_review)
     with pytest.raises(Exception):
         validation_run.run_validation(str(vr.pk))
-        vr.refresh_from_db()
-        assert not vr.success
-        assert vr.state == State.FAILED
+    vr.refresh_from_db()
+    assert not vr.success
+    assert vr.state == State.FAILED
+    assert vr.error_msg == ER_MSG
 
 
-def test_validate_and_build_report(mocker, data_review_with_files):
+def test_validate_and_build_report(db, mocker, data_review_with_files):
     """
     Test file validation and report building
     """
@@ -140,11 +141,12 @@ def test_validate_and_build_report(mocker, data_review_with_files):
     # Test validation when all versions are missing extract cfgs
     mock_clean_map = mocker.patch(
         "creator.ingest_runs.tasks.validation_run.clean_and_map",
-        return_value=None
+        return_value=None,
     )
+    ER_MSG = "No templates were found"
     with pytest.raises(Exception) as e:
         validation_run.validate_file_versions(vr)
-        assert "No templates were found" in str(e)
+        assert ER_MSG in str(e)
 
 
 def test_persist_results(db, tmpdir, settings, data_review):
@@ -158,26 +160,18 @@ def test_persist_results(db, tmpdir, settings, data_review):
     vr = ValidationRunFactory(data_review=data_review)
     results = {
         "validation": [
-            {
-                "type": "count",
-                "is_applicable": False,
-                "errors": []
-            },
+            {"type": "count", "is_applicable": False, "errors": []},
             {
                 "type": "relationship",
                 "is_applicable": True,
                 "errors": [
                     {
                         "from": ("participant", "p1"),
-                        "to": ("biospecimen", "b1")
+                        "to": ("biospecimen", "b1"),
                     }
-                ]
+                ],
             },
-            {
-                "type": "attribute",
-                "is_applicable": True,
-                "errors": []
-            }
+            {"type": "attribute", "is_applicable": True, "errors": []},
         ]
     }
     report_markdown = "my validation report"
@@ -233,11 +227,10 @@ def test_clean_and_map_errors(mocker):
     # Error extracting file content into DataFrame
     mocker.patch(
         "creator.ingest_runs.tasks.validation_run.extract_data",
-        side_effect=Exception
+        side_effect=Exception,
     )
     version = MockVersion(
-        file_type="PDA",
-        columns=FILE_TYPES["PDA"]["required_columns"]
+        file_type="PDA", columns=FILE_TYPES["PDA"]["required_columns"]
     )
     with pytest.raises(Exception):
         clean_and_map(version)
