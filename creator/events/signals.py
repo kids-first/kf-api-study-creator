@@ -16,6 +16,7 @@ def new_file(signal, sender, instance, created, **kwargs):
     message = f"{username} created file {instance.kf_id}"
 
     event = Event(
+        organization=instance.study.organization,
         file=instance,
         study=instance.study,
         user=instance.creator,
@@ -33,6 +34,7 @@ def delete_file(signal, sender, instance, **kwargs):
     username = getattr(instance.creator, "display_name", "Anonymous user")
     message = f"{username} deleted file {instance.kf_id}"
     event = Event(
+        organization=instance.study.organization,
         study=instance.study,
         user=instance.creator,
         description=message,
@@ -65,9 +67,13 @@ def new_version(signal, sender, instance, created, **kwargs):
     elif instance.root_file:
         study = instance.root_file.study
     else:
-        study = None
+        # There should not be any instance where a version is not a part of
+        # a study and, consequently, an organization. Pass on creating the
+        # event if this is somehow the case.
+        return
 
     ev = Event(
+        organization=study.organization,
         study=study,
         file=instance.root_file,
         version=instance,

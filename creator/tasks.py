@@ -17,6 +17,7 @@ from creator.slack import setup_slack, summary_post
 from creator.analyses.analyzer import analyze_version
 from creator.buckets.scanner import sync_buckets
 from creator.projects.models import Project
+from creator.organizations.models import Organization
 from creator.studies.models import Study
 from creator.files.models import Version
 from creator.events.models import Event
@@ -44,7 +45,12 @@ def setup_bucket_task(kf_id):
 
     try:
         message = f"Creating buckets for study {kf_id}"
-        event = Event(study=study, description=message, event_type="BK_STR")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="BK_STR",
+        )
         event.save()
 
         # Setting up bucket will set the s3 location on the study so it
@@ -53,7 +59,12 @@ def setup_bucket_task(kf_id):
         study.save()
 
         message = f"Successfully created buckets for study {kf_id}"
-        event = Event(study=study, description=message, event_type="BK_SUC")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="BK_SUC",
+        )
         event.save()
 
         logger.info(message)
@@ -62,7 +73,12 @@ def setup_bucket_task(kf_id):
             f"There was a problem creating buckets for study "
             f"{kf_id}: {exc}"
         )
-        event = Event(study=study, description=message, event_type="BK_ERR")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="BK_ERR",
+        )
         event.save()
 
         logger.error(message)
@@ -94,13 +110,23 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
 
     try:
         message = f"Creating Cavatica projects for study {kf_id}"
-        event = Event(study=study, description=message, event_type="PR_STR")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="PR_STR",
+        )
         event.save()
 
         setup_cavatica(study, workflows=workflows, user=user)
 
         message = f"Successfully created Cavatica projects for study {kf_id}"
-        event = Event(study=study, description=message, event_type="PR_SUC")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="PR_SUC",
+        )
         event.save()
 
         logger.info(message)
@@ -109,7 +135,12 @@ def setup_cavatica_task(kf_id, workflows, user_sub):
             f"There was a problem creating Cavatica projects for study "
             f"{kf_id}: {exc}"
         )
-        event = Event(study=study, description=message, event_type="PR_ERR")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="PR_ERR",
+        )
         event.save()
 
         logger.error(message)
@@ -145,7 +176,11 @@ def import_delivery_files_task(project_id, user_sub):
     try:
         message = f"Importing volume files to Cavatica project {project_id}"
         event = Event(
-            study=study, description=message, user=user, event_type="IM_STR"
+            organization=Organization.objects.earliest("created_on"),
+            study=study,
+            description=message,
+            user=user,
+            event_type="IM_STR",
         )
         event.save()
 
@@ -155,7 +190,12 @@ def import_delivery_files_task(project_id, user_sub):
             f"Successfully imported volume files to "
             f"Cavatica project {project_id} under the {folder_name} folder"
         )
-        event = Event(study=study, description=message, event_type="IM_SUC")
+        event = Event(
+            organization=Organization.objects.earliest("created_on"),
+            study=study,
+            description=message,
+            event_type="IM_SUC",
+        )
         event.save()
 
         logger.info(message)
@@ -164,7 +204,12 @@ def import_delivery_files_task(project_id, user_sub):
             f"There was a problem importing volume files to the Cavatica "
             f"project {project_id}: {exc}"
         )
-        event = Event(study=study, description=message, event_type="IM_ERR")
+        event = Event(
+            organization=Organization.objects.earliest("created_on"),
+            study=study,
+            description=message,
+            event_type="IM_ERR",
+        )
         event.save()
 
         logger.error(message)
@@ -208,7 +253,12 @@ def setup_slack_task(kf_id):
 
     message = f"Creating a Slack channel for study {kf_id}"
     logger.info(message)
-    event = Event(study=study, description=message, event_type="SL_STR")
+    event = Event(
+        organization=study.organization,
+        study=study,
+        description=message,
+        event_type="SL_STR",
+    )
     event.save()
 
     try:
@@ -218,7 +268,12 @@ def setup_slack_task(kf_id):
             f"There was a problem creating a Slack channel for study "
             f"{kf_id}: {exc}"
         )
-        event = Event(study=study, description=message, event_type="SL_ERR")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="SL_ERR",
+        )
         event.save()
 
         logger.error(message)
@@ -226,7 +281,12 @@ def setup_slack_task(kf_id):
 
     message = f"Successfully created Slack channel for study {kf_id}"
     logger.info(message)
-    event = Event(study=study, description=message, event_type="SL_SUC")
+    event = Event(
+        organization=study.organization,
+        study=study,
+        description=message,
+        event_type="SL_SUC",
+    )
     event.save()
 
 

@@ -2,6 +2,7 @@ import pytest
 from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.files.models import Version
+from creator.organizations.factories import OrganizationFactory
 from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory, VersionFactory
@@ -244,16 +245,13 @@ def test_update_version_no_study(db, clients):
     Test that a version may not be modified if the study cannot be resolved.
     """
     client = clients.get("Administrators")
-    study = StudyFactory(kf_id="SD_ME0WME0W")
-    file = FileFactory(study=study)
-    version = VersionFactory()
+    version = VersionFactory(study=None, root_file=None)
 
     query = update_query
     variables = {
         "kfId": version.kf_id,
         "description": "New description",
         "state": version.state,
-        "file": to_global_id("FileNode", file.kf_id),
     }
     resp = client.post(
         "/graphql",

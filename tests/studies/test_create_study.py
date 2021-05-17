@@ -121,13 +121,14 @@ def test_create_study_mutation(
     """
     Only admins should be allowed to create studies
     """
-    user = UserFactory()
-    organization = OrganizationFactory()
+    collaborator = UserFactory()
+    user = User.objects.filter(groups__name=user_group).first()
+    organization = OrganizationFactory(members=[user] if user else [])
     client = clients.get(user_group)
     variables = {
         "input": {
             "externalId": "Test Study",
-            "collaborators": [to_global_id("UserNode", user.id)],
+            "collaborators": [to_global_id("UserNode", collaborator.id)],
             "organization": to_global_id("OrganizationNode", organization.pk),
         }
     }
@@ -158,7 +159,8 @@ def test_create_study_collaborator_does_not_exist(
     Study should not be created and an error returned if one of the
     collaborators does not exist
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
     variables = {
         "input": {
@@ -211,7 +213,8 @@ def test_dataservice_call(db, clients, mock_post, settings):
     """
     Test that the dataservice is called correctly
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
     variables = {
         "input": {
@@ -240,7 +243,8 @@ def test_dataservice_feat_flag(db, clients, mock_post, settings):
     Test that creating studies does not work when the feature flag is turned
     off.
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
 
     settings.FEAT_DATASERVICE_CREATE_STUDIES = False
@@ -267,7 +271,8 @@ def test_dataservice_error(db, clients, mock_error):
     """
     Test behavior when dataservice returns an error.
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
     variables = {
         "input": {
@@ -291,7 +296,8 @@ def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
     """
     Test that buckets are only created if the correct settings are configured
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
     settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS = True
     settings.STUDY_BUCKETS_REGION = "us-east-1"
@@ -332,7 +338,8 @@ def test_workflows(db, settings, mocker, clients, mock_post):
     """
     Test that a new study may be created with specific workflows
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
@@ -404,7 +411,8 @@ def test_text_fields(db, clients, settings, mock_post, field):
     """
     Test text inputs for different fields
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
@@ -430,7 +438,8 @@ def test_integer_fields(db, clients, settings, mock_post, field):
     """
     Test positive integer inputs for different fields
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
@@ -458,7 +467,8 @@ def test_internal_fields(db, clients, settings, mock_post, field):
 
     TODO: Merge with test_text_fields by making dataservice mock more flexible
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False
@@ -484,7 +494,8 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, field):
     """
     Test that inputs datetime study fields are saved correctly.
     """
-    organization = OrganizationFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_CREATE_PROJECTS = False

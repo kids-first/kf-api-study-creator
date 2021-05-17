@@ -9,6 +9,7 @@ from graphql_relay import from_global_id
 from creator.tasks import import_delivery_files_task
 from creator.projects.cavatica import sync_cavatica_projects, create_project
 from creator.projects.models import Project
+from creator.organizations.models import Organization
 from creator.studies.models import Study
 from creator.events.models import Event
 
@@ -129,6 +130,7 @@ class UpdateProjectMutation(graphene.Mutation):
         # Log an event
         message = f"{user.display_name} updated project {project.project_id}"
         event = Event(
+            organization=Organization.objects.earliest("created_on"),
             study=project.study,
             project=project,
             description=message,
@@ -206,6 +208,7 @@ class LinkProjectMutation(graphene.Mutation):
             f"study {study.kf_id}"
         )
         event = Event(
+            organization=Organization.objects.earliest("created_on"),
             study=study,
             project=project,
             description=message,
@@ -266,6 +269,7 @@ class UnlinkProjectMutation(graphene.Mutation):
             f"study {study.kf_id}"
         )
         event = Event(
+            organization=Organization.objects.earliest("created_on"),
             study=study,
             project=project,
             description=message,

@@ -159,6 +159,7 @@ class FileMutation(graphene.Mutation):
             f"{'of ' if len(update_fields)>0 else ''} file {file.kf_id}"
         )
         event = Event(
+            organization=file.study.organization,
             file=file,
             study=file.study,
             user=user,

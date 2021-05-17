@@ -257,7 +257,12 @@ class CreateStudyMutation(graphene.Mutation):
 
         # Log an event
         message = f"{user.display_name} created study {study.kf_id}"
-        event = Event(study=study, description=message, event_type="SD_CRE")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="SD_CRE",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
@@ -393,7 +398,12 @@ class UpdateStudyMutation(graphene.Mutation):
 
         # Log an event
         message = f"{user.display_name} updated study {study.kf_id}"
-        event = Event(study=study, description=message, event_type="SD_UPD")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="SD_UPD",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
@@ -455,7 +465,10 @@ class AddCollaboratorMutation(graphene.Mutation):
                 f"as collaborator to study {study.kf_id}"
             )
             event = Event(
-                study=study, description=message, event_type="CB_ADD"
+                organization=study.organization,
+                study=study,
+                description=message,
+                event_type="CB_ADD",
             )
         else:
             message = (
@@ -463,7 +476,10 @@ class AddCollaboratorMutation(graphene.Mutation):
                 f"role to {role} in study {study.kf_id}"
             )
             event = Event(
-                study=study, description=message, event_type="CB_UPD"
+                organization=study.organization,
+                study=study,
+                description=message,
+                event_type="CB_UPD",
             )
         membership.save()
         # Only add the user if they are in the database (not a service user)
@@ -525,7 +541,12 @@ class RemoveCollaboratorMutation(graphene.Mutation):
             f"{user.display_name} removed {collaborator.display_name} "
             f"as collaborator from study {study.kf_id}"
         )
-        event = Event(study=study, description=message, event_type="CB_REM")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="CB_REM",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
@@ -592,7 +613,12 @@ class UpdateSequencingStatusMutation(graphene.Mutation):
             f"{user.display_name} study {study.kf_id}'s sequencing status "
             f"to {study.sequencing_status}"
         )
-        event = Event(study=study, description=message, event_type="ST_UPD")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="ST_UPD",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
@@ -640,7 +666,12 @@ class UpdateIngestionStatusMutation(graphene.Mutation):
             f"{user.display_name} study {study.kf_id}'s ingestion status "
             f"to {study.ingestion_status}"
         )
-        event = Event(study=study, description=message, event_type="IN_UPD")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="IN_UPD",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user
@@ -688,7 +719,12 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
             f"{user.display_name} study {study.kf_id}'s phenotype status "
             f"to {study.phenotype_status}"
         )
-        event = Event(study=study, description=message, event_type="PH_UPD")
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="PH_UPD",
+        )
         # Only add the user if they are in the database (not a service user)
         if not user._state.adding:
             event.user = user

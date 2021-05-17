@@ -4,6 +4,7 @@ import pytz
 import sevenbridges as sbg
 from sevenbridges.errors import NotFound, Conflict
 from django.conf import settings
+from creator.organizations.models import Organization
 from creator.projects.models import Project, WORKFLOW_TYPES
 from creator.events.models import Event
 
@@ -70,7 +71,11 @@ def create_project(study, project_type, workflow_type=None, user=None):
     else:
         message = f"A new project was created {cavatica_project.id}"
     event = Event(
-        study=study, project=project, description=message, event_type="PR_CRE"
+        organization=Organization.objects.earliest("created_on"),
+        study=study,
+        project=project,
+        description=message,
+        event_type="PR_CRE",
     )
     # Only add the user if they are in the database (not a service user)
     if user and not user._state.adding:
@@ -287,21 +292,30 @@ def sync_cavatica_account(project_type):
             f"New project was discovered in Cavatica: {cavatica_project.id}"
         )
         event = Event(
-            project=project, description=message, event_type="PR_CRE"
+            organization=Organization.objects.earliest("created_on"),
+            project=project,
+            description=message,
+            event_type="PR_CRE",
         )
         event.save()
 
     for project in updated_projects:
         message = f"Project was updated in Cavatica: {cavatica_project.id}"
         event = Event(
-            project=project, description=message, event_type="PR_UPD"
+            organization=Organization.objects.earliest("created_on"),
+            project=project,
+            description=message,
+            event_type="PR_UPD",
         )
         event.save()
 
     for project in deleted_projects:
         message = f"Project was deleted in Cavatica: {cavatica_project.id}"
         event = Event(
-            project=project, description=message, event_type="PR_DEL"
+            organization=Organization.objects.earliest("created_on"),
+            project=project,
+            description=message,
+            event_type="PR_DEL",
         )
         event.save()
 

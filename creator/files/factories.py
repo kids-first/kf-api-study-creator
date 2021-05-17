@@ -3,7 +3,7 @@ import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
 from .models import File, Version
-from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 from creator.users.factories import UserFactory
 
 

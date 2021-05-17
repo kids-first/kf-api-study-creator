@@ -1,6 +1,7 @@
 import pytest
 import datetime
 from creator.studies.factories import StudyFactory
+from creator.organizations.factories import OrganizationFactory
 from creator.events.models import Event
 from creator.studies.models import Study
 from creator.slack import summary_post
@@ -44,7 +45,11 @@ def test_slack_notify_success(db, mocker, settings):
     study_no_slack.save()
     study_disable_slack.save()
 
-    event = Event(event_type="SF_CRE", study=study_with_slack)
+    event = Event(
+        organization=OrganizationFactory(),
+        event_type="SF_CRE",
+        study=study_with_slack,
+    )
     event.save()
 
     notified_counts = summary_post()
@@ -81,7 +86,9 @@ def test_slack_notify_post_error(db, mocker, settings):
     study.slack_channel = "sd_00000000"
     study.save()
 
-    event = Event(event_type="SF_CRE", study=study)
+    event = Event(
+        organization=OrganizationFactory(), event_type="SF_CRE", study=study
+    )
     event.save()
 
     notified_counts = summary_post()

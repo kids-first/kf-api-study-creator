@@ -156,7 +156,11 @@ class CreateReferralTokenMutation(graphene.Mutation):
                 f" {len(input['studies'])} studies"
             )
 
-        event = Event(description=message, event_type="RT_CRE")
+        event = Event(
+            organization=referral_token.organization,
+            description=message,
+            event_type="RT_CRE",
+        )
         if not user._state.adding:
             event.user = user
         event.save()
@@ -216,7 +220,11 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
             "{len(referral_token.studies)} studies."
         )
 
-        event = Event(description=message, event_type="RT_CLA")
+        event = Event(
+            organization=referral_token.organization,
+            description=message,
+            event_type="RT_CLA",
+        )
         if not user._state.adding:
             event.user = user
         event.save()

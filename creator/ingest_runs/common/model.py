@@ -245,7 +245,13 @@ class IngestProcess(models.Model):
             ),
         }
         event_name, message = msgs[event_type]
+        # Cannot make an event if the ingest run is not part of a study and
+        # thus not part of an organization
+        if self.study is None:
+            return
+
         kwargs = {
+            "organization": self.study.organization,
             "study": self.study,
             "user": self.creator,
             "description": message,

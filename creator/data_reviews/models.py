@@ -165,6 +165,7 @@ class DataReview(models.Model):
         from creator.events.models import Event
 
         return Event(
+            organization=self.study.organization,
             study=self.study,
             user=self.creator,
             data_review=self,

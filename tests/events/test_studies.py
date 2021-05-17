@@ -27,15 +27,16 @@ mutation ($id: ID! $input: StudyInput!) {
 
 
 def test_new_study_event(
-    admin_client, db, mocker, settings, mock_cavatica_api
+    permission_client, db, mocker, settings, mock_cavatica_api
 ):
     """
     Test that new studies creates an event
     """
+    user, client = permission_client(["add_study"])
     settings.FEAT_CAVATICA_CREATE_PROJECTS = True
     settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
     settings.CAVATICA_DELIVERY_TOKEN = "abc"
-    organization = OrganizationFactory()
+    organization = OrganizationFactory(members=[user])
 
     post = mocker.patch("requests.post")
     MockResp = MagicMock()
@@ -49,7 +50,7 @@ def test_new_study_event(
             "organization": to_global_id("OrganizationNode", organization.pk),
         }
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": CREATE_STUDY, "variables": variables},
@@ -59,7 +60,7 @@ def test_new_study_event(
     assert Event.objects.filter(event_type="SD_CRE").count() == 1
 
     sd_cre = Event.objects.filter(event_type="SD_CRE").first()
-    assert sd_cre.user == User.objects.first()
+    assert sd_cre.user == user
     assert sd_cre.file is None
     assert sd_cre.study == Study.objects.first()
 
@@ -74,10 +75,11 @@ def test_new_study_event(
     assert pr_cre.project in Project.objects.all()
 
 
-def test_update_study_event(admin_client, db, mocker):
+def test_update_study_event(permission_client, db, mocker):
     """
     Test that updating studies creates an event
     """
+    user, client = permission_client(["change_study"])
     patch = mocker.patch("requests.patch")
     MockResp = MagicMock()
     MockResp.status_code = 200
@@ -91,7 +93,7 @@ def test_update_study_event(admin_client, db, mocker):
         "id": to_global_id("StudyNode", study.kf_id),
         "input": {"externalId": "TESTING"},
     }
-    resp = admin_client.post(
+    resp = client.post(
         "/graphql",
         content_type="application/json",
         data={"query": UPDATE_STUDY, "variables": variables},
@@ -101,6 +103,6 @@ def test_update_study_event(admin_client, db, mocker):
     assert Event.objects.filter(event_type="SD_UPD").count() == 1
 
     sd_upd = Event.objects.filter(event_type="SD_UPD").first()
-    assert sd_upd.user == User.objects.first()
+    assert sd_upd.user == user
     assert sd_upd.file is None
     assert sd_upd.study == Study.objects.first()
