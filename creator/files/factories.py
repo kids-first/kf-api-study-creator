@@ -41,20 +41,34 @@ factory.Faker.add_provider(FileTypeProvider)
 class VersionFactory(factory.DjangoModelFactory):
     class Meta:
         model = Version
+        django_get_or_create = ("kf_id",)
 
     kf_id = factory.Sequence(lambda n: f"FV_{n:0>8}")
 
+    key = factory.Faker("file_name")
+    size = factory.Faker("pyint")
+    description = factory.Faker("paragraph", nb_sentences=3)
+    created_at = factory.Faker(
+        "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
+    )
 
     creator = factory.SubFactory(UserFactory)
 
+    file_name = factory.Faker("file_name")
+    state = factory.Faker("version_state")
     root_file = factory.SubFactory("creator.files.factories.FileFactory")
 
 
 class FileFactory(factory.DjangoModelFactory):
     class Meta:
         model = File
+        django_get_or_create = ("kf_id",)
 
     kf_id = factory.Sequence(lambda n: f"SF_{n:0>8}")
+    name = factory.Faker("file_name")
+    description = factory.Faker("paragraph", nb_sentences=3)
+    study = factory.SubFactory(StudyFactory)
+    file_type = factory.Faker("file_type")
     creator = factory.SubFactory(UserFactory)
     tags = factory.Faker("tags")
 
