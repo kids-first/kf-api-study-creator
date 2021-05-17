@@ -180,14 +180,17 @@ class CreateStudyMutation(graphene.Mutation):
         create the study, but it will be labeled as a local study.
         """
         user = info.context.user
-        if not user.has_perm("studies.add_study"):
-            raise GraphQLError("Not allowed")
-
         try:
             _, org_id = from_global_id(input.get("organization"))
             organization = Organization.objects.get(pk=org_id)
         except (Organization.DoesNotExist, ValidationError):
             raise GraphQLError(f"Organization {org_id} does not exist.")
+
+        if not (
+            user.has_perm("studies.add_study")
+            and user.organizations.filter(id=organization.id).exists()
+        ):
+            raise GraphQLError("Not allowed")
 
         # Error if this feature is not enabled
         if not (

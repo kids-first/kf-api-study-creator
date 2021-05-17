@@ -7,7 +7,7 @@ from creator.studies.models import Study, Membership
 from creator.files.models import Version
 
 from creator.studies.factories import StudyFactory
-from creator.files.factories import FileFactory
+from creator.files.factories import VersionFactory
 
 User = get_user_model()
 
@@ -57,9 +57,8 @@ def test_study_does_not_exist(db, clients):
     Test that error is returned if the provided study is not found.
     """
     client = clients.get("Administrators")
-    study = StudyFactory(kf_id="SD_ME0WME0W")
-    file = FileFactory()
-    version = file.versions.first()
+    study = StudyFactory()
+    version = VersionFactory(study=study)
 
     variables = {
         "version": to_global_id("VersionNode", version.kf_id),
