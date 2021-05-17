@@ -27,7 +27,7 @@ class Query:
 
     def resolve_all_organizations(self, info, **kwargs):
         """
-        Return all organizations of the user has list_all_organization.
+        Return all organizations if the user has list_all_organization.
         Return only organizations the user is a member of if they have
             view_my_study
         """
