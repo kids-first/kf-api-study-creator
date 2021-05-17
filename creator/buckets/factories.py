@@ -1,6 +1,7 @@
 import pytz
 import factory
 from .models import Bucket
+from creator.organizations.factories import OrganizationFactory
 
 
 class BucketFactory(factory.DjangoModelFactory):
@@ -12,3 +13,4 @@ class BucketFactory(factory.DjangoModelFactory):
     created_on = factory.Faker(
         "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
     )
+    organization = factory.SubFactory(OrganizationFactory)

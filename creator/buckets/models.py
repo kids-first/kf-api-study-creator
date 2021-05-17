@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from creator.studies.models import Study
+from creator.organizations.models import Organization
 
 
 class Bucket(models.Model):
@@ -23,6 +24,14 @@ class Bucket(models.Model):
     )
     created_on = models.DateTimeField(
         null=False, help_text="Time the bucket was created"
+    )
+    organization = models.ForeignKey(
+        Organization,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="buckets",
+        help_text="Organization this bucket belongs to",
     )
     study = models.ForeignKey(
         Study,

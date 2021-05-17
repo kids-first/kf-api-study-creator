@@ -4,6 +4,7 @@ import re
 from django.conf import settings
 from creator.buckets.models import Bucket
 from creator.studies.models import Study
+from creator.organizations.models import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ def sync_buckets():
             bucket = Bucket(
                 name=bucket_info["Name"],
                 created_on=bucket_info["CreationDate"],
+                organization=Organization.objects.earliest("created_on"),
             )
 
         link_study(bucket)
