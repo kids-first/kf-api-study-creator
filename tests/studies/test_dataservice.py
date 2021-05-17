@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from creator.jobs.models import Job
 from creator.studies.models import Study
+from creator.studies.factories import StudyFactory
 from creator.studies.dataservice import sync_dataservice_studies
 
 MOCK_RESP = {
@@ -55,20 +56,19 @@ MOCK_RESP = {
 }
 
 
-def test_sync_dataservice_studies(db, mocker):
+def test_sync_dataservice_studies_new_studies(db, mocker):
     """
-    Test that studies are created from the Dataservice correctly
+    Test that when new studies are found in the Data Service, a warning is
+    thrown and no studies are created.
     """
     req_mock = mocker.patch("creator.studies.dataservice.requests")
     req_mock.get().json.return_value = MOCK_RESP
+    logger = mocker.patch("creator.studies.dataservice.logger")
+
+    sync_dataservice_studies()
 
     assert Study.objects.count() == 0
-
-    sync_dataservice_studies()
-    assert Study.objects.count() == 2
-
-    sync_dataservice_studies()
-    assert Study.objects.count() == 2
+    assert logger.warning.call_count == 2
 
 
 def test_sync_dataservice_studies_deleted(db, mocker):
@@ -79,8 +79,8 @@ def test_sync_dataservice_studies_deleted(db, mocker):
     req_mock = mocker.patch("creator.studies.dataservice.requests")
     req_mock.get().json.return_value = MOCK_RESP
 
-    sync_dataservice_studies()
-    assert Study.objects.count() == 2
+    study_1 = StudyFactory(kf_id="SD_DYPMEHHF")
+    study_2 = StudyFactory(kf_id="SD_9PYZAHHE")
 
     DEL_RESP = MOCK_RESP.copy()
     DEL_RESP["results"] = DEL_RESP["results"][:1]
