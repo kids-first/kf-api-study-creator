@@ -7,6 +7,7 @@ from creator.ingest_runs.models import (
 )
 from creator.data_reviews.factories import DataReviewFactory
 from creator.users.factories import UserFactory
+from creator.files.factories import VersionFactory
 
 
 class IngestRunFactory(factory.DjangoModelFactory):
@@ -25,8 +26,9 @@ class IngestRunFactory(factory.DjangoModelFactory):
             return
 
         if extracted:
-            for version in extracted:
-                self.versions.add(version)
+            self.versions.set(extracted)
+        else:
+            self.versions.set(VersionFactory.create_batch(3))
 
 
 class ValidationRunFactory(factory.DjangoModelFactory):
