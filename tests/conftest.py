@@ -414,7 +414,9 @@ def versions(db, clients, mocker):
     Setup a file in a study with a new version that returns a mocked data file.
     """
     clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
     study = StudyFactory()
+    study.organization.members.add(user)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
     version.key = open("tests/data/manifest.txt")
