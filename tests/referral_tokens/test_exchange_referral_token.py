@@ -1,10 +1,14 @@
 import pytest
 from graphql_relay import to_global_id
-from creator.studies.models import Study, Membership
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+
+from creator.studies.models import Study, Membership
 from creator.referral_tokens.models import ReferralToken
 from creator.studies.factories import StudyFactory
 from creator.referral_tokens.factories import ReferralTokenFactory
+
+User = get_user_model()
 
 EXCHANGE_REFERRALTOKEN = """
 mutation ($token: ID!) {
@@ -147,19 +151,26 @@ def test_exchange_referral_token_expired(db, clients, settings):
     User cannot exchange referral token when it is expired
     """
     client = clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
     # Reset the referral token expiring days to have an expired token
     settings.REFERRAL_TOKEN_EXPIRATION_DAYS = -1
 
     study = StudyFactory(kf_id="SD_00000000")
-    study.save()
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp_create = client.post(
@@ -192,17 +203,24 @@ def test_exchange_referral_token_study_group(db, clients):
     Studies and groups are currectly added to user on exchanging referral token
     """
     client = clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
 
     study = StudyFactory()
-    study.save()
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", study.kf_id)
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp_create = client.post(
@@ -236,21 +254,27 @@ def test_exchange_referral_token_no_overwrite(db, clients):
     Test that existing studies and groups are not overwritten by exchange
     """
     client = clients.get("Administrators")
-    user = Group.objects.filter(name="Administrators").first().user_set.first()
+    user = User.objects.filter(groups__name="Administrators").first()
     # Add user to one pre-existing study
     Membership(collaborator=user, study=StudyFactory()).save()
 
     # Generate new study and group to invite user to
     study = StudyFactory()
-    study.save()
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", study.kf_id)
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp_create = client.post(
@@ -281,17 +305,19 @@ def test_exchange_referral_token_no_dupes(db, clients):
     count relationships
     """
     client = clients.get("Administrators")
-    user = Group.objects.filter(name="Administrators").first().user_set.first()
+    user = User.objects.filter(groups__name="Administrators").first()
 
     study = StudyFactory()
-    study.save()
+    study.organization.members.add(user)
     # Add user to new study
     Membership(collaborator=user, study=study).save()
 
     group = Group.objects.first()
 
     # Make token containing study the user already belongs to
-    referral_token = ReferralToken(email="test@example.com")
+    referral_token = ReferralToken(
+        email="test@example.com", organization=study.organization
+    )
     referral_token.save()
     referral_token.studies.set([study])
     referral_token.groups.set([group])

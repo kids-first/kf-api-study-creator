@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from creator.studies.models import Study
+from creator.organizations.models import Organization
 from django.contrib.auth.models import Group
 
 
@@ -15,7 +16,7 @@ User = get_user_model()
 class ReferralToken(models.Model):
     """
     An ReferralToken will be exchanged by a new or existing user in order to
-    be added to a studies with a given role.
+    be added to an organization and/or studies with a given role.
     """
 
     class Meta:
@@ -34,6 +35,15 @@ class ReferralToken(models.Model):
 
     claimed = models.BooleanField(
         default=False, help_text="If the token has been used"
+    )
+
+    organization = models.ForeignKey(
+        Organization,
+        related_name="referral_tokens",
+        help_text="The organization the user will be added to",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
     )
 
     studies = models.ManyToManyField(

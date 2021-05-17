@@ -1,6 +1,7 @@
 import pytz
 import factory
 from .models import ReferralToken
+from creator.organizations.factories import OrganizationFactory
 
 
 class ReferralTokenFactory(factory.DjangoModelFactory):
@@ -13,3 +14,4 @@ class ReferralTokenFactory(factory.DjangoModelFactory):
     created_at = factory.Faker(
         "date_time_between", start_date="-2d", end_date="now", tzinfo=pytz.UTC
     )
+    organization = factory.SubFactory(OrganizationFactory)

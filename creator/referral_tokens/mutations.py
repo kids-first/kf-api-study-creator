@@ -10,6 +10,7 @@ from django.utils import timezone
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 
+from creator.organizations.models import Organization
 from creator.studies.models import Study, Membership
 from creator.referral_tokens.models import ReferralToken
 from creator.events.models import Event
@@ -44,6 +45,11 @@ def get_groups(input):
 class ReferralTokenInput(graphene.InputObjectType):
     email = graphene.String(
         required=True, description="The email address to send the referral to"
+    )
+
+    organization = graphene.ID(
+        description="The organization to invite the user to",
+        required=True,
     )
 
     studies = graphene.List(
@@ -82,7 +88,17 @@ class CreateReferralTokenMutation(graphene.Mutation):
 
         user = info.context.user
 
-        if not user.has_perm("referral_tokens.add_referraltoken"):
+        _, organization_id = from_global_id(input.get("organization"))
+        try:
+            organization = Organization.objects.get(pk=organization_id)
+        except Organization.DoesNotExist:
+            raise GraphQLError(f"Organizaton {organization_id} does not exist")
+
+        # User must be a member of the organization to send an invite
+        if not (
+            user.has_perm("referral_tokens.add_referraltoken")
+            and user.organizations.filter(id=organization.id).exists()
+        ):
             raise GraphQLError("Not allowed")
 
         studies = get_studies(input)
@@ -90,6 +106,7 @@ class CreateReferralTokenMutation(graphene.Mutation):
 
         existing_token = ReferralToken.objects.filter(
             email=input["email"],
+            organization=organization,
             created_at__lte=timezone.now(),
             created_at__gte=timezone.now()
             - timedelta(days=settings.REFERRAL_TOKEN_EXPIRATION_DAYS),
@@ -98,7 +115,9 @@ class CreateReferralTokenMutation(graphene.Mutation):
         if existing_token > 0:
             raise GraphQLError("Invite already sent, awaiting user response")
 
-        referral_token = ReferralToken(email=input["email"], created_by=user)
+        referral_token = ReferralToken(
+            email=input["email"], created_by=user, organization=organization
+        )
         referral_token.full_clean()
         referral_token.save()
         referral_token.studies.set(studies)
