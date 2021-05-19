@@ -87,5 +87,5 @@ def ingest_genomic_workflow_output_manifests(ingest_run):
         rows.extend(extract_data(version))
     manifest_df = pandas.DataFrame(rows)
 
-    loader = GenomicDataLoader(version.root_file.study)
+    loader = GenomicDataLoader(version.root_file.study, ingest_run)
     loader.ingest_gwo(manifest_df)

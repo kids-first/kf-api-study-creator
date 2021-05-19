@@ -4,15 +4,21 @@ import ast
 import logging
 import os
 import pandas as pd
+from pprint import pformat
 
 from kf_lib_data_ingest.app import settings as ingest_settings
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
+from kf_lib_data_ingest.common.pandas_utils import outer_merge
 from kf_lib_data_ingest.etl.load.load_v2 import LoadStage
 
+from creator.events.models import Event
 from creator.studies.data_generator.ingest_package.extract_configs.s3_scrape_config import genomic_file_ext  # noqa
 
+GWO_MANIFEST = "GWO Manifest"
 GEN_FILE = "genomic_file"
 GEN_FILES = "genomic-files"
+BIOSPECIMEN = "biospecimen"
+BIOSPECIMENS = "biospecimens"
 SEQ_EXP = "sequencing_experiment"
 SEQ_EXPS = "sequencing-experiments"
 SEQ_EXP_GEN_FILE = "sequencing_experiment_genomic_file"
@@ -25,9 +31,10 @@ logger = logging.getLogger(__name__)
 
 
 class GenomicDataLoader(object):
-    def __init__(self, study):
+    def __init__(self, study, ingest_run):
         self.study = study
         self.study_id = study.kf_id
+        self.ingest_run = ingest_run
         self.loader = None
         self.target_api_cfg = ingest_settings.load().TARGET_API_CONFIG
 
@@ -81,8 +88,14 @@ class GenomicDataLoader(object):
         file_df = utils.scrape_s3(buckets)
         file_df.dropna(subset=["Filename"], inplace=True)
 
-        genomic_df = manifest_df.merge(
-            right=file_df, on="Filepath", how="inner"
+        # Check for any discrepancy between between the files listed in the
+        # GWO manifest and the S3 scrape, then merge the two DataFrames
+        genomic_df = self._merge_and_validate(
+            manifest_df,
+            file_df,
+            GWO_MANIFEST,
+            "S3 bucket",
+            on="Filepath",
         )
 
         # Prepare genomic file df for ingest
@@ -99,6 +112,62 @@ class GenomicDataLoader(object):
         genomic_df = self._get_genomic_file_kf_ids(genomic_cache, genomic_df)
 
         return genomic_df
+
+    def _merge_and_validate(
+        self,
+        left_df,
+        right_df,
+        left_df_name,
+        right_df_name,
+        custom_message=None,
+        **outer_merge_kwargs,
+    ):
+        """
+        Merge two DataFrames together and report any missing data. Missing
+        data is defined as any records that are in the left DataFrame but
+        not in the right DataFrame.
+        """
+        outer_merge_kwargs["with_merge_detail_dfs"] = True
+        _, inner_merge_df, left_only, _ = outer_merge(
+            left_df,
+            right_df,
+            **outer_merge_kwargs,
+        )
+        key = None
+        for kwarg in ("on", "left_on", "right_on"):
+            key = outer_merge_kwargs.get(kwarg)
+            if key:
+                break
+        missing = left_only[key].drop_duplicates()
+        if not missing.empty:
+            num_missing = missing.shape[0]
+            message = (
+                f"During the ingest GWO run: {self.ingest_run.pk}, "
+                f"{num_missing} records in the {left_df_name} were not found "
+                f"in the {right_df_name}:\n{pformat(missing)}"
+            )
+            self._create_missing_event(message)
+            logger.warning(message)
+            if custom_message is not None:
+                logger.warning(custom_message)
+        return inner_merge_df
+
+    def _create_missing_event(self, message):
+        """
+        Upon detection of discrepancies that occur during the GWO ingest
+        process, fire off an Event.
+        """
+        first_version = self.ingest_run.versions.first()
+        ev = Event(
+            study=self.study,
+            file=first_version.root_file,
+            version=first_version,
+            user=self.ingest_run.creator,
+            description=message,
+            event_type="IR_MIS",
+            organization_id=self.study.organization.pk,
+        )
+        ev.save()
 
     def load_specimen_harmonized_gf_links(self, genomic_df):
         """
@@ -119,21 +188,36 @@ class GenomicDataLoader(object):
             CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID
         ]
         biospec_gen_df[CONCEPT.BIOSPECIMEN_GENOMIC_FILE.VISIBLE] = True
-        df = biospec_gen_df.drop_duplicates(
+        load_df = biospec_gen_df.drop_duplicates(
             [
                 CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
                 CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
             ],
         )
 
+        # Detect and report if there is a discrepancy between the specimens
+        # listed in the GWO manifest and the specimens in Dataservice
+        bio_df = utils.get_entities(
+            settings.DATASERVICE_URL,
+            BIOSPECIMENS,
+            self.study_id,
+        )
+        self._merge_and_validate(
+            load_df,
+            bio_df,
+            GWO_MANIFEST,
+            "DataService",
+            left_on=CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
+            right_on="kf_id",
+        )
         # Load into Data Service
         logger.info(
-            f"Creating {df.shape[0]} biospecimen-genomic-file links in "
+            f"Creating {load_df.shape[0]} biospecimen-genomic-file links in "
             f"{settings.DATASERVICE_URL}"
         )
-        _ = self._load_entities(BIO_GEN_FILE, df)
+        _ = self._load_entities(BIO_GEN_FILE, load_df)
 
-        return df
+        return load_df
 
     def load_seq_exp_harmonized_genomic_files(self, genomic_df):
         """
@@ -149,7 +233,7 @@ class GenomicDataLoader(object):
         """
         # Get sequencing experiments for the unharmonized genomic files in
         # the study
-        se_source_gf_df = self._get_seq_experiment_genomic_files()
+        se_source_gf_df = self._get_seq_experiment_genomic_files(genomic_df)
         # Merge ^ with the genomic df which has both harmonized and
         # unharmonized gfs in one table
         se_gf_df = pd.merge(
@@ -234,7 +318,7 @@ class GenomicDataLoader(object):
         )
         return genomic_df
 
-    def _get_seq_experiment_genomic_files(self):
+    def _get_seq_experiment_genomic_files(self, genomic_df):
         """
         Part of Step 3
 
@@ -285,6 +369,20 @@ class GenomicDataLoader(object):
                 "external_id": CONCEPT.GENOMIC_FILE.SOURCE_FILE,
             }
         )
+        # Check that each unharmonized genomic file
+        # in the GWO manifest has a corresponding entity in the DataService
+        self._merge_and_validate(
+            gdf[[CONCEPT.GENOMIC_FILE.SOURCE_FILE]],
+            genomic_df[[CONCEPT.GENOMIC_FILE.SOURCE_FILE]],
+            GWO_MANIFEST,
+            "DataService",
+            on=CONCEPT.GENOMIC_FILE.SOURCE_FILE,
+            custom_message=(
+                "The above message refers to the genomic file entities "
+                "themselves."
+            ),
+        )
+
         # Sequencing experiments
         sedf = dfs[SEQ_EXPS][
             ["kf_id", "external_id", "_links.sequencing_center"]
@@ -312,11 +410,33 @@ class GenomicDataLoader(object):
         sgdf[CONCEPT.SEQUENCING.TARGET_SERVICE_ID] = sgdf[
             "_links.sequencing_experiment"
         ].apply(lambda link: get_kf_id(link))
+
+        # Check that each of these unharmonized genomic files has a
+        # corresponding sequencing-experiment-genomic-file entity, linking it
+        # to a sequencing experiment
+        ds_gfs_df = pd.merge(
+            gdf,
+            genomic_df,
+            on=CONCEPT.GENOMIC_FILE.SOURCE_FILE,
+        )
+        GF_KF_ID = "gf_kf_id"
+        self._merge_and_validate(
+            ds_gfs_df[[GF_KF_ID]],
+            sgdf,
+            GWO_MANIFEST,
+            "DataService",
+            on=GF_KF_ID,
+            custom_message=(
+                "The above message refers to missing "
+                "sequencing-experiment-genomic-file entities."
+            ),
+        )
+
         # Merge se-gf with se
         sgdf = pd.merge(sedf, sgdf, on=CONCEPT.SEQUENCING.TARGET_SERVICE_ID)
 
         # Step 5
-        return pd.merge(gdf, sgdf, on="gf_kf_id")[
+        return pd.merge(gdf, sgdf, on=GF_KF_ID)[
             [
                 CONCEPT.SEQUENCING.TARGET_SERVICE_ID,
                 CONCEPT.SEQUENCING.CENTER.TARGET_SERVICE_ID,
