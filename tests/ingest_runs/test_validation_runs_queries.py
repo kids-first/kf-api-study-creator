@@ -3,8 +3,8 @@ import pytest
 from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
+from creator.ingest_runs.common.model import State
 from creator.ingest_runs.factories import ValidationRunFactory
-from pprint import pprint
 
 User = get_user_model()
 
@@ -23,6 +23,22 @@ query ($id: ID!) {
 ALL_VALIDATION_RUNS = """
 query {
     allValidationRuns {
+     edges {
+       node {
+         id
+         inputHash
+         success
+         progress
+         dataReview { id kfId }
+       }
+     }
+  }
+}
+"""
+
+LAST_MODIFIED_VALIDATION_RUN = """
+query {
+    lastModifiedValidationRun {
      edges {
        node {
          id
@@ -110,6 +126,53 @@ def test_query_all_validation_runs(
     if allowed:
         edges = resp.json()["data"]["allValidationRuns"]["edges"]
         assert len(edges) == n
+        for edge in edges:
+            assert "id" in edge["node"]
+            assert "inputHash" in edge["node"]
+            assert "success" in edge["node"]
+            assert "progress" in edge["node"]
+            assert "dataReview" in edge["node"]
+    else:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+@pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
+)
+def test_query_last_modified_validation_run(
+    db, clients, data_review, user_group, allowed
+):
+    client = clients.get(user_group)
+    if user_group:
+        user = User.objects.filter(groups__name=user_group).first()
+        Membership(collaborator=user, study=data_review.study).save()
+
+    # Create some validation runs for each file
+    n = 2
+    for i in range(n):
+        ValidationRunFactory(data_review=data_review, state=State.RUNNING)
+
+    resp = client.post(
+        "/graphql",
+        data={"query": LAST_MODIFIED_VALIDATION_RUN},
+        content_type="application/json",
+    )
+    pprint(resp.json())
+    assert False
+
+    if allowed:
+        edges = resp.json()["data"]["lastModifiedValidationRun"]["edges"]
+        print(edges)
+        assert False
+        assert len(edges) == 1
         for edge in edges:
             assert "id" in edge["node"]
             assert "inputHash" in edge["node"]
