@@ -6,7 +6,6 @@ from django.utils import timezone
 import django_rq
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import models
 from django_fsm import FSMField, transition
 
@@ -80,6 +79,11 @@ class IngestProcess(models.Model):
     stopped_at = models.DateTimeField(
         null=True,
         help_text="Time when ingest process stopped running"
+    )
+    modified_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        help_text="Time when ingest process was last modified"
     )
     creator = models.ForeignKey(
         User,
