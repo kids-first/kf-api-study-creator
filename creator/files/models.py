@@ -15,6 +15,9 @@ from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
 
+EXTRACT_CFG_DIR = os.path.join(
+    settings.BASE_DIR, "extract_configs", "templates"
+)
 User = get_user_model()
 
 
@@ -325,6 +328,23 @@ class Version(models.Model):
             f"/version/{version_id}"
         )
         return download_url
+
+    @property
+    def extract_config_path(self):
+        """
+        Get the extract config file path for the Version
+        """
+        config_path = None
+        try:
+            file_type = self.root_file.file_type
+        except Exception:
+            pass
+        else:
+            filename = FILE_TYPES.get(file_type, {}).get("template")
+            if filename:
+                config_path = os.path.join(EXTRACT_CFG_DIR, filename)
+
+        return config_path
 
 
 class DownloadToken(models.Model):
