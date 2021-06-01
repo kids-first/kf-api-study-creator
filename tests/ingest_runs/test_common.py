@@ -9,7 +9,7 @@ from creator.ingest_runs.common.model import (
     IngestProcess,
 )
 from creator.ingest_runs.common.mutations import (
-    cancel_duplicate_ingest_processes
+    cancel_duplicate_ingest_processes,
 )
 from creator.files.models import Version
 from creator.ingest_runs.models import (
@@ -70,18 +70,20 @@ def test_hash_versions(db, clients, prep_file):
     [
         ValidationRun,
         IngestRun,
-    ]
+    ],
 )
 def test_ingest_process_states(
-    db, mocker, ingest_process_cls, start_state, state_transition_method,
-    expected_msg
+    db,
+    mocker,
+    ingest_process_cls,
+    start_state,
+    state_transition_method,
+    expected_msg,
 ):
     """
     Test that correct events are fired on ingest process state transitions
     """
-    mock_stop_job = mocker.patch(
-        "creator.ingest_runs.common.model.stop_job"
-    )
+    mock_stop_job = mocker.patch("creator.ingest_runs.common.model.stop_job")
     creator = User.objects.first()
     obj = ingest_process_cls(creator=creator, state=start_state)
     obj.save()
@@ -121,7 +123,7 @@ def test_ingest_process_states(
         (IngestRunFactory, cancel_ingest, State.RUNNING),
         (ValidationRunFactory, cancel_validation, State.NOT_STARTED),
         (ValidationRunFactory, cancel_validation, State.RUNNING),
-    ]
+    ],
 )
 def test_cancel_duplicate_ingest_processes(
     db, mocker, clients, prep_file, factory, cancel_task, state
@@ -146,9 +148,7 @@ def test_cancel_duplicate_ingest_processes(
         version_ids[0:1], process.__class__, cancel_task
     )
     assert canceled_any
-    mock_queue.enqueue.assert_called_with(
-        cancel_task, args=(process.id,)
-    )
+    mock_queue.enqueue.assert_called_with(cancel_task, args=(process.id,))
     mock_queue.reset_mock()
 
     # Ingest processes with different versions won't be canceled
@@ -156,4 +156,4 @@ def test_cancel_duplicate_ingest_processes(
         version_ids, process.__class__, cancel_task
     )
     mock_queue.enqueue.call_count == 0
-    assert (not canceled_any)
+    assert not canceled_any
