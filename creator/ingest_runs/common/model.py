@@ -109,6 +109,13 @@ class IngestProcess(models.Model):
         """
         return django_rq.get_queue(name=self.__queue__)
 
+    @property
+    def study(self):
+        """
+        This should not be accessed.
+        """
+        raise NotImplementedError
+
     @transition(field=state, source=State.NOT_STARTED, target=State.RUNNING)
     def start(self):
         """

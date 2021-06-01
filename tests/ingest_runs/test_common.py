@@ -6,6 +6,7 @@ from creator.ingest_runs.common.model import (
     hash_versions,
     State,
     camel_to_snake,
+    IngestProcess,
 )
 from creator.ingest_runs.common.mutations import (
     cancel_duplicate_ingest_processes
@@ -23,6 +24,16 @@ from creator.events.models import Event
 from creator.ingest_runs.tasks import cancel_ingest, cancel_validation
 
 User = get_user_model()
+
+
+def test_study_not_implemented():
+    """
+    Test that accessing the study attribute of IngestProcess when it isn't
+    implemented yields a NotImplementedError.
+    """
+    ip = IngestProcess()
+    with pytest.raises(NotImplementedError):
+        ip.study
 
 
 def test_hash_versions(db, clients, prep_file):
