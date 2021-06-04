@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "creator.data_reviews",
     "creator.events.apps.EventsConfig",
     "creator.organizations",
+    "creator.data_templates",
     "creator",
     "corsheaders",
     'creator.ingest_runs.apps.IngestRunsConfig',
