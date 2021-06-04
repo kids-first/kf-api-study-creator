@@ -105,6 +105,11 @@ GROUPS = {
         "delete_organization",
         "change_organization",
         "list_all_organization",
+        "add_datatemplate",
+        "delete_datatemplate",
+        "change_datatemplate",
+        "view_datatemplate",
+        "list_all_datatemplate",
     ],
     "Developers": [
         "view_study",
