@@ -10,7 +10,7 @@ query (
     $createdAfter: DateTime,
     $createdBefore: DateTime,
     $username: String,
-    $eventType: String,
+    $eventType: EventEventType,
 ) {
     allEvents(
         studyKfId: $studyId,
