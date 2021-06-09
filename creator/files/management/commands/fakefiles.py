@@ -15,7 +15,8 @@ class Command(BaseCommand):
                             type=int)
 
     def handle(self, *args, **options):
-        factory.random.reseed_random("Fake data seed")
+        factory.random.reseed_random("seed")
+        random.seed("seed")
         FileFactory.reset_sequence()
         VersionFactory.reset_sequence()
 
