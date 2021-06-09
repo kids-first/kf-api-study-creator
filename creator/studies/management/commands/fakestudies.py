@@ -56,6 +56,7 @@ class Command(BaseCommand):
                 ),
             },
         )
+        user.organizations.add(organization)
         organization.save()
         n = options.get("n")
         if not n:
