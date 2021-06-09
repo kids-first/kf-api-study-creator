@@ -1,4 +1,5 @@
 import graphene
+import uuid
 from django.conf import settings
 from django.db import transaction
 from django_s3_storage.storage import S3Storage
@@ -177,8 +178,17 @@ class VersionUploadMutation(graphene.Mutation):
 
         try:
             with transaction.atomic():
+                # Manually prepend the version uuid to the file name to prevent
+                # accidental overwrites of other files in the same storage
+                # location. Django will do this for us with the file storage
+                # backend, but we disable this feature for S3 storage to allow
+                # us to overwrite files when needed.
+                file_uuid = uuid.uuid4()
+                file_name = file.name
+                file.name = f"{file_uuid}_{file.name}"
                 version = Version(
-                    file_name=file.name,
+                    uuid=file_uuid,
+                    file_name=file_name,
                     size=file.size,
                     root_file=root_file,
                     study=study,
