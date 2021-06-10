@@ -1,6 +1,7 @@
 import graphene
 from graphql import GraphQLError
 from graphql_relay import from_global_id
+from django.utils.timezone import make_aware
 
 from creator.status.banners.nodes import BannerNode
 from creator.status.banners.models import Banner
@@ -56,6 +57,10 @@ class CreateBannerMutation(graphene.Mutation):
 
         banner = Banner(**{k: input[k] for k in input})
         banner.creator = user
+        if banner.start_date:
+            banner.start_date = make_aware(banner.start_date)
+        if banner.end_date:
+            banner.end_date = make_aware(banner.end_date)
         banner.save()
 
         return CreateBannerMutation(banner=banner)
@@ -94,7 +99,10 @@ class UpdateBannerMutation(graphene.Mutation):
             "url", "url_label"
         ]:
             if attr in input:
-                setattr(banner, attr, input[attr])
+                if attr in {"start_date", "end_date"} and input[attr]:
+                    setattr(banner, attr, make_aware(input[attr]))
+                else:
+                    setattr(banner, attr, input[attr])
 
         banner.save()
 

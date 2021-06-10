@@ -1,6 +1,7 @@
 import pytest
 import datetime
 from graphql_relay import to_global_id
+from django.utils.timezone import make_aware
 
 from creator.status.banners.factories import BannerFactory, Banner
 
@@ -64,6 +65,8 @@ def test_create_banner(db, clients, user_group, allowed):
     Test the create mutation.
     """
     client = clients.get(user_group)
+    startDate = datetime.datetime.now()
+    endDate = datetime.datetime.now() + datetime.timedelta(days=1)
     data = {
         "query": CREATE_BANNER,
         "variables": {
@@ -73,10 +76,8 @@ def test_create_banner(db, clients, user_group, allowed):
                 "enabled": True,
                 "url": "https://www.example.com",
                 "urlLabel": "View more info here",
-                "startDate": datetime.datetime.now().isoformat(),
-                "endDate": (
-                    datetime.datetime.now() + datetime.timedelta(days=1)
-                ).isoformat()
+                "startDate": startDate.isoformat(),
+                "endDate": endDate.isoformat()
             }
         }
     }
@@ -87,6 +88,10 @@ def test_create_banner(db, clients, user_group, allowed):
         created_banner = resp.json()["data"]["createBanner"]["banner"]
         assert created_banner is not None
         for k, v in data["variables"]["input"].items():
+            if k == "startDate":
+                v = make_aware(startDate).isoformat()
+            elif k == "endDate":
+                v = make_aware(endDate).isoformat()
             assert v == created_banner[k]
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
@@ -110,6 +115,8 @@ def test_update_banner(db, clients, user_group, allowed):
     client = clients.get(user_group)
 
     banner = BannerFactory()
+    startDate = datetime.datetime.now()
+    endDate = datetime.datetime.now() + datetime.timedelta(days=1)
     data = {
         "query": UPDATE_BANNER,
         "variables": {
@@ -120,10 +127,8 @@ def test_update_banner(db, clients, user_group, allowed):
                 "enabled": not banner.enabled,
                 "url": "https://www.example.com",
                 "urlLabel": "View more info here",
-                "startDate": datetime.datetime.now().isoformat(),
-                "endDate": (
-                    datetime.datetime.now() + datetime.timedelta(days=1)
-                ).isoformat()
+                "startDate": startDate.isoformat(),
+                "endDate": endDate.isoformat()
             }
         }
     }
@@ -137,6 +142,10 @@ def test_update_banner(db, clients, user_group, allowed):
         updated_banner = resp.json()["data"]["updateBanner"]["banner"]
         assert updated_banner is not None
         for k, v in data["variables"]["input"].items():
+            if k == "startDate":
+                v = make_aware(startDate).isoformat()
+            elif k == "endDate":
+                v = make_aware(endDate).isoformat()
             assert v == updated_banner[k]
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
