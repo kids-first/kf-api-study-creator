@@ -5,7 +5,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
 
-from ..models import File, Version, FileType as FileTypeEnum
+from ..models import File, FileType as FileTypeEnum
 from creator.analyses.file_types import FILE_TYPES
 from creator.files.nodes.version import VersionNode
 from creator.files.schema.version import VersionFilter
@@ -24,8 +24,6 @@ class FileNode(DjangoObjectType):
     class Meta:
         model = File
         interfaces = (relay.Node,)
-        # Needed to prevent graphene from generating an enum type automatically
-        exclude_fields = ("file_type",)
 
     versions = DjangoFilterConnectionField(
         VersionNode, filterset_class=VersionFilter
