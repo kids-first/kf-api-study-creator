@@ -29,16 +29,23 @@ def only_printable(string):
 
 
 class FileType(Enum):
-    OTH = "OTH"
-    SEQ = "SEQ"
-    SHM = "SHM"
-    CLN = "CLN"
-    DBG = "DBG"
-    FAM = "FAM"
-    S3S = "S3S"
-    PDA = "PDA"
-    FTR = "FTR"
-    GWO = "GWO"
+    OTH = "OTH"  # Other
+    SHM = "SHM"  # OLD: Sequencing Harmonizition Manifest
+    CLN = "CLN"  # OLD: Clinical File
+    DBG = "DBG"  # OLD: dbGaP Submission file
+    FAM = "FAM"  # OLD: Family Relationship
+    S3S = "S3S"  # S3 Scrape
+    PDA = "PDA"  # Participant Details
+    PTD = "PTD"  # Participant Diseases
+    PTP = "PTP"  # Participant Phenotypes
+    GOB = "GOB"  # General Observations
+    FTR = "FTR"  # Family Trio
+    FCM = "FCM"  # Complex Family
+    GWO = "GWO"  # Genomic Workflow Output Manifest
+    BCM = "BCM"  # Biospecimen Collection Manifest
+    BBM = "BBM"  # Biobank Manifest
+    ALM = "ALM"  # Aliquot Manifest
+    SEQ = "SEQ"  # Sequencing File Manifest
 
 
 class File(models.Model):

@@ -127,31 +127,11 @@ class StudyGenerator(object):
             "genomic_file": "GF",
         }
         self._df_creators = {
-            "bio_manifest.tsv": {
-                "func": self._create_bio_manifest,
-                "args": (),
-                "kwargs": {}
-            },
-            "sequencing_manifest.tsv": {
-                "func": self._create_sequencing_manifest,
-                "args": (),
-                "kwargs": {}
-            },
-            "s3_source_gf_manifest.tsv": {
-                "func": self._create_s3_gf_manifest,
-                "args": (),
-                "kwargs": {"harmonized": False}
-            },
-            "s3_harmonized_gf_manifest.tsv": {
-                "func": self._create_s3_gf_manifest,
-                "args": (),
-                "kwargs": {"harmonized": True}
-            },
-            "gwo_manifest.tsv": {
-                "func": self._create_bix_gwo_manifest,
-                "args": (),
-                "kwargs": {}
-            }
+            "bio_manifest.tsv": self._create_bio_manifest,
+            "sequencing_manifest.tsv": self._create_sequencing_manifest,
+            "s3_source_gf_manifest.tsv": self._create_s3_source_gf_manifest,
+            "s3_harmonized_gf_manifest.tsv": self._create_s3_harmonized_gf_manifest,  # noqa
+            "gwo_manifest.tsv": self._create_bix_gwo_manifest,
         }
         self.dataframes = {}
         self.session = None
@@ -249,7 +229,8 @@ class StudyGenerator(object):
 
     def generate_files(self) -> None:
         """
-        Generate clinical and genomic data files for a test study.
+        Generate data files for a test study which have columns that conform 
+        to the file types in creator.analyses.file_types
         Read files into DataFrames if they exist, otherwise create them:
 
         1. bio_manifest.tsv
@@ -295,14 +276,11 @@ class StudyGenerator(object):
         """
         Creates all DataFrames
         """
-        for fn, func_params in self._df_creators.items():
+        for fn, func in self._df_creators.items():
             logger.info(f"Creating {fn.split('.')[0]}")
             if fn in self.dataframes:
                 continue
-            func = func_params["func"]
-            args = func_params["args"]
-            kwargs = func_params["kwargs"]
-            self.dataframes[fn] = pd.DataFrame(func(*args, **kwargs))
+            self.dataframes[fn] = pd.DataFrame(func())
 
     def _write_dfs(self) -> None:
         """
@@ -374,7 +352,7 @@ class StudyGenerator(object):
             **ingest_kwargs,
         )
         # Set study_id in ingest package
-        self.ingest_pipeline.data_ingest_config.study = self.study_id
+        self.ingest_pipeline.data_ingest_config.project = self.study_id
 
         # Run ingest
         self.ingest_pipeline.run()
@@ -395,17 +373,16 @@ class StudyGenerator(object):
 
     def _create_bio_manifest(self) -> pd.DataFrame:
         """
-        Create a tabular data file representing a clinical/bio manifest
-
-        Includes _total_specimen_ # of participants, 1 specimen per
-        participant, and 2 families. Participants are divided evenly between
-        the 2 families.
+        Create bio data for _total_specimen_ # of participants and specimens
 
         The default configuration would result in:
 
             - 2 families
             - 10 participants
-            - 10 biospecimens
+            - 10 specimens
+            - 10 diseases
+            - 10 phenotypes
+            - 10 outcomes
 
         Each entity has the minimal attributes needed to sucessfully ingest
         into the Dataservice.
@@ -414,25 +391,146 @@ class StudyGenerator(object):
         """
         # Create data file
         _range = range(self.total_specimens)
+
+        pids = [f"PT-{i}" for i in _range]
+        mids = ["PT-M1" if (i % 2) == 0 else "PT-M2" for i in _range]
+
         bio_dict = {
-            "sample_id": [f"SM-{i}" for i in _range],
-            "participant_id": [f"CARE-{i}" for i in _range],
-            "gender": [ra.choice(("Female", "Male")) for _ in _range],
-            "volume": [100] * self.total_specimens,
-            "concentration": [30] * self.total_specimens,
-            "family_id": ["FA-1" if (i % 2) == 0 else "FA-2" for i in _range],
-            "tissue_type": [ra.choice(("Blood", "Saliva")) for _ in _range],
+            "KF ID Study": [self.study_id for i in _range],
+
+            # --- PDA: Participant Demographics --- #
+            "Family ID": ["FA-1" if (i % 2) == 0 else "FA-2" for i in _range],
+            "Participant ID": pids,
+            "dbGaP Consent Code": ["GRU" for i in _range],
+            "Gender Identity": [
+                ra.choice(["Male", "Female"]) for i in _range
+            ],
+            "Clinical Sex": [
+                ra.choice(["Male", "Female"]) for i in _range
+            ],
+            "Race": [
+                ra.choice([
+                    "White",
+                    "American Indian or Alaska Native",
+                    "Black or African American",
+                    "Asian",
+                    "Native Hawaiian or Other Pacific Islander",
+                    "More Than One Race",
+                ]) for i in _range
+            ],
+            "Ethnicity": [
+                ra.choice(["Hispanic or Latino", "Not Hispanic or Latino"])
+                for i in _range
+            ],
+            "Age at Study Enrollment Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Study Enrollment Units": ["days" for i in _range],
+            "Affected Status": [ra.choice([True, False]) for i in _range],
+            "Species": [
+                ra.choice(['Homo Sapiens', 'Canis lupus familiaris'])
+                for i in _range
+            ],
+            "Last Known Vital Status": [
+                ra.choice(["Alive", "Deceased by Disease of Study"])
+                for i in _range
+            ],
+            "Age at Status Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Status Units": ["days" for i in _range],
+
+            # --- PTD: Participant Diseases --- #
+            "Age at Onset Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Onset Units": ["days" for i in _range],
+            "Age at Abatement Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Abatement Units": ["days" for i in _range],
+            "Verification Status": [
+                ra.choice(["Positive", "Negative"]) for i in _range
+            ],
+            "Condition Name": ["cleft lip" for i in _range],
+            "Condition MONDO Code": ["MONDO:0004747" for i in _range],
+            "Body Site Name": ["lower lip" for i in _range],
+            "Body Site UBERON Code": ["UBERON:0018150" for i in _range],
+            "Spatial Descriptor": ["left" for i in _range],
+
+            # --- PTP: Participant Phenotype --- #
+            "Condition HPO Code": ["HP:0000175" for i in _range],
+
+            # --- GOB: General Observations --- #
+            "Observation Name": ["cleft lip" for i in _range],
+            "Observation Ontology Ontobee URI": [
+                "http://hpo.org" for i in _range
+            ],
+            "Observation Code": ["HP:0000175" for i in _range],
+            "Status": [ra.choice([True, False]) for i in _range],
+            "Category": ["Structural Birth Defect" for i in _range],
+            "Interpretation": [
+                ra.choice(["Positive", "Negative"]) for i in _range
+            ],
+            "Age at Observation Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Observation Units": ["days" for i in _range],
+
+            # --- BCM, BBM, ALM: Participant Specimen Information  --- #
+            "Origin Specimen ID": ["Not Reported" for i in _range],
+            "Specimen Group ID": ["Not Reported" for i in _range],
+            "Specimen ID": [f"SM-{i}" for i in _range],
+            "Aliquot ID": [f"SM-{i}" for i in _range],
+            "Analyte Type": ["DNA" for i in _range],
+            "Sequencing Center": ["Broad Institute" for i in _range],
+            "Tissue Type Name": ["Normal" for i in _range],
+            "Tissue Type NCIt Code": ["Not Reported" for i in _range],
+            "Composition Name": ["Tissue" for i in _range],
+            "Composition SNOMED CT Code": ["Not Reported" for i in _range],
+            "Age at Collection Value": [
+                ra.randint(300, 1000) for i in _range
+            ],
+            "Age at Collection Units": ["days" for i in _range],
+            "Consent Group": ["GRU" for i in _range],
+            "Method of Sample Procurement": ["Not Reported" for i in _range],
+            "Ischemic Time": ["Not Reported" for i in _range],
+            "Ischemic Units": ["Not Reported" for i in _range],
+            "Quantity Value": [ra.randint(0, 500) for i in _range],
+            "Quantity Units": ["ug" for i in _range],
+            "Concentration Value": [ra.randint(1, 100) for i in _range],
+            "Concentration Units": ["mg_per_ml" for i in _range],
+            "Consent Short Name": ["General Research Use" for i in _range],
+            "Preservation Method": ["Not Reported" for i in _range],
+            "Availability Status": ["Not Reported" for i in _range],
+
+            # --- FTR: Family Trios --- #
+            "Mother Participant ID": [
+                "PT-M1" if (i % 2) == 0 else "PT-M2" for i in _range
+            ],
+            "Father Participant ID": [
+                "PT-F1" if (i % 2) == 0 else "PT-F2" for i in _range
+            ],
+            "Proband": [ra.choice([True, False]) for i in _range],
+
+            # --- FCM: Complex Family --- #
+            "First Participant ID": mids,
+            "Second Participant ID": pids,
+            "Relationship from First to Second": ["Mother" for i in _range],
+
         }
         # Insert KF IDs
         for key in ["participant", "biospecimen"]:
             prefix = self.id_prefixes[key]
             kf_ids = [kf_id_generator(prefix) for _ in _range]
-            bio_dict[f"kf_id_{key}"] = kf_ids
+            bio_dict[f"KF ID {key.title()}"] = kf_ids
 
         prefix = self.id_prefixes["family"]
         choices = {eid: kf_id_generator(prefix) for eid in ["FA-1", "FA-2"]}
-        bio_dict["kf_id_family"] = [choices[fid] for fid in
-                                    bio_dict["family_id"]]
+        bio_dict["KF ID Family"] = [
+            choices[fid] for fid in bio_dict["Family ID"]
+        ]
+
         df = pd.DataFrame(bio_dict)
         return df
 
@@ -467,26 +565,68 @@ class StudyGenerator(object):
         for gi in range(self.total_specimens):
             # Harmonized
             row_dict = {
-                "sample_id": f"SM-{gi}",
-                "experiment_strategy": ra.choice(["WGS", "WXS"]),
-                "harmonized_path": s3_path(
+                "Specimen ID": f"SM-{gi}",
+                "Aliquot ID": f"SM-{gi}",
+                # Sequencing experiment info
+                "Is Paired End": ra.choice([True, False]),
+                "Analyte Type": "DNA",
+                "Sequencing Center": "Broad Institute",
+                "Reference Genome": "GRCh38",
+                "Experiment Strategy": ra.choice(["WGS", "WXS"]),
+                "Experiment Name": f"SE-SM-{gi}",
+                "Experiment Date": (
+                    datetime.datetime.now().isoformat()
+                ),
+                "Instrument Model": "HiSeq 550",
+                "Sequencing Platform": "Illumina",
+                "Sequencing Library Name": f"SM-{gi}",
+                "Library Strand": "Unstranded",
+                "Library Selection": "PCR",
+                "Library Prep Kit": "polyA",
+                "Library BED File Download Link": "Not Reported",
+                "Quality Score System": "Not Reported",
+                "Quality Score Value": "Not Reported",
+                "Max Insert Size": ra.randint(100, 500),
+                "Expected Mean Insert Size": ra.randint(100, 500),
+                "Expected Mean Depth": ra.randint(10, 400),
+                "Expected Total Reads": ra.randint(10, 1000),
+                "Expected Mean Read Length": ra.randint(50, 150),
+                "Harmonized Path": s3_path(
                     f"genomic-file-{gi}{HARM_GF_EXT}", harmonized=True
                 ),
-                "kf_id_harmonized_genomic_file": kf_id_generator(prefix)
+                "KF ID Harmonized Genomic File": kf_id_generator(prefix)
             }
             # Unharmonized
             for ei, ext in enumerate(SOURCE_GF_EXTS):
                 row_dict = row_dict.copy()
-                row_dict["kf_id_source_genomic_file"] = kf_id_generator(prefix)
-                row_dict["project_id"] = f"SE-{row_dict['sample_id']}"
-                row_dict["source_path"] = s3_path(
+                row_dict["KF ID Source Genomic File"] = kf_id_generator(
+                    prefix
+                )
+                row_dict["Sequencing Output Filepath"] = s3_path(
                     f"genomic-file-{gi}-{ei}{ext}", harmonized=False
                 )
+                row_dict["Sequencing Output File Hash"] = (
+                    str(uuid.uuid4()).replace("-", "")
+                )
+                row_dict["File Hash Algorithm"] = "md5"
+
                 rows.append(row_dict)
 
         df = pd.DataFrame(rows)
 
         return df
+
+    def _create_s3_source_gf_manifest(self):
+        """
+        Create S3 object manifest for unharmonized genomic files
+        """
+        return self._create_s3_gf_manifest(harmonized=False)
+
+    def _create_s3_harmonized_gf_manifest(self):
+        """
+        Create S3 object manifest for harmonized genomic files
+        """
+        return self._create_s3_gf_manifest(harmonized=True)
 
     def _create_s3_gf_manifest(self, harmonized: bool = False) -> pd.DataFrame:
         """
@@ -495,7 +635,9 @@ class StudyGenerator(object):
         :param harmonized: Aids in naming the filepath column based on whether
         the files are harmonized or not
         """
-        filepath_col = "harmonized_path" if harmonized else "source_path"
+        filepath_col = (
+            "Harmonized Path" if harmonized else "Sequencing Output Filepath"
+        )
 
         gf_df = self.dataframes["sequencing_manifest.tsv"]
         df = gf_df.drop_duplicates(filepath_col)[[filepath_col]]
@@ -535,9 +677,11 @@ class StudyGenerator(object):
         # Merge all dfs
         bio_df = self.dataframes["bio_manifest.tsv"]
         gf_df = self.dataframes["sequencing_manifest.tsv"]
-        df = pandas_utils.merge_wo_duplicates(bio_df, gf_df, on="sample_id")
+        df = pandas_utils.merge_wo_duplicates(
+            bio_df, gf_df, on="Aliquot ID"
+        )
         # Add additional columns
-        df["Data Type"] = df["harmonized_path"].map(lambda fp: data_type(fp))
+        df["Data Type"] = df["Harmonized Path"].map(lambda fp: data_type(fp))
         df["Workflow Type"] = df["Data Type"].map(lambda dt: workflow_type(dt))
         df["Cavatica ID"] = create_hex(25)
         df["Cavatica Task ID"] = (
@@ -545,11 +689,11 @@ class StudyGenerator(object):
         )
         # Rename columns
         col_map = {
-            "kf_id_participant": "KF Participant ID",
-            "kf_id_biospecimen": "KF Biospecimen ID",
-            "kf_id_family": "KF Family ID",
-            "harmonized_path": "Filepath",
-            "source_path": "Source Read",
+            "KF ID Participant": "KF Participant ID",
+            "KF ID Biospecimen": "KF Biospecimen ID",
+            "KF ID Family": "KF Family ID",
+            "Harmonized Path": "Filepath",
+            "Sequencing Output Filepath": "Source Read",
         }
         df = df[
             list(col_map.keys()) +
@@ -581,7 +725,7 @@ class StudyGenerator(object):
             run in dry run mode, then check the KF ID is in the to-be loaded
             entities
             """
-            msg = "Verify {entity_type} {kf_id} failed!"
+            msg = f"Verify {entity_type} {kf_id} failed!"
             if dry_run:
                 assert entity_type in self.dataservice_payloads, msg
                 assert kf_id in self.dataservice_payloads[entity_type], msg
@@ -621,10 +765,10 @@ class StudyGenerator(object):
         bio_df = self.dataframes["bio_manifest.tsv"]
         gf_df = self.dataframes["sequencing_manifest.tsv"]
         kfids = {
-            "family": bio_df[["kf_id_family"]],
-            "participant": bio_df[["kf_id_participant"]],
-            "biospecimen": bio_df[["kf_id_biospecimen"]],
-            "genomic_file": gf_df[["kf_id_source_genomic_file"]],
+            "family": bio_df[["KF ID Family"]],
+            "participant": bio_df[["KF ID Participant"]],
+            "biospecimen": bio_df[["KF ID Biospecimen"]],
+            "genomic_file": gf_df[["KF ID Source Genomic File"]],
         }
         for entity_type, df in kfids.items():
             logger.info(f"Check all {entity_type} were loaded")
