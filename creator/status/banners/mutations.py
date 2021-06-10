@@ -8,7 +8,7 @@ from creator.status.banners.models import Banner
 
 
 class BannerInput(graphene.InputObjectType):
-    """ Parameters used when creating a new banner """
+    """Parameters used when creating a new banner"""
 
     start_date = graphene.DateTime(
         required=False, description="When to start displaying the banner"
@@ -22,23 +22,21 @@ class BannerInput(graphene.InputObjectType):
     severity = graphene.String(
         required=False, description="Severity of the message"
     )
-    message = graphene.String(
-        description="The message content for the banner"
-    )
+    message = graphene.String(description="The message content for the banner")
     url = graphene.String(
         description="A URL that may be included in the Banner's message as an "
         "HTML <a> element, pointing to additional information about message",
-        required=False
+        required=False,
     )
     url_label = graphene.String(
         description="A text label meant to be used as a part of the <a> "
         "element containing the Banner url",
-        required=False
+        required=False,
     )
 
 
 class CreateBannerMutation(graphene.Mutation):
-    """ Creates a new banner """
+    """Creates a new banner"""
 
     class Arguments:
         input = BannerInput(
@@ -67,7 +65,7 @@ class CreateBannerMutation(graphene.Mutation):
 
 
 class UpdateBannerMutation(graphene.Mutation):
-    """ Update an existing banner """
+    """Update an existing banner"""
 
     class Arguments:
         id = graphene.ID(
@@ -95,8 +93,13 @@ class UpdateBannerMutation(graphene.Mutation):
             raise GraphQLError("Banner was not found")
 
         for attr in [
-            "message", "start_date", "end_date", "enabled", "severity",
-            "url", "url_label"
+            "message",
+            "start_date",
+            "end_date",
+            "enabled",
+            "severity",
+            "url",
+            "url_label",
         ]:
             if attr in input:
                 if attr in {"start_date", "end_date"} and input[attr]:
@@ -110,7 +113,7 @@ class UpdateBannerMutation(graphene.Mutation):
 
 
 class DeleteBannerMutation(graphene.Mutation):
-    """ Delete an existing banner """
+    """Delete an existing banner"""
 
     class Arguments:
         id = graphene.ID(
@@ -141,7 +144,7 @@ class DeleteBannerMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for banner """
+    """Mutations for banner"""
 
     create_banner = CreateBannerMutation.Field(
         description="Create a new banner."

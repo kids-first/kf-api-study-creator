@@ -77,12 +77,14 @@ def test_create_banner(db, clients, user_group, allowed):
                 "url": "https://www.example.com",
                 "urlLabel": "View more info here",
                 "startDate": startDate.isoformat(),
-                "endDate": endDate.isoformat()
+                "endDate": endDate.isoformat(),
             }
-        }
+        },
     }
     resp = client.post(
-        "/graphql", data=data, content_type="application/json",
+        "/graphql",
+        data=data,
+        content_type="application/json",
     )
     if allowed:
         created_banner = resp.json()["data"]["createBanner"]["banner"]
@@ -128,9 +130,9 @@ def test_update_banner(db, clients, user_group, allowed):
                 "url": "https://www.example.com",
                 "urlLabel": "View more info here",
                 "startDate": startDate.isoformat(),
-                "endDate": endDate.isoformat()
-            }
-        }
+                "endDate": endDate.isoformat(),
+            },
+        },
     }
     resp = client.post(
         "/graphql",
@@ -171,9 +173,7 @@ def test_delete_banner(db, clients, user_group, allowed):
     banner = BannerFactory()
     data = {
         "query": DELETE_BANNER,
-        "variables": {
-            "id": to_global_id("BannerNode", banner.id)
-        }
+        "variables": {"id": to_global_id("BannerNode", banner.id)},
     }
     resp = client.post(
         "/graphql",
