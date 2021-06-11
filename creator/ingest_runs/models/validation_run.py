@@ -27,7 +27,7 @@ def _get_upload_directory(validation_resultset, filename):
         # associated data_review
         bucket = validation_resultset.study.bucket
         directory = f"{settings.UPLOAD_DIR}/{bucket}/"
-        return os.path.join(settings.BASE_DIR, directory, filename)
+        return os.path.join(directory, filename)
 
 
 class ValidationRun(IngestProcess):
