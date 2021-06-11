@@ -72,15 +72,13 @@ def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
     user = User.objects.filter(groups__name="Administrators").first()
     obj = Version.objects.first()
     assert obj.creator == user
-    assert len(tmp_uploads_local.listdir()) == 1
-    assert (
-        tmp_uploads_local.listdir()[0]
-        .listdir()[0]
-        .strpath.endswith("manifest.txt")
-    )
-    assert obj.key.path.startswith(
+    assert len(list(tmp_uploads_local.iterdir())) == 1
+    assert list(list(tmp_uploads_local.iterdir())[0].iterdir())[
+        0
+    ].name.endswith("manifest.txt")
+    assert obj.key.path.endswith(
         os.path.join(
-            settings.UPLOAD_DIR, obj.root_file.study.bucket, "manifest"
+            settings.UPLOAD_DIR, obj.root_file.study.bucket, "manifest.txt"
         )
     )
     assert resp.status_code == 200
@@ -150,7 +148,7 @@ def test_upload_version_no_file(
     # Upload a version with a file_id that does not exist
     resp = upload_version("manifest.txt", file_id="SF_XXXXXXXX", client=client)
 
-    assert len(tmp_uploads_local.listdir()) == 0
+    assert len(list(tmp_uploads_local.iterdir())) == 0
     assert resp.status_code == 200
     assert "errors" in resp.json()
     assert resp.json()["errors"][0]["message"] == "File does not exist."

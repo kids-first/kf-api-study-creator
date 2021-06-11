@@ -111,13 +111,13 @@ def clients(django_db_setup, django_db_blocker, groups, token):
 
 
 @pytest.yield_fixture
-def tmp_uploads_local(tmpdir, settings):
-    settings.UPLOAD_DIR = os.path.join("./test_uploads", tmpdir)
+def tmp_uploads_local(tmp_path, settings):
+    settings.UPLOAD_DIR = str(tmp_path.relative_to(tmp_path.cwd()))
     settings.DEFAULT_FILE_STORAGE = (
         "django.core.files.storage.FileSystemStorage"
     )
-    yield tmpdir
-    shutil.rmtree(str(tmpdir))
+    yield tmp_path
+    shutil.rmtree(str(tmp_path))
 
 
 @pytest.yield_fixture

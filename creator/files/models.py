@@ -173,7 +173,7 @@ def _get_upload_directory(instance, filename):
         else:
             bucket = instance.root_file.study.bucket
         directory = f"{settings.UPLOAD_DIR}/{bucket}/"
-        return os.path.join(settings.BASE_DIR, directory, filename)
+        return os.path.join(directory, filename)
 
 
 def version_id():
