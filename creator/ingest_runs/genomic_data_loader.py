@@ -79,7 +79,7 @@ class GenomicDataLoader(object):
         logger.info(f"Getting file metadata from S3 {buckets} ...")
 
         file_df = utils.scrape_s3(buckets)
-        file_df = file_df[~file_df["Filename"].isnull()]
+        file_df.dropna(subset=["Filename"], inplace=True)
 
         genomic_df = manifest_df.merge(
             right=file_df, on="Filepath", how="inner"
@@ -114,7 +114,7 @@ class GenomicDataLoader(object):
                 CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID,
                 CONCEPT.GENOMIC_FILE.TARGET_SERVICE_ID,
             ]
-        ]
+        ].copy()
         biospec_gen_df[CONCEPT.BIOSPECIMEN.ID] = biospec_gen_df[
             CONCEPT.BIOSPECIMEN.TARGET_SERVICE_ID
         ]
@@ -155,7 +155,7 @@ class GenomicDataLoader(object):
         se_gf_df = pd.merge(
             genomic_df, se_source_gf_df, on=CONCEPT.GENOMIC_FILE.SOURCE_FILE
         )
-        se_gf_df[CONCEPT.SEQUENCING_GENOMIC_FILE.VISIBLE] = True
+        se_gf_df.loc[:, CONCEPT.SEQUENCING_GENOMIC_FILE.VISIBLE] = True
 
         # Load the harmonized genomic-file sequencing-experiment links
         df = se_gf_df.drop_duplicates(
@@ -199,11 +199,10 @@ class GenomicDataLoader(object):
             "Filepath": CONCEPT.GENOMIC_FILE.ID,
             "Source Read": CONCEPT.GENOMIC_FILE.SOURCE_FILE,
         }
-        df = df[list(col_rename.keys())]
-        df.rename(columns=col_rename, inplace=True)
+
+        df = df[list(col_rename.keys())].rename(columns=col_rename)
         df[CONCEPT.GENOMIC_FILE.HARMONIZED] = True
         df[CONCEPT.GENOMIC_FILE.VISIBLE] = True
-
         return df
 
     def _get_genomic_file_kf_ids(self, ingest_cache, genomic_df):
