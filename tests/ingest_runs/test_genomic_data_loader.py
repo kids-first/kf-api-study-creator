@@ -12,7 +12,7 @@ from creator.studies.models import Study
 from tests.integration.fixtures import test_study_generator  # noqa F401
 
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
-from kf_lib_data_ingest.etl.load.load import LoadStage
+from kf_lib_data_ingest.etl.load.load_v2 import LoadStage
 
 import ast
 from django.conf import settings

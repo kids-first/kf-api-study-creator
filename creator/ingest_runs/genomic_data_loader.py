@@ -7,7 +7,7 @@ import pandas as pd
 
 from kf_lib_data_ingest.app import settings as ingest_settings
 from kf_lib_data_ingest.common.concept_schema import CONCEPT
-from kf_lib_data_ingest.etl.load.load import LoadStage
+from kf_lib_data_ingest.etl.load.load_v2 import LoadStage
 
 from creator.studies.data_generator.ingest_package.extract_configs.s3_scrape_config import genomic_file_ext  # noqa
 
