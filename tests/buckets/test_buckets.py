@@ -15,7 +15,7 @@ from creator.buckets.buckets import (
 )
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def logging_bucket(settings):
     settings.STUDY_BUCKETS_LOGGING_BUCKET = "logging"
     settings.STUDY_BUCKETS_DR_LOGGING_BUCKET = "dr-logging"
