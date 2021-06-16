@@ -338,6 +338,7 @@ UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "uploads/")
 
 # This will be dynamically set depending on the file being requested
 AWS_S3_BUCKET_NAME = "kf-study-us-east-1-dev-sd-me0owme0w"
+AWS_S3_FILE_OVERWRITE = True
 
 # Auth0 settings
 AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "https://kids-first.auth0.com")

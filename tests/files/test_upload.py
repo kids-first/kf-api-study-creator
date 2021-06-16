@@ -76,10 +76,10 @@ def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
     assert list(list(tmp_uploads_local.iterdir())[0].iterdir())[
         0
     ].name.endswith("manifest.txt")
-    assert obj.key.path.endswith(
-        os.path.join(
-            settings.UPLOAD_DIR, obj.root_file.study.bucket, "manifest.txt"
-        )
+    assert str(obj.uuid) in obj.key.name
+    assert (
+        os.path.join(settings.UPLOAD_DIR, obj.root_file.study.bucket)
+        in obj.key.path
     )
     assert resp.status_code == 200
     assert "data" in resp.json()
