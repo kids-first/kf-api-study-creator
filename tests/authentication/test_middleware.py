@@ -19,7 +19,6 @@ def auth0_key_mock():
     pass
 
 
-@pytest.mark.no_mocks
 def test_auth0_middleware(db, client, mocker, token):
     """
     Test that auth0 middleware will call auth0 to get a public_key
@@ -53,7 +52,6 @@ def test_auth0_middleware(db, client, mocker, token):
     req_mock.assert_called_with(settings.AUTH0_JWKS, timeout=10)
 
 
-@pytest.mark.no_mocks
 def test_auth0_no_sub(db, client, mocker, token):
     """
     Test that if no sub is included in the token, the user will be authed
@@ -80,7 +78,6 @@ def test_auth0_no_sub(db, client, mocker, token):
     assert User.objects.count() == 0
 
 
-@pytest.mark.no_mocks
 def test_auth0_no_profile(db, client, mocker, token):
     """
     Test that a user does not get authenticated when their profile cannot
@@ -113,7 +110,6 @@ def test_auth0_no_profile(db, client, mocker, token):
     assert profile_mock.call_count == 1
 
 
-@pytest.mark.no_mocks
 def test_auth0_expired_token(db, client, mocker, token):
     """
     Test that user is not authenticated if the token has expired

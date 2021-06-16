@@ -88,7 +88,7 @@ def groups(django_db_setup, django_db_blocker):
             g.save()
 
 
-@pytest.yield_fixture(scope="module", autouse=False)
+@pytest.fixture(scope="module", autouse=False)
 def clients(django_db_setup, django_db_blocker, groups, token):
     """
     Sets up api test clients with a user for each permission group
@@ -110,7 +110,7 @@ def clients(django_db_setup, django_db_blocker, groups, token):
         User.objects.all().delete()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tmp_uploads_local(tmp_path, settings):
     settings.UPLOAD_DIR = str(tmp_path.relative_to(tmp_path.cwd()))
     settings.DEFAULT_FILE_STORAGE = (
@@ -120,7 +120,7 @@ def tmp_uploads_local(tmp_path, settings):
     shutil.rmtree(str(tmp_path))
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tmp_uploads_s3(tmpdir, settings):
     settings.UPLOAD_DIR = "s3"
     settings.DEFAULT_FILE_STORAGE = "django_s3_storage.storage.S3Storage"
@@ -132,7 +132,7 @@ def tmp_uploads_s3(tmpdir, settings):
     return mock
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def upload_file(client, tmp_uploads_local, upload_version):
     def upload(study_id, file_name, client=client):
         resp = upload_version(file_name, study_id=study_id, client=client)
@@ -201,7 +201,7 @@ def upload_file(client, tmp_uploads_local, upload_version):
     return upload
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def upload_version(client, tmp_uploads_local):
     """
     Uploads a new version of an existing file
