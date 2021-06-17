@@ -62,7 +62,7 @@ class CreateDataTemplateMutation(graphene.Mutation):
             raise GraphQLError("Not allowed")
 
         # Check if organization exists
-        org_id = input.pop("organization", None)
+        org_id = input.pop("organization")
         model, node_id = from_global_id(org_id)
 
         try:
@@ -72,8 +72,12 @@ class CreateDataTemplateMutation(graphene.Mutation):
 
         # User may only add templates to an org they are a member of
         if not user.organizations.filter(pk=org.pk).exists():
-            raise GraphQLError("Not allowed")
+            raise GraphQLError(
+                "Not allowed - may only add templates to an organization the "
+                "user is a member of."
+            )
 
+        # Create data template
         data_template = DataTemplate(**{k: input[k] for k in input})
         data_template.organization = org
         data_template.creator = user
@@ -115,9 +119,15 @@ class UpdateDataTemplateMutation(graphene.Mutation):
             user.organizations
             .filter(pk=data_template.organization.pk).exists()
         ):
-            raise GraphQLError("Not allowed")
+            raise GraphQLError(
+                "Not allowed - may only update templates owned by an "
+                "organization that the user is a member of"
+            )
 
+        # Save org id for later
         org_id = input.pop("organization", None)
+
+        # Update data template
         for k, v in input.items():
             setattr(data_template, k, v)
 
