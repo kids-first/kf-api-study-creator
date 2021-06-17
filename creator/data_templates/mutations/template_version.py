@@ -99,11 +99,15 @@ class CreateTemplateVersionMutation(graphene.Mutation):
 
         # User may only add template versions to a template owned by their org
         if not user.organizations.filter(pk=dt.organization.pk).exists():
-            raise GraphQLError("Not allowed")
+            raise GraphQLError(
+                "Not allowed - may only add template versions to templates "
+                "that are owned by the user's organization."
+            )
 
         # Get study ids for later
         study_ids = input.pop("studies", None)
 
+        # Create template version
         with transaction.atomic():
             template_version = TemplateVersion(**{k: input[k] for k in input})
             template_version.creator = user
@@ -113,8 +117,9 @@ class CreateTemplateVersionMutation(graphene.Mutation):
             template_version.clean()
             template_version.save()
 
-            # Add studies if they exist
+            # Add studies to the template version if they exist
             if study_ids:
+                # Ensure studies exist
                 studies = check_studies(study_ids)
                 template_version.studies.set(studies)
                 template_version.save()
@@ -157,8 +162,8 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
             ).exists()
         ):
             raise GraphQLError(
-                "Not allowed - may only update templates that are within the "
-                "the user's organization."
+                "Not allowed - may only update template versions for "
+                "templates that are owned by the user's organization."
             )
 
         # User may only update a template version if it is not already being
