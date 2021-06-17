@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/workdir
     branches:
       ignore:
         - gh-pages
@@ -21,33 +22,35 @@ jobs:
           - POSTGRES_PASSWORD=password
       - image: redis:latest
     steps:
-      - checkout:
-          path: ~/workdir
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
       - run:
           name: Install dependencies
-          working_directory: ~/workdir
           command: |
             pip install -r requirements.txt
             pip install -r dev-requirements.txt
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
+          paths:
+            - ".venv"
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.7/site-packages"
       - run:
           name: Run code tests
-          working_directory: ~/workdir
           command: |
             pytest
             codecov --token=$CODECOV_TOKEN
       - run:
           name: Lint documentation
-          working_directory: ~/workdir
           command: |
             doc8 docs
       - run:
           name: Build docs site
-          working_directory: ~/workdir
           command: |
             sphinx-build -W docs staged
       - run:
           name: Deploy if master branch
-          working_directory: ~/workdir
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
                 touch .nojekyll
