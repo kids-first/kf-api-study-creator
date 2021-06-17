@@ -40,6 +40,7 @@ class Query(
 ):
     """ Root query schema combining all apps' schemas """
 
+    node = graphene.relay.Node.Field()
     if settings.DEBUG:
         from graphene_django.debug import DjangoDebug
 
