@@ -90,12 +90,12 @@ class CreateTemplateVersionMutation(graphene.Mutation):
 
         # Check if data template exists
         dt_id = input.pop("data_template")
-        model, node_id = from_global_id(dt_id)
+        model, dt_id = from_global_id(dt_id)
 
         try:
-            dt = DataTemplate.objects.get(pk=node_id)
+            dt = DataTemplate.objects.get(pk=dt_id)
         except DataTemplate.DoesNotExist:
-            raise GraphQLError(f"DataTemplate {node_id} does not exist")
+            raise GraphQLError(f"DataTemplate {dt_id} does not exist")
 
         # User may only add template versions to a template owned by their org
         if not user.organizations.filter(pk=dt.organization.pk).exists():
@@ -148,12 +148,12 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
         if not user.has_perm("data_templates.change_datatemplate"):
             raise GraphQLError("Not allowed")
 
-        model, node_id = from_global_id(id)
+        model, tv_id = from_global_id(id)
 
         try:
-            template_version = TemplateVersion.objects.get(id=node_id)
+            template_version = TemplateVersion.objects.get(id=tv_id)
         except TemplateVersion.DoesNotExist:
-            raise GraphQLError(f"TemplateVersion {node_id} does not exist")
+            raise GraphQLError(f"TemplateVersion {tv_id} does not exist")
 
         # User may only update template versions owned by their org
         if not (
@@ -195,6 +195,54 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
         return UpdateTemplateVersionMutation(template_version=template_version)
 
 
+class DeleteTemplateVersionMutation(graphene.Mutation):
+    """ Delete an existing template_version """
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="The ID of the template_version to delete"
+        )
+
+    success = graphene.Boolean()
+    id = graphene.String()
+
+    def mutate(self, info, id):
+        """
+        Deletes an existing template_version
+        """
+        user = info.context.user
+        if not user.has_perm("data_templates.delete_datatemplate"):
+            raise GraphQLError("Not allowed")
+
+        model, tv_id = from_global_id(id)
+
+        try:
+            template_version = TemplateVersion.objects.get(id=tv_id)
+        except TemplateVersion.DoesNotExist:
+            raise GraphQLError(f"TemplateVersion {tv_id} does not exist")
+
+        # User may only delete templates for an org they are a member of
+        if not (
+            user.organizations
+            .filter(pk=template_version.organization.pk).exists()
+        ):
+            raise GraphQLError(
+                "Not allowed - may only delete templates that are owned by "
+                "organizations that the user is a member of"
+            )
+
+        # User may only delete templates that are not being used in any studies
+        if template_version.released:
+            raise GraphQLError(
+                "Not allowed - may only delete templates that are not being "
+                "used by any studies"
+            )
+
+        template_version.delete()
+
+        return DeleteTemplateVersionMutation(success=True, id=id)
+
+
 class Mutation:
     """ Mutations for template_versions """
 
@@ -203,4 +251,7 @@ class Mutation:
     )
     update_template_version = UpdateTemplateVersionMutation.Field(
         description="Update a given template_version"
+    )
+    delete_template_version = DeleteTemplateVersionMutation.Field(
+        description="Delete a given template_version"
     )

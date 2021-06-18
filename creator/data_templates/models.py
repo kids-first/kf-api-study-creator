@@ -170,7 +170,6 @@ class TemplateVersion(models.Model):
         """
         Determines whether the template version is being used in any studies
         """
-        print(self.studies.count())
         return self.studies.count() > 0
 
     def clean(self):

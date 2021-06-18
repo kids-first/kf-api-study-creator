@@ -63,12 +63,12 @@ class CreateDataTemplateMutation(graphene.Mutation):
 
         # Check if organization exists
         org_id = input.pop("organization")
-        model, node_id = from_global_id(org_id)
+        model, org_id = from_global_id(org_id)
 
         try:
-            org = Organization.objects.get(pk=node_id)
+            org = Organization.objects.get(pk=org_id)
         except Organization.DoesNotExist:
-            raise GraphQLError(f"Organization {node_id} does not exist")
+            raise GraphQLError(f"Organization {org_id} does not exist")
 
         # User may only add templates to an org they are a member of
         if not user.organizations.filter(pk=org.pk).exists():
@@ -107,12 +107,12 @@ class UpdateDataTemplateMutation(graphene.Mutation):
         if not user.has_perm("data_templates.change_datatemplate"):
             raise GraphQLError("Not allowed")
 
-        model, node_id = from_global_id(id)
+        model, dt_id = from_global_id(id)
 
         try:
-            data_template = DataTemplate.objects.get(id=node_id)
+            data_template = DataTemplate.objects.get(id=dt_id)
         except DataTemplate.DoesNotExist:
-            raise GraphQLError(f"DataTemplate {node_id} does not exist")
+            raise GraphQLError(f"DataTemplate {dt_id} does not exist")
 
         # User may only change templates for an org they are a member of
         if not (
@@ -124,6 +124,14 @@ class UpdateDataTemplateMutation(graphene.Mutation):
                 "organization that the user is a member of"
             )
 
+        # User may only update a template if it is not being used in
+        # any studies
+        if data_template.released:
+            raise GraphQLError(
+                "Not allowed - may only update templates that are not being "
+                "used by any studies"
+            )
+
         # Save org id for later
         org_id = input.pop("organization", None)
 
@@ -133,16 +141,64 @@ class UpdateDataTemplateMutation(graphene.Mutation):
 
         # Check if organization exists
         if org_id:
-            model, node_id = from_global_id(org_id)
+            model, org_id = from_global_id(org_id)
             try:
-                org = Organization.objects.get(pk=node_id)
+                org = Organization.objects.get(pk=org_id)
             except Organization.DoesNotExist:
-                raise GraphQLError(f"Organization {node_id} does not exist")
+                raise GraphQLError(f"Organization {org_id} does not exist")
             data_template.organization = org
 
         data_template.save()
 
         return UpdateDataTemplateMutation(data_template=data_template)
+
+
+class DeleteDataTemplateMutation(graphene.Mutation):
+    """ Delete an existing data_template """
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="The ID of the data_template to delete"
+        )
+
+    success = graphene.Boolean()
+    id = graphene.String()
+
+    def mutate(self, info, id):
+        """
+        Deletes an existing data_template
+        """
+        user = info.context.user
+        if not user.has_perm("data_templates.delete_datatemplate"):
+            raise GraphQLError("Not allowed")
+
+        model, dt_id = from_global_id(id)
+
+        try:
+            data_template = DataTemplate.objects.get(id=dt_id)
+        except DataTemplate.DoesNotExist:
+            raise GraphQLError(f"DataTemplate {dt_id} does not exist")
+
+        # User may only delete templates for an org they are a member of
+        if not (
+            user.organizations
+            .filter(pk=data_template.organization.pk).exists()
+        ):
+            raise GraphQLError(
+                "Not allowed - may only delete templates that are owned by "
+                "organizations that the user is a member of"
+            )
+
+        # User may only delete templates that are not being used in any studies
+        if data_template.released:
+            raise GraphQLError(
+                "Not allowed - may only delete templates that are not being "
+                "used by any studies"
+            )
+
+        data_template.delete()
+
+        return DeleteDataTemplateMutation(success=True, id=id)
 
 
 class Mutation:
@@ -153,4 +209,7 @@ class Mutation:
     )
     update_data_template = UpdateDataTemplateMutation.Field(
         description="Update a given data_template"
+    )
+    delete_data_template = DeleteDataTemplateMutation.Field(
+        description="Delete a given data_template"
     )
