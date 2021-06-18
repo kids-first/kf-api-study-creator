@@ -14,8 +14,6 @@ from creator.data_templates.factories import (
 )
 from creator.data_templates.mutations.template_version import check_studies
 
-from pprint import pprint
-
 
 CREATE_TEMPLATE_VERSION = """
 mutation ($input: CreateTemplateVersionInput!) {
@@ -43,6 +41,15 @@ mutation ($id: ID!, $input: UpdateTemplateVersionInput!) {
         }
     }
 }
+"""
+
+DELETE_TEMPLATE_VERSION = """
+  mutation DeleteTemplateVersion($id: ID!) {
+    deleteTemplateVersion(id: $id) {
+      id
+      success
+    }
+  }
 """
 
 
@@ -84,7 +91,6 @@ def test_create_template_version(db, permission_client, permissions, allowed):
         content_type="application/json",
     )
 
-    pprint(resp.json())
     if allowed:
         resp_dt = (
             resp.json()["data"]["createTemplateVersion"]["templateVersion"]
@@ -223,12 +229,12 @@ def test_template_released(db):
     dt = DataTemplateFactory(organization=org)
     tv = TemplateVersionFactory(studies=studies)
     tv.refresh_from_db()
-    assert tv.released == True
+    assert tv.released == True  # noqa
 
     # TemplateVersions that have 0 studies should have released = False
     tv.studies.set([])
     tv.save()
-    assert tv.released == False
+    assert tv.released == False  # noqa
 
 
 @pytest.mark.parametrize(
@@ -265,7 +271,9 @@ def test_update_template_version(db, permission_client, permissions, allowed):
         data={
             "query": UPDATE_TEMPLATE_VERSION,
             "variables": {
-                "id": to_global_id("TemplateVersionNode}}", template_version.id),
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
                 "input": input_,
             },
         },
@@ -343,7 +351,9 @@ def test_update_template_version_not_my_org(
         data={
             "query": UPDATE_TEMPLATE_VERSION,
             "variables": {
-                "id": to_global_id("TemplateVersionNode}}", template_version.id),
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
                 "input": input_,
             },
         },
@@ -380,7 +390,9 @@ def test_update_released_template_version(db, permission_client):
         data={
             "query": UPDATE_TEMPLATE_VERSION,
             "variables": {
-                "id": to_global_id("TemplateVersionNode}}", template_version.id),
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
                 "input": input_,
             },
         },
@@ -388,5 +400,149 @@ def test_update_released_template_version(db, permission_client):
     )
     template_version.refresh_from_db()
 
-    pprint(resp.json())
     assert f"used by any studies" in resp.json()["errors"][0]["message"]
+
+
+@pytest.mark.parametrize(
+    "permissions,allowed",
+    [
+        (["delete_datatemplate"], True),
+        ([], False),
+    ],
+)
+def test_delete_template_version(db, permission_client, permissions, allowed):
+    """
+    Test the delete mutation
+
+    Users without the delete_datatemplate permission should not be allowed
+    to delete template versions
+    """
+    user, client = permission_client(permissions)
+    # Add user to an organization
+    org = OrganizationFactory()
+    user.organizations.add(org)
+    user.save()
+    # Create template in organization that user is member of
+    dt = DataTemplateFactory(organization=org)
+    template_version = TemplateVersionFactory(data_template=dt)
+
+    assert TemplateVersion.objects.count() == 1
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": DELETE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
+            },
+        },
+        content_type="application/json",
+    )
+
+    if allowed:
+        resp_dt = (
+            resp.json()["data"]["deleteTemplateVersion"]["id"]
+        )
+        assert resp_dt is not None
+        with pytest.raises(TemplateVersion.DoesNotExist):
+            TemplateVersion.objects.get(id=template_version.id)
+
+    else:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_delete_template_version_does_not_exist(db, permission_client):
+    """
+    Test the delete mutation when the template version does not exist
+    """
+    user, client = permission_client(["delete_datatemplate"])
+    org = OrganizationFactory()
+    dt = DataTemplateFactory(organization=org)
+    template_version = TemplateVersionFactory(data_template=dt)
+
+    tv_id = str(uuid.uuid4())
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": DELETE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id("TemplateVersionNode}}", tv_id),
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert f"{tv_id} does not exist" in resp.json()["errors"][0]["message"]
+    assert TemplateVersion.objects.count() == 1
+
+
+def test_delete_template_version_not_my_org(
+    db, permission_client
+):
+    """
+    Test the delete template version for an org user is not a member of
+    """
+    user, client = permission_client(["delete_datatemplate"])
+    # Add user to an org
+    org1 = OrganizationFactory()
+    user.organizations.add(org1)
+    user.save()
+    # Create template in diff org
+    org2 = OrganizationFactory()
+    dt = DataTemplateFactory(organization=org2)
+    template_version = TemplateVersionFactory(data_template=dt)
+
+    assert TemplateVersion.objects.count() == 1
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": DELETE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert f"Not allowed" in resp.json()["errors"][0]["message"]
+    assert TemplateVersion.objects.count() == 1
+
+
+def test_delete_released_template_version(db, permission_client):
+    """
+    Test the delete template version after its already being used by studies
+    """
+    user, client = permission_client(["delete_datatemplate"])
+    # Add user to an organization
+    org = OrganizationFactory()
+    user.organizations.add(org)
+    user.save()
+    # Create template in organization that user is member of and assign
+    # template version to some studies
+    dt = DataTemplateFactory(organization=org)
+    studies = StudyFactory.create_batch(2, organization=org)
+    template_version = TemplateVersionFactory(
+        data_template=dt, studies=studies
+    )
+
+    assert TemplateVersion.objects.count() == 1
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": DELETE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id(
+                    "TemplateVersionNode}}", template_version.id
+                ),
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert f"used by any studies" in resp.json()["errors"][0]["message"]
+    assert TemplateVersion.objects.count() == 1
