@@ -92,7 +92,7 @@ class Study(models.Model):
         default=True, help_text="If the study is public or not"
     )
     created_at = models.DateTimeField(
-        auto_now_add=False, null=True, help_text="Time the study was created"
+        auto_now_add=True, null=True, help_text="Time the study was created"
     )
     bucket = models.CharField(
         max_length=63,
