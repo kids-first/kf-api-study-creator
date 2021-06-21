@@ -64,10 +64,7 @@ def test_missing_study(db):
         assert "must have an associated DataReview" in str(e)
 
 
-@pytest.mark.parametrize(
-    "file_field",
-    ["report_file", "results_file"]
-)
+@pytest.mark.parametrize("file_field", ["report_file", "results_file"])
 def test_file_upload_local(
     db, clients, tmp_uploads_local, file_field, data_review
 ):
@@ -82,14 +79,9 @@ def test_file_upload_local(
     assert os.path.exists(file_field.path)
 
 
-@pytest.mark.parametrize(
-    "file_field",
-    ["report_file", "results_file"]
-)
+@pytest.mark.parametrize("file_field", ["report_file", "results_file"])
 @mock_s3
-def test_file_upload_s3(
-    db, clients, tmp_uploads_s3, file_field, data_review
-):
+def test_file_upload_s3(db, clients, tmp_uploads_s3, file_field, data_review):
     """
     Test validation report/results file uploads
     """
@@ -98,9 +90,7 @@ def test_file_upload_s3(
     bucket = tmp_uploads_s3(bucket_name=data_review.study.bucket)
 
     file_field = getattr(vrs, file_field)
-    file_field.storage = S3Storage(
-        aws_s3_bucket_name=data_review.study.bucket
-    )
+    file_field.storage = S3Storage(aws_s3_bucket_name=data_review.study.bucket)
     file_field.save(f"foo.ext", ContentFile("foo"))
     assert vrs.study.bucket in file_field.url
     assert settings.UPLOAD_DIR in file_field.url

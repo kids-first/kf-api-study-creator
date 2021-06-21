@@ -8,10 +8,7 @@ from creator.data_reviews.models import DataReview
 from creator.ingest_runs.models import ValidationResultset
 
 # Maps endpont to correct DataReview FileField
-FILE_FIELD_MAP = {
-    "report": "report_file",
-    "results": "results_file"
-}
+FILE_FIELD_MAP = {"report": "report_file", "results": "results_file"}
 S3_STORAGE = "django_s3_storage.storage.S3Storage"
 
 
@@ -31,15 +28,14 @@ def download_validation_file(request, review_id, file_type):
 
     # Check that the user is allowed to download the validation file
     if not (
-        user.is_authenticated and
+        user.is_authenticated
+        and
         # Must have general view or view for my study permissions
         (
             user.has_perm("data_reviews.view_datareview")
             or (
                 user.has_perm("data_reviews.view_my_study_datareview")
-                and user.studies.filter(
-                    kf_id=review.study.kf_id
-                ).exists()
+                and user.studies.filter(kf_id=review.study.kf_id).exists()
             )
         )
     ):
@@ -56,9 +52,7 @@ def download_validation_file(request, review_id, file_type):
             "Validation results not yet available for this data review"
         )
     if settings.DEFAULT_FILE_STORAGE == S3_STORAGE:
-        file_field.storage = S3Storage(
-            aws_s3_bucket_name=review.study.bucket
-        )
+        file_field.storage = S3Storage(aws_s3_bucket_name=review.study.bucket)
 
     # Check if file exists in storage system
     if not (file_field and file_field.storage.exists(file_field.name)):

@@ -9,7 +9,7 @@ from creator.files.models import File, Version
 from creator.ingest_runs.models import IngestRun, State
 from creator.ingest_runs.factories import (
     IngestRunFactory,
-    ValidationRunFactory
+    ValidationRunFactory,
 )
 from creator.ingest_runs.signals import (
     cancel_invalid_ingest_runs,
@@ -23,10 +23,7 @@ User = get_user_model()
 
 @pytest.mark.parametrize(
     "factory_cls,prefix",
-    [
-        (ValidationRunFactory, "VR"),
-        (IngestRunFactory, "IR")
-    ]
+    [(ValidationRunFactory, "VR"), (IngestRunFactory, "IR")],
 )
 def test_ingest_proc_pre_delete(db, clients, data_review, factory_cls, prefix):
     """
@@ -43,12 +40,18 @@ def test_ingest_proc_pre_delete(db, clients, data_review, factory_cls, prefix):
     for run in runs:
         pk = run.pk
         run.delete()
-        assert Event.objects.filter(
-            event_type=f"{prefix}_CLG", description__icontains=str(pk)
-        ).count() == 1
-        assert Event.objects.filter(
-            event_type=f"{prefix}_CAN", description__icontains=str(pk)
-        ).count() == 1
+        assert (
+            Event.objects.filter(
+                event_type=f"{prefix}_CLG", description__icontains=str(pk)
+            ).count()
+            == 1
+        )
+        assert (
+            Event.objects.filter(
+                event_type=f"{prefix}_CAN", description__icontains=str(pk)
+            ).count()
+            == 1
+        )
 
 
 def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
@@ -79,9 +82,7 @@ def test_cancel_invalid_validation_runs(db, mocker, clients, prep_file):
     # Cancel the validation runs involving version 0
     # Should result in canceling validation runs 0, 1
     cancel_invalid_validation_runs(versions[0])
-    expected_args = [
-        call(cancel_validation, str(run.id)) for run in vrs[0:2]
-    ]
+    expected_args = [call(cancel_validation, str(run.id)) for run in vrs[0:2]]
     mock_enqueue.assert_has_calls(expected_args, any_order=True)
     # Check state is canceling
     for run in vrs[0:2]:

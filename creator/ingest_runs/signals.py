@@ -85,10 +85,7 @@ def cancel_invalid_ingest_runs(version):
     """
     Cancel all running or waiting to be run IngestRuns involving _version_
     """
-    filter_params = {
-        "state__in": CANCEL_SOURCES,
-        "versions": version
-    }
+    filter_params = {"state__in": CANCEL_SOURCES, "versions": version}
     invalid_ingests = IngestRun.objects.filter(**filter_params).all()
     for ingest in invalid_ingests:
         # Transition to canceling state
@@ -104,11 +101,10 @@ def cancel_invalid_validation_runs(version):
     """
     filter_params = {
         "state__in": CANCEL_SOURCES,
-        "data_review__versions": version
+        "data_review__versions": version,
     }
     invalid_runs = (
-        ValidationRun.objects
-        .select_related("data_review")
+        ValidationRun.objects.select_related("data_review")
         .filter(**filter_params)
         .distinct()
     )

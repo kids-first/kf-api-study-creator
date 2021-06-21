@@ -158,9 +158,7 @@ def test_cancel_duplicate_ingest_processes(
 
     assert canceled_any
     assert process.state == State.CANCELING
-    mock_queue.enqueue.assert_called_with(
-        cancel_task, args=(process.id,)
-    )
+    mock_queue.enqueue.assert_called_with(cancel_task, args=(process.id,))
     mock_queue.reset_mock()
 
     # Ingest processes with different versions won't be canceled

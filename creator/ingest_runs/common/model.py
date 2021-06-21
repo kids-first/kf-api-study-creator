@@ -19,7 +19,7 @@ def camel_to_snake(camel_str):
     """
     Convert CamelCase to snake_case
     """
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', camel_str).lower()
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_str).lower()
 
 
 def hash_versions(version_kf_ids):
@@ -59,31 +59,28 @@ class IngestProcess(models.Model):
     Common model functionality for ingest processes
     (e.g. ingest run, validation run)
     """
+
     __queue__ = settings.INGEST_QUEUE
 
     class Meta:
         abstract = True
 
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(
         auto_now_add=True,
         null=True,
         help_text="Time when the ingest process was created",
     )
     started_at = models.DateTimeField(
-        null=True,
-        help_text="Time when ingest process started running"
+        null=True, help_text="Time when ingest process started running"
     )
     stopped_at = models.DateTimeField(
-        null=True,
-        help_text="Time when ingest process stopped running"
+        null=True, help_text="Time when ingest process stopped running"
     )
     modified_at = models.DateTimeField(
         auto_now=True,
         null=True,
-        help_text="Time when ingest process was last modified"
+        help_text="Time when ingest process was last modified",
     )
     creator = models.ForeignKey(
         User,
@@ -106,7 +103,7 @@ class IngestProcess(models.Model):
     )
     state = FSMField(
         default=State.NOT_STARTED,
-        help_text="The current state of the ingest process"
+        help_text="The current state of the ingest process",
     )
     job_log = models.OneToOneField(
         JobLog,
@@ -154,9 +151,7 @@ class IngestProcess(models.Model):
         self.started_at = timezone.now()
         self._save_event(State.INITIALIZING)
 
-    @transition(
-        field=state, source=State.INITIALIZING, target=State.RUNNING
-    )
+    @transition(field=state, source=State.INITIALIZING, target=State.RUNNING)
     def start(self):
         """
         Begin running the ingest process.
@@ -207,9 +202,7 @@ class IngestProcess(models.Model):
         This will be used to determine whether an ingest process is already
         running for a set of file versions
         """
-        return hash_versions(
-            self.versions.values_list("pk", flat=True)
-        )
+        return hash_versions(self.versions.values_list("pk", flat=True))
 
     def _save_event(self, event_type, on_delete=False):
         """
@@ -220,33 +213,35 @@ class IngestProcess(models.Model):
         """
 
         from creator.events.models import Event
+
         snake_name = camel_to_snake(self.__class__.__name__)
         name = camel_to_snake(self.__class__.__name__).replace("_", " ")
         prefix = "".join([w[0] for w in snake_name.split("_")]).upper()
         msgs = {
             State.INITIALIZING: (
                 f"{prefix}_INI",
-                f"{self.creator.username} started {name} {self.pk}"
+                f"{self.creator.username} started {name} {self.pk}",
             ),
             State.RUNNING: (
                 f"{prefix}_STA",
-                f"{name.title()} {self.pk} is running"
+                f"{name.title()} {self.pk} is running",
             ),
             State.COMPLETED: (
                 f"{prefix}_COM",
-                f"{name.title()} {self.pk} completed"
+                f"{name.title()} {self.pk} completed",
             ),
             State.CANCELING: (
                 f"{prefix}_CLG",
-                f"{self.creator.username} requested to cancel {name} {self.pk}"
+                f"{self.creator.username} requested to cancel {name} "
+                f"{self.pk}",
             ),
             State.CANCELED: (
                 f"{prefix}_CAN",
-                f"{name.title()} {self.pk} is canceled"
+                f"{name.title()} {self.pk} is canceled",
             ),
             State.FAILED: (
                 f"{prefix}_FAI",
-                f"{name.title()} {self.pk} failed"
+                f"{name.title()} {self.pk} failed",
             ),
         }
         event_name, message = msgs[event_type]

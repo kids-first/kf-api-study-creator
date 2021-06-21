@@ -29,7 +29,12 @@ User = get_user_model()
     ],
 )
 def test_local_download_and_delete(
-    clients, db, mocker, data_review, user_group, allowed,
+    clients,
+    db,
+    mocker,
+    data_review,
+    user_group,
+    allowed,
 ):
     """
     Test download of validation report and results files
@@ -87,9 +92,7 @@ def test_s3_download_and_delete(
     settings.DEFAULT_FILE_STORAGE = "django_s3_storage.storage.S3Storage"
     file_field = data_review.validation_resultset.report_file
     tmp_uploads_s3(bucket_name=data_review.study.bucket)
-    file_field.storage = S3Storage(
-        aws_s3_bucket_name=data_review.study.bucket
-    )
+    file_field.storage = S3Storage(aws_s3_bucket_name=data_review.study.bucket)
     file_field.save("data.csv", File(open("tests/data/data.csv")))
     assert file_field.storage.exists(file_field.name)
 
@@ -100,8 +103,7 @@ def test_s3_download_and_delete(
 
     resp.status_code == 200
     assert resp.get("Content-Disposition") == (
-        f"attachment; filename*=UTF-8''"
-        f"{file_field.name.split('/')[-1]}"
+        f"attachment; filename*=UTF-8''" f"{file_field.name.split('/')[-1]}"
     )
     assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
     assert resp.get("Content-Length") == str(

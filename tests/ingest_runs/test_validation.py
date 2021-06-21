@@ -158,6 +158,7 @@ def test_validate_and_build_report(db, mocker, data_review_with_files):
         results = validation_run.validate_file_versions(vr)
     mock_logger.error.call_count == 1
 
+
 def test_persist_results(db, tmpdir, settings, data_review):
     """
     Test persistence of validation results
@@ -222,6 +223,7 @@ def test_clean_and_map_errors(mocker):
     """
     Test the clean and map helper in the validation_run task
     """
+
     class MockFile:
         def __init__(self, file_type=None):
             self.file_type = file_type

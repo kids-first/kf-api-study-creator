@@ -14,7 +14,7 @@ from creator.data_reviews.models import DataReview
 
 
 class StartValidationRunInput(graphene.InputObjectType):
-    """ Parameters used when starting a new validation_run """
+    """Parameters used when starting a new validation_run"""
 
     data_review = graphene.ID(
         required=True,
@@ -23,7 +23,7 @@ class StartValidationRunInput(graphene.InputObjectType):
 
 
 class StartValidationRunMutation(graphene.Mutation):
-    """ Start a new validation_run """
+    """Start a new validation_run"""
 
     class Arguments:
         input = StartValidationRunInput(
@@ -50,7 +50,8 @@ class StartValidationRunMutation(graphene.Mutation):
         try:
             data_review = (
                 DataReview.objects.only("kf_id", "study__kf_id")
-                .select_related("study").get(pk=dr_id)
+                .select_related("study")
+                .get(pk=dr_id)
             )
         except DataReview.DoesNotExist:
             raise GraphQLError(
@@ -71,10 +72,9 @@ class StartValidationRunMutation(graphene.Mutation):
             raise GraphQLError("Not allowed")
 
         # Versions must exist
-        version_ids = (
-            Version.objects.filter(data_reviews__pk=dr_id)
-            .values_list("pk", flat=True)
-        )
+        version_ids = Version.objects.filter(
+            data_reviews__pk=dr_id
+        ).values_list("pk", flat=True)
         if len(version_ids) == 0:
             raise GraphQLError(
                 "An validation run must be started with at least "
@@ -134,7 +134,8 @@ class CancelValidationRunMutation(graphene.Mutation):
         try:
             validation_run = (
                 ValidationRun.objects.select_related("data_review__study")
-                .only("data_review__study__kf_id", "state").get(pk=vr_id)
+                .only("data_review__study__kf_id", "state")
+                .get(pk=vr_id)
             )
         except ValidationRun.DoesNotExist:
             raise GraphQLError(f"Validation_run {vr_id} was not found")
@@ -165,7 +166,7 @@ class CancelValidationRunMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for validation_runs """
+    """Mutations for validation_runs"""
 
     start_validation_run = StartValidationRunMutation.Field(
         description="Start a new validation_run."
