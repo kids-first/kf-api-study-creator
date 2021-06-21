@@ -8,7 +8,10 @@ from django.core.files.base import ContentFile
 from creator.analyses.analyzer import analyze_version
 from creator.files.models import File, Version
 from creator.analyses.file_types import FILE_TYPES
-from creator.ingest_runs.tasks import validation_run
+from creator.ingest_runs.tasks import (
+    validation_run,
+    ExtractConfigFileDoesNotExist,
+)
 from creator.ingest_runs.factories import ValidationRunFactory
 from creator.ingest_runs.models import ValidationResultset, State
 
@@ -137,13 +140,23 @@ def test_validate_and_build_report(db, mocker, data_review_with_files):
     # Test validation when all versions are missing extract cfgs
     mock_clean_map = mocker.patch(
         "creator.ingest_runs.tasks.validation_run.clean_and_map",
-        return_value=None,
     )
-    ER_MSG = "None of the input files conformed"
+    mock_clean_map.side_effect = ExtractConfigFileDoesNotExist
     with pytest.raises(Exception) as e:
         validation_run.validate_file_versions(vr)
-    assert ER_MSG in str(e)
+    assert "None of the input files conformed" in str(e)
 
+    # Test validate when something goes wrong in extraction
+    mock_logger = mocker.patch(
+        "creator.ingest_runs.tasks.validation_run.logger",
+    )
+    mock_clean_map = mocker.patch(
+        "creator.ingest_runs.tasks.validation_run.clean_and_map",
+    )
+    mock_clean_map.side_effect = Exception
+    with pytest.raises(Exception) as e:
+        results = validation_run.validate_file_versions(vr)
+    mock_logger.error.call_count == 1
 
 def test_persist_results(db, tmpdir, settings, data_review):
     """
@@ -227,7 +240,8 @@ def test_clean_and_map_errors(mocker):
 
     # Version missing an extract config
     mock_version = MockVersion(root_file=MockFile())
-    assert clean_and_map(mock_version) is None
+    with pytest.raises(ExtractConfigFileDoesNotExist) as e:
+        clean_and_map(mock_version)
 
     # Error extracting file content into DataFrame
     mocker.patch(
@@ -239,3 +253,20 @@ def test_clean_and_map_errors(mocker):
     )
     with pytest.raises(Exception):
         clean_and_map(mock_version)
+
+
+def test_extract_config_path(db, mocker, data_review, template_version):
+    """
+    Test Version.extract_config_path property
+    """
+    # Happy case - version has an extract config
+    tv = template_version("PDA", "PDA.tsv", study=data_review.study)
+    assert tv.extract_config_path
+
+    # Version file_type has no extract config
+    tv.root_file.file_type = "OTH"
+    assert not tv.extract_config_path
+
+    # Version has no root_file
+    tv.root_file = None
+    assert not tv.extract_config_path

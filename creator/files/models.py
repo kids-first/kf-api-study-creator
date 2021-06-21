@@ -337,7 +337,8 @@ class Version(models.Model):
         config_path = None
         try:
             file_type = self.root_file.file_type
-        except Exception:
+        except AttributeError:
+            # root_file was None so we cannot access file_type on NoneType
             pass
         else:
             filename = FILE_TYPES.get(file_type, {}).get("template")

@@ -28,6 +28,10 @@ S3_STORAGE = "django_s3_storage.storage.S3Storage"
 logger = logging.getLogger(__name__)
 
 
+class ExtractConfigFileDoesNotExist(Exception):
+    pass
+
+
 def clean_and_map(version: Version) -> pandas.DataFrame:
     """
     Load tabular data from file version into a DataFrame and then use
@@ -48,7 +52,7 @@ def clean_and_map(version: Version) -> pandas.DataFrame:
             f"with file type: {version.root_file.file_type}. This file will "
             "not be included in validation."
         )
-        return None
+        raise ExtractConfigFileDoesNotExist
     # Extract file content into a DataFrame
     try:
         df = pandas.DataFrame(extract_data(version))
@@ -78,11 +82,21 @@ def validate_file_versions(validation_run: ValidationRun) -> dict:
     """
     versions = validation_run.versions.all()
     logger.info(f"Begin validating file versions: {pformat(list(versions))}")
+
     # Clean and map source data
     df_dict = {}
     for version in versions:
-        clean_df = clean_and_map(version)
-        if isinstance(clean_df, pandas.DataFrame):
+        try:
+            clean_df = clean_and_map(version)
+        except ExtractConfigFileDoesNotExist:
+            pass
+        except Exception:
+            logger.error(
+                "Validation failed! Something went wrong during the clean and "
+                f"map process for {version}"
+            )
+            raise
+        else:
             df_dict[version.kf_id] = clean_df
 
     # None of the input files had templates
