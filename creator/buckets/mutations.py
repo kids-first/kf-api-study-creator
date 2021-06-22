@@ -54,6 +54,7 @@ class LinkBucketMutation(graphene.Mutation):
             f"study {study.kf_id}"
         )
         event = Event(
+            organization=study.organization,
             study=study,
             bucket=bucket,
             description=message,
@@ -114,6 +115,7 @@ class UnlinkBucketMutation(graphene.Mutation):
             f"study {study.kf_id}"
         )
         event = Event(
+            organization=study.organization,
             study=study,
             bucket=bucket,
             description=message,

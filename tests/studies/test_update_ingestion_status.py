@@ -1,6 +1,7 @@
 import pytest
 from graphql_relay import to_global_id
 
+from creator.studies.factories import StudyFactory
 from creator.studies.models import Study, ING_STATUS_CHOICES
 from creator.users.factories import UserFactory
 
@@ -19,7 +20,7 @@ mutation updateIngStatusIP($id: ID!) {
 
 @pytest.fixture
 def mock_study():
-    study = Study(kf_id="SD_XQKAP5VX", external_id="Test Study")
+    study = StudyFactory(kf_id="SD_XQKAP5VX", external_id="Test Study")
     study.save()
     return study
 

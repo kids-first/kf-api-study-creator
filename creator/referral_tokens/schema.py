@@ -54,6 +54,7 @@ class ReferralTokenFilter(django_filters.FilterSet):
             "claimed": ["exact"],
             "studies": ["exact"],
             "groups": ["exact"],
+            "organization": ["exact"],
         }
 
     order_by = OrderingFilter(fields=("created_at",))

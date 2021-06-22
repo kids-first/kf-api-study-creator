@@ -1,9 +1,14 @@
 import pytest
+import uuid
 from datetime import timedelta
 from graphql_relay import to_global_id
-from creator.studies.models import Study
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+
+from creator.studies.factories import StudyFactory
 from creator.referral_tokens.models import ReferralToken
+
+User = get_user_model()
 
 CREATE_REFERRALTOKEN = """
 mutation newReferralToken($input: ReferralTokenInput!) {
@@ -49,17 +54,24 @@ def test_create_referral_token_mutation(db, clients, user_group, allowed):
     Test that correct users may create referral token
     """
     client = clients.get(user_group)
+    user = User.objects.filter(groups__name="Administrators").first()
 
-    study = Study(kf_id="SD_00000000")
-    study.save()
+    study = StudyFactory(kf_id="SD_00000000")
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp = client.post(
@@ -87,17 +99,24 @@ def test_create_referral_token_mutation_existing(db, clients):
     existing a valid referral token
     """
     client = clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
 
-    study = Study(kf_id="SD_00000000")
-    study.save()
+    study = StudyFactory(kf_id="SD_00000000")
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp_create = client.post(
@@ -127,17 +146,24 @@ def test_create_referral_token_mutation_expired(db, clients, settings):
     the old token has expired.
     """
     client = clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
 
-    study = Study(kf_id="SD_00000000")
-    study.save()
+    study = StudyFactory(kf_id="SD_00000000")
+    study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
+    organization_id = to_global_id("OranizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
     email = "test@email.com"
     variables = {
-        "input": {"email": email, "studies": [study_id], "groups": [group_id]}
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
     }
 
     resp_create = client.post(
@@ -170,3 +196,39 @@ def test_create_referral_token_mutation_expired(db, clients, settings):
     assert resp_body["groups"]["edges"][0]["node"]["id"] == group_id
     assert resp_body["studies"]["edges"][0]["node"]["id"] == study_id
     assert ReferralToken.objects.count() == 2
+
+
+def test_create_referral_token_mutation_organization_does_not_exist(
+    db, clients
+):
+    """
+    Test that an organization must exist to create a referral token for it.
+    """
+    client = clients.get("Administrators")
+
+    study = StudyFactory(kf_id="SD_00000000")
+    study_id = to_global_id("StudyNode", "SD_00000000")
+    organization_id = to_global_id("OranizationNode", uuid.uuid4())
+
+    group = Group.objects.first()
+    group_id = to_global_id("GroupNode", group.id)
+
+    email = "test@email.com"
+    variables = {
+        "input": {
+            "email": email,
+            "studies": [study_id],
+            "groups": [group_id],
+            "organization": organization_id,
+        }
+    }
+
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_REFERRALTOKEN, "variables": variables},
+    )
+
+    assert ReferralToken.objects.count() == 0
+    assert "errors" in resp.json()
+    assert "does not exist" in resp.json()["errors"][0]["message"]

@@ -2,6 +2,7 @@ import pytest
 from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.files.models import Version
+from creator.organizations.factories import OrganizationFactory
 from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory, VersionFactory
@@ -208,12 +209,13 @@ def test_update_state(db, clients, versions, state, expected):
         version = Version.objects.get(kf_id=version.kf_id)
 
 
-def test_update_version_file(db, clients):
+def test_update_version_file(db, permission_client):
     """
     Test that versions may be updated with a new root file
     """
-    client = clients.get("Administrators")
-    study = StudyFactory(kf_id="SD_ME0WME0W")
+    user, client = permission_client(["change_version_meta"])
+    org = OrganizationFactory(id="854612d1-2329-4469-b4e5-e51b481ab1dc")
+    study = StudyFactory(kf_id="SD_ME0WME0W", organization=org)
     file = FileFactory(study=study)
     version = VersionFactory(study=study)
 
@@ -244,16 +246,13 @@ def test_update_version_no_study(db, clients):
     Test that a version may not be modified if the study cannot be resolved.
     """
     client = clients.get("Administrators")
-    study = StudyFactory(kf_id="SD_ME0WME0W")
-    file = FileFactory(study=study)
-    version = VersionFactory()
+    version = VersionFactory(study=None, root_file=None)
 
     query = update_query
     variables = {
         "kfId": version.kf_id,
         "description": "New description",
         "state": version.state,
-        "file": to_global_id("FileNode", file.kf_id),
     }
     resp = client.post(
         "/graphql",

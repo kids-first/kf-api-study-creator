@@ -2,6 +2,7 @@ import pytest
 from datetime import datetime
 from graphql_relay import to_global_id
 
+from creator.studies.factories import StudyFactory
 from creator.files.models import Study
 from creator.users.factories import UserFactory
 
@@ -88,7 +89,7 @@ def mock_error(mocker):
 
 @pytest.fixture
 def mock_study():
-    study = Study(kf_id="SD_XQKAP5VX", external_id="Test Study")
+    study = StudyFactory(kf_id="SD_XQKAP5VX", external_id="Test Study")
     study.save()
     return study
 

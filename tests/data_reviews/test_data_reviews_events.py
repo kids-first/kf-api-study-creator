@@ -2,7 +2,7 @@ import pytest
 
 from django.contrib.auth import get_user_model
 
-from creator.data_reviews.factories import DataReview
+from creator.data_reviews.factories import DataReviewFactory
 from creator.data_reviews.models import State
 from creator.events.models import Event
 
@@ -29,8 +29,7 @@ def test_state_update_signals(
     """
     event_count_before = Event.objects.count()
     creator = User.objects.first()
-    dr = DataReview(creator=creator, state=start_state)
-    dr.save()
+    dr = DataReviewFactory(creator=creator, state=start_state)
 
     if state_transition_method:
         transition = getattr(dr, state_transition_method)

@@ -35,6 +35,7 @@ def file_version_pre_delete(sender, instance, using, *args, **kwargs):
             dr.receive_updates()
             dr.save()
         Event(
+            organization=dr.study.organization,
             study=dr.study,
             file=instance.root_file,
             user=dr.creator,
@@ -88,6 +89,7 @@ def file_version_post_save(sender, instance, created, *args, **kwargs):
             dr.receive_updates()
             dr.save()
         Event(
+            organization=dr.study.organization,
             study=instance.root_file.study,
             file=instance.root_file,
             version=instance,

@@ -15,9 +15,7 @@ from creator.projects.cavatica import (
     VolumeNotFound,
 )
 
-from creator.studies.models import Study
 from creator.studies.factories import StudyFactory
-
 from creator.projects.models import Project
 from creator.projects.factories import ProjectFactory
 
@@ -30,7 +28,7 @@ def mock_create_project(mocker):
 
 
 def test_correct_projects_no_default(db, mock_create_project):
-    study = Study(kf_id="SD_00000000", name="test")
+    study = StudyFactory(kf_id="SD_00000000", name="test")
     study.save()
 
     setup_cavatica(study)
@@ -41,7 +39,7 @@ def test_correct_projects_no_default(db, mock_create_project):
 
 def test_correct_projects_with_default(db, settings, mock_create_project):
     settings.CAVATICA_DEFAULT_WORKFLOWS = ["bwa_mem", "gatk_haplotypecaller"]
-    study = Study(kf_id="SD_00000000", name="test")
+    study = StudyFactory(kf_id="SD_00000000", name="test")
     study.save()
 
     setup_cavatica(study)
@@ -56,7 +54,7 @@ def test_correct_projects_with_default(db, settings, mock_create_project):
 
 
 def test_create_delivery_projects(db, mock_cavatica_api):
-    study = Study(kf_id="SD_00000000", name="test")
+    study = StudyFactory(kf_id="SD_00000000", name="test")
     study.save()
 
     create_project(study, "DEL")
@@ -90,7 +88,7 @@ def test_create_delivery_projects(db, mock_cavatica_api):
 
 
 def test_create_harmonization_projects(db, mock_cavatica_api):
-    study = Study(kf_id="SD_00000000", name="test")
+    study = StudyFactory(kf_id="SD_00000000", name="test")
     study.save()
 
     create_project(study, "HAR", "bwa_mem")
@@ -106,7 +104,7 @@ def test_user_copy_is_called(db, mocker, mock_cavatica_api):
     """
     Test that creating a new project will copy users
     """
-    study = Study(kf_id="SD_00000000", name="test")
+    study = StudyFactory(kf_id="SD_00000000", name="test")
     study.save()
     copy_users = mocker.patch("creator.projects.cavatica.copy_users")
 

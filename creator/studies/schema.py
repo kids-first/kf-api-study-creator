@@ -21,6 +21,7 @@ from graphene import (
     String,
     Int,
 )
+from django_filters import FilterSet, OrderingFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from dateutil.parser import parse
 from .models import Study
@@ -31,6 +32,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+class StudyFilter(FilterSet):
+    order_by = OrderingFilter(fields=("name", "created_on", "organization"))
+
+    class Meta:
+        model = Study
+        fields = ["name", "organization"]
+
+
 class Query(object):
     study = relay.Node.Field(StudyNode, description="Get a study")
     study_by_kf_id = Field(
@@ -39,7 +48,7 @@ class Query(object):
         description="Get a study by its kf_id",
     )
     all_studies = DjangoFilterConnectionField(
-        StudyNode, description="List all studies"
+        StudyNode, description="List all studies", filterset_class=StudyFilter
     )
 
     def resolve_study_by_kf_id(self, info, kf_id):

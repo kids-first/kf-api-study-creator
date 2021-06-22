@@ -30,6 +30,7 @@ DEFAULT_DELETE_MUTATION = """
         ["banner", uuid.uuid4],
         ["ingestRun", uuid.uuid4],
         ["validationRun", uuid.uuid4],
+        ["organization", uuid.uuid4],
     ],
 )
 def test_get_resource_by_id(db, clients, resource, type):

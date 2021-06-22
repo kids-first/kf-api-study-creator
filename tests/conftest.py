@@ -6,6 +6,7 @@ import boto3
 import json
 import jwt
 from unittest import mock
+from typing import List
 
 from django.test.client import Client
 from django.contrib.auth.models import Group, Permission
@@ -110,7 +111,30 @@ def clients(django_db_setup, django_db_blocker, groups, token):
         User.objects.all().delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=False)
+def permission_client(django_db_setup, django_db_blocker, token):
+    """
+    Setup a test client with a user with a specific permission set.
+    """
+
+    with django_db_blocker.unblock():
+        user = UserFactory(username="Permission User")
+
+        def client(permissions: List[str]):
+            # Setup the user with desired permissions
+            perms = Permission.objects.filter(codename__in=permissions).all()
+            user.user_permissions.set(perms)
+            user.save()
+            # Create a client for that user
+            user_token = token([], [], sub=user.sub)
+            return user, Client(HTTP_AUTHORIZATION=f"Bearer {user_token}")
+
+        yield client
+
+        user.delete()
+
+
+@pytest.yield_fixture
 def tmp_uploads_local(tmp_path, settings):
     settings.UPLOAD_DIR = str(tmp_path.relative_to(tmp_path.cwd()))
     settings.DEFAULT_FILE_STORAGE = (
@@ -368,7 +392,7 @@ def prep_file(admin_client, upload_file):
     def file(file_name="manifest.txt", client=admin_client, authed=False):
         if authed:
             study_id = "SD_00000000"
-            study = Study(kf_id=study_id, external_id="Test")
+            study = StudyFactory(kf_id=study_id, external_id="Test")
             study.save()
         else:
             studies = StudyFactory.create_batch(1)
@@ -390,7 +414,9 @@ def versions(db, clients, mocker):
     Setup a file in a study with a new version that returns a mocked data file.
     """
     clients.get("Administrators")
+    user = User.objects.filter(groups__name="Administrators").first()
     study = StudyFactory()
+    study.organization.members.add(user)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
     version.key = open("tests/data/manifest.txt")

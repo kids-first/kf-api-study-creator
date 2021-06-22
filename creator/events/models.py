@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from creator.studies.models import Study
+from creator.organizations.models import Organization
 from creator.files.models import File, Version
 from creator.projects.models import Project
 from creator.buckets.models import Bucket
@@ -96,6 +97,14 @@ class Event(models.Model):
         default="",
         max_length=1000,
         help_text="Description of the event",
+    )
+    organization = models.ForeignKey(
+        Organization,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="events",
+        help_text="Organization related to this event",
     )
     study = models.ForeignKey(
         Study,

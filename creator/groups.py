@@ -100,6 +100,11 @@ GROUPS = {
         "list_all_validationrun",
         "list_all_validationresultset",
         "view_validationresultset",
+        "view_organization",
+        "add_organization",
+        "delete_organization",
+        "change_organization",
+        "list_all_organization",
     ],
     "Developers": [
         "view_study",

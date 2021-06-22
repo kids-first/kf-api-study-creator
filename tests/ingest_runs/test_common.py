@@ -22,6 +22,8 @@ from creator.ingest_runs.factories import (
 )
 from creator.events.models import Event
 from creator.ingest_runs.tasks import cancel_ingest, cancel_validation
+from creator.organizations.factories import OrganizationFactory
+from creator.studies.factories import StudyFactory
 
 User = get_user_model()
 
@@ -58,7 +60,6 @@ def test_hash_versions(db, clients, prep_file):
 @pytest.mark.parametrize(
     "start_state,state_transition_method,expected_msg",
     [
-        (State.NOT_STARTED, None, None),
         (State.NOT_STARTED, "initialize", "started"),
         (State.INITIALIZING, "start", "is running"),
         (State.RUNNING, "complete", "completed"),
@@ -73,8 +74,8 @@ def test_hash_versions(db, clients, prep_file):
 @pytest.mark.parametrize(
     "ingest_process_cls",
     [
-        ValidationRun,
-        IngestRun,
+        ValidationRunFactory,
+        IngestRunFactory,
     ],
 )
 def test_ingest_process_states(
@@ -89,36 +90,32 @@ def test_ingest_process_states(
     Test that correct events are fired on ingest process state transitions
     """
     mock_stop_job = mocker.patch("creator.ingest_runs.common.model.stop_job")
-    creator = User.objects.first()
-    obj = ingest_process_cls(creator=creator, state=start_state)
+    obj = ingest_process_cls(state=start_state)
     obj.save()
 
     event_count_before = Event.objects.count()
-    if state_transition_method:
-        # Execute state transition
-        transition = getattr(obj, state_transition_method)
-        transition()
-        obj.save()
 
-        # Check start/stop times
-        if state_transition_method == "initialize":
-            assert obj.started_at
-        elif state_transition_method in {"cancel", "fail", "complete"}:
-            assert obj.stopped_at
+    # Execute state transition
+    transition = getattr(obj, state_transition_method)
+    transition()
+    obj.save()
 
-        # Check event
-        foreign_key = camel_to_snake(ingest_process_cls.__name__)
-        kwargs = {foreign_key: obj.pk}
-        e = Event.objects.filter(**kwargs).all()[0]
-        assert expected_msg in e.description
-        assert foreign_key.replace("_", " ") in e.description.lower()
-        # Cancel method includes a call to stop_job
-        if state_transition_method == "cancel":
-            mock_stop_job.assert_called_with(
-                str(obj.pk), queue=obj.queue, delete=True
-            )
-    else:
-        assert event_count_before == Event.objects.count()
+    # Check start/stop times
+    if state_transition_method == "initialize":
+        assert obj.started_at
+    elif state_transition_method in {"cancel", "fail", "complete"}:
+        assert obj.stopped_at
+
+    # Check event
+    foreign_key = camel_to_snake(ingest_process_cls._meta.model.__name__)
+    e = Event.objects.filter(description__contains=expected_msg).first()
+    assert e is not None
+    assert foreign_key.replace("_", " ") in e.description.lower()
+    # Cancel method includes a call to stop_job
+    if state_transition_method == "cancel":
+        mock_stop_job.assert_called_with(
+            str(obj.pk), queue=obj.queue, delete=True
+        )
 
 
 @pytest.mark.parametrize(

@@ -41,20 +41,26 @@ def sync_dataservice_studies():
 
         if fields["name"] is None:
             fields["name"] = ""
-        new_study, created = Study.objects.update_or_create(
-            defaults=fields, kf_id=fields["kf_id"]
-        )
+        try:
+            study = Study.objects.get(kf_id=fields["kf_id"])
+        except Study.DoesNotExist:
+            logger.warning(
+                f"Study {fields['kf_id']} was found in the Data Service but "
+                "could not be found in the Study Creator. Dataservice studies "
+                "will no longer be created automatically by the Study Creator."
+                "Please delete this study from the Data Service and create it "
+                "in your organization within the Data Tracker."
+            )
+            continue
 
         # If the study was found in the dataservice, it must not be deleted
         # This will allow us to 'recover' studies that have been deleted then
         # brought back
-        new_study.deleted = False
-        new_study.save()
-        if created:
-            new_count += 1
-            logger.info(f"Created new Study: {study['kf_id']}")
-        else:
-            updated_count += 1
+        study.deleted = False
+        for attr, value in fields.items():
+            setattr(study, attr, value)
+        study.save()
+        updated_count += 1
 
     ds_studies = {study["kf_id"] for study in studies}
     creator_studies = {study.kf_id for study in Study.objects.all()}
@@ -64,7 +70,6 @@ def sync_dataservice_studies():
         Study.objects.filter(kf_id=study).update(deleted=True)
 
     logger.info(
-        f"{new_count} studies created. "
         f"{updated_count} studies updated. "
         f"{len(deleted_studies)} studies deleted."
     )
