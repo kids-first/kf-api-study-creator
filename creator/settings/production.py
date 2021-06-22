@@ -299,7 +299,10 @@ LOGGING = {
         "creator.decorators": {"handlers": ["task"]},
         "creator.ingest_runs.genomic_data_loader": {
             "handlers": ["task"], "level": "DEBUG"
-        }
+        },
+        "creator.ingest_runs.tasks.validation_run": {
+            "handlers": ["task"], "level": "INFO"
+        },
     },
 }
 

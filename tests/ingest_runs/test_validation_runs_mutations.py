@@ -4,7 +4,11 @@ from django.contrib.auth import get_user_model
 from creator.studies.models import Membership
 from creator.data_reviews.factories import DataReviewFactory
 from creator.ingest_runs.factories import ValidationRunFactory
-from creator.ingest_runs.models import ValidationRun
+from creator.ingest_runs.models import (
+    ValidationRun,
+    ValidationResultset,
+    State,
+)
 from creator.ingest_runs.tasks import run_validation, cancel_validation
 
 User = get_user_model()
@@ -15,6 +19,7 @@ mutation ($input: StartValidationRunInput!) {
         validationRun {
             id
             inputHash
+            state
             dataReview { id kfId }
         }
     }
@@ -27,6 +32,7 @@ mutation ($id: ID!) {
         validationRun {
             id
             inputHash
+            state
             dataReview { id kfId }
         }
     }
@@ -86,14 +92,17 @@ def test_start_validation_run(
 
     # Start valid validation runs for a batch of file versions
     dr_id = to_global_id("DataReviewNode", data_review.kf_id)
-    resp = send_query(
-        client, START_VALIDATION_RUN, {"dataReview": dr_id}
-    )
+    resp = send_query(client, START_VALIDATION_RUN, {"dataReview": dr_id})
 
     if allowed:
         vr = resp.json()["data"]["startValidationRun"]["validationRun"]
         assert vr["inputHash"]
+        assert vr["state"] == State.INITIALIZING
         assert data_review.kf_id == vr["dataReview"]["kfId"]
+
+        # Check that validation results were cleared
+        with pytest.raises(ValidationResultset.DoesNotExist):
+            data_review.validation_resultset
 
         # Check that the run_validation task was queued
         mock_valid_queue.enqueue.call_count == 1
@@ -196,9 +205,7 @@ def test_cancel_validation_run(
         data={
             "query": CANCEL_VALIDATION_RUN,
             "variables": {
-                "id": to_global_id(
-                    "ValidationRunNode", validation_run.id
-                ),
+                "id": to_global_id("ValidationRunNode", validation_run.id),
             },
         },
         content_type="application/json",
@@ -207,6 +214,7 @@ def test_cancel_validation_run(
     if allowed:
         vr = resp.json()["data"]["cancelValidationRun"]["validationRun"]
         assert vr is not None
+        assert vr["state"] == State.CANCELING
         _, vr_id = from_global_id(vr["id"])
         mock_valid_queue.enqueue.assert_called_once_with(
             cancel_validation, args=(vr_id,)

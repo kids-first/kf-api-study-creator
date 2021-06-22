@@ -4,7 +4,7 @@ from graphql_relay import from_global_id
 from django.db import transaction
 
 from creator.ingest_runs.nodes import ValidationRunNode
-from creator.ingest_runs.models import ValidationRun
+from creator.ingest_runs.models import ValidationRun, ValidationResultset
 from creator.ingest_runs.tasks import run_validation, cancel_validation
 from creator.ingest_runs.common.mutations import (
     cancel_duplicate_ingest_processes,
@@ -14,7 +14,7 @@ from creator.data_reviews.models import DataReview
 
 
 class StartValidationRunInput(graphene.InputObjectType):
-    """ Parameters used when starting a new validation_run """
+    """Parameters used when starting a new validation_run"""
 
     data_review = graphene.ID(
         required=True,
@@ -23,7 +23,7 @@ class StartValidationRunInput(graphene.InputObjectType):
 
 
 class StartValidationRunMutation(graphene.Mutation):
-    """ Start a new validation_run """
+    """Start a new validation_run"""
 
     class Arguments:
         input = StartValidationRunInput(
@@ -50,7 +50,8 @@ class StartValidationRunMutation(graphene.Mutation):
         try:
             data_review = (
                 DataReview.objects.only("kf_id", "study__kf_id")
-                .select_related("study").get(pk=dr_id)
+                .select_related("study")
+                .get(pk=dr_id)
             )
         except DataReview.DoesNotExist:
             raise GraphQLError(
@@ -71,10 +72,9 @@ class StartValidationRunMutation(graphene.Mutation):
             raise GraphQLError("Not allowed")
 
         # Versions must exist
-        version_ids = (
-            Version.objects.filter(data_reviews__pk=dr_id)
-            .values_list("pk", flat=True)
-        )
+        version_ids = Version.objects.filter(
+            data_reviews__pk=dr_id
+        ).values_list("pk", flat=True)
         if len(version_ids) == 0:
             raise GraphQLError(
                 "An validation run must be started with at least "
@@ -91,6 +91,18 @@ class StartValidationRunMutation(graphene.Mutation):
                 validation_run.creator = user
                 validation_run.data_review = data_review
                 validation_run.save()
+
+                # Always clear the data review's validation results if they
+                # exist. Even though the files being validated might not have
+                # changed, the validation rules could have changed.
+                try:
+                    data_review.validation_resultset.delete()
+                except ValidationResultset.DoesNotExist:
+                    pass
+
+            # Transition to initializing state
+            validation_run.initialize()
+            validation_run.save()
 
             validation_run.queue.enqueue(
                 run_validation,
@@ -122,7 +134,8 @@ class CancelValidationRunMutation(graphene.Mutation):
         try:
             validation_run = (
                 ValidationRun.objects.select_related("data_review__study")
-                .only("data_review__study__kf_id").get(pk=vr_id)
+                .only("data_review__study__kf_id", "state")
+                .get(pk=vr_id)
             )
         except ValidationRun.DoesNotExist:
             raise GraphQLError(f"Validation_run {vr_id} was not found")
@@ -141,6 +154,10 @@ class CancelValidationRunMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
+        # Transition to canceling state
+        validation_run.start_cancel()
+        validation_run.save()
+
         validation_run.queue.enqueue(
             cancel_validation, args=(str(validation_run.id),)
         )
@@ -149,7 +166,7 @@ class CancelValidationRunMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for validation_runs """
+    """Mutations for validation_runs"""
 
     start_validation_run = StartValidationRunMutation.Field(
         description="Start a new validation_run."

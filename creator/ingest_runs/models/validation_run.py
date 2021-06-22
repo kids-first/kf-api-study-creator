@@ -34,6 +34,7 @@ class ValidationRun(IngestProcess):
     """
     Request to validate file versions in a data review
     """
+
     class Meta(IngestProcess.Meta):
         permissions = [
             ("list_all_validationrun", "Show all validation_runs"),
@@ -56,7 +57,7 @@ class ValidationRun(IngestProcess):
         null=True,
         blank=True,
         default=False,
-        help_text="Whether the validation run resulted in all tests passing"
+        help_text="Whether the validation run resulted in all tests passing",
     )
     progress = models.IntegerField(
         null=True,
@@ -105,15 +106,13 @@ class ValidationResultset(models.Model):
     """
     Validation results from a completed validation run
     """
+
     report_filename = "validation_results.md"
     results_filename = "validation_results.json"
 
     class Meta:
         permissions = [
-            (
-                "list_all_validationresultset",
-                "Show all validation_resultsets"
-            ),
+            ("list_all_validationresultset", "Show all validation_resultsets"),
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -141,7 +140,7 @@ class ValidationResultset(models.Model):
         help_text=(
             "Field to track the storage location of the user friendly "
             "validation report"
-        )
+        ),
     )
     results_file = models.FileField(
         upload_to=_get_upload_directory,
@@ -151,25 +150,25 @@ class ValidationResultset(models.Model):
         help_text=(
             "Field to track the storage location of the raw validation "
             "results"
-        )
+        ),
     )
     passed = models.IntegerField(
         null=True,
         blank=True,
         default=0,
-        help_text="The number of validation tests that passed"
+        help_text="The number of validation tests that passed",
     )
     failed = models.IntegerField(
         null=True,
         blank=True,
         default=0,
-        help_text="The number of validation tests that failed"
+        help_text="The number of validation tests that failed",
     )
     did_not_run = models.IntegerField(
         null=True,
         blank=True,
         default=0,
-        help_text="The number of validation tests that did not run"
+        help_text="The number of validation tests that did not run",
     )
 
     @property
