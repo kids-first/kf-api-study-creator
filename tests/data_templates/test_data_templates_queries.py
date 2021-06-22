@@ -17,15 +17,15 @@ query ($id: ID!) {
 """
 
 ALL_DATA_TEMPLATES = """
-query {
-    allDataTemplates {
+query($organization: ID, $organizationName: String) {
+    allDataTemplates(organization: $organization, organizationName: $organizationName) { # noqa
         edges {
             node {
                 id
                 name
                 description
                 icon
-                organization { id }
+                organization { id name }
             }
         }
     }
@@ -106,3 +106,41 @@ def test_query_all_data_template(db, permission_client, permissions, allowed):
         assert len(resp.json()["data"]["allDataTemplates"]["edges"]) == 5
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_filter_all_data_template(db, permission_client):
+    """
+    Test allDataTemplates query with filters
+    """
+    user, client = permission_client(["list_all_datatemplate"])
+    org = OrganizationFactory()
+    data_templates = DataTemplateFactory.create_batch(5)
+    for dt in data_templates[0:2]:
+        dt.organization = org
+        dt.save()
+
+    # Filter by organization id
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": ALL_DATA_TEMPLATES,
+            "variables": {
+                "organization": to_global_id("OrganizationNode", org.pk)
+            }
+        },
+        content_type="application/json"
+    )
+    assert len(resp.json()["data"]["allDataTemplates"]["edges"]) == 2
+
+    # Filter by organization name
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": ALL_DATA_TEMPLATES,
+            "variables": {
+                "organizationName": org.name
+            }
+        },
+        content_type="application/json"
+    )
+    assert len(resp.json()["data"]["allDataTemplates"]["edges"]) == 2

@@ -21,15 +21,15 @@ query ($id: ID!) {
 """
 
 ALL_TEMPLATE_VERSIONS = """
-query {
-    allTemplateVersions {
+query($studies: [ID]) {
+allTemplateVersions(studies: $studies) {
         edges {
             node {
                 id
                 description
                 fieldDefinitions
                 dataTemplate { id }
-                studies { edges { node { id } } }
+                studies { edges { node { id kfId } } }
             }
         }
     }
@@ -131,3 +131,32 @@ def test_query_all_template_version(
         assert len(resp.json()["data"]["allTemplateVersions"]["edges"]) == 5
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_filter_all_template_version(db, permission_client):
+    """
+    Test allTemplateVersion query with filters
+    """
+    user, client = permission_client(["list_all_datatemplate"])
+    org = OrganizationFactory()
+    dt = DataTemplateFactory(organization=org)
+    template_versions = TemplateVersionFactory.create_batch(
+        5, data_template=dt
+    )
+    study = StudyFactory(organization=org)
+    for tv in template_versions[0:2]:
+        tv.studies.add(study)
+        tv.save()
+
+    # Filter by study kf_id
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": ALL_TEMPLATE_VERSIONS,
+            "variables": {
+                "studies": [to_global_id("StudyNode", study.pk)]
+            },
+        },
+        content_type="application/json"
+    )
+    assert len(resp.json()["data"]["allTemplateVersions"]["edges"]) == 2
