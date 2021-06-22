@@ -1,14 +1,18 @@
 from graphene import relay
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.filter import (
+    DjangoFilterConnectionField,
+    GlobalIDMultipleChoiceFilter,
+)
 from graphql import GraphQLError
-from django_filters import FilterSet, OrderingFilter
+from django_filters import FilterSet, OrderingFilter, CharFilter
 
 from creator.data_templates.nodes.template_version import TemplateVersionNode
 from creator.data_templates.models import TemplateVersion
 
 
 class TemplateVersionFilter(FilterSet):
-    order_by = OrderingFilter(fields=("created_at",))
+    order_by = OrderingFilter(fields=("created_at", "modified_at"))
+    studies = GlobalIDMultipleChoiceFilter(field_name="studies__kf_id")
 
     class Meta:
         model = TemplateVersion
