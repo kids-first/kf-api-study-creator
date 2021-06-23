@@ -77,6 +77,7 @@ class Event(models.Model):
             ("IN_UPD", "Ingestion Status Updated"),
             ("PH_UPD", "Phenotype Status Updated"),
             ("ST_UPD", "Sequencing Status Updated"),
+            ("OR_UPD", "Study Organization Updated"),
             ("RT_CRE", "Referral Token Created"),
             ("RT_CLA", "Referral Token Claimed"),
             ("SL_STR", "Slack Channel Creation Start"),
