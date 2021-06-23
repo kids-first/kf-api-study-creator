@@ -1,16 +1,16 @@
 import graphene
 
 from creator.data_templates.queries.data_template import (
-    Query as DataTemplateQuery
+    Query as DataTemplateQuery,
 )
 from creator.data_templates.mutations.data_template import (
-    Mutation as DataTemplateMutation
+    Mutation as DataTemplateMutation,
 )
 from creator.data_templates.queries.template_version import (
-    Query as TemplateVersionQuery
+    Query as TemplateVersionQuery,
 )
 from creator.data_templates.mutations.template_version import (
-    Mutation as TemplateVersionMutation
+    Mutation as TemplateVersionMutation,
 )
 
 

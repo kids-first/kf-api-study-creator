@@ -24,8 +24,6 @@ class DataTemplateNode(DjangoObjectType):
         try:
             data_template = cls._meta.model.objects.get(id=id)
         except cls._meta.model.DoesNotExist:
-            raise GraphQLError(
-                f"DataTemplate {id} does not exist"
-            )
+            raise GraphQLError(f"DataTemplate {id} does not exist")
 
         return data_template

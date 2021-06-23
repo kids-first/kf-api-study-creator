@@ -13,7 +13,7 @@ from creator.data_templates.factories import (
         ("DT_CRE", "created"),
         ("DT_UPD", "updated"),
         ("DT_DEL", "deleted"),
-    ]
+    ],
 )
 def test_data_template_signals(db, event_type, verb):
     """
@@ -28,10 +28,7 @@ def test_data_template_signals(db, event_type, verb):
     elif verb == "deleted":
         dt.delete()
 
-    events = Event.objects.filter(event_type=event_type).all()
-    assert len(events) == 1
-    etypes = {e.event_type for e in events}
-    assert event_type in etypes
+    assert Event.objects.filter(event_type=event_type).count() == 1
 
 
 @pytest.mark.parametrize(
@@ -40,7 +37,7 @@ def test_data_template_signals(db, event_type, verb):
         ("TV_CRE", "created"),
         ("TV_UPD", "updated"),
         ("TV_DEL", "deleted"),
-    ]
+    ],
 )
 def test_template_version_signals(db, event_type, verb):
     """

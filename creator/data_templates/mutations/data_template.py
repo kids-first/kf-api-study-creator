@@ -9,7 +9,7 @@ from creator.data_templates.nodes.data_template import DataTemplateNode
 
 
 class CreateDataTemplateInput(graphene.InputObjectType):
-    """ Parameters used when creating a new data_template """
+    """Parameters used when creating a new data_template"""
 
     name = graphene.String(
         required=True, description="The name of the data_template"
@@ -23,12 +23,12 @@ class CreateDataTemplateInput(graphene.InputObjectType):
     )
     organization = graphene.ID(
         required=True,
-        description="The organization that will own this data_template"
+        description="The organization that will own this data_template",
     )
 
 
 class UpdateDataTemplateInput(graphene.InputObjectType):
-    """ Parameters used when updating an existing data_template """
+    """Parameters used when updating an existing data_template"""
 
     name = graphene.String(description="The name of the data_template")
     description = graphene.String(
@@ -44,7 +44,7 @@ class UpdateDataTemplateInput(graphene.InputObjectType):
 
 
 class CreateDataTemplateMutation(graphene.Mutation):
-    """ Creates a new data_template """
+    """Creates a new data_template"""
 
     class Arguments:
         input = CreateDataTemplateInput(
@@ -87,7 +87,7 @@ class CreateDataTemplateMutation(graphene.Mutation):
 
 
 class UpdateDataTemplateMutation(graphene.Mutation):
-    """ Update an existing data_template """
+    """Update an existing data_template"""
 
     class Arguments:
         id = graphene.ID(
@@ -116,8 +116,9 @@ class UpdateDataTemplateMutation(graphene.Mutation):
 
         # User may only change templates for an org they are a member of
         if not (
-            user.organizations
-            .filter(pk=data_template.organization.pk).exists()
+            user.organizations.filter(
+                pk=data_template.organization.pk
+            ).exists()
         ):
             raise GraphQLError(
                 "Not allowed - may only update templates owned by an "
@@ -154,7 +155,7 @@ class UpdateDataTemplateMutation(graphene.Mutation):
 
 
 class DeleteDataTemplateMutation(graphene.Mutation):
-    """ Delete an existing data_template """
+    """Delete an existing data_template"""
 
     class Arguments:
         id = graphene.ID(
@@ -181,8 +182,9 @@ class DeleteDataTemplateMutation(graphene.Mutation):
 
         # User may only delete templates for an org they are a member of
         if not (
-            user.organizations
-            .filter(pk=data_template.organization.pk).exists()
+            user.organizations.filter(
+                pk=data_template.organization.pk
+            ).exists()
         ):
             raise GraphQLError(
                 "Not allowed - may only delete templates that are owned by "
@@ -202,7 +204,7 @@ class DeleteDataTemplateMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for data_templates """
+    """Mutations for data_templates"""
 
     create_data_template = CreateDataTemplateMutation.Field(
         description="Create a new data_template."

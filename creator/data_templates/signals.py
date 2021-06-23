@@ -2,10 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 
 from creator.events.models import Event
-from creator.data_templates.models import (
-    DataTemplate,
-    TemplateVersion
-)
+from creator.data_templates.models import DataTemplate, TemplateVersion
 
 
 @receiver(post_save, sender=DataTemplate)
@@ -13,7 +10,6 @@ def data_template_post_save(sender, instance, created, **kwargs):
     """
     Fire an event when a data template is created/updated
     """
-    print(f"data template {instance.pk} post save! created: {created}")
     if created:
         verb = "created"
         et = "DT_CRE"
@@ -35,7 +31,6 @@ def template_version_post_save(sender, instance, created, **kwargs):
     """
     Fire an event when a template version is created/updated
     """
-    print(f"template version {instance.pk} post save! created: {created}")
     if created:
         verb = "created"
         et = "TV_CRE"
@@ -57,7 +52,6 @@ def data_template_post_delete(sender, instance, using, *args, **kwargs):
     """
     Fire an event when a data template is deleted
     """
-    print(f"Data template {instance.pk} was deleted")
     Event(
         organization=instance.organization,
         user=instance.creator,
@@ -71,7 +65,6 @@ def template_version_post_delete(sender, instance, using, *args, **kwargs):
     """
     Fire an event when a template version is deleted
     """
-    print(f"Template version {instance.pk} was deleted")
     Event(
         organization=instance.organization,
         user=instance.creator,

@@ -77,10 +77,7 @@ def test_create_data_template(db, permission_client, permissions, allowed):
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_DATA_TEMPLATE,
-            "variables": variables
-        },
+        data={"query": CREATE_DATA_TEMPLATE, "variables": variables},
         content_type="application/json",
     )
 
@@ -115,10 +112,7 @@ def test_create_data_template_missing_org(db, permission_client):
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_DATA_TEMPLATE,
-            "variables": variables
-        },
+        data={"query": CREATE_DATA_TEMPLATE, "variables": variables},
         content_type="application/json",
     )
     assert f"{org_id} does not exist" in resp.json()["errors"][0]["message"]
@@ -142,10 +136,7 @@ def test_create_data_template_not_my_org(db, permission_client):
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_DATA_TEMPLATE,
-            "variables": variables
-        },
+        data={"query": CREATE_DATA_TEMPLATE, "variables": variables},
         content_type="application/json",
     )
     assert f"Not allowed" in resp.json()["errors"][0]["message"]
@@ -375,18 +366,14 @@ def test_delete_data_template(db, permission_client, permissions, allowed):
         data={
             "query": DELETE_DATA_TEMPLATE,
             "variables": {
-                "id": to_global_id(
-                    "DataTemplateNode}}", data_template.id
-                ),
+                "id": to_global_id("DataTemplateNode}}", data_template.id),
             },
         },
         content_type="application/json",
     )
 
     if allowed:
-        resp_dt = (
-            resp.json()["data"]["deleteDataTemplate"]["id"]
-        )
+        resp_dt = resp.json()["data"]["deleteDataTemplate"]["id"]
         assert resp_dt is not None
         with pytest.raises(DataTemplate.DoesNotExist):
             DataTemplate.objects.get(id=data_template.id)
@@ -420,9 +407,7 @@ def test_delete_data_template_does_not_exist(db, permission_client):
     assert DataTemplate.objects.count() == 1
 
 
-def test_delete_data_template_not_my_org(
-    db, permission_client
-):
+def test_delete_data_template_not_my_org(db, permission_client):
     """
     Test the delete data template for an org user is not a member of
     """
@@ -441,9 +426,7 @@ def test_delete_data_template_not_my_org(
         data={
             "query": DELETE_DATA_TEMPLATE,
             "variables": {
-                "id": to_global_id(
-                    "DataTemplateNode}}", data_template.id
-                ),
+                "id": to_global_id("DataTemplateNode}}", data_template.id),
             },
         },
         content_type="application/json",
@@ -466,9 +449,7 @@ def test_delete_released_data_template(db, permission_client):
     # Create template in organization that user is member of
     # with a template version assigned to some studies
     data_template = DataTemplateFactory(organization=org)
-    tv = TemplateVersionFactory(
-        data_template=data_template, studies=studies
-    )
+    tv = TemplateVersionFactory(data_template=data_template, studies=studies)
     tv.refresh_from_db()
 
     assert DataTemplate.objects.count() == 1
@@ -477,9 +458,7 @@ def test_delete_released_data_template(db, permission_client):
         data={
             "query": DELETE_DATA_TEMPLATE,
             "variables": {
-                "id": to_global_id(
-                    "DataTemplateNode}}", data_template.id
-                ),
+                "id": to_global_id("DataTemplateNode}}", data_template.id),
             },
         },
         content_type="application/json",

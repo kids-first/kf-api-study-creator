@@ -24,8 +24,6 @@ class TemplateVersionNode(DjangoObjectType):
         try:
             template_version = cls._meta.model.objects.get(id=id)
         except cls._meta.model.DoesNotExist:
-            raise GraphQLError(
-                f"TemplateVersion {id} does not exist"
-            )
+            raise GraphQLError(f"TemplateVersion {id} does not exist")
 
         return template_version

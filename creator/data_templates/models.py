@@ -79,7 +79,7 @@ class DataTemplate(models.Model):
         null=True,
         blank=True,
         help_text="Name of the Font Awesome icon to use when displaying the "
-        "template in the frontend web application"
+        "template in the frontend web application",
     )
 
     @property
@@ -91,9 +91,9 @@ class DataTemplate(models.Model):
         versions has been assigned to a study
         """
         assigned_to_studies = (
-            TemplateVersion.objects
-            .filter(data_template__pk=self.pk)
-            .exclude(studies=None).count()
+            TemplateVersion.objects.filter(data_template__pk=self.pk)
+            .exclude(studies=None)
+            .count()
         )
         return assigned_to_studies > 0
 
@@ -144,7 +144,7 @@ class TemplateVersion(models.Model):
     )
     field_definitions = JSONField(
         default=dict,
-        help_text="The field definitions for this template version"
+        help_text="The field definitions for this template version",
     )
     data_template = models.ForeignKey(
         DataTemplate,

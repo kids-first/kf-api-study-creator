@@ -1,4 +1,3 @@
-from pprint import pprint
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
@@ -40,5 +39,4 @@ class Query(object):
         if not user.has_perm("data_templates.list_all_datatemplate"):
             raise GraphQLError("Not allowed")
 
-        pprint(kwargs)
         return DataTemplate.objects.all()

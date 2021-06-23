@@ -99,7 +99,7 @@ def test_query_all_data_template(db, permission_client, permissions, allowed):
     resp = client.post(
         "/graphql",
         data={"query": ALL_DATA_TEMPLATES},
-        content_type="application/json"
+        content_type="application/json",
     )
 
     if allowed:
@@ -126,9 +126,9 @@ def test_filter_all_data_template(db, permission_client):
             "query": ALL_DATA_TEMPLATES,
             "variables": {
                 "organization": to_global_id("OrganizationNode", org.pk)
-            }
+            },
         },
-        content_type="application/json"
+        content_type="application/json",
     )
     assert len(resp.json()["data"]["allDataTemplates"]["edges"]) == 2
 
@@ -137,10 +137,8 @@ def test_filter_all_data_template(db, permission_client):
         "/graphql",
         data={
             "query": ALL_DATA_TEMPLATES,
-            "variables": {
-                "organizationName": org.name
-            }
+            "variables": {"organizationName": org.name},
         },
-        content_type="application/json"
+        content_type="application/json",
     )
     assert len(resp.json()["data"]["allDataTemplates"]["edges"]) == 2

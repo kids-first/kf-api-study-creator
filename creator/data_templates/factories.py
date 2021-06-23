@@ -38,7 +38,7 @@ class TemplateVersionFactory(factory.DjangoModelFactory):
                     "default": "foo",
                     "data_type": "string",
                     "instructions": f"Populate label_{x} properly",
-                    "accepted_values": None
+                    "accepted_values": None,
                 }
                 for x in range(2)
             ]

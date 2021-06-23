@@ -1,4 +1,3 @@
-from pprint import pprint
 import graphene
 from graphql import GraphQLError
 from graphql_relay import from_global_id
@@ -36,27 +35,26 @@ def check_studies(study_node_ids):
 
 
 class CreateTemplateVersionInput(graphene.InputObjectType):
-    """ Parameters used when creating a new template_version """
+    """Parameters used when creating a new template_version"""
 
     description = graphene.String(
         required=True, description="The description of the template_version"
     )
     field_definitions = graphene.JSONString(
-        required=True,
-        description="The field definitions for this template"
+        required=True, description="The field definitions for this template"
     )
     data_template = graphene.ID(
         required=True,
-        description="The data_template that this template_version belongs to"
+        description="The data_template that this template_version belongs to",
     )
     studies = graphene.List(
         graphene.ID,
-        description="The studies this template version should be assigned to"
+        description="The studies this template version should be assigned to",
     )
 
 
 class UpdateTemplateVersionInput(graphene.InputObjectType):
-    """ Parameters used when updating an existing template_version """
+    """Parameters used when updating an existing template_version"""
 
     description = graphene.String(
         description="The description of the template_version"
@@ -66,16 +64,17 @@ class UpdateTemplateVersionInput(graphene.InputObjectType):
     )
     studies = graphene.List(
         graphene.ID,
-        description="The studies this template version should be assigned to"
+        description="The studies this template version should be assigned to",
     )
 
 
 class CreateTemplateVersionMutation(graphene.Mutation):
-    """ Creates a new template_version """
+    """Creates a new template_version"""
 
     class Arguments:
         input = CreateTemplateVersionInput(
-            required=True, description="Attributes for the new template_version"
+            required=True,
+            description="Attributes for the new template_version",
         )
 
     template_version = graphene.Field(TemplateVersionNode)
@@ -128,11 +127,12 @@ class CreateTemplateVersionMutation(graphene.Mutation):
 
 
 class UpdateTemplateVersionMutation(graphene.Mutation):
-    """ Update an existing template_version """
+    """Update an existing template_version"""
 
     class Arguments:
         id = graphene.ID(
-            required=True, description="The ID of the template_version to update"
+            required=True,
+            description="The ID of the template_version to update",
         )
         input = UpdateTemplateVersionInput(
             required=True, description="Attributes for the template_version"
@@ -196,11 +196,12 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
 
 
 class DeleteTemplateVersionMutation(graphene.Mutation):
-    """ Delete an existing template_version """
+    """Delete an existing template_version"""
 
     class Arguments:
         id = graphene.ID(
-            required=True, description="The ID of the template_version to delete"
+            required=True,
+            description="The ID of the template_version to delete",
         )
 
     success = graphene.Boolean()
@@ -223,8 +224,9 @@ class DeleteTemplateVersionMutation(graphene.Mutation):
 
         # User may only delete templates for an org they are a member of
         if not (
-            user.organizations
-            .filter(pk=template_version.organization.pk).exists()
+            user.organizations.filter(
+                pk=template_version.organization.pk
+            ).exists()
         ):
             raise GraphQLError(
                 "Not allowed - may only delete templates that are owned by "
@@ -244,7 +246,7 @@ class DeleteTemplateVersionMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for template_versions """
+    """Mutations for template_versions"""
 
     create_template_version = CreateTemplateVersionMutation.Field(
         description="Create a new template_version."

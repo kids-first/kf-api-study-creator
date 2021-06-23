@@ -10,7 +10,7 @@ from creator.organizations.factories import OrganizationFactory
 from creator.data_templates.models import TemplateVersion
 from creator.data_templates.factories import (
     DataTemplateFactory,
-    TemplateVersionFactory
+    TemplateVersionFactory,
 )
 from creator.data_templates.mutations.template_version import check_studies
 
@@ -79,22 +79,19 @@ def test_create_template_version(db, permission_client, permissions, allowed):
             "fieldDefinitions": json.dumps({}),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
-            "studies": [to_global_id("StudyNode", s.pk) for s in studies]
+            "studies": [to_global_id("StudyNode", s.pk) for s in studies],
         }
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_TEMPLATE_VERSION,
-            "variables": variables
-        },
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
         content_type="application/json",
     )
 
     if allowed:
-        resp_dt = (
-            resp.json()["data"]["createTemplateVersion"]["templateVersion"]
-        )
+        resp_dt = resp.json()["data"]["createTemplateVersion"][
+            "templateVersion"
+        ]
         assert resp_dt is not None
 
         # Check creation
@@ -131,10 +128,7 @@ def test_create_version_missing_data_template(db, permission_client):
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_TEMPLATE_VERSION,
-            "variables": variables
-        },
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
         content_type="application/json",
     )
 
@@ -159,10 +153,7 @@ def test_create_template_version_not_my_org(db, permission_client):
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_TEMPLATE_VERSION,
-            "variables": variables
-        },
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
         content_type="application/json",
     )
 
@@ -186,15 +177,12 @@ def test_create_template_version_missing_studies(db, permission_client):
             "fieldDefinitions": json.dumps({}),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
-            "studies": [to_global_id("StudyNode", s) for s in studies]
+            "studies": [to_global_id("StudyNode", s) for s in studies],
         }
     }
     resp = client.post(
         "/graphql",
-        data={
-            "query": CREATE_TEMPLATE_VERSION,
-            "variables": variables
-        },
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
         content_type="application/json",
     )
 
@@ -264,7 +252,7 @@ def test_update_template_version(db, permission_client, permissions, allowed):
     input_ = {
         "fieldDefinitions": json.dumps({"fields": []}),
         "description": "Added sex col to Participant Details",
-        "studies": [to_global_id("StudyNode", s.pk) for s in studies]
+        "studies": [to_global_id("StudyNode", s.pk) for s in studies],
     }
     resp = client.post(
         "/graphql",
@@ -282,9 +270,9 @@ def test_update_template_version(db, permission_client, permissions, allowed):
     template_version.refresh_from_db()
 
     if allowed:
-        resp_dt = (
-            resp.json()["data"]["updateTemplateVersion"]["templateVersion"]
-        )
+        resp_dt = resp.json()["data"]["updateTemplateVersion"][
+            "templateVersion"
+        ]
         assert resp_dt is not None
 
         # Check attributes
@@ -326,9 +314,7 @@ def test_update_template_version_does_not_exist(db, permission_client):
     assert TemplateVersion.objects.count() == 0
 
 
-def test_update_template_version_not_my_org(
-    db, permission_client
-):
+def test_update_template_version_not_my_org(db, permission_client):
     """
     Test the update template version for an org user is not a member of
     """
@@ -442,9 +428,7 @@ def test_delete_template_version(db, permission_client, permissions, allowed):
     )
 
     if allowed:
-        resp_dt = (
-            resp.json()["data"]["deleteTemplateVersion"]["id"]
-        )
+        resp_dt = resp.json()["data"]["deleteTemplateVersion"]["id"]
         assert resp_dt is not None
         with pytest.raises(TemplateVersion.DoesNotExist):
             TemplateVersion.objects.get(id=template_version.id)
@@ -479,9 +463,7 @@ def test_delete_template_version_does_not_exist(db, permission_client):
     assert TemplateVersion.objects.count() == 1
 
 
-def test_delete_template_version_not_my_org(
-    db, permission_client
-):
+def test_delete_template_version_not_my_org(db, permission_client):
     """
     Test the delete template version for an org user is not a member of
     """

@@ -5,7 +5,7 @@ from creator.organizations.factories import OrganizationFactory
 from creator.studies.factories import StudyFactory
 from creator.data_templates.factories import (
     DataTemplateFactory,
-    TemplateVersionFactory
+    TemplateVersionFactory,
 )
 
 TEMPLATE_VERSION = """
@@ -71,9 +71,13 @@ def test_query_template_version(db, permission_client, permissions, allowed):
     if allowed:
         dt = resp.json()["data"]["templateVersion"]
         assert dt["id"] == to_global_id(
-            "TemplateVersionNode", template_version.id)
+            "TemplateVersionNode", template_version.id
+        )
         for attr in [
-            "description", "fieldDefinitions", "dataTemplate", "studies"
+            "description",
+            "fieldDefinitions",
+            "dataTemplate",
+            "studies",
         ]:
             assert dt[attr]
     else:
@@ -124,7 +128,7 @@ def test_query_all_template_version(
     resp = client.post(
         "/graphql",
         data={"query": ALL_TEMPLATE_VERSIONS},
-        content_type="application/json"
+        content_type="application/json",
     )
 
     if allowed:
@@ -153,10 +157,8 @@ def test_filter_all_template_version(db, permission_client):
         "/graphql",
         data={
             "query": ALL_TEMPLATE_VERSIONS,
-            "variables": {
-                "studies": [to_global_id("StudyNode", study.pk)]
-            },
+            "variables": {"studies": [to_global_id("StudyNode", study.pk)]},
         },
-        content_type="application/json"
+        content_type="application/json",
     )
     assert len(resp.json()["data"]["allTemplateVersions"]["edges"]) == 2
