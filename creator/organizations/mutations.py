@@ -183,6 +183,71 @@ class AddMemberMutation(graphene.Mutation):
         return AddMemberMutation(organization=organization)
 
 
+class RemoveMemberMutation(graphene.Mutation):
+    """ Mutation to remove a member from an organization """
+
+    class Arguments:
+        """ Arguments to remove a member from an organization """
+
+        organization = graphene.ID(
+            required=True, description="The ID of the organization to update"
+        )
+        user = graphene.ID(
+            required=True,
+            description="The ID of the user to remove the to the organization",
+        )
+
+    organization = graphene.Field(OrganizationNode)
+
+    def mutate(self, info, organization, user):
+        """
+        Remove a member from an organization
+        """
+        user_id = user
+        user = info.context.user
+        if not user.has_perm("organizations.change_organization"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            _, organization_id = from_global_id(organization)
+            organization = Organization.objects.get(pk=organization_id)
+        except Organization.DoesNotExist:
+            raise GraphQLError(
+                f"Organization {organization_id} does not exist"
+            )
+
+        try:
+            _, user_id = from_global_id(user_id)
+            member = User.objects.get(id=int(user_id))
+        except (User.DoesNotExist, TypeError):
+            raise GraphQLError(f"User {user_id} does not exist.")
+
+        if member.organizations.filter(pk=organization_id).exists():
+            organization.members.remove(member)
+            message = (
+                f"{user.display_name} removed {member.display_name} "
+                f"from organization {organization.name}"
+            )
+            event = Event(
+                organization=organization,
+                description=message,
+                event_type="MB_REM",
+            )
+        else:
+            raise GraphQLError(
+                f"User {member.display_name} is not a member of "
+                f"organization {organization.name}."
+            )
+
+        organization.save()
+
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return RemoveMemberMutation(organization=organization)
+
+
 class Mutation:
     create_organization = CreateOrganizationMutation.Field(
         description="Create a new organization"
@@ -192,4 +257,7 @@ class Mutation:
     )
     add_member = AddMemberMutation.Field(
         description="Add a member to an organization"
+    )
+    remove_member = RemoveMemberMutation.Field(
+        description="Remove a member from an organization"
     )
