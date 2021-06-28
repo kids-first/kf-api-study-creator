@@ -4,6 +4,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 from creator.events.schema import EventNode, EventFilter
 from creator.files.schema.file import FileNode, FileFilter
+from creator.files.schema.version import VersionNode, VersionFilter
 from creator.releases.nodes import ReleaseNode
 from creator.releases.queries import ReleaseFilter
 from creator.studies.models import (
@@ -29,6 +30,12 @@ class StudyNode(DjangoObjectType):
         ReleaseNode,
         filterset_class=ReleaseFilter,
         description="List all releases for the study",
+    )
+
+    versions = DjangoFilterConnectionField(
+        VersionNode,
+        filterset_class=VersionFilter,
+        description="List all versions"
     )
 
     class Meta:
