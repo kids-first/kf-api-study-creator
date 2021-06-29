@@ -33,7 +33,9 @@ logger.setLevel(logging.INFO)
 
 
 class StudyFilter(FilterSet):
-    order_by = OrderingFilter(fields=("name", "created_on", "organization"))
+    order_by = OrderingFilter(
+        fields=("name", "created_at", "organization", "versions__created_at")
+    )
 
     class Meta:
         model = Study
