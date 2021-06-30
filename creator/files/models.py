@@ -33,8 +33,6 @@ def only_printable(string):
 
 class FileType(Enum):
     OTH = "OTH"  # Other
-    SHM = "SHM"  # OLD: Sequencing Harmonizition Manifest
-    CLN = "CLN"  # OLD: Clinical File
     DBG = "DBG"  # OLD: dbGaP Submission file
     FAM = "FAM"  # OLD: Family Relationship
     S3S = "S3S"  # S3 Scrape
