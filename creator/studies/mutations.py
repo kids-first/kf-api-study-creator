@@ -736,6 +736,75 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
         return UpdatePhenotypeStatusMutation(study=study)
 
 
+class TransferStudyMutation(graphene.Mutation):
+    """ Mutation to transfer study to another organization"""
+
+    class Arguments:
+        study = graphene.ID(
+            required=True,
+            description="The ID of the study to remove the collaborator from",
+        )
+        organization = graphene.ID(
+            required=True,
+            description="The organization to transfer the study to."
+        )
+
+    study = graphene.Field(StudyNode)
+
+    def mutate(self, info, study, organization):
+        """
+        Update the organization of a study
+        """
+        user = info.context.user
+        if not user.has_perm("organizations.change_organization"):
+            raise GraphQLError("Not allowed")
+
+        try:
+            _, study_id = from_global_id(study)
+            study = Study.objects.get(kf_id=study_id)
+        except (Study.DoesNotExist):
+            raise GraphQLError(f"Study {study_id} does not exist.")
+
+        try:
+            _, organization_id = from_global_id(organization)
+            organization_node = Organization.objects.get(pk=organization_id)
+        except Organization.DoesNotExist:
+            raise GraphQLError(
+                f"Organization {organization_id} does not exist"
+            )
+
+        if not user.organizations.filter(pk=study.organization.id).exists():
+            raise GraphQLError(
+                "Not allowed - may only transfer study from an "
+                "organization the user is a member of."
+            )
+        if not user.organizations.filter(pk=organization_id).exists():
+            raise GraphQLError(
+                "Not allowed - may only transfer study to an "
+                "organization the user is a member of."
+            )
+
+        study.organization = organization_node
+        study.save()
+
+        message = (
+            f"{user.display_name} update study {study.kf_id}'s organization "
+            f"to {study.organization.name}"
+        )
+        event = Event(
+            organization=study.organization,
+            study=study,
+            description=message,
+            event_type="OR_UPD",
+        )
+
+        if not user._state.adding:
+            event.user = user
+        event.save()
+
+        return TransferStudyMutation(study=study)
+
+
 class Mutation:
     """ Mutations for studies """
 
@@ -765,4 +834,8 @@ class Mutation:
 
     update_phenotype_status = UpdatePhenotypeStatusMutation.Field(
         description="Update the phenotype status of a study"
+    )
+
+    transfer_study = TransferStudyMutation.Field(
+        description="Update the organization of a study"
     )
