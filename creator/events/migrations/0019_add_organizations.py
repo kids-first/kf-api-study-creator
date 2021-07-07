@@ -24,7 +24,7 @@ def delete_default_org(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("organizations", "0001_initial"),
+        ("studies", "0025_add_organizations"),
         ("events", "0018_add_intermed_ingest_process_states"),
     ]
 
