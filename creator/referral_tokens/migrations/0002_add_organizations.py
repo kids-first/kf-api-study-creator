@@ -24,7 +24,7 @@ def delete_default_org(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("organizations", "__first__"),
+        ("studies", "0025_add_organizations"),
         ("referral_tokens", "0001_initial"),
     ]
 
