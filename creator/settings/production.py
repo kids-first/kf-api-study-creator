@@ -140,7 +140,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "creator.wsgi.application"
 
-GRAPHENE = {"SCHEMA": "creator.schema.schema"}
+GRAPHENE = {
+    "SCHEMA": "creator.schema.schema",
+    "RELAY_CONNECTION_MAX_LIMIT": 250,
+}
 
 
 # Database
