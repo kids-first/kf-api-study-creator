@@ -106,6 +106,7 @@ WSGI_APPLICATION = "creator.wsgi.application"
 GRAPHENE = {
     "SCHEMA": "creator.schema.schema",
     "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware"],
+    "RELAY_CONNECTION_MAX_LIMIT": 250,
 }
 
 
