@@ -22,9 +22,7 @@ def test_default_types(db, clients, upload_file):
     file = File.objects.get(kf_id=kf_id)
     version = file.versions.latest("created_at")
 
-    assert set(file.valid_types) == set(
-        ["OTH", "SHM", "CLN", "DBG", "FAM"]
-    )
+    assert set(file.valid_types) == {"OTH", "DBG", "FAM"}
     assert file.valid_types == version.valid_types
 
 

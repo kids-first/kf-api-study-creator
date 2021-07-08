@@ -1,11 +1,5 @@
 FILE_TYPES = {
     "OTH": {"name": "Other", "required_columns": [], "template": None},
-    "SHM": {
-        "name": "Shipping Manifest",
-        "required_columns": [],
-        "template": None,
-    },
-    "CLN": {"name": "Clinical Data", "required_columns": [], "template": None},
     "DBG": {
         "name": "dbGaP Submission File",
         "required_columns": [],

@@ -23,7 +23,7 @@ class FuzzyTags(factory.fuzzy.BaseFuzzyAttribute):
 
 class FileTypeProvider(BaseProvider):
     def file_type(self):
-        return factory.fuzzy.FuzzyChoice(["SEQ", "SHM", "CLN", "OTH"]).fuzz()
+        return factory.fuzzy.FuzzyChoice(["SEQ", "OTH"]).fuzz()
 
     def version_state(self):
         n = factory.fuzzy.FuzzyInteger(1, 5).fuzz()
