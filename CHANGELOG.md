@@ -1,5 +1,44 @@
 # Kids First Study Creator Change History
 
+## Release 1.18.0
+
+### Summary
+
+- Emojis: 🔧 x1, ♻️ x8, 🐛 x2, ✨ x9, 👷 x1, ⬆️ x4, ? x1, 📝 x1, 🔊 x1
+- Categories: Additions x10, Documentation x1, Fixes x2, Ops x5, Other Changes x10
+
+### New features and changes
+
+- [#692](https://github.com/kids-first/kf-api-study-creator/pull/692) - 🔧 Increase max number of relay connections - [b626c021](https://github.com/kids-first/kf-api-study-creator/commit/b626c0214861652426be6e0fc82f9262d8384c64) by [dankolbman](https://github.com/dankolbman)
+- [#687](https://github.com/kids-first/kf-api-study-creator/pull/687) - ♻️ Remove obsolete file types - [5e718da8](https://github.com/kids-first/kf-api-study-creator/commit/5e718da86d41fbcad56ce25f299c8961d140b09d) by [gsantia](https://github.com/gsantia)
+- [#690](https://github.com/kids-first/kf-api-study-creator/pull/690) - 🐛 Fix order of organization migrations - [7ce852db](https://github.com/kids-first/kf-api-study-creator/commit/7ce852db4bbd0b49a627ec4d83c0f6636871408d) by [znatty22](https://github.com/znatty22)
+- [#684](https://github.com/kids-first/kf-api-study-creator/pull/684) - ✨ Add mutation to transfer study to another organization - [a0c8702c](https://github.com/kids-first/kf-api-study-creator/commit/a0c8702c3ee34dbac83d4268eeae4e32866487ab) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#680](https://github.com/kids-first/kf-api-study-creator/pull/680) - 🐛 Update Study model to auto-populate created_at - [12b7ce08](https://github.com/kids-first/kf-api-study-creator/commit/12b7ce087b58ddc953983031c7e63176a2305858) by [gsantia](https://github.com/gsantia)
+- [#681](https://github.com/kids-first/kf-api-study-creator/pull/681) - ✨ Sort studies by last active - [bfb72b88](https://github.com/kids-first/kf-api-study-creator/commit/bfb72b88ac75b141da5cda487a3547806c02619b) by [gsantia](https://github.com/gsantia)
+- [#632](https://github.com/kids-first/kf-api-study-creator/pull/632) - ✨ Add Organizations app - [d1662993](https://github.com/kids-first/kf-api-study-creator/commit/d166299317eb256718500d8fa2398e3bf21e4e79) by [dankolbman](https://github.com/dankolbman)
+- [#617](https://github.com/kids-first/kf-api-study-creator/pull/617) - ✨ Data review file validation task - [db1b25ab](https://github.com/kids-first/kf-api-study-creator/commit/db1b25ab97266635227273608e54f1cb336e5120) by [znatty22](https://github.com/znatty22)
+- [#667](https://github.com/kids-first/kf-api-study-creator/pull/667) - ♻️ Address graphene and markdown warnings - [3db2d110](https://github.com/kids-first/kf-api-study-creator/commit/3db2d1107df3f0d03da1e19a669c8ca344babdeb) by [gsantia](https://github.com/gsantia)
+- [#672](https://github.com/kids-first/kf-api-study-creator/pull/672) - ✨ Add node query for querying nodes - [0c7286e8](https://github.com/kids-first/kf-api-study-creator/commit/0c7286e82c9c6a57f6064e488a7dc449dcb7e694) by [shanewilson](https://github.com/shanewilson)
+- [#671](https://github.com/kids-first/kf-api-study-creator/pull/671) - 👷 Cache dependencies in CircleCI - [27d594c8](https://github.com/kids-first/kf-api-study-creator/commit/27d594c80f3181e277769e4027da9090f6bc91d5) by [gsantia](https://github.com/gsantia)
+- [#670](https://github.com/kids-first/kf-api-study-creator/pull/670) - ⬆️  Bump pytest and ingest library versions - [41304c00](https://github.com/kids-first/kf-api-study-creator/commit/41304c00ff5ea54323e655fc0828559e9b135e2f) by [gsantia](https://github.com/gsantia)
+- [#660](https://github.com/kids-first/kf-api-study-creator/pull/660) - ♻️ Overwrite S3 files when appending - [88dc9f16](https://github.com/kids-first/kf-api-study-creator/commit/88dc9f1639baa578710c6b32f67dbe61fc8d571c) by [dankolbman](https://github.com/dankolbman)
+- [#662](https://github.com/kids-first/kf-api-study-creator/pull/662) - ♻️ Add timezone to Banner mutation datetimes - [79709668](https://github.com/kids-first/kf-api-study-creator/commit/79709668d66752f2ca91be8ad8b049849973f74c) by [gsantia](https://github.com/gsantia)
+- [#664](https://github.com/kids-first/kf-api-study-creator/pull/664) - ♻️ Fix pandas indexing warnings - [6877ef7a](https://github.com/kids-first/kf-api-study-creator/commit/6877ef7ac0536e490aa70053d4af9ca4a380a45f) by [gsantia](https://github.com/gsantia)
+- [#665](https://github.com/kids-first/kf-api-study-creator/pull/665) - ⬆️ Bump Django version to fix regression - [08b0e671](https://github.com/kids-first/kf-api-study-creator/commit/08b0e6716ff58669d6d0234fbb4e0e1da5c339d2) by [dankolbman](https://github.com/dankolbman)
+- [#571](https://github.com/kids-first/kf-api-study-creator/pull/571) - ✨ Add new doc types and extract configs - [1abe0031](https://github.com/kids-first/kf-api-study-creator/commit/1abe0031b42c9429a767f5069cb94141f3262d2a) by [dankolbman](https://github.com/dankolbman)
+- [#658](https://github.com/kids-first/kf-api-study-creator/pull/658) - ⬆️ Bump django from 2.2.20 to 2.2.21 - [11b1454d](https://github.com/kids-first/kf-api-study-creator/commit/11b1454df7a070f94deaa0671e93aad2852398ff) by [dependabot[bot]](https://github.com/apps/dependabot)
+- [#655](https://github.com/kids-first/kf-api-study-creator/pull/655) - ♻️ Add study attribute to IngestProcess - [a47041db](https://github.com/kids-first/kf-api-study-creator/commit/a47041db0e48d0ae89afb7ca7bf300c37a7cd961) by [gsantia](https://github.com/gsantia)
+- [#645](https://github.com/kids-first/kf-api-study-creator/pull/645) - ♻️ Modify tests for upgraded ingest lib - [66cb07bc](https://github.com/kids-first/kf-api-study-creator/commit/66cb07bc513d37528e0e190ef12e531a2d374db6) by [gsantia](https://github.com/gsantia)
+- [#600](https://github.com/kids-first/kf-api-study-creator/pull/600) -  Added push to public ECR - [63b67dd3](https://github.com/kids-first/kf-api-study-creator/commit/63b67dd379e7445cdd6acb3e14b76cb0144bc8e9) by [alubneuski](https://github.com/alubneuski)
+- [#639](https://github.com/kids-first/kf-api-study-creator/pull/639) - ✨ Add additional fields to study model - [d41af7ec](https://github.com/kids-first/kf-api-study-creator/commit/d41af7ec2a123c1d366242cc4a90ee8f7d2c35b3) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#502](https://github.com/kids-first/kf-api-study-creator/pull/502) - ✨ Ingest task genomic workflow output - [9e988172](https://github.com/kids-first/kf-api-study-creator/commit/9e9881722d44620f8e0ac097240437ccc329d697) by [gsantia](https://github.com/gsantia)
+- [#618](https://github.com/kids-first/kf-api-study-creator/pull/618) - 📝 Add RFC for Organization - [e5199d08](https://github.com/kids-first/kf-api-study-creator/commit/e5199d08657342d3a83af7f62e123c4d387cea28) by [dankolbman](https://github.com/dankolbman)
+- [#630](https://github.com/kids-first/kf-api-study-creator/pull/630) - ♻️ Condense status check logs - [2ce41758](https://github.com/kids-first/kf-api-study-creator/commit/2ce41758f2c02168655f0e8ff762d98b5af48549) by [gsantia](https://github.com/gsantia)
+- [#620](https://github.com/kids-first/kf-api-study-creator/pull/620) - 🔊 Warn instead of raising exception - [ff2a4283](https://github.com/kids-first/kf-api-study-creator/commit/ff2a428356c9ab5bf71659096bd4fb15b7405da6) by [dankolbman](https://github.com/dankolbman)
+- [#628](https://github.com/kids-first/kf-api-study-creator/pull/628) - ✨ Add debug middleware - [d835d80f](https://github.com/kids-first/kf-api-study-creator/commit/d835d80f3137e14d010c4592eeac8c0c29cd22a1) by [dankolbman](https://github.com/dankolbman)
+- [#625](https://github.com/kids-first/kf-api-study-creator/pull/625) - ⬆️ Upgrade Sentry sdk - [38212e82](https://github.com/kids-first/kf-api-study-creator/commit/38212e82d71974123f78969cdaa6f247dc6945f3) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.17.1
 
 ### Summary
