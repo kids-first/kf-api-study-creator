@@ -7,7 +7,7 @@ if [[ "$WORKER" == "true" ]]; then
 elif [[ "$1" == "scheduler" ]]; then
     echo "Starting scheduler"
     /app/manage.py schedule_jobs
-    supervisord -c  /etc/supervisor/conf.d/scheduler.conf
+    exec /app/manage.py rqscheduler
 else
     echo "Starting service"
     echo "Migrate"
