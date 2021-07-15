@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 
 
 def post_pin(client, study, channel_id):
-    """ Post a descriptive message for the channel and pin it """
+    """Post a descriptive message for the channel and pin it"""
     message = f"{study.kf_id} - {study.name}"
     link = f"{settings.DATA_TRACKER_URL}/study/{study.kf_id}"
     utm = "?utm_source=slack_pin"
@@ -71,7 +71,7 @@ def post_pin(client, study, channel_id):
 
 
 def invite_users(client, study, channel_id):
-    """ Invite users to the new channel """
+    """Invite users to the new channel"""
     # No users
     if settings.SLACK_USERS is None:
         return
@@ -184,6 +184,7 @@ def summary_post():
         blocks = []
         study_id = studyObj.kf_id
         study_name = studyObj.name
+        SLACK_LIMIT = 50
 
         # Get all events for a single study within previous 24 hours
         study_events = studyObj.events.filter(
@@ -298,6 +299,22 @@ def summary_post():
             blocks.append(header)
             blocks.extend(file_timelines["COLLABORATOR"])
 
+        # If there are more than _SLACK_LIMIT_ blocks, truncate to
+        # _SLACK_LIMIT_ - 1 and append a final block alerting the user.
+        # Formatted this way so that codecov won't complain.
+        header = document_header(
+            settings.DATA_TRACKER_URL,
+            file_id,
+            (
+                f"Too many events for a single message. Last "
+                f"{SLACK_LIMIT - 1} returned."
+            ),
+        )
+        blocks = (
+            blocks
+            if len(blocks) <= SLACK_LIMIT
+            else blocks[-SLACK_LIMIT + 1:] + [header]
+        )
         return blocks
 
     filtered_studies = (
@@ -340,7 +357,7 @@ def summary_post():
             response = client.chat_postMessage(
                 channel=channel_id,
                 blocks=blocks,
-                text="There are new updates for study {study.name}.",
+                text=f"There are new updates for study {study.name}.",
             )
 
             # Should be caught by the slack client but we will check anyway
