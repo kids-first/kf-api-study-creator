@@ -55,6 +55,11 @@ class CreateTemplateVersionInput(graphene.InputObjectType):
         required=True,
         description="The data_template that this template_version belongs to",
     )
+    apply_to_all = graphene.Boolean(
+        description="Whether to add this template version to all of the "
+        "organization's studies. This will override anything in the studies "
+        "input parameter.",
+    )
     studies = graphene.List(
         graphene.ID,
         description="The studies this template version should be assigned to",
@@ -69,6 +74,11 @@ class UpdateTemplateVersionInput(graphene.InputObjectType):
     )
     field_definitions = graphene.JSONString(
         description="The field definitions for this template"
+    )
+    apply_to_all = graphene.Boolean(
+        description="Whether to add this template version to all of the "
+        "organization's studies. This will override anything in the studies "
+        "input parameter.",
     )
     studies = graphene.List(
         graphene.ID,
@@ -111,6 +121,9 @@ class CreateTemplateVersionMutation(graphene.Mutation):
                 "that are owned by the user's organization."
             )
 
+        # Get apply flag for later
+        apply_to_all = input.pop("apply_to_all", None)
+
         # Get study ids for later
         study_ids = input.pop("studies", None)
 
@@ -125,11 +138,15 @@ class CreateTemplateVersionMutation(graphene.Mutation):
             template_version.save()
 
             # Add studies to the template version if they exist
-            if study_ids:
-                # Ensure studies exist and user is a member in all the studies
-                studies = check_studies(study_ids, user)
-                template_version.studies.set(studies)
-                template_version.save()
+            if apply_to_all:
+                template_version.studies.set(dt.organization.studies.all())
+            else:
+                if study_ids:
+                    # Ensure studies exist and user is a member in all the
+                    # studies
+                    studies = check_studies(study_ids, user)
+                    template_version.studies.set(studies)
+            template_version.save()
 
         return CreateTemplateVersionMutation(template_version=template_version)
 
@@ -174,6 +191,9 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
                 "templates that are owned by the user's organization."
             )
 
+        # Get apply flag for later
+        apply_to_all = input.pop("apply_to_all", None)
+
         # Get study ids for later
         study_ids = input.pop("studies", None)
 
@@ -182,15 +202,21 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
                 setattr(template_version, k, v)
             template_version.creator = user
 
-            # Validate and save template
+            # Validate template
             template_version.clean()
-            template_version.save()
 
-            # Update studies if they exist
-            if study_ids:
-                studies = check_studies(study_ids, user)
-                template_version.studies.set(studies)
-                template_version.save()
+            # Add studies to the template version if they exist
+            if apply_to_all:
+                template_version.studies.set(
+                    template_version.data_template.organization.studies.all()
+                )
+            else:
+                if study_ids:
+                    # Ensure studies exist and user is a member in all the
+                    # studies
+                    studies = check_studies(study_ids, user)
+                    template_version.studies.set(studies)
+            template_version.save()
 
         return UpdateTemplateVersionMutation(template_version=template_version)
 

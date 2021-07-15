@@ -111,6 +111,46 @@ def test_create_template_version(db, permission_client, permissions, allowed):
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 
 
+def test_create_and_apply_all(db, permission_client):
+    """
+    Test create and add template to all studies in org
+    """
+    user, client = permission_client(["add_datatemplate"])
+    org = OrganizationFactory()
+    studies = StudyFactory.create_batch(3, organization=org)
+    user.organizations.add(org)
+    user.studies.set(studies)
+    user.save()
+    dt = DataTemplateFactory(organization=org)
+
+    variables = {
+        "input": {
+            "fieldDefinitions": json.dumps({}),
+            "description": "Added gender col to Participant Details",
+            "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
+            # User accidentally supplied both these inputs
+            # Should result in apply all behavior
+            "applyToAll": True,
+            "studies": [to_global_id("StudyNode", studies[0].pk)],
+        }
+    }
+    resp = client.post(
+        "/graphql",
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
+        content_type="application/json",
+    )
+
+    # Check creation
+    resp_dt = resp.json()["data"]["createTemplateVersion"][
+        "templateVersion"
+    ]
+    assert resp_dt is not None
+    _, node_id = from_global_id(resp_dt["id"])
+    tv = TemplateVersion.objects.get(pk=node_id)
+    assert set(s.pk for s in tv.studies.all()) == set(
+        s.pk for s in org.studies.all())
+
+
 def test_create_version_missing_data_template(db, permission_client):
     """
     Test the create mutation when the data template does not exist
@@ -296,6 +336,51 @@ def test_update_template_version(db, permission_client, permissions, allowed):
 
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+def test_update_and_apply_all(db, permission_client):
+    """
+    Test update and add template to all studies in org
+    """
+    # Create a user that is a member of an org and some studies
+    user, client = permission_client(["change_datatemplate"])
+    org = OrganizationFactory()
+    studies = StudyFactory.create_batch(2, organization=org)
+    user.studies.set(studies)
+    user.organizations.add(org)
+    user.save()
+    # Create template in organization that user is member of
+    dt = DataTemplateFactory(organization=org)
+    tv = TemplateVersionFactory(data_template=dt)
+
+    input_ = {
+        "fieldDefinitions": json.dumps({}),
+        "description": "Added gender col to Participant Details",
+        # User accidentally supplied both these inputs
+        # Should result in apply all behavior
+        "applyToAll": True,
+        "studies": [to_global_id("StudyNode", studies[0].pk)],
+    }
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id("TemplateVersionNode", tv.id),
+                "input": input_,
+            },
+        },
+        content_type="application/json",
+    )
+    tv.refresh_from_db()
+
+    # Check update
+    resp_dt = resp.json()["data"]["updateTemplateVersion"][
+        "templateVersion"
+    ]
+    assert resp_dt is not None
+    assert set(s.pk for s in tv.studies.all()) == set(
+        s.pk for s in org.studies.all())
 
 
 def test_update_template_version_does_not_exist(db, permission_client):
