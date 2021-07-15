@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.18.1
+
+### Summary
+
+- Emojis: 🔧 x1
+- Categories: Other Changes x1
+
+### New features and changes
+
+- [#696](https://github.com/kids-first/kf-api-study-creator/pull/696) - 🔧 Run scheduler without supervisor - [5e652a7d](https://github.com/kids-first/kf-api-study-creator/commit/5e652a7d8fe8401423b49551830afa12dd769add) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.18.0
 
 ### Summary
