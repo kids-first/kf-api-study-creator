@@ -21,6 +21,7 @@ import creator.releases.schema
 import creator.data_reviews.schema
 import creator.ingest_runs.schema
 import creator.organizations.schema
+import creator.data_templates.schema
 
 
 class Query(
@@ -38,6 +39,7 @@ class Query(
     creator.data_reviews.schema.Query,
     creator.ingest_runs.schema.Query,
     creator.organizations.schema.Query,
+    creator.data_templates.schema.Query,
     graphene.ObjectType,
 ):
     """ Root query schema combining all apps' schemas """
@@ -62,6 +64,7 @@ class Mutation(
     creator.data_reviews.schema.Mutation,
     creator.ingest_runs.schema.Mutation,
     creator.organizations.schema.Mutation,
+    creator.data_templates.schema.Mutation,
     graphene.ObjectType,
 ):
     """ Root mutation schema combining all apps' schemas """

@@ -9,6 +9,7 @@ from creator.projects.models import Project
 from creator.buckets.models import Bucket
 from creator.data_reviews.models import DataReview
 from creator.ingest_runs.models import IngestRun, ValidationRun
+from creator.data_templates.models import DataTemplate, TemplateVersion
 
 User = get_user_model()
 
@@ -36,6 +37,12 @@ class Event(models.Model):
     event_type = models.CharField(
         max_length=6,
         choices=(
+            ("TV_CRE", "Template Version Created"),
+            ("TV_UPD", "Template Version Updated"),
+            ("TV_DEL", "Template Version Deleted"),
+            ("DT_CRE", "Data Template Created"),
+            ("DT_UPD", "Data Template Updated"),
+            ("DT_DEL", "Data Template Deleted"),
             ("VR_INI", "Validation Run Initializing"),
             ("VR_STA", "Validation Run Started"),
             ("VR_CLG", "Validation Run Canceling"),
@@ -180,4 +187,20 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="Validation Run related to this event",
+    )
+    data_template = models.ForeignKey(
+        DataTemplate,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Data Template related to this event",
+    )
+    template_version = models.ForeignKey(
+        TemplateVersion,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Template Version related to this event",
     )
