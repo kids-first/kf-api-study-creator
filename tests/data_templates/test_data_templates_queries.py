@@ -12,6 +12,7 @@ query ($id: ID!) {
         description
         icon
         organization { id }
+        released
     }
 }
 """
@@ -26,6 +27,7 @@ query($organization: ID, $organizationName: String) {
                 description
                 icon
                 organization { id name }
+                released
             }
         }
     }
@@ -58,8 +60,13 @@ def test_query_data_template(db, permission_client, permissions, allowed):
     if allowed:
         dt = resp.json()["data"]["dataTemplate"]
         assert dt["id"] == to_global_id("DataTemplateNode", data_template.id)
-        for attr in ["name", "description", "icon", "organization"]:
-            assert dt[attr]
+        for attr in [
+            "name", "description", "icon", "organization", "released"
+        ]:
+            if attr == "released":
+                assert dt[attr] is not None
+            else:
+                assert dt[attr]
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 

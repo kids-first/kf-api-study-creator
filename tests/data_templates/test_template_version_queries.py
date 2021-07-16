@@ -16,6 +16,7 @@ query ($id: ID!) {
         fieldDefinitions
         dataTemplate { id }
         studies { edges { node { id } } }
+        released
     }
 }
 """
@@ -30,6 +31,7 @@ allTemplateVersions(studies: $studies) {
                 fieldDefinitions
                 dataTemplate { id }
                 studies { edges { node { id kfId } } }
+                released
             }
         }
     }
@@ -78,8 +80,12 @@ def test_query_template_version(db, permission_client, permissions, allowed):
             "fieldDefinitions",
             "dataTemplate",
             "studies",
+            "released",
         ]:
-            assert dt[attr]
+            if attr == "released":
+                assert dt[attr] is not None
+            else:
+                assert dt[attr]
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 

@@ -1,4 +1,4 @@
-from graphene import relay
+from graphene import relay, Boolean
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
 
@@ -6,6 +6,8 @@ from creator.data_templates.models import DataTemplate
 
 
 class DataTemplateNode(DjangoObjectType):
+    released = Boolean(source="released")
+
     class Meta:
         model = DataTemplate
         interfaces = (relay.Node,)

@@ -1,4 +1,4 @@
-from graphene import relay
+from graphene import relay, Boolean
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
 
@@ -6,6 +6,8 @@ from creator.data_templates.models import TemplateVersion
 
 
 class TemplateVersionNode(DjangoObjectType):
+    released = Boolean(source="released")
+
     class Meta:
         model = TemplateVersion
         interfaces = (relay.Node,)
