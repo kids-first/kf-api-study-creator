@@ -12,18 +12,26 @@ from creator.data_templates.models import (
 from creator.data_templates.nodes.template_version import TemplateVersionNode
 
 
-def check_studies(study_node_ids, user):
+def check_studies(study_ids, user, primary_keys=False):
     """
-    Check if studies exist and user is a member in all studies. Return the
-    Study objects if checks pass
+    Check if user is allowed to modify all studies and studies exist.
+    Return the Study objects if checks pass
 
     Helper function called in create/update template version mutations
     """
+    # Check that user is allowed to modify studies
+    if not user.has_perm("studies.change_study"):
+        raise GraphQLError(
+            "Not allowed - user not authorized to modify studies"
+        )
+
     # Convert graphql relay ids to primary keys
-    study_ids = []
-    for sid in study_node_ids:
-        _, study_id = from_global_id(sid)
-        study_ids.append(study_id)
+    if not primary_keys:
+        study_node_ids = study_ids
+        study_ids = []
+        for sid in study_node_ids:
+            _, study_id = from_global_id(sid)
+            study_ids.append(study_id)
 
     # Check all studies exist
     studies = Study.objects.filter(pk__in=study_ids).only("kf_id").all()
@@ -31,12 +39,6 @@ def check_studies(study_node_ids, user):
         raise GraphQLError(
             "Failed to create/update template version because one or more "
             "studies in the input do not exist. "
-        )
-
-    # Check that user is a member of all studies
-    if user.studies.filter(pk__in=study_ids).count() != len(studies):
-        raise GraphQLError(
-            "Not allowed - user may only modify studies they are a member of"
         )
 
     return studies
@@ -139,11 +141,13 @@ class CreateTemplateVersionMutation(graphene.Mutation):
 
             # Add studies to the template version if they exist
             if apply_to_all:
-                template_version.studies.set(dt.organization.studies.all())
+                study_ids = [s.pk for s in dt.organization.studies.all()]
+                studies = check_studies(study_ids, user, primary_keys=True)
+                template_version.studies.set(studies)
+
+            # Add template version to selected studies if they exist
             else:
                 if study_ids:
-                    # Ensure studies exist and user is a member in all the
-                    # studies
                     studies = check_studies(study_ids, user)
                     template_version.studies.set(studies)
             template_version.save()
@@ -207,15 +211,17 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
 
             # Add studies to the template version if they exist
             if apply_to_all:
-                template_version.studies.set(
-                    template_version.data_template.organization.studies.all()
-                )
+                dt = template_version.data_template
+                study_ids = [s.pk for s in dt.organization.studies.all()]
+                studies = check_studies(study_ids, user, primary_keys=True)
+                template_version.studies.set(studies)
+
+            # Add template version to selected studies if they exist
             else:
                 if study_ids:
-                    # Ensure studies exist and user is a member in all the
-                    # studies
                     studies = check_studies(study_ids, user)
                     template_version.studies.set(studies)
+
             template_version.save()
 
         return UpdateTemplateVersionMutation(template_version=template_version)

@@ -15,7 +15,6 @@ from creator.data_templates.factories import (
 )
 from creator.data_templates.mutations.template_version import check_studies
 
-
 CREATE_TEMPLATE_VERSION = """
 mutation ($input: CreateTemplateVersionInput!) {
     createTemplateVersion(input: $input) {
@@ -57,7 +56,8 @@ DELETE_TEMPLATE_VERSION = """
 @pytest.mark.parametrize(
     "permissions,allowed",
     [
-        (["add_datatemplate"], True),
+        (["add_datatemplate", "change_study"], True),
+        (["add_datatemplate"], False),
         ([], False),
     ],
 )
@@ -108,14 +108,14 @@ def test_create_template_version(db, permission_client, permissions, allowed):
         assert template_version.data_template.pk == dt_node
 
     else:
-        assert resp.json()["errors"][0]["message"] == "Not allowed"
+        assert "Not allowed" in resp.json()["errors"][0]["message"]
 
 
 def test_create_and_apply_all(db, permission_client):
     """
     Test create and add template to all studies in org
     """
-    user, client = permission_client(["add_datatemplate"])
+    user, client = permission_client(["add_datatemplate", "change_study"])
     org = OrganizationFactory()
     studies = StudyFactory.create_batch(3, organization=org)
     user.organizations.add(org)
@@ -207,7 +207,7 @@ def test_create_template_version_missing_studies(db, permission_client):
     """
     Test the create template version with a study that doesn't exist
     """
-    user, client = permission_client(["add_datatemplate"])
+    user, client = permission_client(["add_datatemplate", "change_study"])
     org = OrganizationFactory()
     user.organizations.add(org)
     user.save()
@@ -236,27 +236,33 @@ def test_check_studies(db):
     """
     Test helper function used in template version mutations
     """
-    # Study that doesn't exist should error
-    node_ids = [to_global_id("StudyNode", str(uuid.uuid4()))]
-    with pytest.raises(GraphQLError) as e:
-        check_studies(node_ids, "user")
-    assert "Failed to create/update" in str(e)
+    class MockUser:
+        def __init__(self, perms=[]):
+            self.perms = perms
 
-    # User is not a member of all input studies
+        def has_perm(self, perm):
+            return perm in set(self.perms)
+
     studies = StudyFactory.create_batch(4)
-    user_studies = studies[0:2]
-    user = UserFactory()
-    user.studies.set(user_studies)
-    user.save()
+
+    # User doesn't have change study permission
+    user = MockUser()
     node_ids = [to_global_id("StudyNode", s.pk) for s in studies]
     with pytest.raises(GraphQLError) as e:
         check_studies(node_ids, user)
     assert "Not allowed" in str(e)
 
-    # If all studies' pk exist and user a member of all, return studies
-    node_ids = [to_global_id("StudyNode", s.pk) for s in user_studies]
-    out = check_studies(node_ids, user)
-    assert set(s.pk for s in out) == set(s.pk for s in user_studies)
+    # Study that doesn't exist should error
+    user = MockUser(perms=["studies.change_study"])
+    node_ids = [to_global_id("StudyNode", str(uuid.uuid4()))]
+    with pytest.raises(GraphQLError) as e:
+        check_studies(node_ids, user)
+    assert "Failed to create/update" in str(e)
+
+    # If all studies' pk exist and user allowed to modify, return studies
+    study_ids = [s.pk for s in studies]
+    out = check_studies(study_ids, user, primary_keys=True)
+    assert set(s.pk for s in out) == set(study_ids)
 
 
 def test_template_released(db):
@@ -280,7 +286,8 @@ def test_template_released(db):
 @pytest.mark.parametrize(
     "permissions,allowed",
     [
-        (["change_datatemplate"], True),
+        (["change_datatemplate", "change_study"], True),
+        (["change_datatemplate"], False),
         ([], False),
     ],
 )
@@ -335,7 +342,7 @@ def test_update_template_version(db, permission_client, permissions, allowed):
         )
 
     else:
-        assert resp.json()["errors"][0]["message"] == "Not allowed"
+        assert "Not allowed" in resp.json()["errors"][0]["message"]
 
 
 def test_update_and_apply_all(db, permission_client):
@@ -343,7 +350,7 @@ def test_update_and_apply_all(db, permission_client):
     Test update and add template to all studies in org
     """
     # Create a user that is a member of an org and some studies
-    user, client = permission_client(["change_datatemplate"])
+    user, client = permission_client(["change_datatemplate", "change_study"])
     org = OrganizationFactory()
     studies = StudyFactory.create_batch(2, organization=org)
     user.studies.set(studies)
