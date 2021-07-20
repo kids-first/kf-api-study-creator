@@ -20,26 +20,36 @@ operations = [
         out_col=CONCEPT.DIAGNOSIS.CATEGORY,
     ),
     keep_map(
+        in_col="Verification Status",
+        out_col=CONCEPT.DIAGNOSIS.VERIFICATION,
+        optional=True
+    ),
+    keep_map(
         in_col="Age at Onset Value",
         out_col=CONCEPT.DIAGNOSIS.EVENT_AGE.VALUE,
+        optional=True
     ),
     keep_map(
         in_col="Age at Onset Units",
         out_col=CONCEPT.DIAGNOSIS.EVENT_AGE.UNITS,
+        optional=True
     ),
     keep_map(
         in_col="Body Site Name",
         out_col=CONCEPT.DIAGNOSIS.TUMOR_LOCATION,
+        optional=True
     ),
     value_map(
         in_col="Body Site UBERON Code",
         m=misc.map_uberon,
         out_col=CONCEPT.DIAGNOSIS.UBERON_TUMOR_LOCATION_ID,
+        optional=True
     ),
     value_map(
         in_col="Condition MONDO Code",
         m=misc.map_mondo,
         out_col=CONCEPT.DIAGNOSIS.MONDO_ID,
+        optional=True
     ),
     # Not supported, by concept schema or Dataservice yet
     # keep_map(

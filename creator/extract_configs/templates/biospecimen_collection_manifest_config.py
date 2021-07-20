@@ -14,18 +14,6 @@ operations = [
     keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
     keep_map(in_col="Specimen ID", out_col=CONCEPT.BIOSPECIMEN_GROUP.ID),
     keep_map(
-        in_col="Consent Group",
-        out_col=CONCEPT.BIOSPECIMEN.DBGAP_STYLE_CONSENT_CODE
-    ),
-    keep_map(
-        in_col="Consent Short Name",
-        out_col=CONCEPT.BIOSPECIMEN.CONSENT_SHORT_NAME
-    ),
-    keep_map(
-        in_col="Tissue Type Name",
-        out_col=CONCEPT.BIOSPECIMEN.TISSUE_TYPE,
-    ),
-    keep_map(
         in_col="Composition Name",
         out_col=CONCEPT.BIOSPECIMEN.COMPOSITION,
     ),
@@ -37,22 +25,42 @@ operations = [
         in_col="Body Site UBERON Code",
         m=misc.map_uberon,
         out_col=CONCEPT.BIOSPECIMEN.UBERON_ANATOMY_SITE_ID,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Consent Group",
+        out_col=CONCEPT.BIOSPECIMEN.DBGAP_STYLE_CONSENT_CODE,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Consent Short Name",
+        out_col=CONCEPT.BIOSPECIMEN.CONSENT_SHORT_NAME,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Tissue Type Name",
+        out_col=CONCEPT.BIOSPECIMEN.TISSUE_TYPE,
+        optional=True,
     ),
     keep_map(
         in_col="Age at Collection Value",
         out_col=CONCEPT.BIOSPECIMEN.EVENT_AGE_DAYS,
+        optional=True,
     ),
     keep_map(
         in_col="Method of Sample Procurement",
         out_col=CONCEPT.BIOSPECIMEN.SAMPLE_PROCUREMENT,
+        optional=True,
     ),
     keep_map(
         in_col="Quantity Value",
         out_col=CONCEPT.BIOSPECIMEN.VOLUME_UL,
+        optional=True,
     ),
     keep_map(
         in_col="Concentration Value",
         out_col=CONCEPT.BIOSPECIMEN.CONCENTRATION_MG_PER_ML,
+        optional=True,
     ),
     # Not supported, by concept schema or Dataservice yet
     # keep_map(

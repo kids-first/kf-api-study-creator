@@ -28,33 +28,57 @@ def disease_related(row):
 
 
 operations = [
-    keep_map(in_col="Family ID", out_col=CONCEPT.FAMILY.ID),
     keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
     keep_map(
-        in_col="Last Known Vital Status",
-        out_col=CONCEPT.OUTCOME.VITAL_STATUS,
-    ),
-    row_map(
-        m=disease_related,
-        out_col=CONCEPT.OUTCOME.DISEASE_RELATED,
-    ),
-    keep_map(
-        in_col="dbGaP Consent Code", out_col=CONCEPT.PARTICIPANT.CONSENT_TYPE
+        in_col="Clinical Sex", out_col=CONCEPT.PARTICIPANT.GENDER
     ),
     keep_map(
         in_col="Affected Status",
         out_col=CONCEPT.PARTICIPANT.IS_AFFECTED_UNDER_STUDY,
     ),
     keep_map(
-        in_col="Clinical Sex", out_col=CONCEPT.PARTICIPANT.GENDER
+        in_col="Proband",
+        out_col=CONCEPT.PARTICIPANT.IS_PROBAND,
+    ),
+    keep_map(
+        in_col="Family ID",
+        out_col=CONCEPT.FAMILY.ID,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Last Known Vital Status",
+        out_col=CONCEPT.OUTCOME.VITAL_STATUS,
+        optional=True,
+    ),
+    row_map(
+        m=disease_related,
+        out_col=CONCEPT.OUTCOME.DISEASE_RELATED,
+    ),
+    keep_map(
+        in_col="dbGaP Consent Code",
+        out_col=CONCEPT.PARTICIPANT.CONSENT_TYPE,
+        optional=True,
     ),
     keep_map(
         in_col="Age at Study Enrollment Value",
         out_col=CONCEPT.PARTICIPANT.ENROLLMENT_AGE_DAYS,
+        optional=True,
     ),
-    keep_map(in_col="Race", out_col=CONCEPT.PARTICIPANT.RACE),
-    keep_map(in_col="Ethnicity", out_col=CONCEPT.PARTICIPANT.ETHNICITY),
-    keep_map(in_col="Species", out_col=CONCEPT.PARTICIPANT.SPECIES),
+    keep_map(
+        in_col="Race",
+        out_col=CONCEPT.PARTICIPANT.RACE,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Ethnicity",
+        out_col=CONCEPT.PARTICIPANT.ETHNICITY,
+        optional=True,
+    ),
+    keep_map(
+        in_col="Species",
+        out_col=CONCEPT.PARTICIPANT.SPECIES,
+        optional=True,
+    ),
 
     # Not supported by concept schema or Dataservice yet
     # keep_map(

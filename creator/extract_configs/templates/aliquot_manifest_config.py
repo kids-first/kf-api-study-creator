@@ -11,7 +11,6 @@ from kf_lib_data_ingest.common import misc
 source_data_url = "{{ download_url }}"
 
 operations = [
-    keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
     keep_map(in_col="Specimen ID", out_col=CONCEPT.BIOSPECIMEN_GROUP.ID),
     keep_map(
         in_col="Aliquot ID", out_col=CONCEPT.BIOSPECIMEN.ID

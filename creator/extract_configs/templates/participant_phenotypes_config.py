@@ -21,11 +21,13 @@ operations = [
     keep_map(
         in_col="Age at Onset Value",
         out_col=CONCEPT.PHENOTYPE.EVENT_AGE_DAYS,
+        optional=True,
     ),
     value_map(
         in_col="Condition HPO Code",
         m=misc.map_hpo,
         out_col=CONCEPT.PHENOTYPE.HPO_ID,
+        optional=True,
     ),
 
     # Not supported, by concept schema or Dataservice yet
