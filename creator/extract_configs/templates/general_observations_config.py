@@ -18,25 +18,32 @@ source_data_url = "{{ download_url }}"
 
 operations = [
     keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
-    keep_map(in_col="Status", out_col=CONCEPT.OBSERVATION.STATUS),
+    keep_map(in_col="Observation Name", out_col=CONCEPT.OBSERVATION.NAME),
     keep_map(in_col="Category", out_col=CONCEPT.OBSERVATION.CATEGORY),
+    keep_map(in_col="Status", out_col=CONCEPT.OBSERVATION.STATUS),
     keep_map(
         in_col="Interpretation",
         out_col=CONCEPT.OBSERVATION.INTERPRETATION,
+        optional=True,
     ),
-    keep_map(in_col="Observation Name", out_col=CONCEPT.OBSERVATION.NAME),
-    keep_map(in_col="Observation Ontology Ontobee URI",
-             out_col=CONCEPT.OBSERVATION.ONTOLOGY_ONTOBEE_URI),
+    keep_map(
+        in_col="Observation Ontology Ontobee URI",
+        out_col=CONCEPT.OBSERVATION.ONTOLOGY_ONTOBEE_URI,
+        optional=True,
+    ),
     keep_map(
         in_col="Observation Code",
         out_col=CONCEPT.OBSERVATION.ONTOLOGY_CODE,
+        optional=True,
     ),
     keep_map(
         in_col="Age at Observation Value",
         out_col=CONCEPT.OBSERVATION.EVENT_AGE.VALUE,
+        optional=True,
     ),
     keep_map(
         in_col="Age at Observation Units",
         out_col=CONCEPT.OBSERVATION.EVENT_AGE.UNITS,
+        optional=True,
     ),
 ]
