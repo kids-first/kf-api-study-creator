@@ -12,6 +12,9 @@ from creator.data_templates.queries.template_version import (
 from creator.data_templates.mutations.template_version import (
     Mutation as TemplateVersionMutation,
 )
+from creator.data_templates.mutations.study_templates import (
+    Mutation as StudyTemplateMutation,
+)
 
 
 class Query(DataTemplateQuery, TemplateVersionQuery, graphene.ObjectType):
@@ -19,6 +22,9 @@ class Query(DataTemplateQuery, TemplateVersionQuery, graphene.ObjectType):
 
 
 class Mutation(
-    DataTemplateMutation, TemplateVersionMutation, graphene.ObjectType
+    DataTemplateMutation,
+    TemplateVersionMutation,
+    StudyTemplateMutation,
+    graphene.ObjectType,
 ):
     pass

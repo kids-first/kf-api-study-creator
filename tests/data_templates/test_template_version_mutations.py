@@ -4,8 +4,6 @@ import uuid
 from graphql_relay import to_global_id, from_global_id
 from graphql import GraphQLError
 
-from creator.studies.models import Study
-from creator.users.factories import UserFactory
 from creator.studies.factories import StudyFactory
 from creator.organizations.factories import OrganizationFactory
 from creator.data_templates.models import TemplateVersion
@@ -14,6 +12,7 @@ from creator.data_templates.factories import (
     TemplateVersionFactory,
 )
 from creator.data_templates.mutations.template_version import check_studies
+
 
 CREATE_TEMPLATE_VERSION = """
 mutation ($input: CreateTemplateVersionInput!) {
@@ -141,14 +140,13 @@ def test_create_and_apply_all(db, permission_client):
     )
 
     # Check creation
-    resp_dt = resp.json()["data"]["createTemplateVersion"][
-        "templateVersion"
-    ]
+    resp_dt = resp.json()["data"]["createTemplateVersion"]["templateVersion"]
     assert resp_dt is not None
     _, node_id = from_global_id(resp_dt["id"])
     tv = TemplateVersion.objects.get(pk=node_id)
     assert set(s.pk for s in tv.studies.all()) == set(
-        s.pk for s in org.studies.all())
+        s.pk for s in org.studies.all()
+    )
 
 
 def test_create_version_missing_data_template(db, permission_client):
@@ -199,7 +197,7 @@ def test_create_template_version_not_my_org(db, permission_client):
         content_type="application/json",
     )
 
-    assert f"Not allowed" in resp.json()["errors"][0]["message"]
+    assert "Not allowed" in resp.json()["errors"][0]["message"]
     assert TemplateVersion.objects.count() == 0
 
 
@@ -228,7 +226,7 @@ def test_create_template_version_missing_studies(db, permission_client):
         content_type="application/json",
     )
 
-    assert f"Failed to create/update" in resp.json()["errors"][0]["message"]
+    assert "Failed to create/update" in resp.json()["errors"][0]["message"]
     assert TemplateVersion.objects.count() == 0
 
 
@@ -236,6 +234,7 @@ def test_check_studies(db):
     """
     Test helper function used in template version mutations
     """
+
     class MockUser:
         def __init__(self, perms=[]):
             self.perms = perms
@@ -382,12 +381,11 @@ def test_update_and_apply_all(db, permission_client):
     tv.refresh_from_db()
 
     # Check update
-    resp_dt = resp.json()["data"]["updateTemplateVersion"][
-        "templateVersion"
-    ]
+    resp_dt = resp.json()["data"]["updateTemplateVersion"]["templateVersion"]
     assert resp_dt is not None
     assert set(s.pk for s in tv.studies.all()) == set(
-        s.pk for s in org.studies.all())
+        s.pk for s in org.studies.all()
+    )
 
 
 def test_update_template_version_does_not_exist(db, permission_client):
@@ -448,7 +446,7 @@ def test_update_template_version_not_my_org(db, permission_client):
     )
     template_version.refresh_from_db()
 
-    assert f"Not allowed" in resp.json()["errors"][0]["message"]
+    assert "Not allowed" in resp.json()["errors"][0]["message"]
 
 
 @pytest.mark.parametrize(
@@ -549,13 +547,13 @@ def test_delete_template_version_not_my_org(db, permission_client):
         content_type="application/json",
     )
 
-    assert f"Not allowed" in resp.json()["errors"][0]["message"]
+    assert "Not allowed" in resp.json()["errors"][0]["message"]
     assert TemplateVersion.objects.count() == 1
 
 
 def test_delete_released_template_version(db, permission_client):
     """
-    Test the delete template version after its already being used by studies
+    Test the delete template version after it's already being used by studies
     """
     user, client = permission_client(["delete_datatemplate"])
     # Add user to an organization
@@ -582,5 +580,5 @@ def test_delete_released_template_version(db, permission_client):
         content_type="application/json",
     )
 
-    assert f"used by any studies" in resp.json()["errors"][0]["message"]
+    assert "used by any studies" in resp.json()["errors"][0]["message"]
     assert TemplateVersion.objects.count() == 1

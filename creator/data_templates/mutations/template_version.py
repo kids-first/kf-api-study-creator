@@ -2,7 +2,6 @@ import graphene
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 from django.db import transaction
-from django.conf import settings
 
 from creator.studies.models import Study
 from creator.data_templates.models import (
@@ -16,7 +15,6 @@ def check_studies(study_ids, user, primary_keys=False):
     """
     Check if user is allowed to modify all studies and studies exist.
     Return the Study objects if checks pass
-
     Helper function called in create/update template version mutations
     """
     # Check that user is allowed to modify studies
@@ -48,10 +46,12 @@ class CreateTemplateVersionInput(graphene.InputObjectType):
     """Parameters used when creating a new template_version"""
 
     description = graphene.String(
-        required=True, description="The description of the template_version"
+        required=True,
+        description="The description of the template_version",
     )
     field_definitions = graphene.JSONString(
-        required=True, description="The field definitions for this template"
+        required=True,
+        description="The field definitions for this template",
     )
     data_template = graphene.ID(
         required=True,
