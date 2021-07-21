@@ -10,7 +10,6 @@ from kf_lib_data_ingest.etl.extract.operations import keep_map
 source_data_url = "{{ download_url }}"
 
 operations = [
-    keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
     keep_map(in_col="Specimen ID", out_col=CONCEPT.BIOSPECIMEN_GROUP.ID),
     keep_map(
         in_col="Aliquot ID", out_col=CONCEPT.BIOSPECIMEN.ID
@@ -22,14 +21,12 @@ operations = [
     keep_map(
         in_col="Quantity Value",
         out_col=CONCEPT.BIOSPECIMEN.VOLUME_UL,
+        optional=True,
     ),
     keep_map(
         in_col="Concentration Value",
         out_col=CONCEPT.BIOSPECIMEN.CONCENTRATION_MG_PER_ML,
-    ),
-    keep_map(
-        in_col="Sequencing Center",
-        out_col=CONCEPT.SEQUENCING.CENTER.NAME,
+        optional=True,
     ),
     # Not supported, by concept schema or Dataservice yet
     # keep_map(

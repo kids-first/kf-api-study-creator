@@ -11,6 +11,16 @@ from kf_lib_data_ingest.common import misc
 source_data_url = "{{ download_url }}"
 
 
+def map_hpo(v):
+    """
+    Map v to an HPO code
+    """
+    if v is None:
+        return v
+    else:
+        return misc.map_hpo(str(v))
+
+
 operations = [
     keep_map(in_col="Participant ID", out_col=CONCEPT.PARTICIPANT.ID),
     keep_map(
@@ -21,11 +31,13 @@ operations = [
     keep_map(
         in_col="Age at Onset Value",
         out_col=CONCEPT.PHENOTYPE.EVENT_AGE_DAYS,
+        optional=True,
     ),
     value_map(
         in_col="Condition HPO Code",
-        m=misc.map_hpo,
+        m=map_hpo,
         out_col=CONCEPT.PHENOTYPE.HPO_ID,
+        optional=True,
     ),
 
     # Not supported, by concept schema or Dataservice yet
