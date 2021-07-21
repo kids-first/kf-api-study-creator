@@ -1,5 +1,20 @@
 # Kids First Study Creator Change History
 
+## Release 1.18.2
+
+### Summary
+
+- Emojis: ♻️ x2, ✨ x2
+- Categories: Additions x2, Other Changes x2
+
+### New features and changes
+
+- [#705](https://github.com/kids-first/kf-api-study-creator/pull/705) - ♻️ Relax required columns in file types - [3f81405f](https://github.com/kids-first/kf-api-study-creator/commit/3f81405f76791ca398c03347e91a79cb7ab13bb8) by [znatty22](https://github.com/znatty22)
+- [#693](https://github.com/kids-first/kf-api-study-creator/pull/693) - ✨ Add mutations to link/unlink templates to/from studies - [d159335c](https://github.com/kids-first/kf-api-study-creator/commit/d159335c0ec92c475a8816b4b82bda5da906a3b5) by [gsantia](https://github.com/gsantia)
+- [#698](https://github.com/kids-first/kf-api-study-creator/pull/698) - ♻️ Limit length of Slack notifications - [6478978e](https://github.com/kids-first/kf-api-study-creator/commit/6478978e0f4ddf481494138e2b4e4bb37b40f69d) by [gsantia](https://github.com/gsantia)
+- [#682](https://github.com/kids-first/kf-api-study-creator/pull/682) - ✨ Initial template management API - [fc4ba6ec](https://github.com/kids-first/kf-api-study-creator/commit/fc4ba6ec0b9041816aadb84f3a5e7819b4d64c85) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.18.1
 
 ### Summary
