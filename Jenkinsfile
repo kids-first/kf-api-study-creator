@@ -18,4 +18,5 @@ ecs_service_type_1_standard {
     override_templates = "true"
     additional_ssl_cert_domain_name = "*.kidsfirstdrc.org"
     publish_to_public_repo = "true"
+    ecs_service_type_1_version = "v4.1"
 }
