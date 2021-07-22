@@ -3,6 +3,7 @@ from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.organizations.models import Organization
 from creator.organizations.factories import OrganizationFactory
+from creator.users.factories import UserFactory
 
 User = get_user_model()
 
@@ -20,6 +21,15 @@ query {
     allOrganizations {
         edges { node { id name } }
     }
+}
+"""
+
+ORGANIZATION_USERS = """
+query ($id: ID!) {
+  organization (id: $id){
+    id
+    users {edges {node {id username}}}
+  }
 }
 """
 
@@ -41,6 +51,39 @@ def test_query_organization(db, permission_client):
 
     assert "errors" not in resp.json()
     assert resp.json()["data"]["organization"]["name"] == organization.name
+
+
+def test_query_organization_users(db, permission_client):
+    """
+    Users with the 'view_organization' permission should be able to retrieve
+    an organization and its member users.
+    """
+    user, client = permission_client(["view_organization"])
+    org = OrganizationFactory()
+    org2 = OrganizationFactory()
+
+    user1 = UserFactory()
+    user1.organizations.set([org])
+    user1.save()
+    user2 = UserFactory()
+    user2.organizations.set([org2])
+    user2.save()
+    user3 = UserFactory()
+    user3.organizations.set([org, org2])
+
+    variables = {"id": to_global_id("OrganizationNode", org.pk)}
+    resp = client.post(
+        "/graphql",
+        data={"query": ORGANIZATION_USERS, "variables": variables},
+        content_type="application/json",
+    )
+
+    # We should get back user1 and user3
+    assert "errors" not in resp.json()
+    user_nodes = resp.json()["data"]["organization"]["users"]["edges"]
+    user_ids = [node["node"]["id"] for node in user_nodes]
+    for user in (user1, user3):
+        assert to_global_id("UserNode", user.pk) in user_ids
 
 
 def test_query_organization_not_allowed(db, permission_client):
