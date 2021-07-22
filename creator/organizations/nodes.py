@@ -1,11 +1,22 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphene_django.filter import DjangoFilterConnectionField
 from graphql import GraphQLError
 
 from creator.organizations.models import Organization
+from creator.users.schema import (
+    UserFilter,
+    UserNode,
+)
 
 
 class OrganizationNode(DjangoObjectType):
+    users = DjangoFilterConnectionField(
+        UserNode,
+        filterset_class=UserFilter,
+        description="List all users in an organization",
+    )
+
     class Meta:
         model = Organization
         interfaces = (graphene.relay.Node,)
