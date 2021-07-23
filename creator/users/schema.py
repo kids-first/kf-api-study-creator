@@ -5,15 +5,21 @@ from graphql_relay import from_global_id
 from graphql import GraphQLError
 from graphene_django import DjangoObjectType
 from graphene_django.converter import convert_django_field_with_choices
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.filter import (
+    DjangoFilterConnectionField,
+    GlobalIDFilter,
+)
 from django_filters import OrderingFilter
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 
-from creator.studies.models import Study, Membership
-
+from creator.studies.models import Membership
 from creator.users.mutations import Mutation
+
+from creator.organizations.nodes import OrganizationNode
+from creator.organizations.queries import OrganizationFilter
+
 
 User = get_user_model()
 
@@ -92,6 +98,12 @@ class CollaboratorConnection(graphene.Connection):
 
 class UserNode(DjangoObjectType):
     display_name = graphene.String(source="display_name")
+
+    organizations = DjangoFilterConnectionField(
+        OrganizationNode,
+        filterset_class=OrganizationFilter,
+        description="List all organizations the user is in",
+    )
 
     class Meta:
         model = User
@@ -180,6 +192,8 @@ class PermissionNode(DjangoObjectType):
 
 
 class UserFilter(django_filters.FilterSet):
+    organization = GlobalIDFilter(field_name="organizations")
+
     class Meta:
         model = User
         fields = {
