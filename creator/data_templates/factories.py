@@ -30,21 +30,23 @@ class TemplateVersionFactory(factory.DjangoModelFactory):
     )
     description = factory.Faker("paragraph", nb_sentences=3)
     field_definitions = factory.Dict(
-        {
-            "fields": [
-                {
-                    "key": f"key_{x}",
-                    "label": f"label_{x}",
-                    "description": f"My field label_{x} is awesome",
-                    "required": "required",
-                    "default": "foo",
-                    "data_type": "string",
-                    "instructions": f"Populate label_{x} properly",
-                    "accepted_values": None,
-                }
-                for x in range(2)
-            ]
-        }
+        TemplateVersion.field_definitions_schema.load(
+            {
+                "fields": [
+                    {
+                        "key": f"key_{x}",
+                        "label": f"label_{x}",
+                        "description": f"My field label_{x} is awesome",
+                        "required": True,
+                        "data_type": "string",
+                        "instructions": f"Populate label_{x} properly",
+                        "accepted_values": ["a", "b", "c"],
+                        "missing_values": "Unknown, Not Reported",
+                    }
+                    for x in range(2)
+                ]
+            }
+        )
     )
     creator = factory.SubFactory(UserFactory)
     data_template = factory.SubFactory(DataTemplateFactory)
