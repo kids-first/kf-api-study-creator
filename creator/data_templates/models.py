@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 
 import pandas
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
-from kf_lib_data_ingest.common.io import read_df
+from kf_lib_data_ingest.common.io import read_df, read_json
 
 from creator.fields import kf_id_generator
 from creator.studies.models import Study
@@ -239,3 +240,39 @@ class TemplateVersion(models.Model):
         self.field_definitions = (
             self.field_definitions_schema.load(self.field_definitions)
         )
+
+    @classmethod
+    def load_field_definitions(cls, filepath_or_buffer, **kwargs):
+        """
+        Import field definitions from a file (tsv, csv, or json):
+
+        - Parse file content into JSON
+        - Best-effort clean up of human errors
+        - Validate JSON against field definitions schema
+
+        :param file_path_or_buffer: path or file-like object to read data from
+        :kwargs: Keyword args forwarded to read_df
+        """
+        ext = None
+        is_str = False
+        if isinstance(filepath_or_buffer, str):
+            _, ext = os.path.splitext(filepath_or_buffer)
+            is_str = True
+        else:
+            original_name = kwargs.get("original_name", "")
+            _, ext = os.path.splitext(original_name)
+
+        # Read tabular or JSON file into a DataFrame with str dtype
+        if ext == ".json":
+            if is_str:
+                with open(filepath_or_buffer) as json_file:
+                    data = json.load(json_file)
+            else:
+                data = json.load(filepath_or_buffer)
+        else:
+            # Convert DataFrame to field definitions dict
+            df = read_df(filepath_or_buffer, **kwargs)
+            data = {"fields": df.to_dict(orient="records")}
+
+        # Clean input data and validate against the schema
+        return cls.field_definitions_schema.load(data)
