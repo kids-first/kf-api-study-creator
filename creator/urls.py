@@ -8,6 +8,7 @@ import creator.files.views
 import creator.extract_configs.views
 import creator.jobs.views
 import creator.ingest_runs.views
+import creator.data_templates.views
 
 
 def health_check(request):
@@ -73,6 +74,10 @@ urlpatterns = [
     path(
         r'download/data_review/<review_id>/validation/<file_type>',
         creator.ingest_runs.views.download_validation_file
+    ),
+    path(
+        r'download/templates/<study_kf_id>',
+        creator.data_templates.views.download_study_templates
     ),
 ]
 
