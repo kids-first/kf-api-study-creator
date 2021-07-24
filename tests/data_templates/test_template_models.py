@@ -1,5 +1,4 @@
 import pandas
-from pprint import pprint
 
 from creator.studies.factories import StudyFactory
 from creator.organizations.factories import OrganizationFactory
