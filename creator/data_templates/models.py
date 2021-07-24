@@ -1,11 +1,21 @@
+import os
 import uuid
-from django.contrib.postgres.fields import JSONField
+
+import pandas
 from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import JSONField
+from kf_lib_data_ingest.common.io import read_df
 
 from creator.fields import kf_id_generator
 from creator.studies.models import Study
 from creator.organizations.models import Organization
+from creator.data_templates.field_definitions_schema import (
+    FieldDefinitionsSchema
+)
+
 
 User = get_user_model()
 
@@ -79,7 +89,7 @@ class DataTemplate(models.Model):
         null=True,
         blank=True,
         help_text="Name of the Font Awesome icon to use when displaying the "
-        "template in the frontend web application",
+        "template in the frontend web application"
     )
 
     @property
@@ -105,6 +115,8 @@ class TemplateVersion(models.Model):
     Encapsulates the data template's field definitions (e.g. columns,
     accepted values, instructions for populating, etc.)
     """
+
+    field_definitions_schema = FieldDefinitionsSchema()
 
     class Meta:
         permissions = [
@@ -174,8 +186,10 @@ class TemplateVersion(models.Model):
 
     def clean(self):
         """
-        Validate this template version
-
-        TODO Validate field definitions
+        Validate template version
         """
-        pass
+        # Try to fix any human errors in the data before validating against
+        # the field definitions schema (See FieldDefinitionsSchema.clean)
+        self.field_definitions = (
+            self.field_definitions_schema.load(self.field_definitions)
+        )
