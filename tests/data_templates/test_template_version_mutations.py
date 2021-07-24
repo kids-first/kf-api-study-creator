@@ -13,6 +13,16 @@ from creator.data_templates.factories import (
 )
 from creator.data_templates.mutations.template_version import check_studies
 
+FIELDS = {"fields": [
+    {
+        "key": "person.id",
+        "label": "Person ID",
+        "description": "Person identifiers",
+        "required": True,
+        "data_type": "string",
+        "instructions": f"Populate person id properly",
+    }
+]}
 
 CREATE_TEMPLATE_VERSION = """
 mutation ($input: CreateTemplateVersionInput!) {
@@ -77,7 +87,7 @@ def test_create_template_version(db, permission_client, permissions, allowed):
 
     variables = {
         "input": {
-            "fieldDefinitions": json.dumps({}),
+            "fieldDefinitions": json.dumps(FIELDS),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
             "studies": [to_global_id("StudyNode", s.pk) for s in studies],
@@ -110,6 +120,34 @@ def test_create_template_version(db, permission_client, permissions, allowed):
         assert "Not allowed" in resp.json()["errors"][0]["message"]
 
 
+def test_create_template_version_invalid(db, permission_client):
+    """
+    Test the create mutation with invalid field definitions
+    """
+    user, client = permission_client(["add_datatemplate", "change_study"])
+    org = OrganizationFactory()
+    studies = StudyFactory.create_batch(2, organization=org)
+    user.organizations.add(org)
+    user.studies.set(studies)
+    user.save()
+    dt = DataTemplateFactory(organization=org)
+
+    variables = {
+        "input": {
+            "fieldDefinitions": json.dumps({"fields": "invalid fields"}),
+            "description": "Added gender col to Participant Details",
+            "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
+            "studies": [to_global_id("StudyNode", s.pk) for s in studies],
+        }
+    }
+    resp = client.post(
+        "/graphql",
+        data={"query": CREATE_TEMPLATE_VERSION, "variables": variables},
+        content_type="application/json",
+    )
+    assert resp.json()["errors"][0]["message"]
+
+
 def test_create_and_apply_all(db, permission_client):
     """
     Test create and add template to all studies in org
@@ -124,7 +162,7 @@ def test_create_and_apply_all(db, permission_client):
 
     variables = {
         "input": {
-            "fieldDefinitions": json.dumps({}),
+            "fieldDefinitions": json.dumps(FIELDS),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
             # User accidentally supplied both these inputs
@@ -161,7 +199,7 @@ def test_create_version_missing_data_template(db, permission_client):
 
     variables = {
         "input": {
-            "fieldDefinitions": json.dumps({}),
+            "fieldDefinitions": json.dumps(FIELDS),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt_id),
         }
@@ -186,7 +224,7 @@ def test_create_template_version_not_my_org(db, permission_client):
 
     variables = {
         "input": {
-            "fieldDefinitions": json.dumps({}),
+            "fieldDefinitions": json.dumps(FIELDS),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
         }
@@ -214,7 +252,7 @@ def test_create_template_version_missing_studies(db, permission_client):
 
     variables = {
         "input": {
-            "fieldDefinitions": json.dumps({}),
+            "fieldDefinitions": json.dumps(FIELDS),
             "description": "Added gender col to Participant Details",
             "dataTemplate": to_global_id("DataTemplateNode", dt.pk),
             "studies": [to_global_id("StudyNode", s) for s in studies],
@@ -309,7 +347,7 @@ def test_update_template_version(db, permission_client, permissions, allowed):
     template_version = TemplateVersionFactory(data_template=dt)
 
     input_ = {
-        "fieldDefinitions": json.dumps({"fields": []}),
+        "fieldDefinitions": json.dumps(FIELDS),
         "description": "Added sex col to Participant Details",
         "studies": [to_global_id("StudyNode", s.pk) for s in studies],
     }
@@ -344,6 +382,41 @@ def test_update_template_version(db, permission_client, permissions, allowed):
         assert "Not allowed" in resp.json()["errors"][0]["message"]
 
 
+def test_update_template_version_invalid(db, permission_client):
+    """
+    Test the update mutation with invalid field definitions
+    """
+    # Create a user that is a member of an org and some studies
+    user, client = permission_client(["change_datatemplate", "change_study"])
+    org = OrganizationFactory()
+    studies = StudyFactory.create_batch(2, organization=org)
+    user.studies.set(studies)
+    user.organizations.add(org)
+    user.save()
+    # Create template in organization that user is member of
+    dt = DataTemplateFactory(organization=org)
+    template_version = TemplateVersionFactory(data_template=dt)
+
+    input_ = {
+        "fieldDefinitions": json.dumps({"fields": "bad fields"}),
+        "description": "Added sex col to Participant Details",
+        "studies": [to_global_id("StudyNode", s.pk) for s in studies],
+    }
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id("TemplateVersionNode", template_version.id),
+                "input": input_,
+            },
+        },
+        content_type="application/json",
+    )
+    template_version.refresh_from_db()
+    assert resp.json()["errors"][0]["message"]
+
+
 def test_update_and_apply_all(db, permission_client):
     """
     Test update and add template to all studies in org
@@ -360,7 +433,7 @@ def test_update_and_apply_all(db, permission_client):
     tv = TemplateVersionFactory(data_template=dt)
 
     input_ = {
-        "fieldDefinitions": json.dumps({}),
+        "fieldDefinitions": json.dumps(FIELDS),
         "description": "Added gender col to Participant Details",
         # User accidentally supplied both these inputs
         # Should result in apply all behavior
@@ -396,7 +469,7 @@ def test_update_template_version_does_not_exist(db, permission_client):
     tv_id = str(uuid.uuid4())
 
     input_ = {
-        "fieldDefinitions": json.dumps({"fields": []}),
+        "fieldDefinitions": json.dumps(FIELDS),
         "description": "Added sex col to Participant Details",
     }
     resp = client.post(
