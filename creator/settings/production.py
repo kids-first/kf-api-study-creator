@@ -308,6 +308,9 @@ LOGGING = {
         "creator.ingest_runs.tasks.validation_run": {
             "handlers": ["task"], "level": "INFO"
         },
+        "creator.data_templates.mutations.template_version": {
+            "handlers": ["task"], "level": "ERROR"
+        },
     },
 }
 
