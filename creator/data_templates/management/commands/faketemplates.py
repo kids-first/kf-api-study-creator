@@ -21,6 +21,51 @@ TEMPLATES_DIR = os.path.dirname(os.path.dirname(__file__))
 TEMPLATES_PATH = os.path.join(TEMPLATES_DIR, "template_package.xlsx")
 
 
+def create_templates_from_workbook(templates_path, org):
+    """
+    Load templates from a template package and add the templtaes to all
+    studies within an organization
+    """
+    # Parse table of contents
+    toc = read_df(templates_path).to_dict(orient="records")
+
+    # Create templates
+    tvs = []
+    for toc_entry in toc:
+        template_name = toc_entry["Template Name"]
+        template_description = toc_entry["Template Description"]
+        fields_sheet = toc_entry["Sheets"].split("\n")[0]
+
+        logger.info(
+            f"Reading template {fields_sheet} from "
+            f"{os.path.basename(templates_path)}"
+        )
+        dt = DataTemplate(
+            organization=org,
+            name=template_name,
+            description=template_description
+        )
+        dt.save()
+        tv = TemplateVersion(
+            data_template=dt,
+            description="Initial version",
+        )
+        tv.field_definitions = TemplateVersion.load_field_definitions(
+            templates_path, sheet_name=fields_sheet
+        )
+        tv.save()
+        tv.studies.set(org.studies.all())
+        tv.save()
+
+        tvs.append(tv)
+
+        logger.info(
+            f"Added {template_name} to org {org.name} studies: "
+            f"{pformat([s.pk for s in tv.studies.all()])}"
+        )
+    return tvs
+
+
 class Command(BaseCommand):
     help = (
         "Make fake (but realistic) data templates for all studies within an "
@@ -68,42 +113,11 @@ class Command(BaseCommand):
         templates_path = options["template_package"]
         templates_path = os.path.abspath(templates_path)
 
-        # Hack to check if path exists since read_df doesn't raise
-        # FileNotFoundError
+        # Hack to check if path exists since read_df masks the
+        # FileNotFoundError with an unsupported file type exception
         os.stat(templates_path)
 
-        logger.info(f"Creating templates for {org.name} from {templates_path}")
-
-        # Parse table of contents
-        toc = read_df(templates_path).to_dict(orient="records")
-
         # Create templates
-        for toc_entry in toc:
-            template_name = toc_entry["Template Name"]
-            template_description = toc_entry["Template Description"]
-            fields_sheet = toc_entry["Sheets"].split("\n")[0]
-
-            logger.info(
-                f"Reading template {fields_sheet} from "
-                f"{os.path.basename(templates_path)}"
-            )
-            dt = DataTemplate(
-                organization=org,
-                name=template_name,
-                description=template_description
-            )
-            dt.save()
-            tv = TemplateVersion(
-                data_template=dt,
-                description="Initial version",
-            )
-            tv.field_definitions = TemplateVersion.load_field_definitions(
-                templates_path, sheet_name=fields_sheet
-            )
-            tv.save()
-            tv.studies.set(org.studies.all())
-            tv.save()
-            logger.info(
-                f"Added {template_name} to org {org.name} studies: "
-                f"{pformat([s.pk for s in tv.studies.all()])}"
-            )
+        logger.info(f"Creating templates for {org.name} from {templates_path}")
+        tvs = create_templates_from_workbook(templates_path, org)
+        logger.info(f"Created {len(tvs)} templates")
