@@ -14,6 +14,7 @@ from django.contrib.postgres.fields import ArrayField
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
+from creator.data_templates.models import TemplateVersion
 
 EXTRACT_CFG_DIR = os.path.join(
     settings.BASE_DIR, "extract_configs", "templates"
@@ -92,13 +93,19 @@ class File(models.Model):
         related_name="files",
         help_text="The user who originally created this File",
     )
-
+    template_version = models.ForeignKey(
+        TemplateVersion,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="files",
+        help_text="The data template version this file conforms to",
+    )
     file_type = models.CharField(
         max_length=3,
         choices=[(t.name, t.value) for t in FileType],
         default="OTH",
     )
-
     tags = ArrayField(
         models.CharField(max_length=50, blank=True),
         blank=True,
