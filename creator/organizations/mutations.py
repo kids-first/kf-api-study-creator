@@ -5,7 +5,7 @@ from graphql_relay import from_global_id
 from django.contrib.auth import get_user_model
 
 from creator.organizations.models import Organization
-from creator.organizations.nodes import OrganizationNode
+from creator.organizations.queries import OrganizationNode
 from creator.events.models import Event
 
 User = get_user_model()
