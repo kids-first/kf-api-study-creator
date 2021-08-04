@@ -37,7 +37,7 @@ STAGE = "dev"
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
-    'sentry-trace',
+    "sentry-trace",
 ]
 
 DEVELOP = True
@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     "creator.data_templates",
     "creator",
     "corsheaders",
-    'creator.ingest_runs.apps.IngestRunsConfig',
+    "creator.ingest_runs.apps.IngestRunsConfig",
 ]
 
 MIDDLEWARE = [
@@ -204,9 +204,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
     },
@@ -265,10 +263,12 @@ LOGGING = {
         "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
-            "handlers": ["task"], "level": "DEBUG"
+            "handlers": ["task"],
+            "level": "DEBUG",
         },
         "creator.ingest_runs.tasks.validation_run": {
-            "handlers": ["task"], "level": "INFO"
+            "handlers": ["task"],
+            "level": "INFO",
         },
     },
 }
