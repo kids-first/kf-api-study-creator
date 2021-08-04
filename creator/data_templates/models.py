@@ -184,6 +184,52 @@ class TemplateVersion(models.Model):
         """
         return self.studies.count() > 0
 
+    @property
+    def template_dataframe(self):
+        """
+        Create the content of the tabular data submission file
+
+        This will become the content of the template file that users will
+        populate after they download the template files
+        """
+        return pandas.DataFrame([
+            {
+                f["label"]: ""
+                for f in self.field_definitions["fields"]
+            }
+        ])
+
+    @property
+    def field_definitions_dataframe(self):
+        """
+        Create the content for the tabular field definitions file
+
+        This will become the content of the field definitions file when
+        the user requests to download the template files
+        """
+        def format_accepted(value):
+            """
+            Convert list to delimited str
+            """
+            if isinstance(value, list):
+                value = ",".join(value)
+            return value
+
+        df = pandas.DataFrame(self.field_definitions["fields"])
+        df = df[FieldDefinitionsSchema.key_order]
+        # Don't include the field key for now
+        if "key" in df.columns:
+            df.drop(columns=["key"], axis=1, inplace=True)
+        df["accepted_values"] = df["accepted_values"].apply(
+            format_accepted
+        )
+        df.columns = [
+            " ".join([w.title() for w in col.split("_")])
+            for col in df.columns.tolist()
+        ]
+
+        return df
+
     def clean(self):
         """
         Validate template version

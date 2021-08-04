@@ -196,12 +196,15 @@ class FieldDefinitionsSchema(Schema):
     Marshmallow schema for a cleaning and validating a list of field
     definition objects in TemplateVersion.field_definitions
     """
-    version = {
+    # Used to populate the value of the field schema_version
+    SCHEMA_VERSION = {
         "number": "0.1.0",
         "changes": "Initial version"
     }
     key_order = list(FieldDefinitionSchema().fields.keys())
-
+    schema_version = fields.Dict(
+        description="The schema version and changes since the last version",
+    )
     fields = fields.List(
         fields.Nested(FieldDefinitionSchema),
         description="List of field definitions for a data template",
@@ -215,7 +218,7 @@ class FieldDefinitionsSchema(Schema):
         Add a section for the schema version so that consumers know if the
         schema changed
         """
-        data.update({"schema_version": self.version})
+        data.update({"schema_version": self.SCHEMA_VERSION})
         return data
 
     def handle_error(self, exc, data, **kwargs):

@@ -176,7 +176,7 @@ def test_schema_load():
     out_fields = data["fields"]
 
     # Check version
-    assert data["schema_version"]["number"] == schema.version["number"]
+    assert data["schema_version"]["number"] == schema.SCHEMA_VERSION["number"]
 
     # Check all fields are in output
     assert len(out_fields) == len(in_fields["fields"])
