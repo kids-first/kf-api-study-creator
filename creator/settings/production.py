@@ -14,6 +14,7 @@ import os
 import uuid
 
 from creator.settings.features import *
+from corsheaders.defaults import default_headers
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -73,6 +74,9 @@ DEVELOP = False
 
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'sentry-trace',
+]
 
 # Application definition
 
