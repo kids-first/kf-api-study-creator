@@ -3,7 +3,6 @@ import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
 from .models import File, Version
-from creator.studies.factories import StudyFactory
 from creator.users.factories import UserFactory
 
 
@@ -67,7 +66,10 @@ class FileFactory(factory.DjangoModelFactory):
     kf_id = factory.Sequence(lambda n: f"SF_{n:0>8}")
     name = factory.Faker("file_name")
     description = factory.Faker("paragraph", nb_sentences=3)
-    study = factory.SubFactory(StudyFactory)
+    study = factory.SubFactory(
+        "creator.studies.factories.StudyFactory",
+        num_files=0,
+    )
     file_type = factory.Faker("file_type")
     creator = factory.SubFactory(UserFactory)
     tags = factory.Faker("tags")
