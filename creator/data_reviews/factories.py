@@ -25,7 +25,7 @@ class DataReviewFactory(factory.DjangoModelFactory):
             if not callable(getattr(State, attr)) and not attr.startswith("__")
         ]
     )
-    study = factory.SubFactory(StudyFactory, num_files=0)
+    study = factory.SubFactory(StudyFactory, files=0)
 
     @factory.post_generation
     def versions(self, create, extracted, **kwargs):

@@ -67,8 +67,7 @@ class FileFactory(factory.DjangoModelFactory):
     name = factory.Faker("file_name")
     description = factory.Faker("paragraph", nb_sentences=3)
     study = factory.SubFactory(
-        "creator.studies.factories.StudyFactory",
-        num_files=0,
+        "creator.studies.factories.StudyFactory", files=0
     )
     file_type = factory.Faker("file_type")
     creator = factory.SubFactory(UserFactory)

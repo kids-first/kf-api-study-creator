@@ -3,7 +3,6 @@ import factory
 import factory.fuzzy
 from faker.providers import BaseProvider
 from .models import Study
-from creator.organizations.factories import OrganizationFactory
 from creator.buckets.factories import BucketFactory
 from creator.files.factories import FileFactory
 
@@ -23,20 +22,23 @@ class StudyFactory(factory.DjangoModelFactory):
     bucket = factory.Faker("slug")
     external_id = factory.Faker("slug")
 
-    buckets = factory.RelatedFactory(BucketFactory, "study")
-
-    organization = factory.SubFactory(OrganizationFactory)
+    organization = factory.SubFactory(
+        "creator.organizations.factories.OrganizationFactory", studies=0
+    )
+    buckets = factory.RelatedFactory(
+        BucketFactory, "study", organization=organization
+    )
 
     @factory.post_generation
-    def num_files(self, create, how_many, **kwargs):
+    def files(self, create, extracted, **kwargs):
         """
-        After a Study is created with the factory, generate _how_many_
-        Files that are a part of the Study. If _how_many_ is not provided,
+        After a Study is created with the factory, generate _extracted_
+        Files that are a part of the Study. If _extracted_ is not provided,
         default to _DEFAULT_NUM_.
         """
-        DEFAULT_NUM = 3
-        if create:
-            if how_many is None:
-                how_many = DEFAULT_NUM
-            for _ in range(how_many):
-                FileFactory(study=self)
+        DEFAULT_NUM = 5
+        if not create:
+            return
+        extracted = DEFAULT_NUM if extracted is None else extracted
+        if extracted:
+            FileFactory.create_batch(extracted, study=self)
