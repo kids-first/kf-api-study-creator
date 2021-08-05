@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 from creator.settings.features import *
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +36,9 @@ STAGE = "dev"
 
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
 
 DEVELOP = True
 
@@ -69,7 +73,7 @@ INSTALLED_APPS = [
     "creator.data_templates",
     "creator",
     "corsheaders",
-    'creator.ingest_runs.apps.IngestRunsConfig',
+    "creator.ingest_runs.apps.IngestRunsConfig",
 ]
 
 MIDDLEWARE = [
@@ -200,9 +204,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
     },
@@ -261,10 +263,12 @@ LOGGING = {
         "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
         "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
-            "handlers": ["task"], "level": "DEBUG"
+            "handlers": ["task"],
+            "level": "DEBUG",
         },
         "creator.ingest_runs.tasks.validation_run": {
-            "handlers": ["task"], "level": "INFO"
+            "handlers": ["task"],
+            "level": "INFO",
         },
     },
 }

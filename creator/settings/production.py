@@ -14,6 +14,7 @@ import os
 import uuid
 
 from creator.settings.features import *
+from corsheaders.defaults import default_headers
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -29,7 +30,7 @@ except ValueError:
 
 
 def traces_sampler(sampling_context):
-    """ Filter out unwanted transactions """
+    """Filter out unwanted transactions"""
     if (
         "wsgi_environ" in sampling_context
         and "PATH_INFO" in sampling_context["wsgi_environ"]
@@ -73,6 +74,9 @@ DEVELOP = False
 
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
 
 # Application definition
 
@@ -105,7 +109,7 @@ INSTALLED_APPS = [
     "creator.data_templates",
     "creator",
     "corsheaders",
-    'creator.ingest_runs.apps.IngestRunsConfig',
+    "creator.ingest_runs.apps.IngestRunsConfig",
 ]
 
 MIDDLEWARE = [
@@ -241,9 +245,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
     },
@@ -303,10 +305,12 @@ LOGGING = {
         "rq.worker": {"handlers": ["rq_console"]},
         "creator.decorators": {"handlers": ["task"]},
         "creator.ingest_runs.genomic_data_loader": {
-            "handlers": ["task"], "level": "DEBUG"
+            "handlers": ["task"],
+            "level": "DEBUG",
         },
         "creator.ingest_runs.tasks.validation_run": {
-            "handlers": ["task"], "level": "INFO"
+            "handlers": ["task"],
+            "level": "INFO",
         },
     },
 }
