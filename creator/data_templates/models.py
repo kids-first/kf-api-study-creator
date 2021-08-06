@@ -152,6 +152,8 @@ class TemplateVersion(models.Model):
         help_text="The user who created the template version",
     )
     description = models.TextField(
+        null=True,
+        blank=True,
         max_length=10000,
         help_text="Description of changes in this template version",
     )
