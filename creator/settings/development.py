@@ -270,6 +270,9 @@ LOGGING = {
             "handlers": ["task"],
             "level": "INFO",
         },
+        "creator.data_templates.mutations.template_version": {
+            "handlers": ["task"], "level": "INFO"
+        },
     },
 }
 

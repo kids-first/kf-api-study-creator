@@ -1,7 +1,13 @@
+import logging
+
 import graphene
 from graphql import GraphQLError
 from graphql_relay import from_global_id
+from graphene_file_upload.scalars import Upload
 from django.db import transaction
+from django.conf import settings
+from kf_lib_data_ingest.common.io import read_df
+from marshmallow import ValidationError
 
 from creator.studies.models import Study
 from creator.data_templates.models import (
@@ -9,6 +15,8 @@ from creator.data_templates.models import (
     TemplateVersion,
 )
 from creator.data_templates.nodes.template_version import TemplateVersionNode
+
+logger = logging.getLogger(__name__)
 
 
 def check_studies(study_ids, user, primary_keys=False):
@@ -22,6 +30,10 @@ def check_studies(study_ids, user, primary_keys=False):
         raise GraphQLError(
             "Not allowed - user not authorized to modify studies"
         )
+
+    # Empty list
+    if len(study_ids) == 0:
+        return study_ids
 
     # Convert graphql relay ids to primary keys
     if not primary_keys:
@@ -218,7 +230,7 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
 
             # Add template version to selected studies if they exist
             else:
-                if study_ids:
+                if study_ids is not None:
                     studies = check_studies(study_ids, user)
                     template_version.studies.set(studies)
 
@@ -277,6 +289,64 @@ class DeleteTemplateVersionMutation(graphene.Mutation):
         return DeleteTemplateVersionMutation(success=True, id=id)
 
 
+class UploadFieldDefinitionsMutation(graphene.Mutation):
+    """Upload a template_version's field definitions from file"""
+
+    class Arguments:
+        file = Upload(
+            required=True,
+            description="The file containing template field definitions",
+        )
+
+    success = graphene.Boolean()
+    file_name = graphene.String()
+    file_size = graphene.Float()
+    field_definitions = graphene.JSONString()
+
+    def mutate(self, info, file):
+        """
+        Imports field definitions from a file (tsv, csv, xlsx, or json):
+
+        - Parse file content into JSON
+        - Best-effort clean up of human errors
+        - Validate JSON against field definitions schema
+
+        Returns the clean version of the field definitions as a JSON string
+        or raises a ValidationError with a list of all errors found
+        """
+        user = info.context.user
+        if not user.has_perm("data_templates.change_datatemplate"):
+            raise GraphQLError("Not allowed")
+
+        file_name = file.name
+        file_size = file.size
+
+        if file.size > settings.FILE_MAX_SIZE:
+            raise GraphQLError(
+                f"File size {file_size} exceeds max size: "
+                f"{settings.FILE_MAX_SIZE}"
+            )
+
+        try:
+            field_definitions = TemplateVersion.load_field_definitions(
+                file, original_name=file.name
+            )
+        except ValidationError:
+            raise
+        except Exception as e:
+            logger.exception(str(e))
+            raise GraphQLError(
+                "Something went wrong while importing field definitions"
+            )
+
+        return UploadFieldDefinitionsMutation(
+            success=True,
+            file_name=file_name,
+            file_size=file_size,
+            field_definitions=field_definitions
+        )
+
+
 class Mutation:
     """Mutations for template_versions"""
 
@@ -288,4 +358,7 @@ class Mutation:
     )
     delete_template_version = DeleteTemplateVersionMutation.Field(
         description="Delete a given template_version"
+    )
+    upload_field_definitions = UploadFieldDefinitionsMutation.Field(
+        description="Upload a template_version's field definitions from file"
     )
