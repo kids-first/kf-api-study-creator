@@ -310,6 +310,27 @@ class Version(models.Model):
 
         return valid_types
 
+    @property
+    def matches_template(self):
+        """
+        Whether this file version matches any of the templates in it's study
+        """
+        study = None
+        try:
+            study = self.root_file.study
+        except AttributeError:
+            study = self.study
+
+        if study:
+            matches = [
+                evaluate_template_match(self, template_version)[
+                    "matches_template"]
+                for template_version in study.template_versions.all()
+            ]
+            return any(matches)
+        else:
+            return False
+
     def __str__(self):
         return self.kf_id
 
