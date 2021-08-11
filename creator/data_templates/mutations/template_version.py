@@ -31,6 +31,10 @@ def check_studies(study_ids, user, primary_keys=False):
             "Not allowed - user not authorized to modify studies"
         )
 
+    # Empty list
+    if len(study_ids) == 0:
+        return study_ids
+
     # Convert graphql relay ids to primary keys
     if not primary_keys:
         study_node_ids = study_ids
@@ -226,7 +230,7 @@ class UpdateTemplateVersionMutation(graphene.Mutation):
 
             # Add template version to selected studies if they exist
             else:
-                if study_ids:
+                if study_ids is not None:
                     studies = check_studies(study_ids, user)
                     template_version.studies.set(studies)
 

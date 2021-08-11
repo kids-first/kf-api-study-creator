@@ -655,3 +655,45 @@ def test_delete_released_template_version(db, permission_client):
 
     assert "used by any studies" in resp.json()["errors"][0]["message"]
     assert TemplateVersion.objects.count() == 1
+
+
+def test_unset_studies(db, permission_client):
+    """
+    Test the update mutation when setting studies to empty list
+    """
+    # Create a user that is a member of an org and some studies
+    user, client = permission_client(["change_datatemplate", "change_study"])
+    org = OrganizationFactory()
+    studies = StudyFactory.create_batch(2, organization=org)
+    user.studies.set(studies)
+    user.organizations.add(org)
+    user.save()
+    # Create template in organization that user is member of
+    dt = DataTemplateFactory(organization=org)
+    template_version = TemplateVersionFactory(
+        data_template=dt, studies=studies
+    )
+
+    input_ = {
+        "fieldDefinitions": json.dumps(FIELDS),
+        "description": "Added sex col to Participant Details",
+        "studies": [],
+    }
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": UPDATE_TEMPLATE_VERSION,
+            "variables": {
+                "id": to_global_id("TemplateVersionNode", template_version.id),
+                "input": input_,
+            },
+        },
+        content_type="application/json",
+    )
+    template_version.refresh_from_db()
+
+    resp_dt = resp.json()["data"]["updateTemplateVersion"][
+        "templateVersion"
+    ]
+    assert template_version.studies.count() == 0
+    assert len(resp_dt["studies"]["edges"]) == 0
