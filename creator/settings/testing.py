@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "creator.events.apps.EventsConfig",
     "creator.organizations",
     "creator.data_templates",
+    "creator.storage_backends",
     "creator",
     "corsheaders",
     'creator.ingest_runs.apps.IngestRunsConfig',
