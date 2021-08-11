@@ -37,19 +37,19 @@ def test_version_matches_template(db):
     Test computed property Version.matches_template
     """
     # Create a file version that matches a study template
-    # File version should have flag set to true
+    # File version should match template
     file_version = VersionFactory()
     tv = TemplateVersionFactory(studies=[file_version.root_file.study])
     update_version_content(tv.template_dataframe, file_version)
+    file_version.root_file.template_version = tv
     assert file_version.matches_template
 
-    # Missing root_file, but has study fk
-    file_version.study = file_version.root_file.study
+    # Missing template, then file should not match template
+    file_version.root_file.template_version = None
+    assert not file_version.matches_template
+
+    # Missing root_file, then file should not match template
     file_version.root_file = None
-    assert file_version.matches_template
-
-    # Missing study, then flag should be false
-    file_version.study = None
     assert not file_version.matches_template
 
 

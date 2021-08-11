@@ -159,7 +159,7 @@ def test_my_versions_query(db, clients):
     user = User.objects.filter(groups__name="Investigators").first()
     Membership(collaborator=user, study=study1).save()
 
-    query = "{ allVersions { edges { node { id } } } }"
+    query = "{ allVersions { edges { node { id matchesTemplate } } } }"
     resp = client.post(
         "/graphql", data={"query": query}, content_type="application/json"
     )
