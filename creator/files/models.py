@@ -15,6 +15,7 @@ from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
 from creator.data_templates.models import TemplateVersion
+from creator.files.utils import evaluate_template_match
 
 EXTRACT_CFG_DIR = os.path.join(
     settings.BASE_DIR, "extract_configs", "templates"
@@ -313,23 +314,18 @@ class Version(models.Model):
     @property
     def matches_template(self):
         """
-        Whether this file version matches any of the templates in it's study
+        Whether this file version matches it's attached template
         """
-        study = None
+        tv = None
         try:
-            study = self.root_file.study
+            tv = self.root_file.template_version
         except AttributeError:
-            study = self.study
+            pass
 
-        if study:
-            matches = [
-                evaluate_template_match(self, template_version)[
-                    "matches_template"]
-                for template_version in study.template_versions.all()
-            ]
-            return any(matches)
-        else:
+        if not tv:
             return False
+        else:
+            return evaluate_template_match(self, tv)["matches_template"]
 
     def __str__(self):
         return self.kf_id
