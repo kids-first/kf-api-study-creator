@@ -1,5 +1,22 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.0
+
+### Summary
+
+- Emojis: ✨ x5, 🛠 x1
+- Categories: Additions x5, Other Changes x1
+
+### New features and changes
+
+- [#711](https://github.com/kids-first/kf-api-study-creator/pull/711) - ✨ Upload field definitions - [602e042b](https://github.com/kids-first/kf-api-study-creator/commit/602e042b9738de764726d28f862c2f2d18b64037) by [znatty22](https://github.com/znatty22)
+- [#715](https://github.com/kids-first/kf-api-study-creator/pull/715) - 🛠 add 'sentry-trace' to CORS allowed headers - [3fb7a8aa](https://github.com/kids-first/kf-api-study-creator/commit/3fb7a8aae749b68d33be2f26bca06c62da59da2b) by [jgnieuwhof](https://github.com/jgnieuwhof)
+- [#703](https://github.com/kids-first/kf-api-study-creator/pull/703) - ✨ Add User organization filter - [359bd73c](https://github.com/kids-first/kf-api-study-creator/commit/359bd73cf08d78e6dfff00558105c8c4f4427bd5) by [gsantia](https://github.com/gsantia)
+- [#710](https://github.com/kids-first/kf-api-study-creator/pull/710) - ✨ Download study templates - [881096ea](https://github.com/kids-first/kf-api-study-creator/commit/881096ea955b521d0527c966baa07d852157542a) by [znatty22](https://github.com/znatty22)
+- [#699](https://github.com/kids-first/kf-api-study-creator/pull/699) - ✨ Template Field Definition Validation - [87300c29](https://github.com/kids-first/kf-api-study-creator/commit/87300c2919f6459a520ec7aa65eb04ab20b53eef) by [znatty22](https://github.com/znatty22)
+- [#708](https://github.com/kids-first/kf-api-study-creator/pull/708) - ✨ Create users subquery for Organization queries - [92ec2415](https://github.com/kids-first/kf-api-study-creator/commit/92ec24153e1f4d3a8ccef76a85a69bc5bab36a82) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.18.2
 
 ### Summary
