@@ -27,7 +27,7 @@ def test_new_version_event(db, clients, upload_file, upload_version):
     Test that new versions create events
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)
@@ -52,7 +52,7 @@ def test_update_version_event(db, clients, upload_file, upload_version):
     Test that updating versions create events
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     file = File.objects.get(kf_id=file_id)

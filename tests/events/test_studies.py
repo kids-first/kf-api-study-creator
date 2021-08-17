@@ -36,7 +36,7 @@ def test_new_study_event(
     settings.FEAT_CAVATICA_CREATE_PROJECTS = True
     settings.CAVATICA_HARMONIZATION_TOKEN = "abc"
     settings.CAVATICA_DELIVERY_TOKEN = "abc"
-    organization = OrganizationFactory(members=[user])
+    organization = OrganizationFactory(members=[user], studies=0)
 
     post = mocker.patch("requests.post")
     MockResp = MagicMock()
@@ -86,8 +86,9 @@ def test_update_study_event(permission_client, db, mocker):
     MockResp.json.return_value = {"results": {"kf_id": "ABCABCBA"}}
     patch.return_value = MockResp
 
-    study = StudyFactory(kf_id="SD_ABCABCBA", external_id="TEST")
-    study.save()
+    study = StudyFactory(
+        kf_id="SD_ABCABCBA", external_id="TEST", files=0
+    )
 
     variables = {
         "id": to_global_id("StudyNode", study.kf_id),

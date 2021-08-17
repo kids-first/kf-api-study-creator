@@ -39,7 +39,7 @@ def test_new_file_event(clients, db, upload_file):
     """
     client = clients.get("Administrators")
     assert Event.objects.count() == 0
-    studies = StudyFactory.create_batch(1)
+    studies = StudyFactory.create_batch(1, files=0)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
@@ -75,7 +75,7 @@ def test_file_updated_event(db, clients, upload_file):
     Test that file updates create events
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     assert Event.objects.count() == 3
@@ -106,7 +106,7 @@ def test_file_deleted_event(db, clients, upload_file):
     Test that file deletions create events
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     resp = upload_file(study.kf_id, "manifest.txt", client)
     file_id = resp.json()["data"]["createFile"]["file"]["kfId"]
     assert Event.objects.count() == 3

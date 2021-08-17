@@ -31,8 +31,7 @@ def test_auth0_middleware(db, client, mocker, token):
     with open("tests/keys/jwks.json", "rb") as f:
         req_mock().json.return_value = json.load(f)
 
-    study = StudyFactory(kf_id="SD_ME0WME0W")
-    study.save()
+    study = StudyFactory(kf_id="SD_ME0WME0W", files=0)
     assert User.objects.count() == 0
 
     # Send a test query
@@ -124,8 +123,7 @@ def test_auth0_expired_token(db, client, mocker, token):
 
     warn_mock = mocker.patch(f"{middleware}.logger.warning")
 
-    study = StudyFactory(kf_id="SD_ME0WME0W")
-    study.save()
+    study = StudyFactory(kf_id="SD_ME0WME0W", files=0)
     assert User.objects.count() == 0
 
     # Send a test query

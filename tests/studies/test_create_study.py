@@ -123,7 +123,9 @@ def test_create_study_mutation(
     """
     collaborator = UserFactory()
     user = User.objects.filter(groups__name=user_group).first()
-    organization = OrganizationFactory(members=[user] if user else [])
+    organization = OrganizationFactory(
+        members=[user] if user else [], studies=0
+    )
     client = clients.get(user_group)
     variables = {
         "input": {
@@ -160,7 +162,7 @@ def test_create_study_collaborator_does_not_exist(
     collaborators does not exist
     """
     user = User.objects.filter(groups__name="Administrators").first()
-    organization = OrganizationFactory(members=[user])
+    organization = OrganizationFactory(members=[user], studies=0)
     client = clients.get("Administrators")
     variables = {
         "input": {
@@ -214,7 +216,7 @@ def test_dataservice_call(db, clients, mock_post, settings):
     Test that the dataservice is called correctly
     """
     user = User.objects.filter(groups__name="Administrators").first()
-    organization = OrganizationFactory(members=[user])
+    organization = OrganizationFactory(members=[user], studies=0)
     client = clients.get("Administrators")
     variables = {
         "input": {
@@ -244,7 +246,7 @@ def test_dataservice_feat_flag(db, clients, mock_post, settings):
     off.
     """
     user = User.objects.filter(groups__name="Administrators").first()
-    organization = OrganizationFactory(members=[user])
+    organization = OrganizationFactory(members=[user], studies=0)
     client = clients.get("Administrators")
 
     settings.FEAT_DATASERVICE_CREATE_STUDIES = False
@@ -272,7 +274,7 @@ def test_dataservice_error(db, clients, mock_error):
     Test behavior when dataservice returns an error.
     """
     user = User.objects.filter(groups__name="Administrators").first()
-    organization = OrganizationFactory(members=[user])
+    organization = OrganizationFactory(members=[user], studies=0)
     client = clients.get("Administrators")
     variables = {
         "input": {

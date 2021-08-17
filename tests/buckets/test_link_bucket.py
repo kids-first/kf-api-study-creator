@@ -53,7 +53,7 @@ def test_link_bucket(db, user_group, allowed, clients):
     """
     Test that only admins may link a bucket to a study
     """
-    study = StudyFactory(buckets=None)
+    study = StudyFactory(buckets=None, files=0)
     bucket = BucketFactory()
 
     client = clients.get(user_group)
@@ -87,7 +87,7 @@ def test_double_link_bucket(db, clients):
     """
     client = clients.get("Administrators")
 
-    study = StudyFactory(buckets=None)
+    study = StudyFactory(buckets=None, files=0)
     bucket = BucketFactory()
 
     variables = {
@@ -183,7 +183,7 @@ def test_unlink_bucket(db, user_group, allowed, clients):
     """
     Test that only admins may unlink a bucket
     """
-    study = StudyFactory(buckets=None)
+    study = StudyFactory(buckets=None, files=0)
     bucket = BucketFactory()
     bucket.study = study
     bucket.save()
@@ -225,7 +225,7 @@ def test_unlink_bucket_no_link(db, clients):
     Test that unlinking a bucket that isn't linked doesn't change anything
     """
     client = clients.get("Administrators")
-    study = StudyFactory(buckets=None)
+    study = StudyFactory(buckets=None, files=0)
     bucket = BucketFactory()
 
     assert Bucket.objects.first().study is None

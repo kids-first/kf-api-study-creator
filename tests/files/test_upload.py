@@ -22,7 +22,7 @@ User = get_user_model()
 def test_upload_query_s3(db, clients, upload_file, tmp_uploads_s3):
     s3 = boto3.client("s3")
     client = clients.get("Administrators")
-    studies = StudyFactory.create_batch(2)
+    studies = StudyFactory.create_batch(2, files=0)
     study_id = studies[0].kf_id
     bucket = tmp_uploads_s3(studies[0].bucket)
     resp = upload_file(study_id, "manifest.txt", client)
@@ -51,7 +51,7 @@ def test_boto_fail(db, clients, upload_version, tmp_uploads_s3):
     """
     client = clients.get("Administrators")
     s3 = boto3.client("s3")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     study_id = study.kf_id
     bucket = tmp_uploads_s3("not-correct-bucket")
     # Should fail because the study bucket was not created as expected
@@ -66,7 +66,7 @@ def test_boto_fail(db, clients, upload_version, tmp_uploads_s3):
 
 def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
     client = clients.get("Administrators")
-    studies = StudyFactory.create_batch(2)
+    studies = StudyFactory.create_batch(2, files=0)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, "manifest.txt", client)
     user = User.objects.filter(groups__name="Administrators").first()
@@ -100,7 +100,7 @@ def test_upload_version(
     Test upload of intial file followed by a new version
     """
     client = clients.get("Administrators")
-    studies = StudyFactory.create_batch(1)
+    studies = StudyFactory.create_batch(1, files=0)
     study_id = studies[-1].kf_id
     resp = upload_file(study_id, "manifest.txt", client)
 
@@ -142,7 +142,7 @@ def test_upload_version_no_file(
     exist.
     """
     client = clients.get("Administrators")
-    studies = StudyFactory.create_batch(1)
+    studies = StudyFactory.create_batch(1, files=0)
     study_id = studies[-1].kf_id
 
     # Upload a version with a file_id that does not exist
@@ -195,7 +195,7 @@ def test_upload_unauthed(db, upload_file):
 
 def test_upload_unauthed_study(db, clients, upload_file):
     client = clients.get("Investigators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     resp = upload_file(study.kf_id, "manifest.txt", client)
     assert resp.status_code == 200
     assert "errors" in resp.json()
@@ -260,7 +260,7 @@ def test_creator(db, clients, tmp_uploads_local, upload_file, upload_version):
     Test that creator is added to versions and files
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     study_id = study.kf_id
     resp = upload_file(study_id, "manifest.txt", client)
 

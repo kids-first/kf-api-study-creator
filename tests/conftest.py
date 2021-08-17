@@ -392,10 +392,11 @@ def prep_file(admin_client, upload_file):
     def file(file_name="manifest.txt", client=admin_client, authed=False):
         if authed:
             study_id = "SD_00000000"
-            study = StudyFactory(kf_id=study_id, external_id="Test")
-            study.save()
+            study = StudyFactory(
+                kf_id=study_id, external_id="Test", files=0
+            )
         else:
-            studies = StudyFactory.create_batch(1)
+            studies = StudyFactory.create_batch(1, files=0)
             study_id = studies[0].kf_id
 
         upload = upload_file(study_id, file_name, client)
@@ -415,7 +416,7 @@ def versions(db, clients, mocker):
     """
     clients.get("Administrators")
     user = User.objects.filter(groups__name="Administrators").first()
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     study.organization.members.add(user)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")

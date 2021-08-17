@@ -49,7 +49,7 @@ def test_no_file(clients, db):
 
 def test_file_download_url(clients, db, mocker):
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
 
@@ -84,7 +84,7 @@ def test_file_download_url_develop(clients, db, mocker, settings):
     management.call_command("setup_test_user")
     client = clients.get("Administrators")
 
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
 
@@ -111,7 +111,7 @@ def test_version_download_url(db, clients, mocker):
     mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
 
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
 
@@ -148,7 +148,7 @@ def test_version_download_url_develop(db, clients, mocker, settings):
     mock_resp = mocker.patch("creator.files.views.HttpResponse")
     mock_resp.return_value = HttpResponse(open("tests/data/data.csv"))
 
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
     version = file.versions.latest("created_at")
 

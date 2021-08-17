@@ -21,7 +21,7 @@ def test_delete_file_mutation(db, clients, user_group, allowed, mocker):
     """
 
     client = clients.get(user_group)
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study, versions=None)
     version = VersionFactory(root_file=file)
 
@@ -61,7 +61,7 @@ def test_delete_file_does_not_exist(db, clients, mocker):
     """
 
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
 
     query = """
     mutation ($kfId: String!) {

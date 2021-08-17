@@ -42,7 +42,7 @@ def test_link_project_event(
     """
     Test that linking a project prouduces an event
     """
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     project = ProjectFactory()
 
     variables = {
@@ -69,7 +69,7 @@ def test_unlink_project_event(
     """
     Test that unlinking a project prouduces an event
     """
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     project = ProjectFactory(study=study)
 
     variables = {

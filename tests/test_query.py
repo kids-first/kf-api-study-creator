@@ -96,8 +96,8 @@ def test_my_files_query(db, clients):
     Test that only files under the studies belonging to the user are returned
     """
     client = clients.get("Investigators")
-    study1 = StudyFactory()
-    study2 = StudyFactory()
+    study1 = StudyFactory(files=0)
+    study2 = StudyFactory(files=0)
     file1 = FileFactory(study=study1)
     file2 = FileFactory(study=study2)
     user = User.objects.filter(groups__name="Investigators").first()
@@ -118,7 +118,7 @@ def test_admin_files_query(db, clients):
     Test that all files are returned
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
 
     query = "{ allFiles { edges { node { id } } } }"
@@ -152,8 +152,8 @@ def test_my_versions_query(db, clients):
     are returned
     """
     client = clients.get("Investigators")
-    study1 = StudyFactory()
-    study2 = StudyFactory()
+    study1 = StudyFactory(files=0)
+    study2 = StudyFactory(files=0)
     file1 = FileFactory(study=study1)
     file2 = FileFactory(study=study2)
     user = User.objects.filter(groups__name="Investigators").first()
@@ -177,7 +177,7 @@ def test_admin_versions_query(db, clients):
     Test that all file versions are returned
     """
     client = clients.get("Administrators")
-    study = StudyFactory()
+    study = StudyFactory(files=0)
     file = FileFactory(study=study)
 
     query = "{ allVersions { edges { node { id } } } }"
