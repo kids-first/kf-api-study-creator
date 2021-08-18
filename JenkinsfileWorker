@@ -15,4 +15,8 @@ ecs_service_existing_alb {
     internal_app               = "false"
     dependencies               = "ecr"
     module_version             = "v1.4"
+    vcpu_container             = "2048"
+    memory_container           = "4096"
+    vcpu_task                  = "2048"
+    memory_task                = "4096"
 }
