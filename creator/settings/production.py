@@ -295,7 +295,7 @@ LOGGING = {
         },
     },
     "loggers": {
-        "TaskLogger": {},
+        "TaskLogger": {"handlers": ["task"], "level": "INFO"},
         "graphql.execution.utils": {
             "handlers": ["command"],
             "level": "CRITICAL",
