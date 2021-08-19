@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.1
+
+### Summary
+
+- Emojis: 🐛 x1, 🔊 x1, ⬆️ x1
+- Categories: Additions x1, Fixes x1, Ops x1
+
+### New features and changes
+
+- [#720](https://github.com/kids-first/kf-api-study-creator/pull/720) - 🐛 Increase worker task and container size - [f0a2e2b8](https://github.com/kids-first/kf-api-study-creator/commit/f0a2e2b869ce21222b5cbc2d261b4b6eee10492d) by [blackdenc](https://github.com/blackdenc)
+- [#726](https://github.com/kids-first/kf-api-study-creator/pull/726) - 🔊 Configure TaskLogger directly - [df99e512](https://github.com/kids-first/kf-api-study-creator/commit/df99e512adf4fa36053088d61ff2aa3ae67efb4a) by [dankolbman](https://github.com/dankolbman)
+- [#721](https://github.com/kids-first/kf-api-study-creator/pull/721) - ⬆️ Upgrade sentry - [ee286d53](https://github.com/kids-first/kf-api-study-creator/commit/ee286d53112d2099d9dc0d65b980718074079313) by [dankolbman](https://github.com/dankolbman)
+
+
 ## Release 1.19.0
 
 ### Summary
