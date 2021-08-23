@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.2
+
+### Summary
+
+- Emojis: 🐛 x1
+- Categories: Fixes x1
+
+### New features and changes
+
+- [#731](https://github.com/kids-first/kf-api-study-creator/pull/731) - 🐛 Permit all non-machine roles to view and list templates - [027f223d](https://github.com/kids-first/kf-api-study-creator/commit/027f223dae8b1ccf39517f2115991dd00ab3afb9) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.1
 
 ### Summary
