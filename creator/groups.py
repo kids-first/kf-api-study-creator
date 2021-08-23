@@ -131,6 +131,8 @@ GROUPS = {
         "cancel_my_study_validationrun",
         "list_all_validationrun",
         "list_all_validationresultset",
+        "view_datatemplate",
+        "list_all_datatemplate",
     ],
     "Investigators": [
         "view_my_study",
@@ -156,6 +158,8 @@ GROUPS = {
         "cancel_my_study_validationrun",
         "list_all_validationrun",
         "list_all_validationresultset",
+        "view_datatemplate",
+        "list_all_datatemplate",
     ],
     "Bioinformatics": [
         "view_study",
@@ -180,6 +184,8 @@ GROUPS = {
         "cancel_my_study_validationrun",
         "list_all_validationrun",
         "list_all_validationresultset",
+        "view_datatemplate",
+        "list_all_datatemplate",
     ],
     "Services": [
         "view_study",

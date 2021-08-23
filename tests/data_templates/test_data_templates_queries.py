@@ -36,6 +36,39 @@ query($organization: ID, $organizationName: String) {
 
 
 @pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", False),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
+)
+def test_view_templates_by_role(db, clients, user_group, allowed):
+    """
+    Test dataTemplate query
+    """
+    client = clients.get(user_group)
+    org = OrganizationFactory()
+    data_template = DataTemplateFactory(organization=org)
+    variables = {"id": to_global_id("DataTemplateNode", data_template.id)}
+
+    resp = client.post(
+        "/graphql",
+        data={"query": DATA_TEMPLATE, "variables": variables},
+        content_type="application/json",
+    )
+
+    if allowed:
+        dt = resp.json()["data"]["dataTemplate"]
+        assert dt["id"] == to_global_id("DataTemplateNode", data_template.id)
+    else:
+        assert resp.json()["errors"][0]["message"] == "Not allowed"
+
+
+@pytest.mark.parametrize(
     "permissions,allowed",
     [
         (["view_datatemplate"], True),
