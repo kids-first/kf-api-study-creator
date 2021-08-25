@@ -1,9 +1,12 @@
 import pytest
+import uuid
+from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from creator.files.models import File
 from creator.studies.models import Membership
 from creator.studies.factories import StudyFactory
 from creator.files.factories import FileFactory
+from creator.data_templates.factories import TemplateVersionFactory
 
 User = get_user_model()
 
@@ -14,13 +17,15 @@ mutation (
     $name: String!,
     $fileType: FileType!
     $tags: [String]
+    $templateVersion: ID
 ) {
     updateFile(
         kfId: $kfId,
         name: $name,
         description:$description,
-        fileType: $fileType
-        tags: $tags
+        fileType: $fileType,
+        tags: $tags,
+        templateVersion: $templateVersion
     ) {
         file { id kfId description name fileType tags }
     }
@@ -62,6 +67,7 @@ def test_my_file_mutation_query(db, clients, versions):
     study, file, version = versions
     user = User.objects.filter(groups__name="Investigators").first()
     Membership(collaborator=user, study=study).save()
+    template_version = TemplateVersionFactory(studies=[study])
 
     query = update_query
     variables = {
@@ -70,6 +76,9 @@ def test_my_file_mutation_query(db, clients, versions):
         "description": "New description",
         "fileType": "FAM",
         "tags": ["tag1", "tag2"],
+        "templateVersion": to_global_id(
+            "TemplateVersionNode", template_version.pk
+        )
     }
     resp = client.post(
         "/graphql",
@@ -200,3 +209,31 @@ def test_file_does_not_exist(db, clients):
         data={"query": query, "variables": variables},
     )
     assert "errors" in resp.json()
+
+
+def test_template_does_not_exist(db, clients, versions):
+    """
+    Test update file when template does not exist
+    """
+    client = clients.get("Administrators")
+    study, file, version = versions
+    template_version = TemplateVersionFactory(studies=[study])
+
+    query = update_query
+    variables = {
+        "kfId": file.kf_id,
+        "name": "New name",
+        "description": "New description",
+        "fileType": "FAM",
+        "tags": ["tag1", "tag2"],
+        "templateVersion": to_global_id(
+            "TemplateVersionNode", str(uuid.uuid4())
+        )
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": query, "variables": variables},
+    )
+    assert "errors" in resp.json()
+    assert "TemplateVersion" in resp.json()["errors"][0]["message"]

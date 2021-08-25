@@ -12,6 +12,10 @@ from creator.analyses.analyzer import analyze_version
 from creator.studies.models import Study
 from creator.files.models import File, Version
 from creator.files.nodes.version import VersionNode
+from creator.files.object_types import TemplateMatchResult
+from creator.data_templates.nodes.template_version import TemplateVersionNode
+from creator.data_templates.models import TemplateVersion
+from creator.files.utils import evaluate_template_match
 
 
 class VersionMutation(graphene.Mutation):
@@ -219,8 +223,97 @@ class VersionUploadMutation(graphene.Mutation):
         return VersionUploadMutation(success=True, version=version)
 
 
+class EvaluateTemplateMatchInput(graphene.InputObjectType):
+    """Parameters used when validating a file version against templates"""
+
+    file_version = graphene.ID(
+        required=True, description="The file version being validated"
+    )
+    study = graphene.ID(
+        required=True,
+        description="The study which the file version belongs to"
+    )
+
+
+class EvaluateTemplateMatchMutation(graphene.Mutation):
+    """
+    Evaluate a file version against the templates in the study that the
+    file belongs to. For each template, report the details of the mismatch
+    between the file's columns and the template's required and optional
+    columns.
+
+    See creator.files.utils.evaluate_template_match for details on the match
+    evaluation
+    """
+    class Arguments:
+        input = EvaluateTemplateMatchInput(
+            required=True,
+            description="Attributes for the mutation",
+        )
+
+    results = graphene.List(TemplateMatchResult)
+
+    def mutate(self, info, input):
+        """
+        Evaluate a file version against the templates in the study that the
+        file belongs to. See creator.files.utils.evaluate_template_match
+        for details
+        """
+        user = info.context.user
+        file_version = input.get("file_version")
+        study = input.get("study")
+
+        # Check if file exists
+        _, file_version_id = from_global_id(file_version)
+        file_version = None
+        try:
+            file_version = Version.objects.get(pk=file_version_id)
+        except Version.DoesNotExist:
+            raise GraphQLError(
+                f"File {file_version_id} does not exist"
+            )
+
+        # Check if study exists
+        _, study_id = from_global_id(study)
+        study = None
+        try:
+            study = Study.objects.get(pk=study_id)
+        except Study.DoesNotExist:
+            raise GraphQLError(f"Study {study_id} does not exist")
+
+        # Check permissions - user should be able to view file and study
+        allowed_view_file = (
+            user.has_perm("files.view_file")
+            or user.has_perm("files.view_my_file")
+        )
+        allowed_view_study = (
+            user.has_perm("studies.view_study")
+            or (
+                user.has_perm("studies.view_my_study")
+                and user.studies.filter(kf_id=study.pk).exists()
+            )
+        )
+        if not (allowed_view_file and allowed_view_study):
+            raise GraphQLError("Not allowed")
+
+        # Validate file content against study templates
+        results = []
+        for template_version in study.template_versions.all():
+            result = evaluate_template_match(file_version, template_version)
+            results.append(
+                TemplateMatchResult(
+                    **result, template_version=template_version
+                )
+            )
+
+        return EvaluateTemplateMatchMutation(results=results)
+
+
 class Mutation(graphene.ObjectType):
     create_version = VersionUploadMutation.Field(
         description="Upload a new version of a file"
     )
     update_version = VersionMutation.Field(description="Update a file version")
+    evaluate_template_match = EvaluateTemplateMatchMutation.Field(
+        description="Evaluate a file version against its study templates"
+    )

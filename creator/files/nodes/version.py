@@ -12,6 +12,7 @@ class VersionNode(DjangoObjectType):
         model = Version
         interfaces = (relay.Node,)
 
+    matches_template = graphene.Boolean(source="matches_template")
     download_url = graphene.String()
     valid_types = graphene.List("creator.files.nodes.file.FileType")
 

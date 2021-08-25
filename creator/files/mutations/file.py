@@ -10,6 +10,7 @@ from creator.files.models import File, Version
 from creator.studies.models import Study
 from creator.events.models import Event
 from creator.files.nodes.file import FileNode, FileType
+from creator.data_templates.models import TemplateVersion
 
 
 class CreateFileMutation(graphene.Mutation):
@@ -29,6 +30,10 @@ class CreateFileMutation(graphene.Mutation):
         )
         fileType = FileType(required=True, description="The type of file")
         tags = graphene.List(graphene.String)
+        templateVersion = graphene.ID(
+            required=False,
+            description="The template_version this file conforms to"
+        )
 
     file = graphene.Field(FileNode)
 
@@ -41,6 +46,7 @@ class CreateFileMutation(graphene.Mutation):
         fileType,
         tags,
         study=None,
+        templateVersion=None,
         **kwargs,
     ):
         """
@@ -80,6 +86,18 @@ class CreateFileMutation(graphene.Mutation):
         ):
             raise GraphQLError("Not allowed")
 
+        template_version = None
+        if templateVersion:
+            _, template_version_id = from_global_id(templateVersion)
+            try:
+                template_version = TemplateVersion.objects.get(
+                    pk=template_version_id
+                )
+            except TemplateVersion.DoesNotExist:
+                raise GraphQLError(
+                    f"TemplateVersion {template_version_id} does not exist"
+                )
+
         with transaction.atomic():
             root_file = File(
                 name=name,
@@ -88,6 +106,7 @@ class CreateFileMutation(graphene.Mutation):
                 description=description,
                 file_type=fileType,
                 tags=tags,
+                template_version=template_version,
             )
             root_file.save()
             version.root_file = root_file
@@ -104,6 +123,7 @@ class FileMutation(graphene.Mutation):
         description = graphene.String()
         file_type = FileType()
         tags = graphene.List(graphene.String)
+        template_version = graphene.ID()
 
     file = graphene.Field(FileNode)
 
@@ -151,6 +171,22 @@ class FileMutation(graphene.Mutation):
             if file.tags != kwargs.get("tags"):
                 update_fields.append("tags")
             file.tags = kwargs.get("tags")
+
+        # Update the file's template
+        template_version = kwargs.get("template_version")
+        if template_version:
+            _, template_version_id = from_global_id(template_version)
+            template_version = None
+            try:
+                template_version = TemplateVersion.objects.get(
+                    pk=template_version_id
+                )
+            except TemplateVersion.DoesNotExist:
+                raise GraphQLError(
+                    f"TemplateVersion {template_version_id} does not exist"
+                )
+        file.template_version = template_version
+
         file.save()
 
         # Make an update event

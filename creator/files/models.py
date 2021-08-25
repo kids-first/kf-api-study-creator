@@ -14,6 +14,8 @@ from django.contrib.postgres.fields import ArrayField
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
+from creator.data_templates.models import TemplateVersion
+from creator.files.utils import evaluate_template_match
 
 EXTRACT_CFG_DIR = os.path.join(
     settings.BASE_DIR, "extract_configs", "templates"
@@ -92,13 +94,19 @@ class File(models.Model):
         related_name="files",
         help_text="The user who originally created this File",
     )
-
+    template_version = models.ForeignKey(
+        TemplateVersion,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="files",
+        help_text="The data template version this file conforms to",
+    )
     file_type = models.CharField(
         max_length=3,
         choices=[(t.name, t.value) for t in FileType],
         default="OTH",
     )
-
     tags = ArrayField(
         models.CharField(max_length=50, blank=True),
         blank=True,
@@ -302,6 +310,22 @@ class Version(models.Model):
                 valid_types.append(enum)
 
         return valid_types
+
+    @property
+    def matches_template(self):
+        """
+        Whether this file version matches it's attached template
+        """
+        tv = None
+        try:
+            tv = self.root_file.template_version
+        except AttributeError:
+            pass
+
+        if not tv:
+            return False
+        else:
+            return evaluate_template_match(self, tv)["matches_template"]
 
     def __str__(self):
         return self.kf_id
