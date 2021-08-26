@@ -3,6 +3,7 @@ from graphql_relay import to_global_id
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
+from creator.events.models import Event
 from creator.studies.models import Study, Membership
 from creator.referral_tokens.models import ReferralToken
 from creator.studies.factories import StudyFactory
@@ -70,6 +71,7 @@ def test_exchange_referral_token(db, clients, user_group, allowed):
     client = clients.get(user_group)
 
     referral_token = ReferralTokenFactory()
+    num_studies = referral_token.studies.count()
     assert ReferralToken.objects.first().claimed is False
 
     resp = client.post(
@@ -87,6 +89,12 @@ def test_exchange_referral_token(db, clients, user_group, allowed):
         resp_body = resp.json()["data"]["exchangeReferralToken"]
         assert resp_body["referralToken"]["isValid"] is False
         assert ReferralToken.objects.first().claimed is True
+
+        # Check Event
+        rt_events = Event.objects.filter(event_type="RT_CLA").all()
+        assert len(rt_events) == 1
+        ev = rt_events.first()
+        assert f"claimed token for {num_studies} studies." in ev.description
     else:
         assert resp.json()["errors"][0]["message"] == "Not allowed"
 
