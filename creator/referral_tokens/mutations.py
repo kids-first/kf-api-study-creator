@@ -1,5 +1,4 @@
 import graphene
-import uuid
 from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -217,7 +216,7 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         # Log an event
         message = (
             f"{user.display_name} claimed token for "
-            "{len(referral_token.studies)} studies."
+            f"{referral_token.studies.count()} studies."
         )
 
         event = Event(
