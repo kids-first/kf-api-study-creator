@@ -1,5 +1,18 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.3
+
+### Summary
+
+- Emojis: 🐛 x1, ✨ x1
+- Categories: Additions x1, Fixes x1
+
+### New features and changes
+
+- [#735](https://github.com/kids-first/kf-api-study-creator/pull/735) - 🐛 Fix event description for token claim events - [946918be](https://github.com/kids-first/kf-api-study-creator/commit/946918bee29475c29be7e05a4af57abb2dd7c2c0) by [gsantia](https://github.com/gsantia)
+- [#713](https://github.com/kids-first/kf-api-study-creator/pull/713) - ✨ Validate file columns against template - [03b652d2](https://github.com/kids-first/kf-api-study-creator/commit/03b652d2c2910a7e728e739cccb194bf6cd9506d) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.2
 
 ### Summary
