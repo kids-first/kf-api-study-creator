@@ -6,7 +6,7 @@ from creator.studies.factories import StudyFactory, Study
 from creator.data_templates.factories import (
     DataTemplateFactory,
     TemplateVersionFactory,
-    TemplateVersion
+    TemplateVersion,
 )
 from creator.data_templates.views import ZIP_MIME_TYPE, XLSX_MIME_TYPE
 
@@ -20,8 +20,7 @@ def template_versions(db):
     study = StudyFactory()
     dts = DataTemplateFactory.create_batch(2, organization=study.organization)
     return [
-        TemplateVersionFactory(data_template=dt, studies=[study])
-        for dt in dts
+        TemplateVersionFactory(data_template=dt, studies=[study]) for dt in dts
     ]
 
 
@@ -41,7 +40,7 @@ def template_versions_mult_studies(db):
         (Study.DoesNotExist, 404),
         (TemplateVersion.DoesNotExist, 404),
         (ValueError, 400),
-    ]
+    ],
 )
 def test_download_template_errors(
     db, mocker, clients, template_versions, exc, status_code
@@ -51,8 +50,7 @@ def test_download_template_errors(
     """
     client = clients.get("Administrators")
     mock_study_pkg = mocker.patch(
-        "creator.data_templates.views.template_package",
-        side_effect=exc()
+        "creator.data_templates.views.template_package", side_effect=exc()
     )
     # With study
     study = template_versions[0].studies.first()
@@ -141,8 +139,14 @@ def test_download_templates_no_study(
     ],
 )
 def test_download_templates_query_params(
-    db, mocker, clients, template_versions, file_format, ext, mime_type,
-    filter_templates
+    db,
+    mocker,
+    clients,
+    template_versions,
+    file_format,
+    ext,
+    mime_type,
+    filter_templates,
 ):
     """
     Test download_templates with query params

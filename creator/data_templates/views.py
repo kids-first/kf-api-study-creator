@@ -1,10 +1,5 @@
-import urllib
-import boto3
 from io import BytesIO
 from django.http import HttpResponse, HttpResponseNotFound
-from django.conf import settings
-from django_s3_storage.storage import S3Storage
-from botocore.exceptions import ClientError
 
 from creator.data_templates.packaging import template_package
 from creator.data_templates.models import TemplateVersion
@@ -33,9 +28,7 @@ def download_templates(request, study_kf_id=None):
     user = request.user
 
     if not user.is_authenticated:
-        return HttpResponse(
-            "Not authorized to download templates", status=401
-        )
+        return HttpResponse("Not authorized to download templates", status=401)
 
     filename = (
         f"{study_kf_id}_templates" if study_kf_id else "template_package"
@@ -60,7 +53,7 @@ def download_templates(request, study_kf_id=None):
             study_kf_id=study_kf_id,
             filepath_or_buffer=stream,
             template_version_ids=tv_ids,
-            excel_workbook=(file_format == EXCEL_FORMAT)
+            excel_workbook=(file_format == EXCEL_FORMAT),
         )
     except Study.DoesNotExist:
         return HttpResponseNotFound(

@@ -25,8 +25,7 @@ def template_versions(db):
     study = StudyFactory()
     dts = DataTemplateFactory.create_batch(2, organization=study.organization)
     return [
-        TemplateVersionFactory(data_template=dt, studies=[study])
-        for dt in dts
+        TemplateVersionFactory(data_template=dt, studies=[study]) for dt in dts
     ]
 
 
@@ -50,9 +49,7 @@ def test_template_package_errors(db):
     tv = TemplateVersionFactory(data_template=dt)
     template_version_ids = [str(uuid.uuid4), tv.pk]
     with pytest.raises(TemplateVersion.DoesNotExist) as e:
-        template_package(
-            study.pk, template_version_ids=template_version_ids
-        )
+        template_package(study.pk, template_version_ids=template_version_ids)
     assert "One or more" in str(e)
 
     # One of more template versions does not exist, no study
@@ -105,7 +102,7 @@ def test_template_package_success_study(db, mocker, template_versions):
         study.pk,
         template_version_ids=[tv.pk for tv in tvs[:1]],
         filepath_or_buffer="foo",
-        excel_workbook=False
+        excel_workbook=False,
     )
     assert mock_to_archive.call_args.kwargs["filepath_or_buffer"] == "foo"
     assert {tv.pk for tv in mock_to_archive.call_args.args[0]} == {
@@ -140,7 +137,7 @@ def test_template_package_success_no_study(
     template_package(
         template_version_ids=tv_ids[:1],
         filepath_or_buffer="foo",
-        excel_workbook=False
+        excel_workbook=False,
     )
     assert mock_to_archive.call_args.kwargs["filepath_or_buffer"] == "foo"
     assert mock_to_archive.call_args.args[0][0].pk == tv_ids[0]
@@ -155,7 +152,7 @@ def test_templates_to_archive(db, mocker, tmpdir, template_versions):
     # Test defaults
     mock_get_cwd = mocker.patch(
         "creator.data_templates.packaging.os.getcwd",
-        return_value=tmpdir.mkdir("test")
+        return_value=tmpdir.mkdir("test"),
     )
     fp = templates_to_archive(tvs)
     assert mock_get_cwd.call_count == 1
@@ -172,7 +169,8 @@ def test_templates_to_archive(db, mocker, tmpdir, template_versions):
         "template_package/"
         f"{'-'.join(tv.data_template.name.split(' ')).lower()}"
         f"-{type_}.tsv"
-        for type_ in ["fields", "template"] for tv in tvs
+        for type_ in ["fields", "template"]
+        for tv in tvs
     ]
     assert set(archive_file_list) == set(expected_file_list + [toc_file])
 
@@ -217,14 +215,16 @@ def test_templates_to_archive(db, mocker, tmpdir, template_versions):
         ("My Template", "Template", "My Template - Template"),
         ("My Template", "Fields", "My Template - Fields"),
         (
-            "Biospecimen Collection Manifest", "Fields",
-            "Biospecimen Collection - Fields"
+            "Biospecimen Collection Manifest",
+            "Fields",
+            "Biospecimen Collection - Fields",
         ),
         (
-            "Biospecimen Collection Manifest", "Template",
-            "Biospecimen Collecti - Template"
+            "Biospecimen Collection Manifest",
+            "Template",
+            "Biospecimen Collecti - Template",
         ),
-    ]
+    ],
 )
 def test_make_sheet_name(template_name, type_, expected_name):
     """
@@ -239,7 +239,7 @@ def test_templates_to_excel(db, mocker, tmpdir, template_versions):
     """
     mock_get_cwd = mocker.patch(
         "creator.data_templates.packaging.os.getcwd",
-        return_value=tmpdir.mkdir("test")
+        return_value=tmpdir.mkdir("test"),
     )
 
     tvs = template_versions

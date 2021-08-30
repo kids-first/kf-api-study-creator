@@ -11,14 +11,12 @@ from creator.data_templates.models import TemplateVersion
 
 MAX_SHEET_NAME_LEN = 31
 
-PACKAGE_INFO = (
-    """
+PACKAGE_INFO = """
     The Fields file describes all of the fields or columns in the template
     (name, data type, required or not, etc.) while the blank Template file
     is what data submitters will fill out and then submit to their
     organization for ingestion.
     """
-)
 
 
 def make_sheet_name(template_name: str, type_: str):
@@ -32,7 +30,7 @@ def make_sheet_name(template_name: str, type_: str):
     """
     # Truncates template name to avoid Excel writer exception
     suffix = f" - {type_}"
-    return template_name[:(MAX_SHEET_NAME_LEN - len(suffix))] + suffix
+    return template_name[: (MAX_SHEET_NAME_LEN - len(suffix))] + suffix
 
 
 def templates_to_excel_workbook(
@@ -67,14 +65,13 @@ def templates_to_excel_workbook(
     for tv in template_versions:
         dfs = [
             (tv.field_definitions_dataframe, "Fields"),
-            (tv.template_dataframe, "Template")
+            (tv.template_dataframe, "Template"),
         ]
         toc_item = {
             "Template Name": tv.data_template.name,
             "Template Description": tv.data_template.description,
             "Sheets": [],
-            "Info": PACKAGE_INFO
-
+            "Info": PACKAGE_INFO,
         }
         for df, type_ in dfs:
             sheet_name = make_sheet_name(tv.data_template.name, type_)
@@ -113,12 +110,10 @@ def templates_to_excel_workbook(
             "valign": "vcenter",
             "font_size": 12,
             "bg_color": "#f4f4f4",
-            "bottom": 1
+            "bottom": 1,
         }
     )
-    first_col_format = workbook.add_format(
-        {"bold": True, "valign": "vcenter"}
-    )
+    first_col_format = workbook.add_format({"bold": True, "valign": "vcenter"})
     default_format = workbook.add_format(
         {"text_wrap": True, "valign": "vcenter"}
     )
@@ -129,9 +124,7 @@ def templates_to_excel_workbook(
         # Unfortunately there is no way to autofit col so just pick something
         sheet.set_column(0, 0, 30, cell_format=first_col_format)
         # Default formatting
-        sheet.set_column(
-            1, df.shape[1] - 1, 30, cell_format=default_format
-        )
+        sheet.set_column(1, df.shape[1] - 1, 30, cell_format=default_format)
         # Freeze first row
         sheet.freeze_panes(1, 0)
 
@@ -169,24 +162,27 @@ def templates_to_archive(
         filepath_or_buffer = os.path.join(output_dir, filename)
 
     # Write templates, field definitions, and a table of contents to zip
-    with ZipFile(filepath_or_buffer, 'w') as zip_archive:
+    with ZipFile(filepath_or_buffer, "w") as zip_archive:
         toc = []
         contents = []
         for tv in template_versions:
-            template_name = (
-                "-".join(tv.data_template.name.split(" ")).lower()
-            )
+            template_name = "-".join(tv.data_template.name.split(" ")).lower()
             files = [
                 (f"{template_name}-template.tsv", tv.template_dataframe),
-                (f"{template_name}-fields.tsv", tv.field_definitions_dataframe)
+                (
+                    f"{template_name}-fields.tsv",
+                    tv.field_definitions_dataframe,
+                ),
             ]
             contents.extend(files)
-            toc.append({
-                "Template Name": tv.data_template.name,
-                "Template Description": tv.data_template.description,
-                "Files": "\n".join([fname for fname, _ in files]),
-                "Info": PACKAGE_INFO,
-            })
+            toc.append(
+                {
+                    "Template Name": tv.data_template.name,
+                    "Template Description": tv.data_template.description,
+                    "Files": "\n".join([fname for fname, _ in files]),
+                    "Info": PACKAGE_INFO,
+                }
+            )
         contents.append(("table_of_contents.tsv", pandas.DataFrame(toc)))
         for fn, df in contents:
             with zip_archive.open(f"{archive_name}/{fn}", "w") as file:
@@ -259,11 +255,13 @@ def template_package(
 
     if excel_workbook:
         path_or_buf = templates_to_excel_workbook(
-            template_versions, filepath_or_buffer=filepath_or_buffer,
+            template_versions,
+            filepath_or_buffer=filepath_or_buffer,
         )
     else:
         path_or_buf = templates_to_archive(
-            template_versions, filepath_or_buffer=filepath_or_buffer,
+            template_versions,
+            filepath_or_buffer=filepath_or_buffer,
         )
 
     return path_or_buf
