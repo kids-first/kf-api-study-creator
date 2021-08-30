@@ -1,6 +1,5 @@
 from typing import Union, List, Optional
 import os
-from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 from io import BytesIO
 from pprint import pformat
@@ -199,61 +198,64 @@ def templates_to_archive(
     return filepath_or_buffer
 
 
-def study_template_package(
-    study_kf_id: str,
+def template_package(
+    study_kf_id: str = None,
     filepath_or_buffer: Optional[Union[str, BytesIO]] = None,
     template_version_ids: Optional[List[str]] = None,
     excel_workbook: bool = True,
 ):
     """
-    Convert a study's templates into a zip archive of TSVs or
-    a multi-sheet excel workbook
+    Fetch a set of templates and package into an Excel workbook or zip file
+    Optionally filter templates by study or a set of template_version IDs
 
-    Used when user requests to download a study's templates
+    Used when user requests to download templates
     """
-    study = Study.objects.get(pk=study_kf_id)
+    if study_kf_id is None and template_version_ids is None:
+        # No input provided, error
+        raise ValueError("No input provided")
+
+    if study_kf_id:
+        study = Study.objects.get(pk=study_kf_id)
+        query_manager = study.template_versions
+    else:
+        query_manager = TemplateVersion.objects
 
     # Filter down templates
     if template_version_ids:
-        template_versions = study.template_versions.filter(
+        template_versions = query_manager.filter(
             pk__in=template_version_ids
         ).all()
 
         # One or more template versions did not exist
-        if (
-            set([tv.pk for tv in template_versions]) !=
-            set(template_version_ids)
-        ):
+        if {tv.pk for tv in template_versions} != set(template_version_ids):
             raise TemplateVersion.DoesNotExist(
-                f"One or more template versions does not exist"
+                "One or more template versions does not exist"
             )
 
     # All study templates
     else:
-        template_versions = study.template_versions.all()
+        template_versions = query_manager.all()
 
-    if not template_versions:
-        raise TemplateVersion.DoesNotExist(
-            f"No templates exist for study {study_kf_id}"
-        )
+        if not template_versions:
+            raise TemplateVersion.DoesNotExist(
+                f"No templates exist for study {study_kf_id}"
+            )
 
     # Check for duplicate template names
     # Duplicate names are bad bc we use them for template file names/Excel
     # sheet names when packaging templates
     count = len(template_versions)
-    names = set(
-        tv.data_template.name
-        for tv in template_versions
-    )
+    names = {tv.data_template.name for tv in template_versions}
     if len(names) != count:
         raise ValueError(
             f"Cannot package templates with duplicate names: {pformat(names)}"
         )
 
     if not filepath_or_buffer:
-        filepath_or_buffer = os.path.join(
-            os.getcwd(), f"{study_kf_id}_templates"
+        filename = (
+            f"{study_kf_id}_templates" if study_kf_id else "template_package"
         )
+        filepath_or_buffer = os.path.join(os.getcwd(), filename)
 
     if excel_workbook:
         path_or_buf = templates_to_excel_workbook(
