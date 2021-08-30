@@ -77,7 +77,11 @@ urlpatterns = [
     ),
     path(
         r'download/templates/<study_kf_id>',
-        creator.data_templates.views.download_study_templates
+        creator.data_templates.views.download_templates
+    ),
+    path(
+        r'download/templates',
+        creator.data_templates.views.download_templates
     ),
 ]
 
