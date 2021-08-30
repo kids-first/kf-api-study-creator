@@ -6,7 +6,7 @@ from django.conf import settings
 from django_s3_storage.storage import S3Storage
 from botocore.exceptions import ClientError
 
-from creator.data_templates.packaging import study_template_package
+from creator.data_templates.packaging import template_package
 from creator.data_templates.models import TemplateVersion
 from creator.studies.models import Study
 
@@ -18,28 +18,28 @@ XLSX_MIME_TYPE = (
 ZIP_MIME_TYPE = "application/zip"
 
 
-def download_study_templates(request, study_kf_id):
+def download_templates(request, study_kf_id=None):
     """
-    Download the study's data templates
+    If a study_kf_id is provided, download the study's data templates,
+    optionally filtered by a list of ids. Otherwise, download template versions
+    matching the provided list.
 
     Query parameters:
         file_format = [excel | zip]
         template_versions = comma separated str of ids
 
-    If the template version IDs are provided in the query parameters, then
-    filter the study's templates to only include those in the downloaded
-    templates
-
-    Any authenticated user is allowed to download a study's data templates
+    Any authenticated user is allowed to download data templates
     """
     user = request.user
 
     if not user.is_authenticated:
         return HttpResponse(
-            "Not authorized to download study templates", status=401
+            "Not authorized to download templates", status=401
         )
 
-    filename = f"{study_kf_id}_templates"
+    filename = (
+        f"{study_kf_id}_templates" if study_kf_id else "template_package"
+    )
     file_format = request.GET.get("file_format", EXCEL_FORMAT)
     if file_format == EXCEL_FORMAT:
         filename += ".xlsx"
@@ -56,8 +56,8 @@ def download_study_templates(request, study_kf_id):
     # Check if studies and template versions exist
     stream = BytesIO()
     try:
-        stream = study_template_package(
-            study_kf_id,
+        stream = template_package(
+            study_kf_id=study_kf_id,
             filepath_or_buffer=stream,
             template_version_ids=tv_ids,
             excel_workbook=(file_format == EXCEL_FORMAT)
