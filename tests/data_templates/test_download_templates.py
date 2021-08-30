@@ -3,18 +3,12 @@ import pytest
 import pandas
 
 from creator.studies.factories import StudyFactory, Study
-from creator.organizations.factories import OrganizationFactory
 from creator.data_templates.factories import (
     DataTemplateFactory,
     TemplateVersionFactory,
     TemplateVersion
 )
-from creator.data_templates.packaging import study_template_package
-from creator.data_templates.views import (
-    download_study_templates,
-    ZIP_MIME_TYPE,
-    XLSX_MIME_TYPE
-)
+from creator.data_templates.views import ZIP_MIME_TYPE, XLSX_MIME_TYPE
 
 
 @pytest.fixture
@@ -31,6 +25,16 @@ def template_versions(db):
     ]
 
 
+@pytest.fixture
+def template_versions_mult_studies(db):
+    tvs = []
+    studies = StudyFactory.create_batch(4)
+    for study in studies:
+        dt = DataTemplateFactory(organization=study.organization)
+        tvs.append(TemplateVersionFactory(data_template=dt, studies=[study]))
+    return tvs
+
+
 @pytest.mark.parametrize(
     "exc,status_code",
     [
@@ -39,19 +43,24 @@ def template_versions(db):
         (ValueError, 400),
     ]
 )
-def test_download_study_template_errors(
+def test_download_template_errors(
     db, mocker, clients, template_versions, exc, status_code
 ):
     """
-    Test download_study_templates errors
+    Test download_templates errors
     """
     client = clients.get("Administrators")
     mock_study_pkg = mocker.patch(
-        "creator.data_templates.views.study_template_package",
+        "creator.data_templates.views.template_package",
         side_effect=exc()
     )
+    # With study
     study = template_versions[0].studies.first()
     resp = client.get(f"/download/templates/{study.pk}")
+    assert resp.status_code == status_code
+
+    # Without study
+    resp = client.get("/download/templates")
     assert resp.status_code == status_code
 
 
@@ -66,11 +75,11 @@ def test_download_study_template_errors(
         (None, False),
     ],
 )
-def test_download_study_templates(
+def test_download_templates_study(
     db, clients, template_versions, user_group, allowed
 ):
     """
-    Test download_study_templates
+    Test download_templates with a given study
     """
     client = clients.get(user_group)
     study = template_versions[0].studies.first()
@@ -78,6 +87,40 @@ def test_download_study_templates(
 
     if allowed:
         filename = f"{study.pk}_templates.xlsx"
+        assert resp.status_code == 200
+        assert resp.get("Content-Disposition") == (
+            f"attachment; filename*=UTF-8''{filename}"
+        )
+        assert resp.get("Content-Length")
+        assert pandas.read_excel(BytesIO(resp.content), sheet_name=None)
+    else:
+        assert resp.status_code == 401
+
+
+@pytest.mark.parametrize(
+    "user_group,allowed",
+    [
+        ("Administrators", True),
+        ("Services", True),
+        ("Developers", True),
+        ("Investigators", True),
+        ("Bioinformatics", True),
+        (None, False),
+    ],
+)
+def test_download_templates_no_study(
+    db, clients, template_versions_mult_studies, user_group, allowed
+):
+    """
+    Test download_templates without a study given
+    """
+    client = clients.get(user_group)
+    tv_string = ",".join(tv.pk for tv in template_versions_mult_studies)
+    params = {"template_versions": tv_string}
+    resp = client.get("/download/templates", params)
+
+    if allowed:
+        filename = "template_package.xlsx"
         assert resp.status_code == 200
         assert resp.get("Content-Disposition") == (
             f"attachment; filename*=UTF-8''{filename}"
@@ -97,15 +140,15 @@ def test_download_study_templates(
         (None, ".xlsx", XLSX_MIME_TYPE, False),
     ],
 )
-def test_download_study_templates_query_params(
+def test_download_templates_query_params(
     db, mocker, clients, template_versions, file_format, ext, mime_type,
     filter_templates
 ):
     """
-    Test download_study_templates with query params
+    Test download_templates with query params
     """
     mock_study_pkg = mocker.patch(
-        "creator.data_templates.views.study_template_package",
+        "creator.data_templates.views.template_package",
     )
     client = clients.get("Administrators")
 
@@ -129,9 +172,10 @@ def test_download_study_templates_query_params(
     assert resp.get("Content-Type") == mime_type
 
     # Check call args study_template_package
-    args = mock_study_pkg.call_args.args
+    # args = mock_study_pkg.call_args.args
     kwargs = mock_study_pkg.call_args.kwargs
-    assert args[0] == study.pk
+    # assert args[0] == study.pk
+    assert kwargs["study_kf_id"] == study.pk
     if not file_format:
         file_format = "excel"
     assert kwargs["excel_workbook"] == (file_format == "excel")
