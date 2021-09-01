@@ -81,7 +81,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--delete",
-            action='store_false',
+            action='store_true',
             help="Delete all templates in the organization before creating "
             " new ones",
         )

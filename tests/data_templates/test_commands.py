@@ -38,7 +38,7 @@ def test_faketemplates(db, mocker, tmpdir):
     org = OrganizationFactory()
     management.call_command("faketemplates", org.name)
     msgs = [call.args[0] for call in mock_logger.info.call_args_list]
-    assert "Deleted" in "\n".join(msgs)
+    assert "Deleted" not in "\n".join(msgs)
     mock_create_templates.assert_called_with(TEMPLATES_PATH, org)
 
     for mock in [mock_create_templates, mock_logger]:
@@ -49,10 +49,10 @@ def test_faketemplates(db, mocker, tmpdir):
     with open(fp, "w") as package_file:
         package_file.write("the package")
     management.call_command(
-        "faketemplates", org.name, delete=False, template_package=fp
+        "faketemplates", org.name, delete=True, template_package=fp
     )
     msgs = [call.args[0] for call in mock_logger.info.call_args_list]
-    assert "Deleted" not in "\n".join(msgs)
+    assert "Deleted" in "\n".join(msgs)
     mock_create_templates.assert_called_with(fp, org)
 
 
