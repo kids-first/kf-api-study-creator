@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.4
+
+### Summary
+
+- Emojis: 🐛 x1, ✨ x1, 💬 x1
+- Categories: Additions x1, Fixes x2
+
+### New features and changes
+
+- [#739](https://github.com/kids-first/kf-api-study-creator/pull/739) - 🐛 Delete templates in faketemplates cmd if flag is given - [01317104](https://github.com/kids-first/kf-api-study-creator/commit/01317104c838bedbbed5c6df2870cb54c02e1a9d) by [znatty22](https://github.com/znatty22)
+- [#730](https://github.com/kids-first/kf-api-study-creator/pull/730) - ✨ Add endpoint to download template versions - [4b6c1584](https://github.com/kids-first/kf-api-study-creator/commit/4b6c1584ea260b2f6fbe26c17e087fb9cf0d6707) by [gsantia](https://github.com/gsantia)
+- [#738](https://github.com/kids-first/kf-api-study-creator/pull/738) - 💬 Add user to template event description - [dcda26cc](https://github.com/kids-first/kf-api-study-creator/commit/dcda26ccd7c8f0132212af880614ff1b1116ed68) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.19.3
 
 ### Summary
