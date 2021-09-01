@@ -16,12 +16,13 @@ def data_template_post_save(sender, instance, created, **kwargs):
     else:
         verb = "updated"
         et = "DT_UPD"
+    username = getattr(instance.creator, "display_name", "Anonymous user")
 
     Event(
         organization=instance.organization,
         data_template=instance,
         user=instance.creator,
-        description=(f"Data template {instance.pk} was {verb}"),
+        description=f"{username} {verb} data template {instance.pk}",
         event_type=et,
     ).save()
 
@@ -37,12 +38,13 @@ def template_version_post_save(sender, instance, created, **kwargs):
     else:
         verb = "updated"
         et = "TV_UPD"
+    username = getattr(instance.creator, "display_name", "Anonymous user")
 
     Event(
         organization=instance.organization,
         template_version=instance,
         user=instance.creator,
-        description=(f"Template version {instance.pk} was {verb}"),
+        description=f"{username} {verb} template version {instance.pk}",
         event_type=et,
     ).save()
 
@@ -52,10 +54,11 @@ def data_template_post_delete(sender, instance, using, *args, **kwargs):
     """
     Fire an event when a data template is deleted
     """
+    username = getattr(instance.creator, "display_name", "Anonymous user")
     Event(
         organization=instance.organization,
         user=instance.creator,
-        description=(f"Data template {instance.pk} was deleted"),
+        description=f"{username} deleted data template {instance.pk}",
         event_type="DT_DEL",
     ).save()
 
@@ -65,9 +68,10 @@ def template_version_post_delete(sender, instance, using, *args, **kwargs):
     """
     Fire an event when a template version is deleted
     """
+    username = getattr(instance.creator, "display_name", "Anonymous user")
     Event(
         organization=instance.organization,
         user=instance.creator,
-        description=(f"Template version {instance.pk} was deleted"),
+        description=f"{username} deleted template version {instance.pk}",
         event_type="TV_DEL",
     ).save()
