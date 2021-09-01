@@ -1,6 +1,5 @@
 from typing import Union, List, Optional
 import os
-from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 from io import BytesIO
 from pprint import pformat
@@ -12,14 +11,12 @@ from creator.data_templates.models import TemplateVersion
 
 MAX_SHEET_NAME_LEN = 31
 
-PACKAGE_INFO = (
-    """
+PACKAGE_INFO = """
     The Fields file describes all of the fields or columns in the template
     (name, data type, required or not, etc.) while the blank Template file
     is what data submitters will fill out and then submit to their
     organization for ingestion.
     """
-)
 
 
 def make_sheet_name(template_name: str, type_: str):
@@ -33,7 +30,7 @@ def make_sheet_name(template_name: str, type_: str):
     """
     # Truncates template name to avoid Excel writer exception
     suffix = f" - {type_}"
-    return template_name[:(MAX_SHEET_NAME_LEN - len(suffix))] + suffix
+    return template_name[: (MAX_SHEET_NAME_LEN - len(suffix))] + suffix
 
 
 def templates_to_excel_workbook(
@@ -68,14 +65,13 @@ def templates_to_excel_workbook(
     for tv in template_versions:
         dfs = [
             (tv.field_definitions_dataframe, "Fields"),
-            (tv.template_dataframe, "Template")
+            (tv.template_dataframe, "Template"),
         ]
         toc_item = {
             "Template Name": tv.data_template.name,
             "Template Description": tv.data_template.description,
             "Sheets": [],
-            "Info": PACKAGE_INFO
-
+            "Info": PACKAGE_INFO,
         }
         for df, type_ in dfs:
             sheet_name = make_sheet_name(tv.data_template.name, type_)
@@ -114,12 +110,10 @@ def templates_to_excel_workbook(
             "valign": "vcenter",
             "font_size": 12,
             "bg_color": "#f4f4f4",
-            "bottom": 1
+            "bottom": 1,
         }
     )
-    first_col_format = workbook.add_format(
-        {"bold": True, "valign": "vcenter"}
-    )
+    first_col_format = workbook.add_format({"bold": True, "valign": "vcenter"})
     default_format = workbook.add_format(
         {"text_wrap": True, "valign": "vcenter"}
     )
@@ -130,9 +124,7 @@ def templates_to_excel_workbook(
         # Unfortunately there is no way to autofit col so just pick something
         sheet.set_column(0, 0, 30, cell_format=first_col_format)
         # Default formatting
-        sheet.set_column(
-            1, df.shape[1] - 1, 30, cell_format=default_format
-        )
+        sheet.set_column(1, df.shape[1] - 1, 30, cell_format=default_format)
         # Freeze first row
         sheet.freeze_panes(1, 0)
 
@@ -170,24 +162,27 @@ def templates_to_archive(
         filepath_or_buffer = os.path.join(output_dir, filename)
 
     # Write templates, field definitions, and a table of contents to zip
-    with ZipFile(filepath_or_buffer, 'w') as zip_archive:
+    with ZipFile(filepath_or_buffer, "w") as zip_archive:
         toc = []
         contents = []
         for tv in template_versions:
-            template_name = (
-                "-".join(tv.data_template.name.split(" ")).lower()
-            )
+            template_name = "-".join(tv.data_template.name.split(" ")).lower()
             files = [
                 (f"{template_name}-template.tsv", tv.template_dataframe),
-                (f"{template_name}-fields.tsv", tv.field_definitions_dataframe)
+                (
+                    f"{template_name}-fields.tsv",
+                    tv.field_definitions_dataframe,
+                ),
             ]
             contents.extend(files)
-            toc.append({
-                "Template Name": tv.data_template.name,
-                "Template Description": tv.data_template.description,
-                "Files": "\n".join([fname for fname, _ in files]),
-                "Info": PACKAGE_INFO,
-            })
+            toc.append(
+                {
+                    "Template Name": tv.data_template.name,
+                    "Template Description": tv.data_template.description,
+                    "Files": "\n".join([fname for fname, _ in files]),
+                    "Info": PACKAGE_INFO,
+                }
+            )
         contents.append(("table_of_contents.tsv", pandas.DataFrame(toc)))
         for fn, df in contents:
             with zip_archive.open(f"{archive_name}/{fn}", "w") as file:
@@ -199,69 +194,74 @@ def templates_to_archive(
     return filepath_or_buffer
 
 
-def study_template_package(
-    study_kf_id: str,
+def template_package(
+    study_kf_id: str = None,
     filepath_or_buffer: Optional[Union[str, BytesIO]] = None,
     template_version_ids: Optional[List[str]] = None,
     excel_workbook: bool = True,
 ):
     """
-    Convert a study's templates into a zip archive of TSVs or
-    a multi-sheet excel workbook
+    Fetch a set of templates and package into an Excel workbook or zip file
+    Optionally filter templates by study or a set of template_version IDs
 
-    Used when user requests to download a study's templates
+    Used when user requests to download templates
     """
-    study = Study.objects.get(pk=study_kf_id)
+    if study_kf_id is None and template_version_ids is None:
+        # No input provided, error
+        raise ValueError("No input provided")
+
+    if study_kf_id:
+        study = Study.objects.get(pk=study_kf_id)
+        query_manager = study.template_versions
+    else:
+        query_manager = TemplateVersion.objects
 
     # Filter down templates
     if template_version_ids:
-        template_versions = study.template_versions.filter(
+        template_versions = query_manager.filter(
             pk__in=template_version_ids
         ).all()
 
         # One or more template versions did not exist
-        if (
-            set([tv.pk for tv in template_versions]) !=
-            set(template_version_ids)
-        ):
+        if {tv.pk for tv in template_versions} != set(template_version_ids):
             raise TemplateVersion.DoesNotExist(
-                f"One or more template versions does not exist"
+                "One or more template versions does not exist"
             )
 
     # All study templates
     else:
-        template_versions = study.template_versions.all()
+        template_versions = query_manager.all()
 
-    if not template_versions:
-        raise TemplateVersion.DoesNotExist(
-            f"No templates exist for study {study_kf_id}"
-        )
+        if not template_versions:
+            raise TemplateVersion.DoesNotExist(
+                f"No templates exist for study {study_kf_id}"
+            )
 
     # Check for duplicate template names
     # Duplicate names are bad bc we use them for template file names/Excel
     # sheet names when packaging templates
     count = len(template_versions)
-    names = set(
-        tv.data_template.name
-        for tv in template_versions
-    )
+    names = {tv.data_template.name for tv in template_versions}
     if len(names) != count:
         raise ValueError(
             f"Cannot package templates with duplicate names: {pformat(names)}"
         )
 
     if not filepath_or_buffer:
-        filepath_or_buffer = os.path.join(
-            os.getcwd(), f"{study_kf_id}_templates"
+        filename = (
+            f"{study_kf_id}_templates" if study_kf_id else "template_package"
         )
+        filepath_or_buffer = os.path.join(os.getcwd(), filename)
 
     if excel_workbook:
         path_or_buf = templates_to_excel_workbook(
-            template_versions, filepath_or_buffer=filepath_or_buffer,
+            template_versions,
+            filepath_or_buffer=filepath_or_buffer,
         )
     else:
         path_or_buf = templates_to_archive(
-            template_versions, filepath_or_buffer=filepath_or_buffer,
+            template_versions,
+            filepath_or_buffer=filepath_or_buffer,
         )
 
     return path_or_buf
