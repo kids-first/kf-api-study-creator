@@ -5,6 +5,7 @@ from graphql_relay import to_global_id
 from creator.studies.models import Study
 from creator.studies.factories import StudyFactory
 from creator.files.models import File
+from creator.analyses.file_types import FILE_TYPES
 
 from creator.files.factories import FileFactory, VersionFactory
 
@@ -23,7 +24,9 @@ def test_default_types(db, clients, upload_file):
     file = File.objects.get(kf_id=kf_id)
     version = file.versions.latest("created_at")
 
-    assert set(file.valid_types) == {"OTH", "DBG", "FAM"}
+    assert set(file.valid_types) == {
+        ft for ft, obj in FILE_TYPES.items() if not obj["template"]
+    }
     assert file.valid_types == version.valid_types
 
 

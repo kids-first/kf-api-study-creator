@@ -34,22 +34,7 @@ def only_printable(string):
     return "".join([s for s in string if s.isprintable()])
 
 
-class FileType(Enum):
-    OTH = "OTH"  # Other
-    DBG = "DBG"  # OLD: dbGaP Submission file
-    FAM = "FAM"  # OLD: Family Relationship
-    S3S = "S3S"  # S3 Scrape
-    PDA = "PDA"  # Participant Details
-    PTD = "PTD"  # Participant Diseases
-    PTP = "PTP"  # Participant Phenotypes
-    GOB = "GOB"  # General Observations
-    FTR = "FTR"  # Family Trio
-    FCM = "FCM"  # Complex Family
-    GWO = "GWO"  # Genomic Workflow Output Manifest
-    BCM = "BCM"  # Biospecimen Collection Manifest
-    BBM = "BBM"  # Biobank Manifest
-    ALM = "ALM"  # Aliquot Manifest
-    SEQ = "SEQ"  # Sequencing File Manifest
+FileType = Enum("FileType", {ft: ft for ft in FILE_TYPES})
 
 
 class File(models.Model):
