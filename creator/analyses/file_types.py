@@ -5,6 +5,21 @@ FILE_TYPES = {
         "required_columns": [],
         "template": None,
     },
+    "BSM": {
+        "name": "Biospecimen Manifest",
+        "required_columns": [],
+        "template": None,
+    },
+    "CLN": {
+        "name": "Clinical Data",
+        "required_columns": [],
+        "template": None,
+    },
+    "SEQ": {
+        "name": "Genomic File Data",
+        "required_columns": [],
+        "template": None,
+    },
     "FAM": {
         "name": "Familial Relationships",
         "required_columns": [],
@@ -90,20 +105,6 @@ FILE_TYPES = {
             "Body Site Name",
         ],
         "template": "biospecimen_collection_manifest_config.py",
-    },
-    "SEQ": {
-        "name": "Sequencing File Manifest",
-        "required_columns": [
-            "Aliquot ID",
-            "Sequencing Center",
-            "Sequencing Output Filepath",
-            "Reference Genome",
-            "Experiment Strategy",
-            "Sequencing Library Name",
-            "Sequencing Platform",
-            "Is Paired End",
-        ],
-        "template": "sequencing_manifest_config.py",
     },
     "S3S": {
         "name": "S3 Scrapes",

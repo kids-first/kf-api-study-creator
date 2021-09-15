@@ -41,7 +41,6 @@ def test_no_extract_configs(clients, db, mocker, file_type):
         ("BCM", "Biospecimen Collection Manifest"),
         ("BBM", "Biobank Manifest"),
         ("ALM", "Aliquot Manifest"),
-        ("SEQ", "Sequencing File Manifest"),
         ("S3S", "S3 Scrape"),
         ("GWO", "Genomic Workflow Output Manifest"),
     ],
