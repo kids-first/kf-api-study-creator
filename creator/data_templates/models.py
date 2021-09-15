@@ -210,7 +210,7 @@ class TemplateVersion(models.Model):
         This will become the content of the field definitions file when
         the user requests to download the template files
         """
-        def format_accepted(value):
+        def format_list(value):
             """
             Convert list to delimited str
             """
@@ -224,7 +224,10 @@ class TemplateVersion(models.Model):
         if "key" in df.columns:
             df.drop(columns=["key"], axis=1, inplace=True)
         df["accepted_values"] = df["accepted_values"].apply(
-            format_accepted
+            format_list
+        )
+        df["missing_values"] = df["missing_values"].apply(
+            format_list
         )
         df.columns = [
             " ".join([w.title() for w in col.split("_")])
