@@ -63,6 +63,7 @@ def test_field_definitions_dataframe(db):
     )
     assert df.shape == (2, len(FieldDefinitionsSchema.key_order) - 1)
     assert set(df["Accepted Values"].values.tolist()) == {"a,b,c"}
+    assert set(df["Missing Values"].values.tolist()) == {"a,b,c"}
 
 
 def test_load_field_definitions(db, tmpdir):

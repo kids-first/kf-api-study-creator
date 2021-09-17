@@ -41,7 +41,7 @@ class TemplateVersionFactory(factory.DjangoModelFactory):
                         "data_type": "string",
                         "instructions": f"Populate label_{x} properly",
                         "accepted_values": ["a", "b", "c"],
-                        "missing_values": "Unknown, Not Reported",
+                        "missing_values": ["a", "b", "c"],
                     }
                     for x in range(2)
                 ]
