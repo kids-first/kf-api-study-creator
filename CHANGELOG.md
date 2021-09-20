@@ -1,5 +1,18 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.5
+
+### Summary
+
+- Emojis: 🐛 x1, ♻️ x1
+- Categories: Fixes x1, Other Changes x1
+
+### New features and changes
+
+- [#746](https://github.com/kids-first/kf-api-study-creator/pull/746) - 🐛 Fix processing of missing value list - [ffeb690b](https://github.com/kids-first/kf-api-study-creator/commit/ffeb690ba27b62469c812fd866cf08ef80737dbf) by [znatty22](https://github.com/znatty22)
+- [#742](https://github.com/kids-first/kf-api-study-creator/pull/742) - ♻️ Refactor validation to use templates - [a5c722e8](https://github.com/kids-first/kf-api-study-creator/commit/a5c722e8409f584f5289c00937870e8a2e9172b9) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.4
 
 ### Summary
