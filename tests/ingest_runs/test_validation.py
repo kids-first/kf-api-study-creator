@@ -300,12 +300,16 @@ def test_clean_and_map(mocker):
         def __init__(self):
             self.pk = 1
             self.file_name = "MyVersion"
+            self.key = f"{self.file_name}.txt"
+
+        def set_storage(self):
+            pass
 
     clean_and_map = validation_run.clean_and_map
 
     # Error extracting file content into DataFrame
     mocker.patch(
-        "creator.ingest_runs.tasks.validation_run.extract_data",
+        "creator.ingest_runs.tasks.validation_run.read_df",
         side_effect=Exception,
     )
     with pytest.raises(validation_run.ExtractDataError) as e:
@@ -320,7 +324,7 @@ def test_clean_and_map(mocker):
         }
     )
     mock_extract_data = mocker.patch(
-        "creator.ingest_runs.tasks.validation_run.extract_data",
+        "creator.ingest_runs.tasks.validation_run.read_df",
         return_value=df
     )
     mapped_df = clean_and_map(MockVersion(), mapper)

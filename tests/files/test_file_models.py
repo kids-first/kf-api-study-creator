@@ -2,10 +2,11 @@ import pytest
 from django.contrib.auth import get_user_model
 from graphql_relay import to_global_id
 
+from creator.studies.models import Study
 from creator.studies.factories import StudyFactory
 from creator.files.models import File
 
-from creator.files.factories import FileFactory
+from creator.files.factories import FileFactory, VersionFactory
 
 User = get_user_model()
 
@@ -40,3 +41,35 @@ def test_s3_scrape(db, clients, upload_file):
 
     assert "S3S" in file.valid_types
     assert file.valid_types == version.valid_types
+
+
+def test_set_storage(db, settings):
+    """
+    Test Version.set_storage
+    """
+    # File storage
+    fv = VersionFactory()
+    fv.set_storage()
+    assert "FileSystemStorage" in str(fv.key.storage)
+
+    # S3 storage - get study from root_file
+    s3_storage = "django_s3_storage.storage.S3Storage"
+    settings.DEFAULT_FILE_STORAGE = s3_storage
+    fv.set_storage()
+    assert fv.key.storage.settings.AWS_S3_BUCKET_NAME == (
+        fv.root_file.study.bucket
+    )
+
+    # S3 storage - get study from prop
+    study = fv.root_file.study
+    fv.study = study
+    fv.set_storage()
+    assert fv.key.storage.settings.AWS_S3_BUCKET_NAME == (
+        fv.root_file.study.bucket
+    )
+
+    # No study
+    fv.root_file = None
+    fv.study = None
+    with pytest.raises(Study.DoesNotExist):
+        fv.set_storage()
