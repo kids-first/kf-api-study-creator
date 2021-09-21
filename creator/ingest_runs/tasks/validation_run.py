@@ -10,8 +10,9 @@ import pandas
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django_s3_storage.storage import S3Storage
+from graphql import GraphQLError
 
-from kf_lib_data_ingest.etl.extract.utils import Extractor
+from kf_lib_data_ingest.common.io import read_df
 from kf_lib_data_ingest.validation.data_validator import (
     Validator as DataValidator,
 )
@@ -114,14 +115,13 @@ def clean_and_map(
     logger.info(
         f"Attempting to map file {version_display(version)} to template keys"
     )
+    # Set storage location appropriately
+    version.set_storage()
+
     # Extract file content into a DataFrame
     try:
-        df = pandas.DataFrame(extract_data(version))
+        df = read_df(version.key)
     except Exception as e:
-        er_msg = (
-            f"Error in parsing {version_display(version)} "
-            "content into a DataFrame."
-        )
         raise ExtractDataError from e
 
     # Try to map as many of the input columns to template keys
@@ -146,7 +146,10 @@ def validate_file_versions(validation_run: ValidationRun) -> dict:
     version, clean and map the data before passing it to the validator
     """
     versions = validation_run.versions.all()
-    logger.info(f"Begin validating file versions: {pformat(list(versions))}")
+    logger.info(
+        "Begin validating file versions:\n"
+        f"{pformat([version_display(v) for v in versions])}"
+    )
 
     # Load study templates
     study = validation_run.data_review.study
@@ -188,6 +191,9 @@ def validate_file_versions(validation_run: ValidationRun) -> dict:
             continue
 
         if clean_df.empty:
+            logger.warning(
+                f"Skipping {version_display(version)} due to empty mapped df"
+            )
             empty_df_count += 1
         else:
             df_dict[version.pk] = clean_df

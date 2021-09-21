@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
+from django_s3_storage.storage import S3Storage
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
@@ -368,6 +369,22 @@ class Version(models.Model):
                 config_path = os.path.join(EXTRACT_CFG_DIR, filename)
 
         return config_path
+
+    def set_storage(self):
+        """
+        Set storage location for study bucket if using S3 backend
+        """
+        s3_storage = "django_s3_storage.storage.S3Storage"
+        if settings.DEFAULT_FILE_STORAGE == s3_storage:
+            if self.study is not None:
+                study = self.study
+            elif self.root_file is not None:
+                study = self.root_file.study
+            else:
+                raise Study.DoesNotExist(
+                    f"{self} must be part of a study."
+                )
+            self.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
 
 
 class DownloadToken(models.Model):
