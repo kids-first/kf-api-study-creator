@@ -334,3 +334,6 @@ CLIENT_ADMIN_SCOPE = "role:admin"
 # Number of seconds after which to timeout any outgoing requests
 REQUESTS_TIMEOUT = os.environ.get("REQUESTS_TIMEOUT", 30)
 REQUESTS_HEADERS = {"User-Agent": "StudyCreator/development (python-requests)"}
+
+# Flatfile
+FLATFILE_DEV_MODE = True
