@@ -15,5 +15,5 @@ else
     echo "Setup Permissions"
     /app/manage.py setup_permissions
     echo "Execute Gunicorn"
-    exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --workers 4
+    exec gunicorn creator.wsgi:application -b 0.0.0.0:80 --access-logfile - --error-logfile - --timeout 60 --workers 4
 fi
