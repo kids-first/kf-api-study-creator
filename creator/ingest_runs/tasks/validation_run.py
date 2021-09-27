@@ -18,10 +18,14 @@ from kf_lib_data_ingest.validation.data_validator import (
 )
 from kf_lib_data_ingest.validation.reporting.markdown import (
     MarkdownReportBuilder,
+    ATTR_TEST,
+    GAP_TEST,
+    COUNT_TEST
 )
 
 from creator.decorators import task
 from creator.ingest_runs.models import ValidationRun, ValidationResultset
+from creator.ingest_runs.validation_rules import RULE_GRAPH
 from creator.studies.models import Study
 from creator.files.models import Version
 from creator.data_templates.models import TemplateVersion
@@ -29,6 +33,7 @@ from creator.analyses.file_types import FILE_TYPES
 from creator.analyses.analyzer import extract_data
 
 S3_STORAGE = "django_s3_storage.storage.S3Storage"
+EXCLUDE_TESTS = [ATTR_TEST, GAP_TEST, COUNT_TEST]
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +223,9 @@ def validate_file_versions(validation_run: ValidationRun) -> dict:
 
     # Run validation
     try:
-        results = DataValidator().validate(df_dict, include_implicit=True)
+        results = DataValidator(
+            hierarchy_override=RULE_GRAPH
+        ).validate(df_dict, include_implicit=True)
     except Exception as e:
         logger.exception(
             "Something went wrong while running the data validator"
@@ -254,7 +261,7 @@ def build_report(results: dict) -> str:
         f"Finished validation, building report for: {pformat(friendly_names)}"
     )
 
-    return rbuilder._build(results)
+    return rbuilder._build(results, exclude_tests=EXCLUDE_TESTS)
 
 
 def validation_summary(results: ValidationResultset) -> tuple:
