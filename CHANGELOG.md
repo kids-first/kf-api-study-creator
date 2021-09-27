@@ -1,5 +1,20 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.6
+
+### Summary
+
+- Emojis: 🔊 x1, ♻️ x2, 🐛 x1
+- Categories: Additions x1, Fixes x1, Other Changes x2
+
+### New features and changes
+
+- [#761](https://github.com/kids-first/kf-api-study-creator/pull/761) - 🔊 Configure release task logging directly - [7ecbb638](https://github.com/kids-first/kf-api-study-creator/commit/7ecbb63805bc2d1ba0e10f4b0151735aa56bd586) by [znatty22](https://github.com/znatty22)
+- [#753](https://github.com/kids-first/kf-api-study-creator/pull/753) - ♻️ Adjust validation rules and report - [cdabec75](https://github.com/kids-first/kf-api-study-creator/commit/cdabec7564f3b61e862db7e0f1dd9bb3ab8c9ba0) by [znatty22](https://github.com/znatty22)
+- [#741](https://github.com/kids-first/kf-api-study-creator/pull/741) - ♻️ Restore old general file types and add new ones - [c3a6ecd9](https://github.com/kids-first/kf-api-study-creator/commit/c3a6ecd94b555896ac6a2c03784cd8aedf8d1132) by [znatty22](https://github.com/znatty22)
+- [#750](https://github.com/kids-first/kf-api-study-creator/pull/750) - 🐛 Properly decode file content before validation - [77f1f42d](https://github.com/kids-first/kf-api-study-creator/commit/77f1f42d329539e43030a7711aae27b8299d07a7) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.5
 
 ### Summary
