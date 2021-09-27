@@ -315,6 +315,10 @@ LOGGING = {
         "creator.data_templates.mutations.template_version": {
             "handlers": ["task"], "level": "ERROR"
         },
+        "creator.releases.tasks": {
+            "handlers": ["task"],
+            "level": "INFO",
+        },
     },
 }
 
