@@ -63,9 +63,6 @@ def test_local_download_and_delete(
             f"{file_field.name.split('/')[-1]}"
         )
         assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
-        assert resp.get("Content-Length") == str(
-            os.stat("tests/data/data.csv").st_size
-        )
         # Delete file from storage system
         file_field.storage.delete(file_field.name)
 
@@ -106,9 +103,6 @@ def test_s3_download_and_delete(
         f"attachment; filename*=UTF-8''" f"{file_field.name.split('/')[-1]}"
     )
     assert resp.content == b"aaa,bbb,ccc\nddd,eee,fff\n"
-    assert resp.get("Content-Length") == str(
-        os.stat("tests/data/data.csv").st_size
-    )
     # Delete file from storage system
     file_field.storage.delete(file_field.name)
 

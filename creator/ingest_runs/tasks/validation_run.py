@@ -324,9 +324,10 @@ def upload_validation_files(
         # Filename: validation_<report or results>_<data_review.kf_id>.<ext>
         fname, ext = os.path.splitext(fname)
         fname = f"{fname}_{resultset.data_review.kf_id.lower()}{ext}"
-        file_field.save(fname, ContentFile(content))
+        f = ContentFile(content)
+        file_field.save(fname, f)
 
-        logger.info(f"Wrote {file_field.name}")
+        logger.info(f"Wrote {file_field.name}, size: {f.size} bytes")
 
 
 def persist_results(

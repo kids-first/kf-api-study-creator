@@ -63,7 +63,6 @@ def download_validation_file(request, review_id, file_type):
     response[
         "Content-Disposition"
     ] = f"attachment; filename*=UTF-8''{filename}"
-    response["Content-Length"] = file_field.storage.size(file_field.name)
     response["Content-Type"] = "application/octet-stream"
 
     return response
