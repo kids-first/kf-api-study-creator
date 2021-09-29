@@ -1,3 +1,4 @@
+import os
 import pytest
 from creator.decorators import task
 from creator.jobs.models import Job, JobLog
@@ -18,6 +19,7 @@ def test_new_job(db):
     assert JobLog.objects.count() == 1
     assert Job.objects.first().scheduled is False
     assert Job.objects.first().name == "myjob"
+    assert os.path.exists(JobLog.objects.first().log_file.path)
 
 
 def test_related_models_by_pk(db):
