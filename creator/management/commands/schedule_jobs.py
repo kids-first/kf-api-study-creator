@@ -7,7 +7,6 @@ from django.conf import settings
 
 from creator.jobs.models import Job
 from creator.releases.tasks import (
-    sync_releases_task,
     scan_releases,
     scan_tasks,
 )
@@ -53,7 +52,6 @@ class Command(BaseCommand):
         logger.info(
             f"Found {len(jobs)} jobs scheduled on the Coordinator queue"
         )
-        self.setup_coordinator_sync()
         self.setup_scan_releases()
         self.setup_scan_tasks()
 
@@ -124,27 +122,6 @@ class Command(BaseCommand):
         )
         job, created = Job.objects.get_or_create(
             name=name, description=description, scheduler="dataservice"
-        )
-        job.scheduled = True
-        job.save()
-
-    def setup_coordinator_sync(self):
-        logger.info("Scheduling Release Coordinator Sync jobs")
-        name = "releases_sync"
-        description = "Syncronize Release Coordinator releases"
-
-        self.releases_scheduler.cancel("releases_sync")
-
-        self.releases_scheduler.schedule(
-            id=name,
-            description=description,
-            scheduled_time=datetime.utcnow(),
-            func=sync_releases_task,
-            repeat=None,
-            interval=600,
-        )
-        job, created = Job.objects.get_or_create(
-            name=name, description=description, scheduler="releases"
         )
         job.scheduled = True
         job.save()
