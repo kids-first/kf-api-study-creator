@@ -87,7 +87,11 @@ def _get_upload_directory(instance, filename):
         prefix = f"{settings.LOG_DIR}/{filename}"
         return prefix
     else:
-        return os.path.join(settings.BASE_DIR, settings.LOG_DIR, filename)
+        # If not writing to S3, remove the date based folder hierarchy
+        # For example, turn 2021/09/29/1632931703_release_task.log
+        # into 1632931703_release_task.log
+        filename = filename.split("/")[-1]
+        return os.path.join(settings.LOG_DIR, filename)
 
 
 class JobLog(models.Model):
