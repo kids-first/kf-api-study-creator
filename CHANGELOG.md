@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.7
+
+### Summary
+
+- Emojis: 🐛 x2, ♻️ x1
+- Categories: Fixes x2, Other Changes x1
+
+### New features and changes
+
+- [#768](https://github.com/kids-first/kf-api-study-creator/pull/768) - 🐛 Fix API logging - [b07e9b96](https://github.com/kids-first/kf-api-study-creator/commit/b07e9b96f74208844395cb0de3aefe509704ca53) by [znatty22](https://github.com/znatty22)
+- [#767](https://github.com/kids-first/kf-api-study-creator/pull/767) - 🐛  Fix writing of job logs in local development - [d078b8eb](https://github.com/kids-first/kf-api-study-creator/commit/d078b8eb597e62672f2720d146dd868d03caebb9) by [znatty22](https://github.com/znatty22)
+- [#763](https://github.com/kids-first/kf-api-study-creator/pull/763) - ♻️ Omit Content-Length header in download validation report - [f61c0e80](https://github.com/kids-first/kf-api-study-creator/commit/f61c0e8078d0b11826cf70ae9dceb0bea99e9418) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.6
 
 ### Summary
