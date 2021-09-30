@@ -184,7 +184,6 @@ def summary_post():
         blocks = []
         study_id = studyObj.kf_id
         study_name = studyObj.name
-        SLACK_LIMIT = 50
 
         # Get all events for a single study within previous 24 hours
         study_events = studyObj.events.filter(
@@ -299,21 +298,23 @@ def summary_post():
             blocks.append(header)
             blocks.extend(file_timelines["COLLABORATOR"])
 
-        # If there are more than _SLACK_LIMIT_ blocks, truncate to
-        # _SLACK_LIMIT_ - 1 and append a final block alerting the user.
-        # Formatted this way so that codecov won't complain.
-        header = document_header(
-            settings.DATA_TRACKER_URL,
-            file_id,
-            (
-                f"Too many events for a single message. Last "
-                f"{SLACK_LIMIT - 1} returned."
-            ),
-        )
+        # If there are more than settings.SLACK_BLOCK_LIMIT blocks, truncate to
+        # settings.SLACK_BLOCK_LIMIT - 1 and append a final block alerting
+        # the user. Formatted this way so that codecov won't complain.
+        truncate_msg = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"*Too many events for a single message. Last "
+                    f"{settings.SLACK_BLOCK_LIMIT - 1} returned.*"
+                ),
+            },
+        }
         blocks = (
             blocks
-            if len(blocks) <= SLACK_LIMIT
-            else blocks[-SLACK_LIMIT + 1:] + [header]
+            if len(blocks) <= settings.SLACK_BLOCK_LIMIT
+            else blocks[-settings.SLACK_BLOCK_LIMIT + 1:] + [truncate_msg]
         )
         return blocks
 
