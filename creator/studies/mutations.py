@@ -274,12 +274,13 @@ class CreateStudyMutation(graphene.Mutation):
         # Setup bucket
         bucket_job = None
         if (
-            settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
-            and settings.STUDY_BUCKETS_REGION
-            and settings.STUDY_BUCKETS_LOGGING_BUCKET
-            and settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
-            and settings.STUDY_BUCKETS_REPLICATION_ROLE
-            and settings.STUDY_BUCKETS_INVENTORY_LOCATION
+            True
+            # settings.FEAT_STUDY_BUCKETS_CREATE_BUCKETS
+            # and settings.STUDY_BUCKETS_REGION
+            # and settings.STUDY_BUCKETS_LOGGING_BUCKET
+            # and settings.STUDY_BUCKETS_DR_LOGGING_BUCKET
+            # and settings.STUDY_BUCKETS_REPLICATION_ROLE
+            # and settings.STUDY_BUCKETS_INVENTORY_LOCATION
         ):
             logger.info(f"Scheduling bucket setup for study {study.kf_id}")
             bucket_job = django_rq.enqueue(setup_bucket_task, study.kf_id)

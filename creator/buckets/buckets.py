@@ -55,38 +55,38 @@ def new_bucket(study):
     """
     study_id = study.kf_id
 
-    s3 = boto3.client("s3")
+    # s3 = boto3.client("s3")
     bucket_name = get_bucket_name(study_id)
-    bucket = s3.create_bucket(ACL="private", Bucket=bucket_name)
-    _add_policy(bucket_name)
+    # bucket = s3.create_bucket(ACL="private", Bucket=bucket_name)
+    # _add_policy(bucket_name)
 
-    # Encryption
-    logger.info("adding encryption to bucket")
-    _add_encryption(bucket_name)
+    # # Encryption
+    # logger.info("adding encryption to bucket")
+    # _add_encryption(bucket_name)
 
-    # Tagging
-    logger.info("adding tagging to bucket")
-    _add_tagging(bucket_name, study_id)
+    # # Tagging
+    # logger.info("adding tagging to bucket")
+    # _add_tagging(bucket_name, study_id)
 
-    # Versioning
-    logger.info("adding versioning to bucket")
-    _add_versioning(bucket_name)
+    # # Versioning
+    # logger.info("adding versioning to bucket")
+    # _add_versioning(bucket_name)
 
-    # Logging
-    logger.info("adding logging to bucket")
-    _add_logging(bucket_name, study_id)
+    # # Logging
+    # logger.info("adding logging to bucket")
+    # _add_logging(bucket_name, study_id)
 
-    # CORS
-    logger.info("adding CORS to bucket")
-    _add_cors(bucket_name)
+    # # CORS
+    # logger.info("adding CORS to bucket")
+    # _add_cors(bucket_name)
 
-    # Replication
-    logger.info("adding replication to bucket")
-    _add_replication(bucket_name, study_id)
+    # # Replication
+    # logger.info("adding replication to bucket")
+    # _add_replication(bucket_name, study_id)
 
-    # Inventory
-    logger.info("adding inventory to bucket")
-    _add_inventory(bucket_name)
+    # # Inventory
+    # logger.info("adding inventory to bucket")
+    # _add_inventory(bucket_name)
 
     study.bucket = bucket_name
 
