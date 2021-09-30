@@ -138,7 +138,7 @@ class Release(models.Model):
     @transition(field=state, source="running", target="staged")
     def staged(self):
         """ The release has been staged """
-        return
+        logger.info(f"Release {self.pk} entered staged state")
 
     @transition(field=state, source="staged", target="publishing")
     def publish(self):
@@ -153,7 +153,7 @@ class Release(models.Model):
         else:
             self.version = self.version.next_minor()
         self.save()
-        return
+        logger.info(f"Release {self.pk} entered published state")
 
     @transition(field=state, source=FAIL_SOURCES, target="canceling")
     def cancel(self):
@@ -163,12 +163,12 @@ class Release(models.Model):
     @transition(field=state, source="canceling", target="canceled")
     def canceled(self):
         """ The release has finished canceling """
-        return
+        logger.info(f"Release {self.pk} entered canceled state")
 
     @transition(field=state, source=FAIL_SOURCES, target="failed")
     def failed(self):
         """ The release failed """
-        return
+        logger.info(f"Release {self.pk} entered failed state")
 
 
 class ReleaseTask(models.Model):
@@ -305,7 +305,7 @@ class ReleaseTask(models.Model):
 
     @transition(field=state, source="running", target="staged")
     def stage(self):
-        return
+        logger.info(f"Task {self.pk} entered staged state")
 
     @transition(field=state, source="staged", target="publishing")
     def publish(self):
@@ -326,15 +326,15 @@ class ReleaseTask(models.Model):
 
     @transition(field=state, source="publishing", target="published")
     def complete(self):
-        return
+        logger.info(f"Task {self.pk} entered published state")
 
     @transition(field=state, source="waiting", target="rejected")
     def reject(self):
-        return
+        logger.info(f"Task {self.pk} entered rejected state")
 
     @transition(field=state, source="*", target="failed")
     def failed(self):
-        return
+        logger.info(f"Task {self.pk} entered failed state")
 
     @transition(field=state, source="*", target="canceled")
     def cancel(self):
@@ -352,6 +352,7 @@ class ReleaseTask(models.Model):
             )
             logger.error(error)
             raise ValueError(error)
+        logger.info(f"Task {self.pk} entered canceled state")
 
     def check_state(self):
         """
