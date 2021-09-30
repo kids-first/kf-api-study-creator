@@ -254,24 +254,13 @@ LOGGING = {
         },
     },
     "loggers": {
-        "TaskLogger": {},
-        "creator.management": {"handlers": ["command"], "level": "INFO"},
         "rq.worker": {"handlers": ["rq_console"], "level": "ERROR"},
-        "creator.tasks": {"handlers": ["task"], "level": "INFO"},
-        "creator.slack": {"handlers": ["task"], "level": "INFO"},
-        "creator.studies.dataservice": {"handlers": ["task"], "level": "INFO"},
-        "creator.studies.buckets": {"handlers": ["task"], "level": "INFO"},
-        "creator.studies.schema": {"handlers": ["task"], "level": "INFO"},
+        "TaskLogger": {"handlers": ["task"], "level": "INFO"},
+        "creator": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
             "handlers": ["task"],
             "level": "DEBUG",
-        },
-        "creator.ingest_runs.tasks.validation_run": {
-            "handlers": ["task"],
-            "level": "INFO",
-        },
-        "creator.data_templates.mutations.template_version": {
-            "handlers": ["task"], "level": "INFO"
+            "propagate": False,
         },
     },
 }

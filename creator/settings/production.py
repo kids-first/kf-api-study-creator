@@ -295,29 +295,17 @@ LOGGING = {
         },
     },
     "loggers": {
-        "TaskLogger": {"handlers": ["task"], "level": "INFO"},
+        "rq.worker": {"handlers": ["rq_console"]},
         "graphql.execution.utils": {
             "handlers": ["command"],
             "level": "CRITICAL",
         },
-        "creator": {"handlers": ["task"]},
-        "creator.management": {"handlers": ["command"], "level": "INFO"},
-        "rq.worker": {"handlers": ["rq_console"]},
-        "creator.decorators": {"handlers": ["task"]},
+        "TaskLogger": {"handlers": ["task"], "level": "INFO"},
+        "creator": {"handlers": ["task"], "level": "INFO"},
         "creator.ingest_runs.genomic_data_loader": {
             "handlers": ["task"],
             "level": "DEBUG",
-        },
-        "creator.ingest_runs.tasks.validation_run": {
-            "handlers": ["task"],
-            "level": "INFO",
-        },
-        "creator.data_templates.mutations.template_version": {
-            "handlers": ["task"], "level": "ERROR"
-        },
-        "creator.releases.tasks": {
-            "handlers": ["task"],
-            "level": "INFO",
+            "propagate": False,
         },
     },
 }
