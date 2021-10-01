@@ -1,6 +1,7 @@
 import pytest
 import datetime
 from creator.studies.factories import StudyFactory
+from creator.files.factories import FileFactory
 from creator.organizations.factories import OrganizationFactory
 from creator.events.models import Event
 from creator.studies.models import Study
@@ -127,3 +128,53 @@ def test_slack_notify_channel_not_found(db, mocker, settings):
     assert mock_logger.call_count == 1
     assert mock_post.call_count == 0
     assert notified_counts == 1
+
+
+def test_slack_notify_trunc_message(db, mocker, settings):
+    """
+    Test slack notify operates correctly when the message is too long
+    """
+    settings.SLACK_TOKEN = "ABC"
+    settings.SLACK_BLOCK_LIMIT = 5
+
+    mock_join = mocker.patch("creator.slack.WebClient.conversations_join")
+    mock_post = mocker.patch("creator.slack.WebClient.chat_postMessage")
+    mock_post.return_value = {"ok": True}
+    mock_list = mocker.patch("creator.slack.WebClient.conversations_list")
+    # Trimmed mock response based on example return in Slack docs:
+    # https://api.slack.com/methods/conversations.list
+    mock_list.return_value = {
+        "ok": True,
+        "channels": [
+            {
+                "id": "C012AB3CD",
+                "name": "sd_00000000",
+                "is_channel": True,
+            },
+        ],
+        "response_metadata": {"next_cursor": "dGVhbTpDMDYxRkE1UEI="},
+    }
+
+    org = OrganizationFactory()
+    study = StudyFactory(organization=org)
+    study.slack_channel = "sd_00000000"
+    study.save()
+
+    for i in range(settings.SLACK_BLOCK_LIMIT + 5):
+        f = FileFactory(study=study)
+        event = Event(
+            organization=org,
+            event_type="SF_CRE",
+            study=study,
+            file=f,
+        )
+        event.save()
+
+    notified_counts = summary_post()
+
+    assert Study.objects.count() == 1
+    assert notified_counts == 1
+    assert mock_join.call_count == 1
+    assert mock_post.call_count == 1
+    args, kwargs = mock_post.call_args_list[0]
+    assert "Too many events" in kwargs["blocks"][-1]["text"]["text"]
