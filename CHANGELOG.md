@@ -1,5 +1,18 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.8
+
+### Summary
+
+- Emojis: 🐛 x1, 🔥 x1
+- Categories: Removals x1, Fixes x1
+
+### New features and changes
+
+- [#772](https://github.com/kids-first/kf-api-study-creator/pull/772) - 🐛 Fix slack notifications - [4d956184](https://github.com/kids-first/kf-api-study-creator/commit/4d95618413662676006ad967e5d5dc2671e72b3c) by [znatty22](https://github.com/znatty22)
+- [#774](https://github.com/kids-first/kf-api-study-creator/pull/774) - 🔥 Remove sync job with old release coordinator - [7b445e8c](https://github.com/kids-first/kf-api-study-creator/commit/7b445e8cfc7d5c1e44a4777e459189077248bbb7) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.19.7
 
 ### Summary
