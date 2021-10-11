@@ -9,6 +9,7 @@ from creator.referral_tokens.models import ReferralToken
 from creator.studies.factories import StudyFactory
 from creator.referral_tokens.factories import ReferralTokenFactory
 
+
 User = get_user_model()
 
 EXCHANGE_REFERRALTOKEN = """
@@ -18,9 +19,19 @@ mutation ($token: ID!) {
       uuid
       claimed
       isValid
+      organization {
+          id
+      }
     }
     user {
       email
+      organizations {
+          edges {
+              node {
+                  id
+              }
+          }
+      }
       studies {
         edges {
           node {
@@ -47,6 +58,9 @@ mutation newReferralToken($input: ReferralTokenInput!) {
       uuid
       claimed
       isValid
+      organization {
+          id
+      }
     }
   }
 }
@@ -69,8 +83,12 @@ def test_exchange_referral_token(db, clients, user_group, allowed):
     All login user can exchange referral token
     """
     client = clients.get(user_group)
+    kwargs = {}
 
-    referral_token = ReferralTokenFactory()
+    if allowed:
+        user = User.objects.get(username=f"{user_group} User")
+        kwargs["email"] = user.email
+    referral_token = ReferralTokenFactory(**kwargs)
     num_studies = referral_token.studies.count()
     assert ReferralToken.objects.first().claimed is False
 
@@ -87,6 +105,7 @@ def test_exchange_referral_token(db, clients, user_group, allowed):
 
     if allowed:
         resp_body = resp.json()["data"]["exchangeReferralToken"]
+
         assert resp_body["referralToken"]["isValid"] is False
         assert ReferralToken.objects.first().claimed is True
 
@@ -104,8 +123,8 @@ def test_exchange_referral_token_no_multiple_claim(db, clients):
     User cannot exchange referral token when it is not valid
     """
     client = clients.get("Administrators")
-
-    referral_token = ReferralTokenFactory()
+    user = User.objects.get(username="Administrators User")
+    referral_token = ReferralTokenFactory(email=user.email)
     resp_claim = client.post(
         "/graphql",
         data={
@@ -166,7 +185,7 @@ def test_exchange_referral_token_expired(db, clients, settings):
     study = StudyFactory(kf_id="SD_00000000")
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
@@ -190,6 +209,7 @@ def test_exchange_referral_token_expired(db, clients, settings):
     assert resp_create_body["referralToken"]["isValid"] is False
     assert ReferralToken.objects.count() == 1
     referral_token = ReferralToken.objects.first()
+
     resp_exchange = client.post(
         "/graphql",
         data={
@@ -206,9 +226,10 @@ def test_exchange_referral_token_expired(db, clients, settings):
     )
 
 
-def test_exchange_referral_token_study_group(db, clients):
+def test_exchange_referral_token_study_group_org(db, clients):
     """
-    Studies and groups are currectly added to user on exchanging referral token
+    Studies, groups, and organization are correctly added to user on exchanging
+    referral token
     """
     client = clients.get("Administrators")
     user = User.objects.filter(groups__name="Administrators").first()
@@ -216,15 +237,15 @@ def test_exchange_referral_token_study_group(db, clients):
     study = StudyFactory()
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", study.kf_id)
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
-    email = "test@email.com"
+    invited_user = User.objects.get(username="Investigators User")
     variables = {
         "input": {
-            "email": email,
+            "email": invited_user.email,
             "studies": [study_id],
             "groups": [group_id],
             "organization": organization_id,
@@ -241,6 +262,10 @@ def test_exchange_referral_token_study_group(db, clients):
     assert Study.objects.first().collaborators.count() == 0
 
     referral_token = ReferralToken.objects.first()
+    # The client above should be the admin inviting a new user to the study
+    # creator. The client below should be this new user signing up and should
+    # not be an admin anymore.
+    client = clients.get("Investigators")
     resp_exchange = client.post(
         "/graphql",
         data={
@@ -252,8 +277,12 @@ def test_exchange_referral_token_study_group(db, clients):
         content_type="application/json",
     )
     resp_body = resp_exchange.json()["data"]["exchangeReferralToken"]["user"]
-    assert resp_body["groups"]["edges"][0]["node"]["id"] == group_id
+    groups = [group["node"]["id"] for group in resp_body["groups"]["edges"]]
+    assert group_id in groups
     assert resp_body["studies"]["edges"][0]["node"]["id"] == study_id
+    assert (
+        resp_body["organizations"]["edges"][0]["node"]["id"] == organization_id
+    )
     assert Study.objects.first().collaborators.count() == 1
 
 
@@ -270,15 +299,15 @@ def test_exchange_referral_token_no_overwrite(db, clients):
     study = StudyFactory()
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", study.kf_id)
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
 
-    email = "test@email.com"
+    invited_user = User.objects.get(username="Administrators User")
     variables = {
         "input": {
-            "email": email,
+            "email": invited_user.email,
             "studies": [study_id],
             "groups": [group_id],
             "organization": organization_id,
@@ -323,8 +352,9 @@ def test_exchange_referral_token_no_dupes(db, clients):
     group = Group.objects.first()
 
     # Make token containing study the user already belongs to
+    invited_user = User.objects.get(username="Administrators User")
     referral_token = ReferralToken(
-        email="test@example.com", organization=study.organization
+        email=invited_user.email, organization=study.organization
     )
     referral_token.save()
     referral_token.studies.set([study])
@@ -344,3 +374,28 @@ def test_exchange_referral_token_no_dupes(db, clients):
     resp_body = resp_exchange.json()["data"]["exchangeReferralToken"]["user"]
     assert len(resp_body["studies"]["edges"]) == 1
     assert user.studies.count() == 1
+
+
+def test_exchange_referral_token_email(db, clients):
+    """
+    Test that an error is thrown when the invited user's email and the
+    ReferralToken's email do not match
+    """
+
+    client = clients.get("Investigators")
+    referral_token = ReferralTokenFactory()
+    invited_user = User.objects.get(username="Investigators User")
+    assert referral_token.email != invited_user.email
+
+    resp = client.post(
+        "/graphql",
+        data={
+            "query": EXCHANGE_REFERRALTOKEN,
+            "variables": {
+                "token": to_global_id("ReferralTokenNode", referral_token.uuid)
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert "cannot use this referral" in resp.json()["errors"][0]["message"]

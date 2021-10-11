@@ -25,6 +25,9 @@ mutation newReferralToken($input: ReferralTokenInput!) {
           }
         }
       }
+      organization {
+          id
+      }
       studies {
         edges {
           node {
@@ -59,7 +62,7 @@ def test_create_referral_token_mutation(db, clients, user_group, allowed):
     study = StudyFactory(kf_id="SD_00000000")
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
@@ -86,6 +89,7 @@ def test_create_referral_token_mutation(db, clients, user_group, allowed):
         assert resp_body["isValid"] is True
         assert resp_body["groups"]["edges"][0]["node"]["id"] == group_id
         assert resp_body["studies"]["edges"][0]["node"]["id"] == study_id
+        assert resp_body["organization"]["id"] == organization_id
         assert ReferralToken.objects.count() == 1
         assert ReferralToken.objects.first().claimed is False
     else:
@@ -104,7 +108,7 @@ def test_create_referral_token_mutation_existing(db, clients):
     study = StudyFactory(kf_id="SD_00000000")
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
@@ -142,7 +146,7 @@ def test_create_referral_token_mutation_existing(db, clients):
 
 def test_create_referral_token_mutation_expired(db, clients, settings):
     """
-    Test that a refferal token may be 'resent' for the same user/email after
+    Test that a referral token may be 'resent' for the same user/email after
     the old token has expired.
     """
     client = clients.get("Administrators")
@@ -151,7 +155,7 @@ def test_create_referral_token_mutation_expired(db, clients, settings):
     study = StudyFactory(kf_id="SD_00000000")
     study.organization.members.add(user)
     study_id = to_global_id("StudyNode", "SD_00000000")
-    organization_id = to_global_id("OranizationNode", study.organization.id)
+    organization_id = to_global_id("OrganizationNode", study.organization.id)
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
@@ -195,6 +199,7 @@ def test_create_referral_token_mutation_expired(db, clients, settings):
     assert resp_body["isValid"] is True
     assert resp_body["groups"]["edges"][0]["node"]["id"] == group_id
     assert resp_body["studies"]["edges"][0]["node"]["id"] == study_id
+    assert resp_body["organization"]["id"] == organization_id
     assert ReferralToken.objects.count() == 2
 
 
@@ -208,7 +213,7 @@ def test_create_referral_token_mutation_organization_does_not_exist(
 
     study = StudyFactory(kf_id="SD_00000000")
     study_id = to_global_id("StudyNode", "SD_00000000")
-    organization_id = to_global_id("OranizationNode", uuid.uuid4())
+    organization_id = to_global_id("OrganizationNode", uuid.uuid4())
 
     group = Group.objects.first()
     group_id = to_global_id("GroupNode", group.id)
