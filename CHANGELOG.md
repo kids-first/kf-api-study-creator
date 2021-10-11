@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.19.9
+
+### Summary
+
+- Emojis: 🐛 x1
+- Categories: Fixes x1
+
+### New features and changes
+
+- [#764](https://github.com/kids-first/kf-api-study-creator/pull/764) - 🐛 Add organization to newly invited users - [88a9739b](https://github.com/kids-first/kf-api-study-creator/commit/88a9739bba391037aba0f8e4d8f13da448b46874) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.19.8
 
 ### Summary
