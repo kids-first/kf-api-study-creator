@@ -91,7 +91,9 @@ class CreateReferralTokenMutation(graphene.Mutation):
         try:
             organization = Organization.objects.get(pk=organization_id)
         except Organization.DoesNotExist:
-            raise GraphQLError(f"Organizaton {organization_id} does not exist")
+            raise GraphQLError(
+                f"Organization {organization_id} does not exist"
+            )
 
         # User must be a member of the organization to send an invite
         if not (
@@ -200,6 +202,12 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
         if not referral_token.is_valid:
             raise GraphQLError("Referral token is not valid.")
 
+        if user.email != referral_token.email:
+            raise GraphQLError(
+                f"{user.email} cannot use this referral link. Must be used by "
+                f"the invited user"
+            )
+
         # Add user as a collaborator to each study
         for study in referral_token.studies.all():
             membership, created = Membership.objects.get_or_create(
@@ -209,6 +217,7 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
             )
 
         user.groups.add(*referral_token.groups.all())
+        user.organizations.add(referral_token.organization)
         referral_token.claimed = True
         referral_token.claimed_by = user
         referral_token.save()
