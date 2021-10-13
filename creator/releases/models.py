@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django_fsm import FSMField, transition
 from semantic_version import Version
 from semantic_version.django_fields import VersionField
@@ -122,52 +123,60 @@ class Release(models.Model):
         help_text="Whether the release is a major version change or not",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, help_text="Date created"
+        default=timezone.now, help_text="Date created"
+    )
+    ended_at = models.DateTimeField(
+        blank=True, default=None, help_text="Date ended", null=True
     )
 
     @transition(field=state, source="waiting", target="initializing")
     def initialize(self):
-        """ Begin initializing tasks """
+        """Begin initializing tasks"""
         return
 
     @transition(field=state, source="initializing", target="running")
     def start(self):
-        """ Start the release """
+        """Start the release"""
         return
 
     @transition(field=state, source="running", target="staged")
     def staged(self):
-        """ The release has been staged """
+        """The release has been staged"""
         logger.info(f"Release {self.pk} entered staged state")
 
     @transition(field=state, source="staged", target="publishing")
     def publish(self):
-        """ Start publishing the release """
+        """Start publishing the release"""
         return
 
     @transition(field=state, source="publishing", target="published")
     def complete(self):
-        """ Complete publishing """
+        """Complete publishing"""
         if self.is_major:
             self.version = self.version.next_major()
         else:
             self.version = self.version.next_minor()
+        self.ended_at = timezone.now()
         self.save()
         logger.info(f"Release {self.pk} entered published state")
 
     @transition(field=state, source=FAIL_SOURCES, target="canceling")
     def cancel(self):
-        """ Cancel the release """
+        """Cancel the release"""
         return
 
     @transition(field=state, source="canceling", target="canceled")
     def canceled(self):
-        """ The release has finished canceling """
+        """The release has finished canceling"""
+        self.ended_at = timezone.now()
+        self.save()
         logger.info(f"Release {self.pk} entered canceled state")
 
     @transition(field=state, source=FAIL_SOURCES, target="failed")
     def failed(self):
-        """ The release failed """
+        """The release failed"""
+        self.ended_at = timezone.now()
+        self.save()
         logger.info(f"Release {self.pk} entered failed state")
 
 
