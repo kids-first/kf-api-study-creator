@@ -244,13 +244,13 @@ class ReleaseTask(models.Model):
             )
             resp.raise_for_status()
         except requests.exceptions.RequestException as err:
-            logger.error(f"problem requesting task for {action}: {err}")
+            logger.error(f"Problem requesting task for {action}: {err}")
             raise err
 
         try:
             state = resp.json()
             logger.info(
-                f"Recieved response from {self.release_service.url}: {state}"
+                f"Received response from {self.release_service.url}: {state}"
             )
         except json.decoder.JSONDecodeError as err:
             # Raise a more specific error with  some of the response body
@@ -263,7 +263,7 @@ class ReleaseTask(models.Model):
         if state["task_id"] != self.kf_id or (
             "release_id" in state and state["release_id"] != self.release.kf_id
         ):
-            error = "Recieved a response that did not match the expected task"
+            error = "Received a response that did not match the expected task"
             logger.error(error)
             raise ValueError(error)
 
@@ -280,8 +280,8 @@ class ReleaseTask(models.Model):
 
         if task_state not in ["pending"]:
             error = (
-                f"Recieved invalid state '{task_state}' for task "
-                f"'{self.kf_id}'. Expected to recieve 'pending' state."
+                f"Received invalid state '{task_state}' for task "
+                f"'{self.kf_id}'. Expected to receive 'pending' state."
             )
             logger.error(error)
             raise ValueError(error)
@@ -297,8 +297,8 @@ class ReleaseTask(models.Model):
 
         if task_state not in ["running"]:
             error = (
-                f"Recieved invalid state '{task_state}' for task "
-                f"'{self.kf_id}'. Expected to recieve 'running' state."
+                f"Received invalid state '{task_state}' for task "
+                f"'{self.kf_id}'. Expected to receive 'running' state."
             )
             logger.error(error)
             raise ValueError(error)
@@ -318,8 +318,8 @@ class ReleaseTask(models.Model):
 
         if task_state != "publishing":
             error = (
-                f"Recieved invalid state '{task_state}' for task "
-                "'{self.kf_id}'. Expected to recieve 'publishing' state."
+                f"Received invalid state '{task_state}' for task "
+                f"'{self.kf_id}'. Expected to receive 'publishing' state."
             )
             logger.error(error)
             raise ValueError(error)
