@@ -70,19 +70,19 @@ def test_cancel_release(db, clients, user_group, allowed):
 )
 def test_cancel_allowed_states(db, clients, state, allowed):
     """
-    Test that canceling may only occur from valid states
+    Test that canceling may only occur from valid states with appropriate
+    end dates
     """
     client = clients.get("Administrators")
 
     release = ReleaseFactory(state=state)
+    assert release.ended_at is None if allowed else not None
 
     resp = client.post(
         "/graphql",
         data={
             "query": CANCEL_RELEASE,
-            "variables": {
-                "release": to_global_id("ReleaseNode", release.pk)
-            },
+            "variables": {"release": to_global_id("ReleaseNode", release.pk)},
         },
         content_type="application/json",
     )
@@ -96,6 +96,7 @@ def test_cancel_allowed_states(db, clients, state, allowed):
             == "canceling"
         )
         assert release.state == "canceled"
+        assert release.ended_at is not None
     else:
         assert f"Can't switch from state '{state}'" in (
             resp.json()["errors"][0]["message"]

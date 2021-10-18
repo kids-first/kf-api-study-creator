@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from graphql_relay import to_global_id
 
 from creator.releases.models import Release, ReleaseTask
@@ -150,3 +151,14 @@ def test_start_release_unknown_service(db, clients):
         resp.json()["errors"][0]["message"]
         == "Service TS_00000000 does not exist"
     )
+
+
+def test_release_factory_ended_at(db):
+    """
+    Test so that codecov stops complaining about the ended_at post generation
+    hook.
+    """
+    release = ReleaseFactory(ended_at=datetime.now())
+    assert release.ended_at is not None
+    release = ReleaseFactory.build()
+    assert release.ended_at is None
