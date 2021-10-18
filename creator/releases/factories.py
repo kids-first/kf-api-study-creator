@@ -33,6 +33,9 @@ class ReleaseFactory(factory.DjangoModelFactory):
     def ended_at(self, create, extracted, **kwargs):
         if not create:
             return
+        if extracted:
+            self.ended_at = extracted
+            self.save()
         if self.state in {"published", "canceled", "failed"}:
             self.ended_at = factory.Faker(
                 "date_time_between",
