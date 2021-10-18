@@ -17,7 +17,7 @@ from creator.releases.validators import validate_endpoint
 
 
 class StartReleaseInput(graphene.InputObjectType):
-    """ Parameters used when creating a new release """
+    """Parameters used when creating a new release"""
 
     name = graphene.String(description="The name of the release")
     description = graphene.String(description="The description of the release")
@@ -37,7 +37,7 @@ class StartReleaseInput(graphene.InputObjectType):
 
 
 class StartReleaseMutation(graphene.Mutation):
-    """ Starts a new release """
+    """Starts a new release"""
 
     class Arguments:
         input = StartReleaseInput(
@@ -101,14 +101,14 @@ class StartReleaseMutation(graphene.Mutation):
 
 
 class UpdateReleaseInput(graphene.InputObjectType):
-    """ Parameters used when updating an existing release """
+    """Parameters used when updating an existing release"""
 
     name = graphene.String(description="The name of the release")
     description = graphene.String(description="The description of the release")
 
 
 class UpdateReleaseMutation(graphene.Mutation):
-    """ Update an existing release """
+    """Update an existing release"""
 
     class Arguments:
         id = graphene.ID(
@@ -145,7 +145,7 @@ class UpdateReleaseMutation(graphene.Mutation):
 
 
 class CreateReleaseServiceInput(graphene.InputObjectType):
-    """ Parameters used when creating release service"""
+    """Parameters used when creating release service"""
 
     name = graphene.String(
         description="The name of the release service", required=True
@@ -160,7 +160,7 @@ class CreateReleaseServiceInput(graphene.InputObjectType):
 
 
 class CreateReleaseServiceMutation(graphene.Mutation):
-    """ Create a new release service """
+    """Create a new release service"""
 
     class Arguments:
         input = CreateReleaseServiceInput(
@@ -194,7 +194,7 @@ class CreateReleaseServiceMutation(graphene.Mutation):
 
 
 class UpdateReleaseServiceInput(graphene.InputObjectType):
-    """ Parameters used when updating a release service"""
+    """Parameters used when updating a release service"""
 
     name = graphene.String(description="The name of the release service")
     description = graphene.String(
@@ -205,7 +205,7 @@ class UpdateReleaseServiceInput(graphene.InputObjectType):
 
 
 class UpdateReleaseServiceMutation(graphene.Mutation):
-    """ Update an existing release service """
+    """Update an existing release service"""
 
     class Arguments:
         id = graphene.ID(
@@ -243,7 +243,7 @@ class UpdateReleaseServiceMutation(graphene.Mutation):
 
 
 class PublishReleaseMutation(graphene.Mutation):
-    """ Publish a release """
+    """Publish a release"""
 
     class Arguments:
         release = graphene.ID(
@@ -275,7 +275,7 @@ class PublishReleaseMutation(graphene.Mutation):
 
 
 class CancelReleaseMutation(graphene.Mutation):
-    """ Cancel a release """
+    """Cancel a release"""
 
     class Arguments:
         release = graphene.ID(
@@ -307,7 +307,7 @@ class CancelReleaseMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for releases """
+    """Mutations for releases"""
 
     start_release = StartReleaseMutation.Field(
         description="Start a new release."

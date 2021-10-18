@@ -78,6 +78,4 @@ def test_update_release_does_not_exist(db, clients):
         content_type="application/json",
     )
 
-    assert (
-        resp.json()["errors"][0]["message"] == "Release ABC does not exist"
-    )
+    assert resp.json()["errors"][0]["message"] == "Release ABC does not exist"
