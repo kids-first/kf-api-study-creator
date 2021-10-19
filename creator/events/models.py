@@ -40,6 +40,7 @@ class Event(models.Model):
             ("TV_CRE", "Template Version Created"),
             ("TV_UPD", "Template Version Updated"),
             ("TV_DEL", "Template Version Deleted"),
+            ("TV_DOW", "Template Version Downloaded"),
             ("DT_CRE", "Data Template Created"),
             ("DT_UPD", "Data Template Updated"),
             ("DT_DEL", "Data Template Deleted"),
