@@ -142,6 +142,21 @@ def test_publish_release_no_tasks(db):
     assert release.state == "published"
 
 
+def test_publish_release_end_date(db):
+    """
+    Test that a release has the appropriate end date when published
+    """
+    release = ReleaseFactory(state="publishing")
+    release.tasks.set([])
+    release.save()
+
+    assert release.ended_at is None
+    publish_release(release_id=release.pk)
+
+    release.refresh_from_db()
+    assert release.ended_at is not None
+
+
 def test_publish_release_with_tasks(db, mocker):
     """
     Test that a release sends commands to all tasks to publish

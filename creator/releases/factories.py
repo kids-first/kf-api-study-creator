@@ -21,13 +21,29 @@ class ReleaseFactory(factory.DjangoModelFactory):
     name = factory.Faker("bs")
     description = factory.Faker("paragraph", nb_sentences=3)
     created_at = factory.Faker(
-        "date_time_between", start_date="-2y", end_date="now", tzinfo=pytz.UTC
+        "date_time_between", start_date="-2y", end_date="-1d", tzinfo=pytz.UTC
     )
     state = factory.fuzzy.FuzzyChoice(
         ["staged", "published", "canceled", "failed"]
     )
 
     creator = factory.SubFactory(UserFactory)
+
+    @factory.post_generation
+    def ended_at(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.ended_at = extracted
+            self.save()
+        if self.state in {"published", "canceled", "failed"}:
+            self.ended_at = factory.Faker(
+                "date_time_between",
+                start_date="-1d",
+                end_date="now",
+                tzinfo=pytz.UTC,
+            ).generate({})
+            self.save()
 
     @factory.post_generation
     def studies(self, create, extracted, **kwargs):

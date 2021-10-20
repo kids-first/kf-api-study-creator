@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def validate_endpoint(url):
-    """ Check that a url provided as an endpoint has expected format """
+    """Check that a url provided as an endpoint has expected format"""
     if not (url.startswith("http")):
         raise ValidationError(_("Enter a valid URL."))
 
