@@ -264,4 +264,4 @@ def template_package(
             filepath_or_buffer=filepath_or_buffer,
         )
 
-    return path_or_buf
+    return path_or_buf, template_versions
