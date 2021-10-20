@@ -109,6 +109,11 @@ def test_template_package_success_study(db, mocker, template_versions):
         tv.pk for tv in tvs[:1]
     }
 
+    # Test naming for single template, no filepath provided
+    template_package(study.pk, template_version_ids=[tv.pk for tv in tvs[:1]])
+    fp = os.path.join(os.getcwd(), f"{tvs[0].pk}_template")
+    assert mock_to_excel.call_args.kwargs["filepath_or_buffer"] == fp
+
 
 def test_template_package_success_no_study(
     db, mocker, template_versions_mult_studies

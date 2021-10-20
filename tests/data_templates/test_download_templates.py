@@ -199,3 +199,41 @@ def test_download_templates_query_params(
     assert kwargs["excel_workbook"] == (file_format == "excel")
     if filter_templates:
         assert set(kwargs["template_version_ids"]) == set(tv_ids.split(","))
+
+
+def test_download_single_template_filenames(db, clients, template_versions):
+    """
+    When a single DataTemplate is downloaded, the filename should incorporate
+    that template's ID.
+    """
+    client = clients.get("Administrators")
+    # A single template (no study), excel format
+    params = {"template_versions": f"{template_versions[0].pk}"}
+    resp = client.get("/download/templates", params)
+    excel_filename = f"{template_versions[0].pk}_template.xlsx"
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''{excel_filename}"
+    )
+
+    # Same as above but archive format
+    params["file_format"] = "zip"
+    resp = client.get("/download/templates", params)
+    zip_filename = f"{template_versions[0].pk}_template.zip"
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''{zip_filename}"
+    )
+
+    # A single template with study, excel
+    study = template_versions[0].studies.first()
+    params = {"template_versions": f"{template_versions[0].pk}"}
+    resp = client.get(f"/download/templates/{study.pk}", params)
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''{excel_filename}"
+    )
+
+    # A single template with study, archive
+    params["file_format"] = "zip"
+    resp = client.get("/download/templates", params)
+    assert resp.get("Content-Disposition") == (
+        f"attachment; filename*=UTF-8''{zip_filename}"
+    )
