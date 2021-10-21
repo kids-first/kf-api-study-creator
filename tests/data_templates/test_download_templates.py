@@ -3,6 +3,7 @@ import pytest
 import pandas
 
 from creator.studies.factories import StudyFactory, Study
+from creator.events.models import Event
 from creator.data_templates.factories import (
     DataTemplateFactory,
     TemplateVersionFactory,
@@ -91,6 +92,12 @@ def test_download_templates_study(
         )
         assert resp.get("Content-Length")
         assert pandas.read_excel(BytesIO(resp.content), sheet_name=None)
+
+        # Check appropriate event fired
+        template_events = Event.objects.filter(event_type="TV_DOW").all()
+        assert len(template_events) == 1
+        for tv in study.template_versions.all():
+            assert tv.pk in template_events[0].description
     else:
         assert resp.status_code == 401
 
@@ -125,6 +132,12 @@ def test_download_templates_no_study(
         )
         assert resp.get("Content-Length")
         assert pandas.read_excel(BytesIO(resp.content), sheet_name=None)
+
+        # Check appropriate events fired
+        template_events = Event.objects.filter(event_type="TV_DOW").all()
+        assert len(template_events) == 1
+        for tv in template_versions_mult_studies:
+            assert tv.pk in template_events[0].description
     else:
         assert resp.status_code == 401
 
@@ -153,6 +166,7 @@ def test_download_templates_query_params(
     """
     mock_study_pkg = mocker.patch(
         "creator.data_templates.views.template_package",
+        return_value=(BytesIO(), template_versions),
     )
     client = clients.get("Administrators")
 

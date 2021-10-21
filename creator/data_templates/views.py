@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 
 from creator.data_templates.packaging import template_package
 from creator.data_templates.models import TemplateVersion
+from creator.events.models import Event
 from creator.studies.models import Study
 
 EXCEL_FORMAT = "excel"
@@ -49,7 +50,7 @@ def download_templates(request, study_kf_id=None):
     # Check if studies and template versions exist
     stream = BytesIO()
     try:
-        stream = template_package(
+        stream, template_versions = template_package(
             study_kf_id=study_kf_id,
             filepath_or_buffer=stream,
             template_version_ids=tv_ids,
@@ -76,4 +77,15 @@ def download_templates(request, study_kf_id=None):
     response["Content-Type"] = mime_type
     stream.close()
 
+    # Fire a template download event for each template
+    username = getattr(user, "display_name", "Anonymous user")
+    tv_ids = ",".join(tv.pk for tv in template_versions)
+    message = f"{username} downloaded template_versions: [{tv_ids}]"
+    event = Event(
+        user=user,
+        organization=template_versions[0].data_template.organization,
+        description=message,
+        event_type="TV_DOW",
+    )
+    event.save()
     return response
