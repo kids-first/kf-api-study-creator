@@ -171,6 +171,11 @@ class FileMutation(graphene.Mutation):
             if file.tags != kwargs.get("tags"):
                 update_fields.append("tags")
             file.tags = kwargs.get("tags")
+        if (
+            kwargs.get("template_version") and
+            file.template_version != kwargs.get("template_version")
+        ):
+            update_fields.append("file template")
 
         # Update the file's template
         template_version = kwargs.get("template_version")
