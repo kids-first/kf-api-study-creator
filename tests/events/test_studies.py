@@ -103,6 +103,8 @@ def test_update_study_event(permission_client, db, mocker):
     assert Event.objects.filter(event_type="SD_UPD").count() == 1
 
     sd_upd = Event.objects.filter(event_type="SD_UPD").first()
+    assert sd_upd.description.find("external id") != -1
+    assert sd_upd.description.find("name") == -1
     assert sd_upd.user == user
     assert sd_upd.file is None
     assert sd_upd.study == Study.objects.first()

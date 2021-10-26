@@ -369,6 +369,13 @@ class UpdateStudyMutation(graphene.Mutation):
         model, kf_id = from_global_id(id)
         study = Study.objects.get(kf_id=kf_id)
 
+        # Check which fields are updated
+        updated_att = []
+        for attr, val in input.items():
+            in_val = getattr(study, attr)
+            if (in_val or val) and in_val != val:
+                updated_att.append(attr.replace("_", " "))
+
         attributes = sanitize_fields(input)
 
         try:
@@ -400,7 +407,10 @@ class UpdateStudyMutation(graphene.Mutation):
         study.save()
 
         # Log an event
-        message = f"{user.display_name} updated study {study.kf_id}"
+        message = (
+            f"{user.display_name} updated "
+            f"{', '.join(updated_att)} of study {study.kf_id}"
+        )
         event = Event(
             organization=study.organization,
             study=study,
