@@ -22,6 +22,7 @@ import creator.data_reviews.schema
 import creator.ingest_runs.schema
 import creator.organizations.schema
 import creator.data_templates.schema
+import creator.storage_analyses.schema
 
 
 class Query(
@@ -40,6 +41,7 @@ class Query(
     creator.ingest_runs.schema.Query,
     creator.organizations.schema.Query,
     creator.data_templates.schema.Query,
+    creator.storage_analyses.schema.Query,
     graphene.ObjectType,
 ):
     """ Root query schema combining all apps' schemas """
