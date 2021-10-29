@@ -249,7 +249,13 @@ class CreateStudyMutation(graphene.Mutation):
         if created_at:
             attributes["created_at"] = parse(created_at)
         attributes["deleted"] = False
-        study = Study(organization=organization, **attributes)
+
+        study = Study(organization=organization)
+        # Some Study attributes may exist in the Dataservice Study but not
+        # in the creator APIs Study yet. Don't set those ones
+        for k, v in attributes.items():
+            if hasattr(study, k):
+                setattr(study, k, v)
         study.save()
 
         # Add any specified users as collaborators
