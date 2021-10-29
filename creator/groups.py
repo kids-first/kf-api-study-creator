@@ -110,6 +110,11 @@ GROUPS = {
         "change_datatemplate",
         "view_datatemplate",
         "list_all_datatemplate",
+        "add_storageanalysis",
+        "delete_storageanalysis",
+        "change_storageanalysis",
+        "view_storageanalysis",
+        "list_all_storageanalysis",
     ],
     "Developers": [
         "view_study",
@@ -133,6 +138,8 @@ GROUPS = {
         "list_all_validationresultset",
         "view_datatemplate",
         "list_all_datatemplate",
+        "view_storageanalysis",
+        "list_all_storageanalysis",
     ],
     "Investigators": [
         "view_my_study",
@@ -160,6 +167,8 @@ GROUPS = {
         "list_all_validationresultset",
         "view_datatemplate",
         "list_all_datatemplate",
+        "view_storageanalysis",
+        "list_all_storageanalysis",
     ],
     "Bioinformatics": [
         "view_study",
@@ -186,6 +195,8 @@ GROUPS = {
         "list_all_validationresultset",
         "view_datatemplate",
         "list_all_datatemplate",
+        "view_storageanalysis",
+        "list_all_storageanalysis",
     ],
     "Services": [
         "view_study",
@@ -193,5 +204,7 @@ GROUPS = {
         "view_file",
         "view_analysis",
         "view_version",
+        "view_storageanalysis",
+        "list_all_storageanalysis",
     ],
 }
