@@ -70,6 +70,7 @@ def mock_post(mocker):
                     "message": "study SD_6HET65MK created",
                 },
                 "results": {
+                    "foobar": "baz",
                     "attribution": None,
                     "created_at": "2019-08-05T17:50:21.681779+00:00",
                     "data_access_authority": "dbGaP",
