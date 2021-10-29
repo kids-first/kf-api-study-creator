@@ -31,9 +31,19 @@ def download_templates(request, study_kf_id=None):
     if not user.is_authenticated:
         return HttpResponse("Not authorized to download templates", status=401)
 
-    filename = (
-        f"{study_kf_id}_templates" if study_kf_id else "template_package"
-    )
+    # Get template version ids
+    tv_ids = request.GET.get("template_versions")
+    if tv_ids:
+        tv_ids = [tv.strip() for tv in tv_ids.split(",")]
+
+    # When downloading a single template, the filename should be made using
+    # the template name. Otherwise use the study ID if possible.
+    if tv_ids and len(tv_ids) == 1:
+        filename = f"{tv_ids[0]}_template"
+    else:
+        filename = (
+            f"{study_kf_id}_templates" if study_kf_id else "template_package"
+        )
     file_format = request.GET.get("file_format", EXCEL_FORMAT)
     if file_format == EXCEL_FORMAT:
         filename += ".xlsx"
@@ -41,11 +51,6 @@ def download_templates(request, study_kf_id=None):
     else:
         filename += ".zip"
         mime_type = ZIP_MIME_TYPE
-
-    # Get template version ids
-    tv_ids = request.GET.get("template_versions")
-    if tv_ids:
-        tv_ids = [tv.strip() for tv in tv_ids.split(",")]
 
     # Check if studies and template versions exist
     stream = BytesIO()

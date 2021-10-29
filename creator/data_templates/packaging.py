@@ -21,7 +21,7 @@ PACKAGE_INFO = """
 
 def make_sheet_name(template_name: str, type_: str):
     """
-    Helper to create a Excel sheet name from the template name and it's type
+    Helper to create a Excel sheet name from the template name and its type
     (e.g. Fields or Template)
 
     Create a sheet_name by putting together the template name and type. If
@@ -248,9 +248,11 @@ def template_package(
         )
 
     if not filepath_or_buffer:
-        filename = (
-            f"{study_kf_id}_templates" if study_kf_id else "template_package"
-        )
+        if count == 1:
+            filename = f"{template_versions[0].pk}_template"
+        else:
+            study_name = f"{study_kf_id}_templates"
+            filename = study_name if study_kf_id else "template_package"
         filepath_or_buffer = os.path.join(os.getcwd(), filename)
 
     if excel_workbook:
