@@ -296,7 +296,7 @@ def _add_inventory(bucket):
     Adds inventory configuration to a bucket
     """
     client = boto3.client("s3")
-    dest = "arn:aws:s3:::{}".format(settings.STUDY_BUCKETS_INVENTORY_LOCATION)
+    dest = "arn:aws:s3:::{}".format(settings.STUDY_BUCKETS_LOGGING_BUCKET)
 
     return client.put_bucket_inventory_configuration(
         Bucket=bucket,
