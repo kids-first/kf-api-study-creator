@@ -1,5 +1,6 @@
 factory-boy==2.11.1
 -e git+https://github.com/kids-first/kf-sphinx-docs-theme.git@815ce0bf305c390ff9575718220f324ca28e16cb#egg=sphinx_kidsfirst_theme
+docutils<0.18
 sphinx-autobuild==0.7.1
 sphinxcontrib-websupport==1.1.2
 sphinxcontrib-httpdomain==1.7.0
