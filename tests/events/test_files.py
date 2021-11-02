@@ -91,7 +91,7 @@ def test_file_updated_event(db, clients, upload_file):
         content_type="application/json",
         data={"query": UPDATE_FILE, "variables": variables},
     )
-    user = User.objects.first()
+    user = User.objects.filter(groups__name="Administrators").first()
     assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="SF_UPD").count() == 1
     assert Event.objects.filter(event_type="SF_UPD").first().user == user
@@ -117,7 +117,7 @@ def test_file_deleted_event(db, clients, upload_file):
         content_type="application/json",
         data={"query": DELETE_FILE, "variables": variables},
     )
-    user = User.objects.first()
+    user = User.objects.filter(groups__name="Administrators").first()
     assert Event.objects.count() == 4
     assert Event.objects.filter(event_type="SF_DEL").count() == 1
     assert Event.objects.filter(event_type="SF_DEL").first().user == user
