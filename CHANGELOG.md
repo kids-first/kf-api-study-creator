@@ -1,5 +1,25 @@
 # Kids First Study Creator Change History
 
+## Release 1.20.0
+
+### Summary
+
+- Emojis: 🐛 x3, ♻️ x3, 📌 x1, ✨ x2
+- Categories: Additions x2, Fixes x3, Ops x1, Other Changes x3
+
+### New features and changes
+
+- [#797](https://github.com/kids-first/kf-api-study-creator/pull/797) - 🐛 File event tests should be deterministic - [e809638b](https://github.com/kids-first/kf-api-study-creator/commit/e809638b5ddc569502aee97fccaacbd7432e2412) by [znatty22](https://github.com/znatty22)
+- [#791](https://github.com/kids-first/kf-api-study-creator/pull/791) - 🐛 Use proper bucket arn in bucket inventory configuration - [90455437](https://github.com/kids-first/kf-api-study-creator/commit/904554379c9e43fc2473600cdff3890b5e191b27) by [znatty22](https://github.com/znatty22)
+- [#794](https://github.com/kids-first/kf-api-study-creator/pull/794) - ♻️ Only save study attrs from Dataservice that exist on Study - [3c09f5ea](https://github.com/kids-first/kf-api-study-creator/commit/3c09f5ead5f96884b98c4258d69558946d6a7682) by [znatty22](https://github.com/znatty22)
+- [#793](https://github.com/kids-first/kf-api-study-creator/pull/793) - 📌 Pin docutils<0.18 - [75a989a4](https://github.com/kids-first/kf-api-study-creator/commit/75a989a4516b126936b09e4058000a6f3bf2c08f) by [znatty22](https://github.com/znatty22)
+- [#787](https://github.com/kids-first/kf-api-study-creator/pull/787) - ♻️ Refactor naming of single template package names - [96c6c415](https://github.com/kids-first/kf-api-study-creator/commit/96c6c4155af1871e51fb09abb3ea8d16d3d110b9) by [gsantia](https://github.com/gsantia)
+- [#785](https://github.com/kids-first/kf-api-study-creator/pull/785) - ♻️ Refactor update study and file log message to which fields are updated - [93a79b10](https://github.com/kids-first/kf-api-study-creator/commit/93a79b108b6474f9b4135ace06c89ddcf63dd257) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#778](https://github.com/kids-first/kf-api-study-creator/pull/778) - ✨ Add template download events - [b6498ab1](https://github.com/kids-first/kf-api-study-creator/commit/b6498ab1db46dc987c1e7baa06096a1d3655ab11) by [gsantia](https://github.com/gsantia)
+- [#776](https://github.com/kids-first/kf-api-study-creator/pull/776) - ✨ Capture time of release termination - [22322e82](https://github.com/kids-first/kf-api-study-creator/commit/22322e820b5f50e053f2c99c2997d360a91fe55c) by [gsantia](https://github.com/gsantia)
+- [#783](https://github.com/kids-first/kf-api-study-creator/pull/783) - 🐛 Fix release logging messages - [931e9d97](https://github.com/kids-first/kf-api-study-creator/commit/931e9d970c3bf487a189abb3a02383d3342c6097) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.19.9
 
 ### Summary
