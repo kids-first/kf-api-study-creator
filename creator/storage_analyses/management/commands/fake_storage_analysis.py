@@ -1,19 +1,27 @@
 import json
 import logging
 import random
-from pprint import pformat
+from pprint import pformat, pprint
 
+import pandas
+import factory
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-import factory
 
-from creator.storage_analyses.models import StorageAnalysis
-from creator.storage_analyses.factories.factory import StorageAnalysisFactory
+from creator.storage_analyses.models import StorageAnalysis, FileAudit
 from creator.storage_analyses.factories.data import make_files
 from creator.storage_analyses.factories.compute import compute_storage_analysis
 from creator.studies.models import Study
 
 logger = logging.getLogger(__name__)
+
+
+def nan_to_none(row, key):
+    val = row.get(key)
+    if pandas.isnull(val):
+        return None
+    else:
+        return val
 
 
 class Command(BaseCommand):
@@ -48,13 +56,8 @@ class Command(BaseCommand):
         uploads, inventory = make_files(
             options["n_upload_manifests"], options["n_files"]
         )
-        # Compute storage analysis stats
-        stats, file_audit_df = compute_storage_analysis(uploads, inventory)
-
-        # Persist storage analysis
-        study_id = options["study_id"]
-
         # Create if storage analysis doesn't exist for study
+        study_id = options["study_id"]
         study = Study.objects.get(pk=study_id)
         sa = StorageAnalysis.objects.filter(study=study).first()
         verb = "Updated"
@@ -62,11 +65,40 @@ class Command(BaseCommand):
             verb = "Created"
             sa = StorageAnalysis(study=study)
 
-        sa.refreshed_at = timezone.now()
-        sa.stats = stats
-        sa.save()
+        try:
+            # Compute storage analysis stats
+            stats, file_audit_df = compute_storage_analysis(uploads, inventory)
+            file_audit_df.to_csv("file_audits.tsv", sep="\t", index=False)
+            sa.stats = stats
+            sa.save()
 
-        logger.info(
-            f"{verb} storage analysis {sa.id}:\n"
-            f"{stats}"
-        )
+            logger.info(
+                f"{verb} storage analysis {sa.id}:\n"
+                f"{pformat(stats)}"
+            )
+            # Create file audits
+            logger.info("Updating file audits table ...")
+            sa.file_audits.all().delete()
+            for i, row in file_audit_df.iterrows():
+                fa = FileAudit(
+                    source_filename=nan_to_none(row, "Source File Name"),
+                    expected_url=nan_to_none(row, "Url"),
+                    expected_hash=nan_to_none(row, "Source Hash"),
+                    actual_hash=nan_to_none(row, "Hash"),
+                    expected_size=nan_to_none(row, "Source Size"),
+                    actual_size=nan_to_none(row, "Size"),
+                    hash_algorithm=nan_to_none(row, "Hash Algorithm"),
+                    result=nan_to_none(row, "Status"),
+                )
+                fa.save()
+                logger.info(f"Added file audit for {fa.source_filename}")
+                sa.file_audits.add(fa)
+            sa.refreshed_at = timezone.now()
+            sa.save()
+        except Exception as e:
+            logger.exception(
+                "Something went wrong in computing the "
+                "storage analysis"
+            )
+        else:
+            logger.info("Complete")
