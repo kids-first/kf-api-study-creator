@@ -68,16 +68,29 @@ def file_status(row):
     merge = row["_merge"]
 
     if merge == 'both' and (source_fn == fn):
-        status = "files_matched"
+        status = "matched"
     elif merge == 'both' and (source_fn != fn):
-        status = "files_differ"
+        status = "differ"
     elif merge == "left_only":
-        status = "files_missing"
+        status = "missing"
     elif merge == "right_only":
         status = "inventory_only"
     else:
         status = "unknown"
     return status
+
+
+def file_url(row):
+    """
+    S3 url from bucket and key
+    """
+    bucket = row.get("Bucket")
+    key = row.get("Key")
+
+    if not (pandas.notnull(bucket) and pandas.notnull(key)):
+        return None
+
+    return f"s3://{bucket}/{key}"
 
 
 def file_count_by_size(df, col):
@@ -108,7 +121,7 @@ def compute_storage_analysis(uploads, inventory):
     ).rename(
         columns={
             col: f"Source {col}"
-            for col in ["Hash Algorithm", "Size"]
+            for col in ["Hash", "Hash Algorithm", "Size"]
         }
     )
     # Join with s3 inventory
@@ -116,32 +129,36 @@ def compute_storage_analysis(uploads, inventory):
         lambda key: key.split("/")[-1]
     )
     file_audits = pandas.merge(
-        upload_df, inventory, on="Hash", how="outer", indicator=True)
+        upload_df, inventory,
+        left_on="Source Hash", right_on="Hash",
+        how="outer", indicator=True
+    )
 
-    # Extract file extension and data types
+    # Extract other necessary metadata
     file_audits["File Extension"] = file_audits.apply(file_ext, axis=1)
     file_audits["Data Type"] = file_audits.apply(data_type, axis=1)
     file_audits["Status"] = file_audits.apply(file_status, axis=1)
+    file_audits["Url"] = file_audits.apply(file_url, axis=1)
 
     # Create dfs for analysis
     file_audits = file_audits[
         [
-            "Status", "Bucket", "Key", "Size", "Hash", "Hash Algorithm",
+            "Status", "Url", "Bucket", "Key", "Size", "Hash", "Hash Algorithm",
             "File Name", "File Extension", "Data Type", "_merge"
         ] + [c for c in file_audits if c.startswith("Source")]
     ]
 
-    files_matched = file_audits[file_audits["Status"] == "files_matched"]
-    files_missing = file_audits[file_audits["Status"] == "files_missing"]
-    files_differ = file_audits[file_audits["Status"] == "files_differ"]
+    matched = file_audits[file_audits["Status"] == "matched"]
+    missing = file_audits[file_audits["Status"] == "missing"]
+    differ = file_audits[file_audits["Status"] == "differ"]
     inventory_only = file_audits[file_audits["Status"] == "inventory_only"]
-    uploads_df = pandas.concat([files_matched, files_missing])
-    inventory_df = pandas.concat([files_matched, inventory_only])
+    uploads_df = pandas.concat([matched, missing])
+    inventory_df = pandas.concat([matched, inventory_only])
 
     stat_dfs = [
-        ("files_matched", files_matched),
-        ("files_missing", files_missing),
-        ("files_differ", files_differ),
+        ("matched", matched),
+        ("missing", missing),
+        ("differ", differ),
         ("inventory", inventory_df),
         ("uploads", uploads_df),
     ]
@@ -149,22 +166,22 @@ def compute_storage_analysis(uploads, inventory):
     # Compute storage analysis stats
     stats_dict = {"audit": {}}
     for key, df in stat_dfs:
-        size_col = "Size" if key != "files_missing" else "Source Size"
+        size_col = "Size" if key != "missing" else "Source Size"
         stats = {
-            "total_count": int(df["Hash"].count()),
+            "total_count": df.shape[0],
             "total_size": humanize.naturalsize(df[size_col].sum()),
             "count_by_size": file_count_by_size(df, size_col),
             "count_by_ext": df.groupby(["File Extension"]).size().to_dict(),
             "count_by_data_type": df.groupby(["Data Type"]).size().to_dict()
         }
-        if key not in {"files_missing", "uploads"}:
+        if key not in {"missing", "uploads"}:
             stats.update(
                 {"total_buckets": df["Bucket"].nunique()}
             )
             stats.update(
                 {"count_by_bucket": df.groupby(["Bucket"]).size().to_dict()}
             )
-        if key.startswith("files"):
+        if key in {"matched", "missing", "differ"}:
             stats_dict["audit"][key] = stats
         else:
             stats_dict[key] = stats
