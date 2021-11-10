@@ -56,5 +56,5 @@ class Command(BaseCommand):
             Study.objects.filter(kf_id=study).update(deleted=True)
         print(
             f"{len(deleted_studies)} studies were marked as deleted: ",
-            "{deleted_studies}",
+            f"{deleted_studies}",
         )
