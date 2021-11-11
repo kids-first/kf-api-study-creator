@@ -152,8 +152,8 @@ def compute_storage_analysis(uploads, inventory):
     missing = file_audits[file_audits["Status"] == "missing"]
     differ = file_audits[file_audits["Status"] == "differ"]
     inventory_only = file_audits[file_audits["Status"] == "inventory_only"]
-    uploads_df = pandas.concat([matched, missing])
-    inventory_df = pandas.concat([matched, inventory_only])
+    uploads_df = pandas.concat([matched, differ, missing])
+    inventory_df = pandas.concat([matched, differ, inventory_only])
 
     stat_dfs = [
         ("matched", matched),
