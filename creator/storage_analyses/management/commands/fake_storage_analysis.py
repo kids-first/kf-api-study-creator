@@ -1,3 +1,4 @@
+from datetime import timedelta
 import json
 import logging
 import random
@@ -69,6 +70,7 @@ class Command(BaseCommand):
             # Compute storage analysis stats
             stats, file_audit_df = compute_storage_analysis(uploads, inventory)
             file_audit_df.to_csv("file_audits.tsv", sep="\t", index=False)
+            sa.scanned_storage_at = timezone.now() - timedelta(days=1)
             sa.stats = stats
             sa.save()
 
