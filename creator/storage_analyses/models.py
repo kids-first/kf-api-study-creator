@@ -69,6 +69,10 @@ class StorageAnalysis(models.Model):
         null=True,
         help_text="When the stored analysis was recomputed",
     )
+    scanned_storage_at = models.DateTimeField(
+        null=True,
+        help_text="When the cloud storage inventory was produced",
+    )
     stats = JSONField(
         default=dict,
         help_text="The the numerical storage analysis stats",
