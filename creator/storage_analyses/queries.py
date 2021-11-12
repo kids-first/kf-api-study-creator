@@ -101,7 +101,7 @@ class Query(object):
             storage_analysis__study__in=user.studies.all()
         ).filter(result__in=[
             ResultEnum.matched.value,
-            ResultEnum.differ.value,
+            ResultEnum.moved.value,
             ResultEnum.inventory_only.value,
         ]).all()
 
@@ -122,6 +122,6 @@ class Query(object):
             storage_analysis__study__in=user.studies.all()
         ).filter(result__in=[
             ResultEnum.matched.value,
-            ResultEnum.differ.value,
+            ResultEnum.moved.value,
             ResultEnum.missing.value,
         ]).all()

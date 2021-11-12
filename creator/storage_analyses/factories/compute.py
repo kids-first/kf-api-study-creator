@@ -70,7 +70,7 @@ def file_status(row):
     if merge == 'both' and (source_fn == fn):
         status = "matched"
     elif merge == 'both' and (source_fn != fn):
-        status = "differ"
+        status = "moved"
     elif merge == "left_only":
         status = "missing"
     elif merge == "right_only":
@@ -150,15 +150,15 @@ def compute_storage_analysis(uploads, inventory):
 
     matched = file_audits[file_audits["Status"] == "matched"]
     missing = file_audits[file_audits["Status"] == "missing"]
-    differ = file_audits[file_audits["Status"] == "differ"]
+    moved = file_audits[file_audits["Status"] == "moved"]
     inventory_only = file_audits[file_audits["Status"] == "inventory_only"]
-    uploads_df = pandas.concat([matched, differ, missing])
-    inventory_df = pandas.concat([matched, differ, inventory_only])
+    uploads_df = pandas.concat([matched, moved, missing])
+    inventory_df = pandas.concat([matched, moved, inventory_only])
 
     stat_dfs = [
         ("matched", matched),
         ("missing", missing),
-        ("differ", differ),
+        ("moved", moved),
         ("inventory", inventory_df),
         ("uploads", uploads_df),
     ]
@@ -181,7 +181,7 @@ def compute_storage_analysis(uploads, inventory):
             stats.update(
                 {"count_by_bucket": df.groupby(["Bucket"]).size().to_dict()}
             )
-        if key in {"matched", "missing", "differ"}:
+        if key in {"matched", "missing", "moved"}:
             stats_dict["audit"][key] = stats
         else:
             stats_dict[key] = stats
