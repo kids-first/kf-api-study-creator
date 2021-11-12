@@ -20,6 +20,7 @@ class ResultEnum(Enum):
     matched = "matched"
     missing = "missing"
     differ = "differ"
+    moved = "moved"
     inventory_only = "inventory_only"
     unknown = "unknown"
 
