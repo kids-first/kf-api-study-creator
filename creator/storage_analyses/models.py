@@ -21,7 +21,7 @@ class ResultEnum(Enum):
     missing = "missing"
     differ = "differ"
     moved = "moved"
-    inventory_only = "inventory_only"
+    unexpected = "unexpected"
     unknown = "unknown"
 
 

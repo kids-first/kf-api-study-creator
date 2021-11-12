@@ -74,7 +74,7 @@ def file_status(row):
     elif merge == "left_only":
         status = "missing"
     elif merge == "right_only":
-        status = "inventory_only"
+        status = "unexpected"
     else:
         status = "unknown"
     return status
@@ -151,13 +151,14 @@ def compute_storage_analysis(uploads, inventory):
     matched = file_audits[file_audits["Status"] == "matched"]
     missing = file_audits[file_audits["Status"] == "missing"]
     moved = file_audits[file_audits["Status"] == "moved"]
-    inventory_only = file_audits[file_audits["Status"] == "inventory_only"]
+    unexpected = file_audits[file_audits["Status"] == "unexpected"]
     uploads_df = pandas.concat([matched, moved, missing])
-    inventory_df = pandas.concat([matched, moved, inventory_only])
+    inventory_df = pandas.concat([matched, moved, unexpected])
 
     stat_dfs = [
         ("matched", matched),
         ("missing", missing),
+        ("moved", moved),
         ("moved", moved),
         ("inventory", inventory_df),
         ("uploads", uploads_df),
