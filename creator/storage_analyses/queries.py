@@ -102,7 +102,7 @@ class Query(object):
         ).filter(result__in=[
             ResultEnum.matched.value,
             ResultEnum.moved.value,
-            ResultEnum.inventory_only.value,
+            ResultEnum.unexpected.value,
         ]).all()
 
     def resolve_all_upload_manifest_files(self, info, **kwargs):
