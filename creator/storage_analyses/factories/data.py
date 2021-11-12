@@ -121,4 +121,11 @@ def make_files(n_manifests=2, n_uploads=3):
     for i in range(int(n_manifests*n_uploads*.10)):
         inventory.at[i, 'Key'] = "data/" + filename()
 
+    # Add some unexpected files
+    nunexpected = int(n_manifests*n_uploads*.10)
+    inventory = pandas.concat(
+        [inventory, inventory_df(make_df(nrows=nunexpected))],
+        ignore_index=True
+    )
+
     return uploads, inventory
