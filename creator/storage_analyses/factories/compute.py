@@ -159,7 +159,7 @@ def compute_storage_analysis(uploads, inventory):
         ("matched", matched),
         ("missing", missing),
         ("moved", moved),
-        ("moved", moved),
+        ("unexpected", unexpected),
         ("inventory", inventory_df),
         ("uploads", uploads_df),
     ]
@@ -182,7 +182,7 @@ def compute_storage_analysis(uploads, inventory):
             stats.update(
                 {"count_by_bucket": df.groupby(["Bucket"]).size().to_dict()}
             )
-        if key in {"matched", "missing", "moved"}:
+        if key in {"matched", "missing", "moved", "unexpected"}:
             stats_dict["audit"][key] = stats
         else:
             stats_dict[key] = stats
