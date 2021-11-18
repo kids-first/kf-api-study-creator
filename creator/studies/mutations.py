@@ -49,6 +49,9 @@ def sanitize_fields(attributes):
         "release_status",
         "short_name",
         "version",
+        "short_code",
+        "domain",
+        "program",
     }
     return {k: attributes[k] for k in attributes.keys() & fields}
 
@@ -105,6 +108,18 @@ class StudyInput(graphene.InputObjectType):
             "Study version, often the provided by the data access authority"
         )
     )
+    short_code = graphene.String(
+        description=(
+            "Short alphanumeric string that identifies the study in a "
+            "succinct human friendly way"
+        ),
+    )
+    domain = graphene.String(
+        description="Category of disease being studied",
+    )
+    program = graphene.String(
+        description="The administrative organization or group of the Study",
+    )
 
     # These fields are unique to study-creator
     description = graphene.String(
@@ -150,6 +165,21 @@ class CreateStudyInput(StudyInput):
     )
     organization = graphene.ID(
         description="The organization to create the study in.", required=True
+    )
+    short_code = graphene.String(
+        description=(
+            "Short alphanumeric string that identifies the study in a "
+            "succinct human friendly way"
+        ),
+        required=True,
+    )
+    domain = graphene.String(
+        description="Category of disease being studied",
+        required=True,
+    )
+    program = graphene.String(
+        description="The administrative organization or group of the Study",
+        required=True,
     )
 
 
@@ -205,6 +235,11 @@ class CreateStudyMutation(graphene.Mutation):
             )
 
         attributes = sanitize_fields(input)
+
+        # Check short_code is unique
+        if Study.objects.filter(short_code=attributes["short_code"]).count():
+            raise GraphQLError("Study short_code provided was not unique.")
+
         logger.info("Creating a new study in Data Service")
         try:
             resp = requests.post(
@@ -383,6 +418,12 @@ class UpdateStudyMutation(graphene.Mutation):
                 updated_att.append(attr.replace("_", " "))
 
         attributes = sanitize_fields(input)
+
+        # Check short_code is unique
+        if "short code" in updated_att:
+            short_code = attributes["short_code"]
+            if Study.objects.filter(short_code=short_code).count():
+                raise GraphQLError("Study short_code provided was not unique.")
 
         try:
             resp = requests.patch(
