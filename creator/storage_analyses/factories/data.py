@@ -6,6 +6,7 @@ import uuid
 from pprint import pprint
 
 from kf_lib_data_ingest.common.constants import GENOMIC_FILE
+from kf_lib_data_ingest.common.io import read_df
 
 
 FILE_EXT_FORMAT_MAP = {
@@ -130,5 +131,24 @@ def make_files(n_manifests=2, n_uploads=3, study_id="SD_ME0WME0W"):
         [inventory, inventory_df(make_df(study_id, nrows=nunexpected))],
         ignore_index=True
     )
+
+    return uploads, inventory
+
+
+def load_dfs(upload_manifests_dir, inventory_file):
+    """
+    Read file upload manifests and s3 inventory from disk
+    """
+    # Create aggregate file upload manifest
+    uploads = []
+    upload_manifests_dir = os.path.abspath(upload_manifests_dir)
+    for i, fn in enumerate(os.listdir(upload_manifests_dir)):
+        fp = os.path.join(upload_manifests_dir, fn)
+        df = read_df(fp)
+        df["Created At"] = i
+        uploads.append(df)
+
+    # Read in inventory
+    inventory = read_df(os.path.abspath(inventory_file))
 
     return uploads, inventory

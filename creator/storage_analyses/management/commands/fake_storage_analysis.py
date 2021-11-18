@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from creator.storage_analyses.models import StorageAnalysis, FileAudit
-from creator.storage_analyses.factories.data import make_files
+from creator.storage_analyses.factories.data import make_files, load_dfs
 from creator.storage_analyses.factories.compute import compute_storage_analysis
 from creator.studies.models import Study
 
@@ -48,17 +48,38 @@ class Command(BaseCommand):
             help="Number of files per file upload manifest",
             type=int
         )
+        parser.add_argument(
+            "--inventory_filepath",
+            help="Path to an S3 inventory file to read in. If "
+            "this and --upload_manifests_dir are supplied, then data will "
+            "be read in from disk rather than generated",
+            type=str
+        )
+        parser.add_argument(
+            "--upload_manifests_dir",
+            help="Path to a directory with file upload manifests. If "
+            "this and --inventory_filepath are supplied, then data will "
+            "be read in from disk rather than generated",
+            type=str
+        )
 
     def handle(self, *args, **options):
         """
         Make fake storage analysis and inject into db
         """
+        # Read data in if provided
+        if options["upload_manifests_dir"] and options["inventory_filepath"]:
+            uploads, inventory = load_dfs(
+                options["upload_manifests_dir"],
+                options["inventory_filepath"]
+            )
         # Make fake data
-        uploads, inventory = make_files(
-            options["n_upload_manifests"],
-            options["n_files"],
-            options["study_id"]
-        )
+        else:
+            uploads, inventory = make_files(
+                options["n_upload_manifests"],
+                options["n_files"],
+                options["study_id"]
+            )
         # Create if storage analysis doesn't exist for study
         study_id = options["study_id"]
         study = Study.objects.get(pk=study_id)
