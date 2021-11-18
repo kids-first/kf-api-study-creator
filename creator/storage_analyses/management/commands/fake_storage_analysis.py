@@ -55,7 +55,9 @@ class Command(BaseCommand):
         """
         # Make fake data
         uploads, inventory = make_files(
-            options["n_upload_manifests"], options["n_files"]
+            options["n_upload_manifests"],
+            options["n_files"],
+            options["study_id"]
         )
         # Create if storage analysis doesn't exist for study
         study_id = options["study_id"]

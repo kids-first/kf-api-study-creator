@@ -61,18 +61,20 @@ def filename():
     )
 
 
-def make_df(nrows=5, created_at=1):
+def make_df(study_id, nrows=5, created_at=1):
     """
     Make a DataFrame that can be used to produce either a file upload manifest
     or S3 inventory
     """
+    study_id = study_id.replace("_", "-").lower()
+
     def make_row(i):
         fn = filename()
         hash_val = hash_file(fn)
         siz = random.randint(GB_1*10, GB_1*100)
         return {
             "Source File Name": fn,
-            "Bucket": "kf-study-us-east-1-prd-sd-me0wme0w",
+            "Bucket": f"kf-study-us-east-1-prd-{study_id}",
             "Key": f"data/{fn}",
             "Hash": hash_val,
             "Hash Algorithm": "md5",
@@ -102,12 +104,13 @@ def inventory_df(df):
     return df.drop(columns=["Source File Name", "Aliquot ID"])
 
 
-def make_files(n_manifests=2, n_uploads=3):
+def make_files(n_manifests=2, n_uploads=3, study_id="SD_ME0WME0W"):
     """
     Create fake file upload manifests and an S3 inventory
     """
     # Create upload manifests
-    dfs = [make_df(n_uploads, created_at=i) for i in range(n_manifests)]
+    dfs = [make_df(study_id, n_uploads, created_at=i)
+           for i in range(n_manifests)]
     uploads = [upload_manifest_df(df) for df in dfs]
 
     # Create inventory
@@ -124,7 +127,7 @@ def make_files(n_manifests=2, n_uploads=3):
     # Add some unexpected files
     nunexpected = int(n_manifests*n_uploads*.10)
     inventory = pandas.concat(
-        [inventory, inventory_df(make_df(nrows=nunexpected))],
+        [inventory, inventory_df(make_df(study_id, nrows=nunexpected))],
         ignore_index=True
     )
 
