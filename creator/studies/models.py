@@ -174,6 +174,12 @@ class Study(models.Model):
         help_text="Category of disease being studied",
         blank=True,
     )
+    program = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="The administrative organization or group of the Study",
+    )
     # Status fields
     sequencing_status = models.CharField(
         max_length=16,
