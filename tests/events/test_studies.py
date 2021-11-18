@@ -12,7 +12,7 @@ User = get_user_model()
 CREATE_STUDY = """
 mutation ($input: CreateStudyInput!) {
     createStudy(input: $input) {
-        study { id kfId externalId name }
+        study { id kfId externalId name}
     }
 }
 
@@ -48,6 +48,9 @@ def test_new_study_event(
         "input": {
             "externalId": "TEST",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
