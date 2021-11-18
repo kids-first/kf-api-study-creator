@@ -133,6 +133,10 @@ def compute_storage_analysis(uploads, inventory):
         left_on="Source Hash", right_on="Hash",
         how="outer", indicator=True
     )
+    for c in ["Size", "Source Size"]:
+        file_audits[c] = file_audits[c].apply(
+            lambda x: int(x) if pandas.notnull(x) else None
+        )
 
     # Extract other necessary metadata
     file_audits["File Extension"] = file_audits.apply(file_ext, axis=1)
@@ -168,13 +172,22 @@ def compute_storage_analysis(uploads, inventory):
     stats_dict = {"audit": {}}
     for key, df in stat_dfs:
         size_col = "Size" if key != "missing" else "Source Size"
-        stats = {
-            "total_count": df.shape[0],
-            "total_size": humanize.naturalsize(df[size_col].sum()),
-            "count_by_size": file_count_by_size(df, size_col),
-            "count_by_ext": df.groupby(["File Extension"]).size().to_dict(),
-            "count_by_data_type": df.groupby(["Data Type"]).size().to_dict()
-        }
+        if df.empty:
+            stats = {
+                "total_count": 0,
+                "total_size": 0,
+                "count_by_size": 0,
+                "count_by_ext": 0,
+                "count_by_data_type": 0
+            }
+        else:
+            stats = {
+                "total_count": df.shape[0],
+                "total_size": humanize.naturalsize(df[size_col].sum()),
+                "count_by_size": file_count_by_size(df, size_col),
+                "count_by_ext": df.groupby(["File Extension"]).size().to_dict(),
+                "count_by_data_type": df.groupby(["Data Type"]).size().to_dict()
+            }
         if key not in {"missing", "uploads"}:
             stats.update(
                 {"total_buckets": df["Bucket"].nunique()}
