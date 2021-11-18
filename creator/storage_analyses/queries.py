@@ -64,12 +64,12 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.has_perm("storage_analyses.list_all_storageanalysis"):
-            raise GraphQLError("Not allowed")
-
-        return StorageAnalysis.objects.filter(
-            study__in=user.studies.all()
-        ).all()
+        if user.has_perm("storage_analyses.list_all_storageanalysis"):
+            return StorageAnalysis.objects.all()
+        else:
+            return StorageAnalysis.objects.filter(
+                study__in=user.studies.all()
+            ).all()
 
     def resolve_all_file_audits(self, info, **kwargs):
         """
@@ -77,12 +77,12 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.has_perm("storage_analyses.list_all_storageanalysis"):
-            raise GraphQLError("Not allowed")
-
-        return FileAudit.objects.filter(
-            storage_analysis__study__in=user.studies.all()
-        ).all()
+        if user.has_perm("storage_analyses.list_all_storageanalysis"):
+            return FileAudit.objects.all()
+        else:
+            return FileAudit.objects.filter(
+                storage_analysis__study__in=user.studies.all()
+            ).all()
 
     def resolve_all_cloud_inventory_files(self, info, **kwargs):
         """
@@ -90,16 +90,18 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.has_perm("storage_analyses.list_all_storageanalysis"):
-            raise GraphQLError("Not allowed")
+        if user.has_perm("storage_analyses.list_all_storageanalysis"):
+            query = FileAudit.objects
+        else:
+            query = FileAudit.objects.filter(
+                storage_analysis__study__in=user.studies.all()
+            )
 
         # Returns files found in both cloud storage inventory and upload
         # manifests AND files found only in cloud storage inventory. This is
         # the equivalent of returning a table of files in cloud storage
         # inventory
-        return FileAudit.objects.filter(
-            storage_analysis__study__in=user.studies.all()
-        ).filter(result__in=[
+        return query.filter(result__in=[
             ResultEnum.matched.value,
             ResultEnum.moved.value,
             ResultEnum.unexpected.value,
@@ -111,16 +113,18 @@ class Query(object):
         """
         user = info.context.user
 
-        if not user.has_perm("storage_analyses.list_all_storageanalysis"):
-            raise GraphQLError("Not allowed")
+        if user.has_perm("storage_analyses.list_all_storageanalysis"):
+            query = FileAudit.objects
+        else:
+            query = FileAudit.objects.filter(
+                storage_analysis__study__in=user.studies.all()
+            )
 
         # Returns files found in both cloud storage inventory and upload
         # manifests AND files found only in the upload manifests. This is the
         # equivalent of returning an aggregate table of files from the upload
         # manifests
-        return FileAudit.objects.filter(
-            storage_analysis__study__in=user.studies.all()
-        ).filter(result__in=[
+        return query.filter(result__in=[
             ResultEnum.matched.value,
             ResultEnum.moved.value,
             ResultEnum.missing.value,
