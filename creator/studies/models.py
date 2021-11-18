@@ -37,6 +37,14 @@ MEMBER_ROLE_CHOICES = [
     ("COORDINATOR", "Coordinating Staff"),
     ("DEVELOPER", "Developer"),
 ]
+DOMAIN_CHOICES = [
+    ("UNKNOWN", "Unknown"),
+    ("CANCER", "Cancer"),
+    ("BIRTHDEFECT", "Birth Defect"),
+    ("CANCERANDBIRTHDEFECT", "Cancer and Birth Defect"),
+    ("COVID19", "COVID-19"),
+    ("OTHER", "Other"),
+]
 
 ALPHANUMERIC = RegexValidator(
     r"^[0-9a-zA-Z]*$",
@@ -158,6 +166,13 @@ class Study(models.Model):
         max_length=30,
         validators=[ALPHANUMERIC, MinLengthValidator(3)],
         default="PLACEHOLDER",
+    )
+    domain = models.CharField(
+        max_length=20,
+        default="UNKNOWN",
+        choices=DOMAIN_CHOICES,
+        help_text="Category of disease being studied",
+        blank=True,
     )
     # Status fields
     sequencing_status = models.CharField(
