@@ -118,11 +118,14 @@ def compute_storage_analysis(uploads, inventory):
         .sort_values("Created At", ascending=False)
         .drop_duplicates("Hash")
         .reset_index(drop=True)
-    ).rename(
+    )
+    upload_df.rename(
         columns={
             col: f"Source {col}"
             for col in ["Hash", "Hash Algorithm", "Size"]
-        }
+            if col in upload_df.columns
+        },
+        inplace=True
     )
     # Join with s3 inventory
     inventory["File Name"] = inventory["Key"].apply(
@@ -134,9 +137,10 @@ def compute_storage_analysis(uploads, inventory):
         how="outer", indicator=True
     )
     for c in ["Size", "Source Size"]:
-        file_audits[c] = file_audits[c].apply(
-            lambda x: int(x) if pandas.notnull(x) else None
-        )
+        if c in file_audits.columns:
+            file_audits[c] = file_audits[c].apply(
+                lambda x: int(x) if pandas.notnull(x) else None
+            )
 
     # Extract other necessary metadata
     file_audits["File Extension"] = file_audits.apply(file_ext, axis=1)
@@ -145,12 +149,12 @@ def compute_storage_analysis(uploads, inventory):
     file_audits["Url"] = file_audits.apply(file_url, axis=1)
 
     # Create dfs for analysis
-    file_audits = file_audits[
-        [
-            "Status", "Url", "Bucket", "Key", "Size", "Hash", "Hash Algorithm",
-            "File Name", "File Extension", "Data Type", "_merge"
-        ] + [c for c in file_audits if c.startswith("Source")]
-    ]
+    cols = [
+        "Status", "Url", "Bucket", "Key", "Size", "Hash", "Hash Algorithm",
+        "File Name", "File Extension", "Data Type", "_merge"
+    ] + [c for c in file_audits if c.startswith("Source")]
+    extract_cols = [c for c in cols if c in file_audits.columns]
+    file_audits = file_audits[extract_cols]
 
     matched = file_audits[file_audits["Status"] == "matched"]
     missing = file_audits[file_audits["Status"] == "missing"]
@@ -171,7 +175,8 @@ def compute_storage_analysis(uploads, inventory):
     # Compute storage analysis stats
     stats_dict = {"audit": {}}
     for key, df in stat_dfs:
-        size_col = "Size" if key != "missing" else "Source Size"
+        size_col = "Size" if key not in {
+            "missing", "uploads"} else "Source Size"
         if df.empty:
             stats = {
                 "total_count": 0,
@@ -183,11 +188,16 @@ def compute_storage_analysis(uploads, inventory):
         else:
             stats = {
                 "total_count": df.shape[0],
-                "total_size": humanize.naturalsize(df[size_col].sum()),
-                "count_by_size": file_count_by_size(df, size_col),
                 "count_by_ext": df.groupby(["File Extension"]).size().to_dict(),
                 "count_by_data_type": df.groupby(["Data Type"]).size().to_dict()
             }
+            if size_col in df.columns:
+                stats["total_size"] = humanize.naturalsize(df[size_col].sum())
+                stats["count_by_size"] = file_count_by_size(df, size_col)
+            else:
+                stats["total_size"] = {},
+                stats["count_by_size"] = {}
+
         if key not in {"missing", "uploads"}:
             stats.update(
                 {"total_buckets": df["Bucket"].nunique()}
