@@ -43,7 +43,7 @@ mutation newStudy($input: CreateStudyInput!, $workflows: [String]) {
 
 @pytest.fixture
 def mock_cavatica(mocker, settings):
-    """ Mocks out project setup functions """
+    """Mocks out project setup functions"""
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
     cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
@@ -52,7 +52,7 @@ def mock_cavatica(mocker, settings):
 
 @pytest.fixture
 def mock_post(mocker):
-    """ Creates a mock response for the dataservice """
+    """Creates a mock response for the dataservice"""
     post = mocker.patch("requests.post")
 
     class MockResp:
@@ -97,7 +97,7 @@ def mock_post(mocker):
 
 @pytest.fixture
 def mock_error(mocker):
-    """ Mock a failed response from the dataservice """
+    """Mock a failed response from the dataservice"""
     post = mocker.patch("requests.post")
 
     class MockResp:
@@ -575,7 +575,7 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, field):
 
 
 def test_attach_volumes(db, clients, settings, mock_cavatica_api):
-    """ Test that volumes are attached for new studies """
+    """Test that volumes are attached for new studies"""
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_MOUNT_VOLUMES = True

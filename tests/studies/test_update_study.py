@@ -33,7 +33,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
 
 @pytest.fixture
 def mock_patch(mocker):
-    """ Creates a mock response for the dataservice """
+    """Creates a mock response for the dataservice"""
     patch = mocker.patch("requests.patch")
 
     class MockResp:
@@ -75,7 +75,7 @@ def mock_patch(mocker):
 
 @pytest.fixture
 def mock_error(mocker):
-    """ Mock a failed response from the dataservice """
+    """Mock a failed response from the dataservice"""
     patch = mocker.patch("requests.patch")
 
     class MockResp:

@@ -74,7 +74,7 @@ def get_collaborators(input):
 
 
 class StudyInput(graphene.InputObjectType):
-    """ Schema for input to create and update study mutations """
+    """Schema for input to create and update study mutations"""
 
     # These fields are from the study model in dataservice
     name = graphene.String(description="The full name of the study")
@@ -154,7 +154,7 @@ class StudyInput(graphene.InputObjectType):
 
 
 class CreateStudyInput(StudyInput):
-    """ Schema for creating a new study """
+    """Schema for creating a new study"""
 
     collaborators = graphene.List(
         graphene.ID,
@@ -184,10 +184,10 @@ class CreateStudyInput(StudyInput):
 
 
 class CreateStudyMutation(graphene.Mutation):
-    """ Mutation to create a new study """
+    """Mutation to create a new study"""
 
     class Arguments:
-        """ Arguments for creating a new study """
+        """Arguments for creating a new study"""
 
         input = CreateStudyInput(
             required=True, description="Attributes for the new study"
@@ -369,10 +369,10 @@ class CreateStudyMutation(graphene.Mutation):
 
 
 class UpdateStudyMutation(graphene.Mutation):
-    """ Mutation to update an existing study """
+    """Mutation to update an existing study"""
 
     class Arguments:
-        """ Arguments to update an existing study """
+        """Arguments to update an existing study"""
 
         id = graphene.ID(
             required=True, description="The ID of the study to update"
@@ -473,10 +473,10 @@ class UpdateStudyMutation(graphene.Mutation):
 
 
 class AddCollaboratorMutation(graphene.Mutation):
-    """ Mutation to add a collaborator to a study """
+    """Mutation to add a collaborator to a study"""
 
     class Arguments:
-        """ Arguments to add a collaborator to a study """
+        """Arguments to add a collaborator to a study"""
 
         study = graphene.ID(
             required=True,
@@ -514,7 +514,9 @@ class AddCollaboratorMutation(graphene.Mutation):
             raise GraphQLError(f"User {user_id} does not exist.")
 
         membership, created = Membership.objects.update_or_create(
-            study=study, collaborator=collaborator, defaults={"role": role},
+            study=study,
+            collaborator=collaborator,
+            defaults={"role": role},
         )
 
         # Log an event
@@ -551,10 +553,10 @@ class AddCollaboratorMutation(graphene.Mutation):
 
 
 class RemoveCollaboratorMutation(graphene.Mutation):
-    """ Mutation to remove a collaborator from a study """
+    """Mutation to remove a collaborator from a study"""
 
     class Arguments:
-        """ Arguments to remove a collaborator from a study """
+        """Arguments to remove a collaborator from a study"""
 
         study = graphene.ID(
             required=True,
@@ -629,12 +631,13 @@ class UpdateIngestionStatusInput(graphene.InputObjectType):
 
 class UpdatePhenotypeStatusInput(graphene.InputObjectType):
     status = graphene.Field(
-        PhenotypeStatusType, description="The phenotype status of the study",
+        PhenotypeStatusType,
+        description="The phenotype status of the study",
     )
 
 
 class UpdateSequencingStatusMutation(graphene.Mutation):
-    """ Mutation to change the current sequencing status of a study"""
+    """Mutation to change the current sequencing status of a study"""
 
     class Arguments:
         study = graphene.ID(
@@ -688,7 +691,7 @@ class UpdateSequencingStatusMutation(graphene.Mutation):
 
 
 class UpdateIngestionStatusMutation(graphene.Mutation):
-    """ Mutation to change the current ingestion status of a study"""
+    """Mutation to change the current ingestion status of a study"""
 
     class Arguments:
         study = graphene.ID(
@@ -741,7 +744,7 @@ class UpdateIngestionStatusMutation(graphene.Mutation):
 
 
 class UpdatePhenotypeStatusMutation(graphene.Mutation):
-    """ Mutation to change the current phenotype status of a study"""
+    """Mutation to change the current phenotype status of a study"""
 
     class Arguments:
         study = graphene.ID(
@@ -794,7 +797,7 @@ class UpdatePhenotypeStatusMutation(graphene.Mutation):
 
 
 class TransferStudyMutation(graphene.Mutation):
-    """ Mutation to transfer study to another organization"""
+    """Mutation to transfer study to another organization"""
 
     class Arguments:
         study = graphene.ID(
@@ -803,7 +806,7 @@ class TransferStudyMutation(graphene.Mutation):
         )
         organization = graphene.ID(
             required=True,
-            description="The organization to transfer the study to."
+            description="The organization to transfer the study to.",
         )
 
     study = graphene.Field(StudyNode)
@@ -863,7 +866,7 @@ class TransferStudyMutation(graphene.Mutation):
 
 
 class Mutation:
-    """ Mutations for studies """
+    """Mutations for studies"""
 
     create_study = CreateStudyMutation.Field(
         description="""Create a new study including setup in external systems.
