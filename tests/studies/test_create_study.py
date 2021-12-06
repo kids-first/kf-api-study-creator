@@ -31,6 +31,9 @@ mutation newStudy($input: CreateStudyInput!, $workflows: [String]) {
             anticipatedSamples
             awardeeOrganization
             releaseDate
+            shortCode
+            domain
+            program
             collaborators { edges { node { id username } } }
         }
     }
@@ -40,7 +43,7 @@ mutation newStudy($input: CreateStudyInput!, $workflows: [String]) {
 
 @pytest.fixture
 def mock_cavatica(mocker, settings):
-    """ Mocks out project setup functions """
+    """Mocks out project setup functions"""
     settings.CAVATICA_HARMONIZATION_TOKEN = "testtoken"
     settings.CAVATICA_DELIVERY_TOKEN = "testtoken"
     cavatica = mocker.patch("creator.studies.schema.django_rq.enqueue")
@@ -49,7 +52,7 @@ def mock_cavatica(mocker, settings):
 
 @pytest.fixture
 def mock_post(mocker):
-    """ Creates a mock response for the dataservice """
+    """Creates a mock response for the dataservice"""
     post = mocker.patch("requests.post")
 
     class MockResp:
@@ -82,6 +85,9 @@ def mock_post(mocker):
                     "short_name": None,
                     "version": None,
                     "visible": True,
+                    "short_code": "HELLO",
+                    "domain": "CANCER",
+                    "program": "CHOP",
                 },
             }
 
@@ -91,7 +97,7 @@ def mock_post(mocker):
 
 @pytest.fixture
 def mock_error(mocker):
-    """ Mock a failed response from the dataservice """
+    """Mock a failed response from the dataservice"""
     post = mocker.patch("requests.post")
 
     class MockResp:
@@ -131,6 +137,9 @@ def test_create_study_mutation(
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", collaborator.id)],
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -142,8 +151,12 @@ def test_create_study_mutation(
     if allowed:
         resp_body = resp.json()["data"]["createStudy"]["study"]
         assert resp_body["externalId"] == "Test Study"
+        assert resp_body["shortCode"] == "HELLO"
+        assert resp_body["domain"] == "CANCER"
+        assert resp_body["program"] == "CHOP"
         assert Study.objects.count() == 1
         assert Study.objects.first().external_id == "Test Study"
+        assert Study.objects.first().short_code == "HELLO"
         assert mock_cavatica.call_count == 1
         assert Study.objects.first().collaborators.count() == 1
     else:
@@ -168,6 +181,9 @@ def test_create_study_collaborator_does_not_exist(
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", 123)],
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -194,6 +210,9 @@ def test_create_study_organization_does_not_exist(db, clients, mock_post):
             "externalId": "Test Study",
             "collaborators": [to_global_id("UserNode", 123)],
             "organization": to_global_id("OrganizationNode", "ABC"),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -221,6 +240,9 @@ def test_dataservice_call(db, clients, mock_post, settings):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -232,7 +254,12 @@ def test_dataservice_call(db, clients, mock_post, settings):
     assert mock_post.call_count == 1
     mock_post.assert_called_with(
         f"{settings.DATASERVICE_URL}/studies",
-        json={"external_id": "Test Study"},
+        json={
+            "external_id": "Test Study",
+            "short_code": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
+        },
         headers=settings.REQUESTS_HEADERS,
         timeout=settings.REQUESTS_TIMEOUT,
     )
@@ -254,6 +281,9 @@ def test_dataservice_feat_flag(db, clients, mock_post, settings):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -279,6 +309,9 @@ def test_dataservice_error(db, clients, mock_error):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -313,6 +346,9 @@ def test_study_buckets_settings(db, clients, mock_post, settings, mocker):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     resp = client.post(
@@ -351,6 +387,9 @@ def test_workflows(db, settings, mocker, clients, mock_post):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         },
     }
     resp = client.post(
@@ -376,6 +415,9 @@ def test_workflows(db, settings, mocker, clients, mock_post):
         "input": {
             "externalId": "Test Study",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HOWDY",
+            "domain": "CANCER",
+            "program": "CHOP",
         },
     }
     resp = client.post(
@@ -422,6 +464,9 @@ def test_text_fields(db, clients, settings, mock_post, field):
         "input": {
             "externalId": "TEST",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     variables["input"][field] = "Lorem Ipsum"
@@ -449,6 +494,9 @@ def test_integer_fields(db, clients, settings, mock_post, field):
         "input": {
             "externalId": "TEST",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     variables["input"][field] = 324
@@ -478,6 +526,9 @@ def test_internal_fields(db, clients, settings, mock_post, field):
         "input": {
             "externalId": "TEST",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     variables["input"][field] = "Lorem Ipsum"
@@ -505,6 +556,9 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, field):
         "input": {
             "externalId": "TEST",
             "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
         }
     }
     d = datetime.now()
@@ -521,7 +575,7 @@ def test_internal_datetime_fields(db, clients, settings, mock_post, field):
 
 
 def test_attach_volumes(db, clients, settings, mock_cavatica_api):
-    """ Test that volumes are attached for new studies """
+    """Test that volumes are attached for new studies"""
     client = clients.get("Administrators")
 
     settings.FEAT_CAVATICA_MOUNT_VOLUMES = True
@@ -543,3 +597,44 @@ def test_attach_volumes(db, clients, settings, mock_cavatica_api):
         secret_access_key="123",
         access_mode="RW",
     )
+
+
+def test_short_code_unique(db, clients, mock_post, mock_cavatica):
+    """
+    Check the uniqueness constraint of the short_code attr during Study
+    creation.
+    """
+    collaborator = UserFactory()
+    user = User.objects.filter(groups__name="Administrators").first()
+    organization = OrganizationFactory(members=[user])
+    client = clients.get("Administrators")
+    variables = {
+        "input": {
+            "externalId": "Test Study",
+            "collaborators": [to_global_id("UserNode", collaborator.id)],
+            "organization": to_global_id("OrganizationNode", organization.pk),
+            "shortCode": "HELLO",
+            "domain": "CANCER",
+            "program": "CHOP",
+        }
+    }
+    _ = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+    assert Study.objects.count() == 1
+    assert mock_cavatica.call_count == 1
+
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": CREATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == (
+        "Study short_code provided was not unique."
+    )
+    assert Study.objects.count() == 1
+    assert mock_cavatica.call_count == 1

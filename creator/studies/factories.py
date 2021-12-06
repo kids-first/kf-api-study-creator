@@ -25,3 +25,8 @@ class StudyFactory(factory.DjangoModelFactory):
     buckets = factory.RelatedFactory(BucketFactory, "study")
 
     organization = factory.SubFactory(OrganizationFactory)
+
+    short_code = factory.Faker("slug")
+    program = factory.fuzzy.FuzzyText(
+        length=8, chars="ABCDEFGHIJKLMNOPQRSTVWXYZ"
+    )

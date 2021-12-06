@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.contrib.postgres.fields import JSONField
 
@@ -37,6 +37,19 @@ MEMBER_ROLE_CHOICES = [
     ("COORDINATOR", "Coordinating Staff"),
     ("DEVELOPER", "Developer"),
 ]
+DOMAIN_CHOICES = [
+    ("UNKNOWN", "Unknown"),
+    ("CANCER", "Cancer"),
+    ("BIRTHDEFECT", "Birth Defect"),
+    ("CANCERANDBIRTHDEFECT", "Cancer and Birth Defect"),
+    ("COVID19", "COVID-19"),
+    ("OTHER", "Other"),
+]
+
+ALPHANUMERIC = RegexValidator(
+    r"^[0-9a-zA-Z]*$",
+    "Only alphanumeric characters are allowed.",
+)
 
 
 class Study(models.Model):
@@ -149,7 +162,24 @@ class Study(models.Model):
         help_text="Whether the study hase been deleted from the dataservice",
     )
     additional_fields = JSONField(default=dict)
-
+    short_code = models.CharField(
+        max_length=30,
+        validators=[ALPHANUMERIC, MinLengthValidator(3)],
+        default="PLACEHOLDER",
+    )
+    domain = models.CharField(
+        max_length=20,
+        default="UNKNOWN",
+        choices=DOMAIN_CHOICES,
+        help_text="Category of disease being studied",
+        blank=True,
+    )
+    program = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="The administrative organization or group of the Study",
+    )
     # Status fields
     sequencing_status = models.CharField(
         max_length=16,

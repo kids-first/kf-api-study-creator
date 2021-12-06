@@ -24,6 +24,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
             anticipatedSamples
             awardeeOrganization
             releaseDate
+            shortCode
         }
     }
 }
@@ -32,7 +33,7 @@ mutation editStudy($id: ID!, $input: StudyInput!) {
 
 @pytest.fixture
 def mock_patch(mocker):
-    """ Creates a mock response for the dataservice """
+    """Creates a mock response for the dataservice"""
     patch = mocker.patch("requests.patch")
 
     class MockResp:
@@ -64,6 +65,7 @@ def mock_patch(mocker):
                     "short_name": None,
                     "version": None,
                     "visible": True,
+                    "short_code": "HELLO",
                 },
             }
 
@@ -73,7 +75,7 @@ def mock_patch(mocker):
 
 @pytest.fixture
 def mock_error(mocker):
-    """ Mock a failed response from the dataservice """
+    """Mock a failed response from the dataservice"""
     patch = mocker.patch("requests.patch")
 
     class MockResp:
@@ -214,6 +216,7 @@ def test_dataservice_error(db, clients, mock_error, mock_study):
         "shortName",
         "version",
         "description",
+        "shortCode",
     ],
 )
 def test_text_fields(db, clients, settings, mock_patch, mock_study, field):
@@ -258,7 +261,7 @@ def test_integer_fields(db, clients, settings, mock_patch, mock_study, field):
 @pytest.mark.parametrize("field", ["description", "awardeeOrganization"])
 def test_internal_fields(db, clients, mock_patch, mock_study, field):
     """
-    Test that inputs for our internal study fields are updated  correctly.
+    Test that inputs for our internal study fields are updated correctly.
     """
     client = clients.get("Administrators")
     variables = {
@@ -319,3 +322,29 @@ def test_update_study_collaborators_not_mutable(
     )
 
     assert Study.objects.first().collaborators.count() == 0
+
+
+def test_update_short_code(db, clients, mock_patch, mock_study):
+    """
+    Check the uniqueness constraint for updating short_code
+    """
+    client = clients.get("Administrators")
+    second_study = StudyFactory(short_code="HELLO")
+    second_study.save()
+
+    assert Study.objects.count() == 2
+
+    variables = {
+        "id": to_global_id("StudyNode", second_study.kf_id),
+        "input": {"shortCode": mock_study.short_code},
+    }
+    resp = client.post(
+        "/graphql",
+        content_type="application/json",
+        data={"query": UPDATE_STUDY_MUTATION, "variables": variables},
+    )
+
+    assert "errors" in resp.json()
+    assert resp.json()["errors"][0]["message"] == (
+        "Study short_code provided was not unique."
+    )
