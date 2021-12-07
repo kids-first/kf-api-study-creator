@@ -1,5 +1,7 @@
+import logging
 import graphene
 import uuid
+import django_rq
 from django.conf import settings
 from django.db import transaction
 from django_s3_storage.storage import S3Storage
@@ -16,6 +18,12 @@ from creator.files.object_types import TemplateMatchResult
 from creator.data_templates.nodes.template_version import TemplateVersionNode
 from creator.data_templates.models import TemplateVersion
 from creator.files.utils import evaluate_template_match
+from creator.files.tasks import (
+    is_file_upload_manifest,
+    push_to_dewrangle
+)
+
+logger = logging.getLogger(__name__)
 
 
 class VersionMutation(graphene.Mutation):
@@ -219,6 +227,19 @@ class VersionUploadMutation(graphene.Mutation):
             analysis = analyze_version(version)
             analysis.creator = user
             analysis.save()
+
+        if (
+            settings.FEAT_DEWRANGLE_INTEGRATION and
+            is_file_upload_manifest(version)
+        ):
+            logger.info(
+                f"Queued version {version.kf_id} {version.root_file.name} for"
+                " audit processing..."
+            )
+            push_to_dewrangle(version.pk)
+            # django_rq.enqueue(
+            #     push_to_dewrangle, version_id=version.pk
+            # )
 
         return VersionUploadMutation(success=True, version=version)
 

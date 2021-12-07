@@ -85,6 +85,12 @@ class Study(models.Model):
         help_text="The Kids First Identifier",
         null=False,
     )
+    dewrangle_id = models.CharField(
+        max_length=100,
+        help_text="The unique id of the study in the Dewrangle service",
+        unique=True,
+        null=True,
+    )
     name = models.CharField(
         max_length=500, help_text="The name of the study", null=True
     )

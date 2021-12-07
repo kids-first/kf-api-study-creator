@@ -5,6 +5,20 @@
 import os
 
 
+# DEWRANGLE ##################################################################
+# Study creator delegates auditing of files uploaded to S3 buckets to the
+# Dewrangle API. User submitted file upload manifest must be pushed to
+# Dewrangle to complete auditing
+FEAT_DEWRANGLE_INTEGRATION = os.environ.get(
+    "FEAT_DEWRANGLE_INTEGRATION", False
+)
+DEWRANGLE_URL = os.environ.get(
+    "DEWRANGLE_URL", "http://localhost:3000/api/graphql"
+)
+DATA_TRACKER_DEWRANGLE_TOKEN = os.environ.get(
+    "DATA_TRACKER_DEWRANGLE_TOKEN", None
+)
+
 # STUDIES ######################################################################
 # The Study Creator's primary purpose is to create and track studies.
 
