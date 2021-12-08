@@ -80,6 +80,7 @@ def download_templates(request, study_kf_id=None):
     ] = f"attachment; filename*=UTF-8''{filename}"
     response["Content-Length"] = stream.getbuffer().nbytes
     response["Content-Type"] = mime_type
+    response["Access-Control-Expose-Headers"] = "Content-Disposition"
     stream.close()
 
     # Fire a template download event for each template
