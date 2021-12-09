@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.21.0
+
+### Summary
+
+- Emojis: 🛠 x1, ✨ x1, 🐛 x1
+- Categories: Additions x1, Fixes x1, Other Changes x1
+
+### New features and changes
+
+- [#804](https://github.com/kids-first/kf-api-study-creator/pull/804) - 🛠 Expose content-disposition header in download template reqs - [ff6360a0](https://github.com/kids-first/kf-api-study-creator/commit/ff6360a084244b50101dadd0d57559f1762f0f5b) by [znatty22](https://github.com/znatty22)
+- [#789](https://github.com/kids-first/kf-api-study-creator/pull/789) - ✨ Add short_code, domain, and program to Study - [c13c6567](https://github.com/kids-first/kf-api-study-creator/commit/c13c6567af4927ff3da2effeedbd18f2b8113ef7) by [gsantia](https://github.com/gsantia)
+- [#799](https://github.com/kids-first/kf-api-study-creator/pull/799) - 🐛 Fix study sync f-string - [760d5dc1](https://github.com/kids-first/kf-api-study-creator/commit/760d5dc11343e2d01dcde878d8c6c56e261a46d9) by [gsantia](https://github.com/gsantia)
+
+
 ## Release 1.20.0
 
 ### Summary
