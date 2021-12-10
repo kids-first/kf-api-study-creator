@@ -4,6 +4,7 @@ import secrets
 from enum import Enum
 from functools import partial
 from datetime import datetime
+
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -12,6 +13,9 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django_s3_storage.storage import S3Storage
+from django_fsm import FSMField, transition
+from kf_lib_data_ingest.common.io import read_df
+
 from creator.studies.models import Study
 from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
@@ -22,6 +26,14 @@ EXTRACT_CFG_DIR = os.path.join(
     settings.BASE_DIR, "extract_configs", "templates"
 )
 User = get_user_model()
+
+
+class AuditPrepState:
+    NOT_APPLICABLE = "not_applicable"
+    NOT_STARTED = "not_started"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 def file_id():
@@ -264,6 +276,12 @@ class Version(models.Model):
         ],
         help_text='Size of the version in bytes')
 
+    audit_prep_state = FSMField(
+        default=AuditPrepState.NOT_APPLICABLE,
+        help_text="The state of the version in the preparation for audit "
+        "submission",
+    )
+
     root_file = models.ForeignKey(
         File,
         null=True,
@@ -370,6 +388,42 @@ class Version(models.Model):
                     f"{self} must be part of a study."
                 )
             self.key.storage = S3Storage(aws_s3_bucket_name=study.bucket)
+
+    @transition(
+        field=audit_prep_state,
+        source=[AuditPrepState.NOT_STARTED,
+                AuditPrepState.NOT_APPLICABLE,
+                AuditPrepState.FAILED],
+        target=AuditPrepState.RUNNING
+    )
+    def start_audit_prep(self):
+        """
+        Prepare the records in this file upload manifest for submission to
+        the auditing system
+        """
+        pass
+
+    @transition(
+        field=audit_prep_state, source=AuditPrepState.RUNNING,
+        target=AuditPrepState.COMPLETED
+    )
+    def complete_audit_prep(self):
+        """
+        Complete preparation of the the records in this file upload manifest
+        """
+        pass
+
+    @transition(
+        field=audit_prep_state,
+        source=[AuditPrepState.NOT_STARTED, AuditPrepState.RUNNING],
+        target=AuditPrepState.FAILED
+    )
+    def fail_audit_prep(self):
+        """
+        Fail preparation of the records in this file upload manifest
+        due to some unexpected error
+        """
+        pass
 
 
 class DownloadToken(models.Model):
