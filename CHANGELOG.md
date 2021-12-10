@@ -1,5 +1,17 @@
 # Kids First Study Creator Change History
 
+## Release 1.21.1
+
+### Summary
+
+- Emojis: 🗃 x1
+- Categories: Other Changes x1
+
+### New features and changes
+
+- [#805](https://github.com/kids-first/kf-api-study-creator/pull/805) - 🗃 Fix study domains from prev domain migration - [ef79bea6](https://github.com/kids-first/kf-api-study-creator/commit/ef79bea684b231c22493a3e44a4d67b099dd01fb) by [znatty22](https://github.com/znatty22)
+
+
 ## Release 1.21.0
 
 ### Summary
