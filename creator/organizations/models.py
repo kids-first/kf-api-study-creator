@@ -18,6 +18,12 @@ class Organization(models.Model):
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dewrangle_id = models.CharField(
+        max_length=1024,
+        null=True,
+        blank=True,
+        help_text="Unique identifier of the org in Dewrangle"
+    )
     name = models.CharField(
         max_length=1024, null=False, help_text="The name of the organization"
     )
