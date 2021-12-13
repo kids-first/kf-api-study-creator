@@ -25,20 +25,10 @@ class DewrangleClient(object):
             }
         )
 
-    def bulk_create_file_upload_invoices(self, study_id, invoices):
+    def _send_post_request(self, body):
         """
-        Send graphql mutation to create a batch of file upload invoices
-        in Dewrangle
+        Send POST request and parse response as json
         """
-        body = {
-            "query": FILE_UPLOAD_INVOICE_CREATE.strip(),
-            "variables": {
-                "input": {
-                    "studyId": study_id,
-                    "fileUploadInvoices": invoices
-                }
-            }
-        }
         try:
             response = self.session.post(self.url, json=body)
             response.raise_for_status()
@@ -54,14 +44,79 @@ class DewrangleClient(object):
             logger.exception("Problem parsing JSON from response body")
             raise
 
-        if response.status_code != 200 or "errors" in resp:
-            msg = f"Failed fileUploadInvoiceCreate mutation @ {self.url}"
+        logger.debug(pformat(resp))
+
+        return resp, response.status_code
+
+    def _send_mutation(self, body, mutation_name):
+        """
+        Helper to send GraphQL mutation request and handle errors
+        """
+        resp, status_code = self._send_post_request(body)
+
+        errors = (
+            resp.get("data", {}).get(mutation_name, {}).get("errors")
+        )
+        if status_code != 200 or errors:
+            msg = f"Failed {mutation_name} mutation @ {self.url}"
             logger.exception(msg)
             raise GraphQLError(
-                f"{msg} Caused by:\n{resp['errors']}"
+                f"{msg} Caused by:\n{errors}"
             )
 
-        results = resp["data"]["fileUploadInvoiceCreate"]["fileUploadInvoices"]
+        if "data" not in resp:
+            raise GraphQLError(
+                f"Unexpected response format. Caused by:\n{pformat(resp)}"
+            )
+
+        return resp, status_code
+
+    def create_study(self, study):
+        """
+        Send graphql mutation to create a study in Dewrangle
+        """
+        input_ = {
+            attr: getattr(study, attr)
+            for attr in ["name"]
+        }
+        input_["organizationId"] = study.organization.dewrangle_id
+        body = {
+            "query": STUDY_CREATE.strip(),
+            "variables": {
+                "input": input_
+            }
+        }
+
+        mutation_name = "studyCreate"
+        resp, status_code = self._send_mutation(body, mutation_name)
+        results = resp["data"][mutation_name]["study"]
+
+        study.dewrangle_id = results["id"]
+        study.save()
+
+        return results
+
+    def create_organization(self, organization):
+        """
+        Send graphql mutation to create an organization in Dewrangle
+        """
+        input_ = {
+            attr: getattr(organization, attr)
+            for attr in ["name"]
+        }
+        body = {
+            "query": ORG_CREATE.strip(),
+            "variables": {
+                "input": input_
+            }
+        }
+
+        mutation_name = "organizationCreate"
+        resp, status_code = self._send_mutation(body, mutation_name)
+        results = resp["data"][mutation_name]["organization"]
+
+        organization.dewrangle_id = results["id"]
+        organization.save()
 
         return results
 

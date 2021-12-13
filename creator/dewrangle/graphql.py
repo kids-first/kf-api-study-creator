@@ -1,14 +1,28 @@
 
-FILE_UPLOAD_INVOICE_CREATE = """
-mutation newUploadInvoices($input: FileUploadInvoicesCreateInput!) {
-  fileUploadInvoiceCreate(input: $input) {
-    errors {
-      message
-    }
-    fileUploadInvoices {
-      created
-      total
+STUDY_CREATE = """
+  mutation ($input: StudyCreateInput!) {
+    studyCreate(input: $input) {
+      errors {
+        message
+      }
+      study {
+        id
+        name
+      }
     }
   }
-}
+"""
+
+ORG_CREATE = """
+  mutation ($input: OrganizationCreateInput!) {
+    organizationCreate(input: $input) {
+      errors {
+        message
+      }
+      organization {
+        id
+        name
+      }
+    }
+  }
 """
