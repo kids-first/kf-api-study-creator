@@ -15,7 +15,10 @@ from creator.files.nodes.version import VersionNode
 from creator.files.object_types import TemplateMatchResult
 from creator.data_templates.nodes.template_version import TemplateVersionNode
 from creator.data_templates.models import TemplateVersion
-from creator.files.utils import evaluate_template_match
+from creator.files.utils import (
+    evaluate_template_match,
+    process_for_audit_submission
+)
 
 
 class VersionMutation(graphene.Mutation):
@@ -219,6 +222,9 @@ class VersionUploadMutation(graphene.Mutation):
             analysis = analyze_version(version)
             analysis.creator = user
             analysis.save()
+
+        # If this is a File Upload Manifest, process it for audit submission
+        process_for_audit_submission(version, root_file)
 
         return VersionUploadMutation(success=True, version=version)
 

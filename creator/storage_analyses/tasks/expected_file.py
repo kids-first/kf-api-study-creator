@@ -8,7 +8,7 @@ from django.db import IntegrityError
 
 from creator.decorators import task
 from creator.studies.models import Study
-from creator.files.models import Version
+from creator.files.models import Version, AuditPrepState
 from creator.storage_analyses.models import (
     UNIQUE_CONSTRAINT,
     FILE_UPLOAD_MANIFEST_SCHEMA,
@@ -98,7 +98,7 @@ def prepare_audit_submission(version_id):
     for each row
 
     Save ExpectedFiles to the study so they can later be submitted to the
-    auditing system (Dewrangle) to verify that the file exists in the 
+    auditing system (Dewrangle) to verify that the file exists in the
     study's cloud storage
     """
     logger.info(
@@ -152,6 +152,47 @@ def prepare_audit_submission(version_id):
     )
 
 
+def submit_expected_files_for_audit(batch):
+    """
+    Submit expected files to the auditing system
+    """
+    dewrangle = DewrangleClient()
+    study = batch[0].study
+
+    # Set audit state to submitting
+    _bulk_update_audit_state(batch, "start_submission")
+    try:
+        payloads = [
+            {
+                "location": expected_file.file_location,
+                "hash": expected_file.hash,
+                "hashAlgorithm": expected_file.hash_algorithm.upper(),
+                "size": expected_file.size,
+            }
+            for expected_file in batch
+        ]
+        result = dewrangle.bulk_upsert_expected_files(
+            study.dewrangle_id, payloads
+        )
+        logger.info(
+            f"Successfully submitted expected_files: {result['count']} "
+            f"Total expected_files: {result['total']} "
+        )
+    except Exception as e:
+        logger.exception(
+            "Failed submitting batch of expected_files to audit system @"
+            f" {dewrangle.url}"
+        )
+
+        # Set audit state to completed submission
+        _bulk_update_audit_state(batch, "fail_submission")
+
+        raise
+
+    # Set audit state to completed submission
+    _bulk_update_audit_state(batch, "complete_submission")
+
+
 @task("submit_study_for_audit")
 def submit_study_for_audit(study_id):
     """
@@ -194,39 +235,21 @@ def submit_study_for_audit(study_id):
     batched_expected_files = utils.batched_queryset_iterator(
         ExpectedFile.objects.filter(
             audit_state__in=states, study=study
+            # ).only("id").all(),
         ).all(),
         batch_size=EXPECTED_FILE_BATCH_SIZE
     )
+    # Note: We are starting with the simpler approach (submit batches
+    # serially) in favor of easier debugging and UI display of the job logs.
+    # A more performant approach would be to queue the submission jobs so that
+    # they execute concurrently. However, debugging and UI display of many jobs
+    # vs one job becomes more difficult. We'll try this and see how it does
+    total = 0
     for batch in batched_expected_files:
-        # Set audit state to submitting
-        _bulk_update_audit_state(batch, "start_submission")
-        try:
-            payloads = [
-                {
-                    "location": expected_file.file_location,
-                    "hash": expected_file.hash,
-                    "hashAlgorithm": expected_file.hash_algorithm.upper(),
-                    "size": expected_file.size,
-                }
-                for expected_file in batch
-            ]
-            result = dewrangle.bulk_upsert_expected_files(
-                study.dewrangle_id, payloads
-            )
-            logger.info(
-                f"Successfully submitted expected_files: {result['upserted']} "
-                f"Total expected_files: {result['total']} "
-            )
-        except Exception as e:
-            logger.exception(
-                "Failed submitting batch of expected_files to audit system @"
-                f" {dewrangle.url}"
-            )
-
-            # Set audit state to completed submission
-            _bulk_update_audit_state(batch, "fail_submission")
-
-            raise
-
-        # Set audit state to completed submission
-        _bulk_update_audit_state(batch, "complete_submission")
+        batch_count = len(batch)
+        logger.info(
+            f"Submitting expected_files: {batch_count} "
+            f"Total submitted: {total} "
+        )
+        submit_expected_files_for_audit(batch)
+        total += batch_count

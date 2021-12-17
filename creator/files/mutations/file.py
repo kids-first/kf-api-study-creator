@@ -1,4 +1,6 @@
+import logging
 import graphene
+import django_rq
 from django.db import transaction
 from django.conf import settings
 from graphene_file_upload.scalars import Upload
@@ -11,6 +13,9 @@ from creator.studies.models import Study
 from creator.events.models import Event
 from creator.files.nodes.file import FileNode, FileType
 from creator.data_templates.models import TemplateVersion
+from creator.files.utils import process_for_audit_submission
+
+logger = logging.getLogger(__name__)
 
 
 class CreateFileMutation(graphene.Mutation):
@@ -112,6 +117,9 @@ class CreateFileMutation(graphene.Mutation):
             version.root_file = root_file
             version.save()
             root_file.full_clean()
+
+        # If this is a File Upload Manifest, process it for audit submission
+        process_for_audit_submission(version, root_file=version.root_file)
 
         return CreateFileMutation(file=root_file)
 

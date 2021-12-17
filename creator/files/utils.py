@@ -1,7 +1,37 @@
+import logging
+import django_rq
+from django.conf import settings
 from graphql import GraphQLError
 from kf_lib_data_ingest.common.io import read_df
 
 from creator.data_templates.models import TemplateVersion
+
+logger = logging.getLogger(__name__)
+
+
+def process_for_audit_submission(version, root_file=None):
+    """
+    Queue file version for audit submission if it is a valid file upload
+    manifest
+    """
+    # This avoids circular import errors
+    from creator.storage_analyses.tasks.expected_file import (
+        prepare_audit_submission
+    )
+    if (
+        root_file and
+        settings.FEAT_DEWRANGLE_INTEGRATION and
+        version.is_file_upload_manifest
+    ):
+        logger.info(
+            f"Queued version {version.kf_id} {version.file_name} for"
+            " audit processing..."
+        )
+        version.start_audit_prep()
+        version.save()
+        django_rq.enqueue(
+            prepare_audit_submission, args=(version.pk, )
+        )
 
 
 def _file_columns(file_version):
