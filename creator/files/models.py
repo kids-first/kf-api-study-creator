@@ -21,6 +21,9 @@ from creator.fields import KFIDField, kf_id_generator
 from creator.analyses.file_types import FILE_TYPES
 from creator.data_templates.models import TemplateVersion
 from creator.files.utils import evaluate_template_match
+from creator.storage_analyses.models import (
+    FILE_UPLOAD_MANIFEST_SCHEMA,
+)
 
 EXTRACT_CFG_DIR = os.path.join(
     settings.BASE_DIR, "extract_configs", "templates"
@@ -372,6 +375,22 @@ class Version(models.Model):
                 config_path = os.path.join(EXTRACT_CFG_DIR, filename)
 
         return config_path
+
+    @property
+    def is_file_upload_manifest(self):
+        """
+        Check whether this file version conforms to the
+        File Upload Manifest schema
+        """
+        # Set proper storage backend based on settings
+        self.set_storage()
+
+        with self.key.open(mode="rb") as f:
+            header = {
+                "_".join(c.strip().split(" ")).lower()
+                for c in read_df(f, nrows=0).columns
+            }
+        return set(FILE_UPLOAD_MANIFEST_SCHEMA["required"]) <= header
 
     def set_storage(self):
         """
