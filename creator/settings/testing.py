@@ -117,7 +117,7 @@ GRAPHENE = {
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "psqlextra.backend",
         "NAME": os.environ.get("PG_NAME", "postgres"),
         "USER": os.environ.get("PG_USER", "postgres"),
         "PASSWORD": os.environ.get("PG_PASS", "postgres"),
