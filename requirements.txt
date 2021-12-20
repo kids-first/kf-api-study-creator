@@ -26,3 +26,4 @@ kf_lib_data_ingest @ git+https://git@github.com/kids-first/kf-lib-data-ingest.gi
 graphene_django @ git+https://git@github.com/graphql-python/graphene-django.git@d52b18a700d2c1cec4b2de1f673bff14e2d18071
 marshmallow==3.12.1
 XlsxWriter==1.4.4
+django-postgres-extra==2.0.3
