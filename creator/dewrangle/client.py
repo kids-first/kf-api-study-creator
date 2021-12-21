@@ -32,7 +32,7 @@ class DewrangleClient(object):
         try:
             response = self.session.post(self.url, json=body)
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.exception(
                 f"Problem sending request to dewrangle {self.url}"
             )
@@ -41,7 +41,10 @@ class DewrangleClient(object):
         try:
             resp = response.json()
         except json.JSONDecodeError:
-            logger.exception("Problem parsing JSON from response body")
+            logger.exception(
+                "Problem parsing JSON from response body. Caused by:\n"
+                f"{response.text}"
+            )
             raise
 
         logger.debug(pformat(resp))
@@ -53,11 +56,9 @@ class DewrangleClient(object):
         Helper to send GraphQL mutation request and handle errors
         """
         resp, status_code = self._send_post_request(body)
+        errors = resp.get("errors")
 
-        errors = (
-            resp.get("data", {}).get(mutation_name, {}).get("errors")
-        )
-        if status_code != 200 or errors:
+        if errors:
             msg = f"Failed {mutation_name} mutation @ {self.url}"
             logger.exception(msg)
             raise GraphQLError(
@@ -70,6 +71,32 @@ class DewrangleClient(object):
             )
 
         return resp, status_code
+
+    def get_node(self, dewrangle_id):
+        """
+        Get a graphql object by id
+        """
+        body = {
+            "query": NODE_GET.strip(),
+            "variables": {
+                "id": dewrangle_id
+            }
+        }
+        resp, status_code = self._send_post_request(body)
+
+        return resp.get("data", {}).get("node")
+
+    def upsert_study(self, study):
+        """
+        Send graphql mutation to upsert a study in Dewrangle
+        """
+        node = self.get_node(study.dewrangle_id)
+        if node:
+            results = self.update_study(study)
+        else:
+            results = self.create_study(study)
+
+        return results
 
     def create_study(self, study):
         """
@@ -93,6 +120,40 @@ class DewrangleClient(object):
 
         study.dewrangle_id = results["id"]
         study.save()
+
+        return results
+
+    def update_study(self, study):
+        """
+        Send graphql mutation to update a study in Dewrangle
+        """
+        input_ = {
+            attr: getattr(study, attr)
+            for attr in ["name"]
+        }
+        body = {
+            "query": STUDY_UPDATE.strip(),
+            "variables": {
+                "input": input_,
+                "id": study.dewrangle_id
+            }
+        }
+
+        mutation_name = "studyUpdate"
+        resp, status_code = self._send_mutation(body, mutation_name)
+        results = resp["data"][mutation_name]["study"]
+
+        return results
+
+    def upsert_organization(self, organization):
+        """
+        Send graphql mutation to upsert a organization in Dewrangle
+        """
+        node = self.get_node(organization.dewrangle_id)
+        if node:
+            results = self.update_organization(organization)
+        else:
+            results = self.create_organization(organization)
 
         return results
 
@@ -120,15 +181,24 @@ class DewrangleClient(object):
 
         return results
 
-    def get_storage_analysis(self, obj_id):
+    def update_organization(self, organization):
         """
-        Send graphql query to get a StorageAnalysis object from Dewrangle
+        Send graphql mutation to update an organization in Dewrangle
         """
-        pass
+        input_ = {
+            attr: getattr(organization, attr)
+            for attr in ["name"]
+        }
+        body = {
+            "query": ORG_UPDATE.strip(),
+            "variables": {
+                "input": input_,
+                "id": organization.dewrangle_id
+            }
+        }
 
-    def get_storage_analyses(self, study_id=None):
-        """
-        Send graphql query to get all StorageAnalysis objects or optionally,
-        all StorageAnalysis objects for a particular study from Dewrangle
-        """
-        pass
+        mutation_name = "organizationUpdate"
+        resp, status_code = self._send_mutation(body, mutation_name)
+        results = resp["data"][mutation_name]["organization"]
+
+        return results
