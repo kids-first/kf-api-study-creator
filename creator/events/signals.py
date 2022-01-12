@@ -35,7 +35,7 @@ def delete_file(signal, sender, instance, **kwargs):
     message = f"{username} deleted file {instance.kf_id}"
     event = Event(
         organization=instance.study.organization,
-        study=instance.study,
+        # study=instance.study,
         user=instance.creator,
         description=message,
         event_type="SF_DEL",
