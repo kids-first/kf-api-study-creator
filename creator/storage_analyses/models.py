@@ -127,7 +127,8 @@ class FileAudit(models.Model):
         blank=True
     )
     expected_url = models.URLField(
-        null=True, blank=True, help_text="Url of the file in cloud storage"
+        null=True, blank=True, help_text="Url of the file in cloud storage",
+        max_length=1000
     )
     expected_hash = models.CharField(
         max_length=256,
