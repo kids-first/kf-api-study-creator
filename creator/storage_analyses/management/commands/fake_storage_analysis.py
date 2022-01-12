@@ -5,6 +5,7 @@ import random
 from pprint import pformat, pprint
 
 import pandas
+import numpy
 import factory
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -16,6 +17,9 @@ from creator.studies.models import Study
 
 logger = logging.getLogger(__name__)
 
+BATCH_SIZE = 1000
+UNIQUE_CONSTRAINT = ["Source File Name", "Source Hash", "Hash", "Url"]
+
 
 def nan_to_none(row, key):
     val = row.get(key)
@@ -23,6 +27,20 @@ def nan_to_none(row, key):
         return None
     else:
         return val
+
+
+def row_to_file_audit(row, storage_analysis):
+    return FileAudit(
+        source_filename=nan_to_none(row, "Source File Name"),
+        expected_url=nan_to_none(row, "Url"),
+        expected_hash=nan_to_none(row, "Source Hash"),
+        actual_hash=nan_to_none(row, "Hash"),
+        expected_size=nan_to_none(row, "Source Size"),
+        actual_size=nan_to_none(row, "Size"),
+        hash_algorithm=nan_to_none(row, "Hash Algorithm"),
+        result=nan_to_none(row, "Status"),
+        storage_analysis=storage_analysis
+    )
 
 
 class Command(BaseCommand):
@@ -90,9 +108,11 @@ class Command(BaseCommand):
             sa = StorageAnalysis(study=study)
 
         try:
+            # Delete existing file audits
+            sa.file_audits.all().delete()
+
             # Compute storage analysis stats
             stats, file_audit_df = compute_storage_analysis(uploads, inventory)
-            file_audit_df.to_csv("file_audits.tsv", sep="\t", index=False)
             sa.scanned_storage_at = timezone.now() - timedelta(days=1)
             sa.stats = stats
             sa.save()
@@ -101,23 +121,41 @@ class Command(BaseCommand):
                 f"{verb} storage analysis {sa.id}:\n"
                 f"{pformat(stats)}"
             )
+            file_audit_df.to_csv("file_audits.tsv", sep="\t", index=False)
+
             # Create file audits
             logger.info("Updating file audits table ...")
-            sa.file_audits.all().delete()
-            for i, row in file_audit_df.iterrows():
-                fa = FileAudit(
-                    source_filename=nan_to_none(row, "Source File Name"),
-                    expected_url=nan_to_none(row, "Url"),
-                    expected_hash=nan_to_none(row, "Source Hash"),
-                    actual_hash=nan_to_none(row, "Hash"),
-                    expected_size=nan_to_none(row, "Source Size"),
-                    actual_size=nan_to_none(row, "Size"),
-                    hash_algorithm=nan_to_none(row, "Hash Algorithm"),
-                    result=nan_to_none(row, "Status"),
+
+            total = file_audit_df.shape[0]
+            n_batches = int(total/BATCH_SIZE)
+            total_created = 0
+            for bi, df_batch in enumerate(
+                numpy.array_split(file_audit_df, n_batches)
+            ):
+                duplicates = df_batch.duplicated(subset=UNIQUE_CONSTRAINT)
+                df_batch = df_batch[~duplicates]
+                dups = df_batch[duplicates].shape[0]
+                if dups:
+                    logger.warning(
+                        f"Dropping {dups} duplicate rows based on "
+                        f"unique constraint: {UNIQUE_CONSTRAINT}"
+                    )
+
+                batch_audits = []
+                for i, row in df_batch.iterrows():
+                    fa = row_to_file_audit(row, sa)
+                    batch_audits.append(fa)
+                    # logger.info(
+                    #     f"Adding file audit {bi + i}/{total} for "
+                    #     f"{fa.source_filename}"
+                    # )
+                created = FileAudit.objects.bulk_create(
+                    batch_audits, ignore_conflicts=True
                 )
-                fa.save()
-                logger.info(f"Added file audit for {fa.source_filename}")
-                sa.file_audits.add(fa)
+                total_created += len(created)
+                logger.info(
+                    f"Bulk created {total_created}/{total} file audits")
+
             sa.refreshed_at = timezone.now()
             sa.save()
         except Exception as e:
