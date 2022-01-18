@@ -10,6 +10,7 @@ from creator.buckets.models import Bucket
 from creator.data_reviews.models import DataReview
 from creator.ingest_runs.models import IngestRun, ValidationRun
 from creator.data_templates.models import DataTemplate, TemplateVersion
+from creator.referral_tokens.models import ReferralToken
 
 User = get_user_model()
 
@@ -204,4 +205,12 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         related_name="events",
         help_text="Template Version related to this event",
+    )
+    referral_token = models.ForeignKey(
+        ReferralToken,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="events",
+        help_text="Referral token related to this event",
     )
