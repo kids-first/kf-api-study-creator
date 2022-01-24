@@ -2,8 +2,27 @@ import os
 
 import humanize
 import pandas
+from pprint import pprint
 
 from .data import FILE_EXT_FORMAT_MAP, DATA_TYPES
+
+
+def only_complete_rows(df, required):
+    """
+    Filter out rows that are missing required values
+    """
+    missing_required = df[required].isnull().any(axis=1)
+    df = df[~missing_required]
+    return df
+
+
+def drop_duplicates(df, required):
+    """
+    Drop duplicate rows
+    """
+    dups = df.duplicated(subset=required)
+    df = df[~dups].reset_index(drop=True)
+    return df
 
 
 def filename_from_row(row):
@@ -93,6 +112,23 @@ def file_url(row):
     return f"s3://{bucket}/{key}"
 
 
+def common_path(row):
+    """
+    Set file name/path of S3 object by extracting common path suffix between
+    source file name/path and S3 Key
+    """
+    source = row["Source File Name"]
+    dest = row["Key"]
+
+    if pandas.isnull(dest) or pandas.isnull(source):
+        return dest
+
+    if dest.endswith(source):
+        return source
+    else:
+        return os.path.basename(dest)
+
+
 def file_count_by_size(df, col):
     """
     Count files that are greater than a certain size
@@ -113,32 +149,45 @@ def compute_storage_analysis(uploads, inventory):
     """
     # Aggregate upload manifests
     # resolve duplicate file uploads by taking the latest one
+    required = ["Source File Name", "Hash", "Hash Algorithm", "Size"]
+    required_inv = ["Bucket", "Key", "Hash", "Hash Algorithm", "Size"]
+
     upload_df = (
         pandas.concat(uploads)
         .sort_values("Created At", ascending=False)
-        .drop_duplicates("Hash")
-        .reset_index(drop=True)
-    ).rename(
+    )
+    # Remove rows that are missing req cols to do analysis
+    upload_df = only_complete_rows(upload_df, required)
+    inventory = only_complete_rows(inventory, required_inv)
+
+    # Drop duplicates
+    upload_df = drop_duplicates(upload_df, required)
+    inventory = drop_duplicates(inventory, required_inv)
+
+    # Rename columns
+    upload_df = upload_df.rename(
         columns={
             col: f"Source {col}"
             for col in ["Hash", "Hash Algorithm", "Size"]
         }
     )
+
     # Join with s3 inventory
-    inventory["File Name"] = inventory["Key"].apply(
-        lambda key: key.split("/")[-1]
-    )
     file_audits = pandas.merge(
         upload_df, inventory,
         left_on="Source Hash", right_on="Hash",
         how="outer", indicator=True
     )
+
+    file_audits.to_csv("file_audits_raw.csv", index=False)
+
     for c in ["Size", "Source Size"]:
         file_audits[c] = file_audits[c].apply(
-            lambda x: int(x) if pandas.notnull(x) else None
+            lambda x: int(float(x)) if x and pandas.notnull(x) else None
         )
 
     # Extract other necessary metadata
+    file_audits["File Name"] = file_audits.apply(common_path, axis=1)
     file_audits["File Extension"] = file_audits.apply(file_ext, axis=1)
     file_audits["Data Type"] = file_audits.apply(data_type, axis=1)
     file_audits["Status"] = file_audits.apply(file_status, axis=1)
@@ -153,9 +202,23 @@ def compute_storage_analysis(uploads, inventory):
     ]
 
     matched = file_audits[file_audits["Status"] == "matched"]
-    missing = file_audits[file_audits["Status"] == "missing"]
+    matched = drop_duplicates(
+        matched, ["Source File Name", "File Name", "Hash"]
+    )
     moved = file_audits[file_audits["Status"] == "moved"]
+    moved = drop_duplicates(
+        moved, ["Hash"]
+    )
+    missing = file_audits[file_audits["Status"] == "missing"]
+    missing = drop_duplicates(
+        missing, ["Source File Name", "Hash"]
+    )
     unexpected = file_audits[file_audits["Status"] == "unexpected"]
+    unexpected = drop_duplicates(
+        unexpected, ["Url", "Hash"]
+    )
+
+    # TODO - We need to use originals here and add appropriate analysis cols
     uploads_df = pandas.concat([matched, moved, missing])
     inventory_df = pandas.concat([matched, moved, unexpected])
 
@@ -171,7 +234,12 @@ def compute_storage_analysis(uploads, inventory):
     # Compute storage analysis stats
     stats_dict = {"audit": {}}
     for key, df in stat_dfs:
+        # Filter out invalid rows
+        missing_required = df[["Hash", "Source Hash"]].isnull().all(axis=1)
+        df = df[~missing_required]
+
         size_col = "Size" if key != "missing" else "Source Size"
+
         if df.empty:
             stats = {
                 "total_count": 0,
@@ -181,8 +249,16 @@ def compute_storage_analysis(uploads, inventory):
                 "count_by_data_type": 0
             }
         else:
+            # TODO - Remove later once original uploads and inventory dfs are
+            # used and formatted for analysis
+            if key == "inventory":
+                total = inventory.shape[0]
+            elif key == "uploads":
+                total = upload_df.shape[0]
+            else:
+                total = df.shape[0]
             stats = {
-                "total_count": df.shape[0],
+                "total_count": total,
                 "total_size": humanize.naturalsize(df[size_col].sum()),
                 "count_by_size": file_count_by_size(df, size_col),
                 "count_by_ext": df.groupby(["File Extension"]).size().to_dict(),

@@ -127,11 +127,14 @@ class Command(BaseCommand):
             logger.info("Updating file audits table ...")
 
             total = file_audit_df.shape[0]
-            n_batches = int(total/BATCH_SIZE)
+            n_batches = int(total/BATCH_SIZE) or 1
             total_created = 0
             for bi, df_batch in enumerate(
                 numpy.array_split(file_audit_df, n_batches)
             ):
+                # Warn when duplicates are found bc they must be dropped
+                # prior to bulk create since it cannot operate on the
+                # same row twice in the same transaction
                 duplicates = df_batch.duplicated(subset=UNIQUE_CONSTRAINT)
                 df_batch = df_batch[~duplicates]
                 dups = df_batch[duplicates].shape[0]
