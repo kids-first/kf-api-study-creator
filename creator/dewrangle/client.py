@@ -40,7 +40,7 @@ class DewrangleClient(object):
 
         try:
             resp = response.json()
-        except json.JSONDecodeError:
+        except Exception:
             logger.exception(
                 "Problem parsing JSON from response body. Caused by:\n"
                 f"{response.text}"
@@ -200,5 +200,26 @@ class DewrangleClient(object):
         mutation_name = "organizationUpdate"
         resp, status_code = self._send_mutation(body, mutation_name)
         results = resp["data"][mutation_name]["organization"]
+
+        return results
+
+    def bulk_upsert_expected_files(self, study_id, expected_files):
+        """
+        Send graphql mutation to create a batch of expected_files
+        in Dewrangle
+        """
+        body = {
+            "query": EXPECTED_FILE_UPSERT_MANY.strip(),
+            "variables": {
+                "input": {
+                    "studyId": study_id,
+                    "expectedFiles": expected_files
+                }
+            }
+        }
+
+        mutation_name = "expectedFileUpsertMany"
+        resp, status_code = self._send_mutation(body, mutation_name)
+        results = resp["data"][mutation_name]
 
         return results

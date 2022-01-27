@@ -62,3 +62,15 @@ NODE_GET = """
   		}
   }
 """
+
+EXPECTED_FILE_UPSERT_MANY = """
+mutation newExpectedFiles($input: ExpectedFileUpsertManyInput!) {
+  expectedFileUpsertMany(input: $input) {
+    errors {
+      message
+    }
+    count
+    total
+  }
+}
+"""
