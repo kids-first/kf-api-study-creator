@@ -161,6 +161,7 @@ class CreateReferralTokenMutation(graphene.Mutation):
             organization=referral_token.organization,
             description=message,
             event_type="RT_CRE",
+            referral_token=referral_token,
         )
         if not user._state.adding:
             event.user = user
@@ -232,6 +233,7 @@ class ExchangeReferralTokenMutation(graphene.Mutation):
             organization=referral_token.organization,
             description=message,
             event_type="RT_CLA",
+            referral_token=referral_token,
         )
         if not user._state.adding:
             event.user = user
