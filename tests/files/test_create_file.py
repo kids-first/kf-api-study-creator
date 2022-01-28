@@ -11,6 +11,8 @@ from creator.studies.factories import StudyFactory
 from creator.files.factories import VersionFactory
 from creator.data_templates.factories import TemplateVersionFactory
 
+from .fixtures import make_file_upload_manifest
+
 User = get_user_model()
 
 
@@ -57,14 +59,16 @@ CREATE_FILE = """
 """
 
 
-def test_create_file(db, clients):
+def test_create_file(db, settings, mocker, clients, make_file_upload_manifest):
     """
     Test the create file mutation
     """
+    settings.FEAT_DEWRANGLE_INTEGRATION = False
+    mock_django_rq = mocker.patch("creator.files.utils.django_rq")
+
     client = clients.get("Administrators")
     study = StudyFactory()
-    version = Version(size=123)
-    version.save()
+    version = make_file_upload_manifest()
     template_version = TemplateVersionFactory()
 
     variables = {
@@ -85,6 +89,7 @@ def test_create_file(db, clients):
     result = resp.json()["data"]["createFile"]["file"]
     assert result["id"]
     assert result["templateVersion"]
+    assert mock_django_rq.enqueue.call_count == 0
 
 
 def test_study_does_not_exist(db, clients):

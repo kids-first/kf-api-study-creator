@@ -94,11 +94,15 @@ def test_upload_query_local(db, clients, tmp_uploads_local, upload_file):
 
 
 def test_upload_version(
-    db, clients, tmp_uploads_local, upload_file, upload_version
+    db, clients, settings, mocker, tmp_uploads_local,
+    upload_file, upload_version
 ):
     """
     Test upload of intial file followed by a new version
     """
+    settings.FEAT_DEWRANGLE_INTEGRATION = False
+    mock_django_rq = mocker.patch("creator.files.utils.django_rq")
+
     client = clients.get("Administrators")
     studies = StudyFactory.create_batch(1)
     study_id = studies[-1].kf_id
@@ -107,6 +111,7 @@ def test_upload_version(
     assert Study.objects.count() == 1
     assert File.objects.count() == 1
     assert Version.objects.count() == 1
+    assert mock_django_rq.call_count == 0
 
     study = Study.objects.first()
     sf = File.objects.first()

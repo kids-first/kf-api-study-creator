@@ -7,6 +7,40 @@ from creator.data_templates.factories import TemplateVersionFactory
 from creator.files.factories import VersionFactory
 from creator.files.utils import evaluate_template_match
 
+from .fixtures import make_file_upload_manifest
+from creator.files.utils import process_for_audit_submission
+from creator.files.models import AuditPrepState
+
+
+def test_process_for_audit_submission(
+    db, settings, mocker, make_file_upload_manifest
+):
+    mock_django_rq = mocker.patch("creator.files.utils.django_rq")
+
+    # Valid file upload manifest
+    settings.FEAT_DEWRANGLE_INTEGRATION = True
+    version = make_file_upload_manifest()
+    process_for_audit_submission(version, version.root_file)
+    assert mock_django_rq.enqueue.call_count == 1
+    assert version.audit_prep_state == AuditPrepState.RUNNING
+
+    # Disable Dewrangle integration, with a valid file upload manifest
+    mock_django_rq.reset_mock()
+    settings.FEAT_DEWRANGLE_INTEGRATION = False
+    process_for_audit_submission(version, "a root file")
+    assert mock_django_rq.enqueue.call_count == 0
+
+    # Enabled Dewrangle integration, with invalid file upload manifest
+
+    class MockVersion:
+        def __init__(self, manifest):
+            self.is_file_upload_manifest = manifest
+    mock_django_rq.reset_mock()
+    version = MockVersion(False)
+    settings.FEAT_DEWRANGLE_INTEGRATION = True
+    process_for_audit_submission(version, "a root file")
+    assert mock_django_rq.enqueue.call_count == 0
+
 
 def update_version_content(df, file_version):
     """
