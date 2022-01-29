@@ -33,8 +33,12 @@ def make_file_upload_manifest(tmpdir, settings):
         version = VersionFactory()
         df = pandas.DataFrame(
             [
-                {c: c for c in MANIFEST_SCHEMA["required"]}
-                for i in range(nrows)
+                {
+                    "File Location": f"foo{i}.tsv",
+                    "Hash":  f"hash{i}",
+                    "Hash Algorithm": "MD5",
+                    "Size": i * 100,
+                } for i in range(nrows)
             ]
         )
         content = df.to_csv(sep="\t", index=False)
