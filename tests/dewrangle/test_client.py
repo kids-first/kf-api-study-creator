@@ -271,3 +271,32 @@ def test_upsert_organization(mocker, db):
     mock_get_node.return_value = {"organization": "foobar"}
     results = client.upsert_organization(organization)
     mock_update_organization.call_count == 1
+
+
+def test_bulk_upsert_expected_file(db, mock_dewrangle):
+    """
+    Test DewrangleClient bulk upsert expected files mutation
+    """
+    study = StudyFactory(dewrangle_id="dewrangle_study_id")
+    files = [
+        {
+            "file_location": f"myfile{i}.tsv",
+            "hash": f"foobar{i}",
+            "hash_algorithm": "MD5",
+            "size": i * 100
+
+        } for i in range(5)
+    ]
+
+    resp = {
+        "data": {
+            "expectedFileUpsertMany": {
+                "total": 5,
+                "count": 5
+            }
+        }
+    }
+    client = mock_dewrangle(200, resp)
+    results = client.bulk_upsert_expected_files(study.dewrangle_id, files)
+    assert results["total"] == 5
+    assert results["count"] == 5
