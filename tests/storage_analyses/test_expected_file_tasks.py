@@ -166,3 +166,73 @@ def test_submit_study_for_audit_errors(db, mocker):
     # No expected files to submit
     task.submit_study_for_audit(study.pk)
     assert mock_logger.info.call_count == 1
+
+
+def test_retry_versions_failed(db, mocker):
+    """
+    Test retry_versions_failed_audit_prep
+    """
+    mock_logger = mocker.patch(
+        "creator.storage_analyses.tasks.expected_file.logger"
+    )
+    mock_django_rq = mocker.patch(
+        "creator.storage_analyses.tasks.expected_file.django_rq"
+    )
+    study = StudyFactory()
+    complete = VersionFactory.create_batch(
+        5, audit_prep_state=AuditPrepState.COMPLETED
+    )
+    failed = VersionFactory.create_batch(
+        5, audit_prep_state=AuditPrepState.FAILED
+    )
+
+    # Success
+    task.retry_versions_failed_audit_prep()
+    expected_ids = [str(f.pk) for f in failed]
+    actual_ids = []
+    for call in mock_django_rq.enqueue.call_args_list:
+        args, kwargs = call
+        actual_ids.append(args[1])
+    assert set(expected_ids) == set(actual_ids)
+
+    # 0 versions failed
+    Version.objects.all().delete()
+    task.retry_versions_failed_audit_prep()
+    assert mock_django_rq.enqueue.call_count == len(actual_ids)
+
+
+def test_retry_files_failed(db, mocker):
+    """
+    Test retry_files_failed_audit_submission
+    """
+    mock_logger = mocker.patch(
+        "creator.storage_analyses.tasks.expected_file.logger"
+    )
+    mock_django_rq = mocker.patch(
+        "creator.storage_analyses.tasks.expected_file.django_rq"
+    )
+    studies = StudyFactory.create_batch(2)
+    for study in studies:
+        efs = ExpectedFileFactory.create_batch(
+            10, audit_state=AuditState.NOT_SUBMITTED, study=study
+        )
+        in_progress = ExpectedFileFactory.create_batch(
+            8, audit_state=AuditState.SUBMITTING, study=study
+        )
+        failed = ExpectedFileFactory.create_batch(
+            5, audit_state=AuditState.FAILED, study=study
+        )
+
+    # Success
+    task.retry_files_failed_audit_submission()
+    expected_ids = [str(s.pk) for s in studies]
+    actual_ids = []
+    for call in mock_django_rq.enqueue.call_args_list:
+        args, kwargs = call
+        actual_ids.append(args[1])
+    assert set(expected_ids) == set(actual_ids)
+
+    # 0 studies failed
+    Study.objects.all().delete()
+    task.retry_versions_failed_audit_prep()
+    assert mock_django_rq.enqueue.call_count == len(actual_ids)

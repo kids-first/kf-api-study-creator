@@ -253,3 +253,56 @@ def submit_study_for_audit(study_id):
         )
         submit_expected_files_for_audit(batch)
         total += batch_count
+
+@task("retry_versions_failed_audit_prep")
+def retry_versions_failed_audit_prep():
+    """
+    Retry preparing file versions that failed prepare_audit_submission
+    """
+    logger.info(
+        "Searching for file upload manifests that failed audit prep ..."
+    )
+    versions = Version.objects.filter(audit_prep_state=AuditPrepState.FAILED)
+
+    if len(versions) == 0:
+        logger.info(
+            f"Found {len(versions)} file upload manifests that failed audit "
+            "prep"
+        )
+        return
+
+    for version in versions:
+        logger.info(
+            f"Retrying file upload manifest {version.pk} for audit preparation"
+        )
+        version.start_audit_prep()
+        version.save()
+        django_rq.enqueue(prepare_audit_submission, version.pk)
+
+
+@task("retry_files_failed_audit_submission")
+def retry_files_failed_audit_submission():
+    """
+    Retry submitting studies that have one or more expected files that failed
+    audit submission
+    """
+    logger.info(
+        "Searchiing for studies that failed audit submission ..."
+    )
+    studies = (
+        Study.objects
+        .filter(expected_files__audit_state=AuditState.FAILED)
+        .distinct()
+    )
+
+    if len(studies) == 0:
+        logger.info(
+            f"Found {len(studies)} studies that failed audit submission"
+        )
+        return
+
+    for study in studies:
+        logger.info(
+            f"Retrying study {study.pk} for audit submission"
+        )
+        django_rq.enqueue(submit_study_for_audit, study.pk)
