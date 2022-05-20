@@ -6,7 +6,7 @@ django-cors-headers==3.7.0
 django-s3-storage==0.12.4
 boto3==1.17.8
 psycopg2-binary==2.8.4
-PyJWT==1.7.1
+PyJWT==2.4.0
 gunicorn==19.9.0
 base32-crockford==0.3.0
 requests==2.22.0
