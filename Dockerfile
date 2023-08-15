@@ -5,7 +5,8 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git postgresql-client
-RUN pip install awscli && \
+RUN pip install --upgrade pip && \
+    pip install awscli && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/

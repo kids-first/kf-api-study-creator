@@ -16,7 +16,7 @@ def sync_dataservice_studies():
     api = settings.DATASERVICE_URL
     logger.info(f"Getting studies from Dataservice at {api}")
     try:
-        resp = requests.get(f"{api}/studies?limit=100")
+        resp = requests.get(f"{api}/studies?limit=1000")
     except RequestException as err:
         logger.error(
             f"There was a problem getting studies from the Dataservice: {err}"
