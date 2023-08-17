@@ -1,5 +1,19 @@
 # Kids First Study Creator Change History
 
+## Release 1.22.0
+
+### Summary
+
+- Emojis: ? x1, ♻️ x1, ⬆️ x1
+- Categories: Additions x1, Ops x1, Other Changes x1
+
+### New features and changes
+
+- [#853](https://github.com/kids-first/kf-api-study-creator/pull/853) -  :bug: Sync all studies in dataservice - [ba62b369](https://github.com/kids-first/kf-api-study-creator/commit/ba62b369e6464259ea92dbb9ba49876513f37fba) by [znatty22](https://github.com/znatty22)
+- [#811](https://github.com/kids-first/kf-api-study-creator/pull/811) - ♻️ Refactor referral token mutation and event messages - [c8558574](https://github.com/kids-first/kf-api-study-creator/commit/c85585745fc68ccdcb56530bc032c0bb94da29cc) by [XuTheBunny](https://github.com/XuTheBunny)
+- [#810](https://github.com/kids-first/kf-api-study-creator/pull/810) - ⬆️ Security upgrade django from 2.2.24 to 2.2.26 - [364fb2e9](https://github.com/kids-first/kf-api-study-creator/commit/364fb2e91556da4d1387b15e53456dc2e6ef40c8) by [snyk-bot](https://github.com/snyk-bot)
+
+
 ## Release 1.21.1
 
 ### Summary
