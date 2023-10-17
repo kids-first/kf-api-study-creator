@@ -4,6 +4,15 @@
 
 import os
 
+# FLATFILE IMPORT #############################################################
+# Default settings for the Flatfile import button
+FLATFILE_AUTO_DETECT_HEADERS = True
+FLATFILE_ALLOW_INVALID_SUBMIT = True
+FLATFILE_ALLOW_CUSTOM = True
+FLATFILE_MANAGED = True
+FLATFILE_MATCH_STRATEGY = "fuzzy"  # fuzzy or exact
+FLATFILE_DEFAULT_TITLE = "Upload Documents"
+FLATFILE_DEFAULT_TYPE = "Data"
 
 # STUDIES ######################################################################
 # The Study Creator's primary purpose is to create and track studies.
