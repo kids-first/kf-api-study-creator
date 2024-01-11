@@ -14,4 +14,4 @@ pytest-pycodestyle==2.2.0
 pytest-mock==3.3.0
 pytest-cov==2.12.1
 -e git+https://github.com/codecov/codecov-python.git@4ec70db255cc2dc332fbd01aab3069d9b2e699dc#egg=codecov
-jinja2<3.1.0
+jinja2<3.1.3
