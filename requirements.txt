@@ -1,6 +1,6 @@
 graphene==2.1.8
-Django==2.2.26
-django-filter==2.1.0
+Django==3.2.23
+django-filter==2.4.0
 graphene-file-upload==1.2.2
 django-cors-headers==3.7.0
 django-s3-storage==0.12.4
@@ -26,3 +26,4 @@ kf_lib_data_ingest @ git+https://git@github.com/kids-first/kf-lib-data-ingest.gi
 graphene_django @ git+https://git@github.com/graphql-python/graphene-django.git@d52b18a700d2c1cec4b2de1f673bff14e2d18071
 marshmallow==3.12.1
 XlsxWriter==1.4.4
+urllib3>=1.26.18 # not directly required, pinned by Snyk to avoid a vulnerability
