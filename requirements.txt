@@ -9,7 +9,7 @@ psycopg2-binary==2.8.4
 PyJWT==1.7.1
 gunicorn==19.9.0
 base32-crockford==0.3.0
-requests==2.22.0
+requests==2.32.2
 cryptography==3.3.2
 sevenbridges-python==0.24.0
 django-rq==2.3.2
@@ -26,3 +26,5 @@ kf_lib_data_ingest @ git+https://git@github.com/kids-first/kf-lib-data-ingest.gi
 graphene_django @ git+https://git@github.com/graphql-python/graphene-django.git@d52b18a700d2c1cec4b2de1f673bff14e2d18071
 marshmallow==3.12.1
 XlsxWriter==1.4.4
+idna>=3.7 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=1.26.19 # not directly required, pinned by Snyk to avoid a vulnerability
